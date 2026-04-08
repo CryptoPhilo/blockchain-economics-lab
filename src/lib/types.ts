@@ -1,4 +1,4 @@
-export type ProductType = 'single_report' | 'subscription' | 'bundle'
+export type ProductType = 'single_report' | 'subscription' | 'bundle' | 'project_subscription'
 export type ProductStatus = 'draft' | 'published' | 'archived'
 export type PaymentMethod = 'stripe' | 'crypto_btc' | 'crypto_eth' | 'crypto_usdt' | 'crypto_usdc'
 export type OrderStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'refunded' | 'expired'
@@ -101,6 +101,118 @@ export interface UserLibraryItem {
   access_expires_at?: string
   download_count: number
   product?: Product
+}
+
+// ============================================================
+// Tracked Projects & Report Production Types
+// ============================================================
+
+export type ProjectStatus = 'discovered' | 'under_review' | 'active' | 'monitoring_only' | 'suspended' | 'archived'
+export type ReportType = 'econ' | 'maturity' | 'forensic'
+export type ReportStatus = 'assigned' | 'in_progress' | 'in_review' | 'approved' | 'published' | 'cancelled'
+export type ProjectSubTier = 'single' | 'triple' | 'five' | 'all'
+
+export interface TrackedProject {
+  id: string
+  name: string
+  slug: string
+  symbol: string
+  chain?: string
+  category?: string
+  status: ProjectStatus
+  discovered_at: string
+  discovered_by?: string
+  discovery_source?: string
+  market_cap_usd?: number
+  tvl_usd?: number
+  coingecko_id?: string
+  website_url?: string
+  last_econ_report_at?: string
+  last_maturity_report_at?: string
+  last_forensic_report_at?: string
+  next_econ_due_at?: string
+  next_maturity_due_at?: string
+  forensic_monitoring: boolean
+  maturity_score?: number
+  maturity_stage?: string
+  primary_analyst_id?: string
+  created_at: string
+}
+
+export type SupportedLanguage = 'en' | 'ko' | 'fr' | 'es' | 'de' | 'ja' | 'zh'
+export type TranslationStatus = Record<SupportedLanguage, 'pending' | 'in_progress' | 'completed'>
+
+export interface ProjectReport {
+  id: string
+  project_id: string
+  product_id?: string
+  report_type: ReportType
+  version: number
+  status: ReportStatus
+  language: SupportedLanguage
+  assigned_to?: string
+  assigned_at: string
+  started_at?: string
+  review_at?: string
+  approved_at?: string
+  published_at?: string
+  trigger_reason?: string
+  risk_level?: string
+  file_url?: string
+  file_urls_by_lang?: Record<SupportedLanguage, string>
+  page_count?: number
+  task_id?: string
+  title_en?: string
+  title_ko?: string
+  title_fr?: string
+  title_es?: string
+  title_de?: string
+  title_ja?: string
+  title_zh?: string
+  translation_status?: TranslationStatus
+  project?: TrackedProject
+  product?: Product
+}
+
+export interface ForensicMonitoringLog {
+  id: string
+  project_id: string
+  check_date: string
+  price_change_24h?: number
+  volume_ratio?: number
+  whale_movement_pct?: number
+  exchange_netflow_pct?: number
+  insider_activity?: string
+  total_flags: number
+  flag_details?: Record<string, any>
+  action: string
+  analyst_id?: string
+  notes?: string
+  project?: TrackedProject
+}
+
+export interface ProjectSubscription {
+  id: string
+  user_id: string
+  tier: ProjectSubTier
+  status: SubscriptionStatus
+  payment_method: PaymentMethod
+  price_usd_cents: number
+  interval: 'monthly' | 'yearly'
+  current_period_start?: string
+  current_period_end?: string
+  crypto_wallet_address?: string
+  cancelled_at?: string
+  created_at: string
+  items?: ProjectSubscriptionItem[]
+}
+
+export interface ProjectSubscriptionItem {
+  id: string
+  project_subscription_id: string
+  project_id: string
+  added_at: string
+  project?: TrackedProject
 }
 
 // Helper: get localized field from product/category
