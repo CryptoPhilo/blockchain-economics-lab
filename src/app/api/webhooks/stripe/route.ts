@@ -10,6 +10,9 @@ export async function POST(request: NextRequest) {
   let event: Stripe.Event
 
   try {
+    if (!stripe) {
+      return NextResponse.json({ error: 'Stripe is not configured' }, { status: 503 })
+    }
     event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
   } catch (err: any) {
     console.error('Webhook signature verification failed:', err.message)

@@ -14,13 +14,14 @@ export default function ProductCard({ product, locale }: Props) {
   const title = getLocalizedField(product, 'title', locale)
   const description = getLocalizedField(product, 'description', locale)
 
-  const typeConfig = {
+  const typeConfig: Record<string, { label: string; color: string; icon: string }> = {
     single_report: { label: t('singleReports'), color: 'bg-blue-500/20 text-blue-400', icon: '📄' },
     subscription: { label: t('subscriptions'), color: 'bg-green-500/20 text-green-400', icon: '🔄' },
     bundle: { label: t('bundles'), color: 'bg-purple-500/20 text-purple-400', icon: '📦' },
+    project_subscription: { label: t('subscriptions'), color: 'bg-emerald-500/20 text-emerald-400', icon: '🔔' },
   }
 
-  const config = typeConfig[product.type]
+  const config = typeConfig[product.type] || typeConfig.single_report
 
   return (
     <Link
