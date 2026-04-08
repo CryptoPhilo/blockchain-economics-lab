@@ -1,0 +1,65 @@
+name: "📊 Research Report"
+description: "New research report production task"
+title: "[RES] "
+labels: ["research", "report"]
+body:
+  - type: dropdown
+    id: category
+    attributes:
+      label: Research Category
+      options:
+        - On-Chain Analytics
+        - Tokenomics
+        - DeFi Research
+        - Macro & Crypto
+        - Special Reports
+    validations:
+      required: true
+  - type: dropdown
+    id: assigned-agent
+    attributes:
+      label: Assigned Agent
+      description: "Which research agent should handle this?"
+      options:
+        - "agent-onchain-analyst (온체인 분석가)"
+        - "agent-tokenomics-researcher (토큰 연구원)"
+        - "agent-defi-researcher (DeFi 연구원)"
+        - "agent-macro-analyst (매크로 분석가)"
+        - "agent-report-editor (리포트 편집자)"
+    validations:
+      required: true
+  - type: textarea
+    id: objective
+    attributes:
+      label: Research Objective
+      description: "What should this report analyze?"
+    validations:
+      required: true
+  - type: textarea
+    id: data-sources
+    attributes:
+      label: Data Sources
+      description: "Required data sources (Dune, DefiLlama, CoinGecko, etc.)"
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - "🔴 Critical (urgent market event)"
+        - "🟡 High (scheduled deadline)"
+        - "🟢 Normal (regular pipeline)"
+        - "⚪ Low (backlog)"
+    validations:
+      required: true
+  - type: input
+    id: target-date
+    attributes:
+      label: Target Publication Date
+      placeholder: "YYYY-MM-DD"
+  - type: textarea
+    id: goal-ancestry
+    attributes:
+      label: Goal Ancestry
+      description: "How does this trace back to the company mission?"
+      placeholder: |
+        Company Mission → Team Goal → Agent Goal → This Task

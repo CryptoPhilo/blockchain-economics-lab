@@ -1,0 +1,44 @@
+name: "🚀 Feature Request"
+description: "New feature or enhancement for the platform"
+title: "[FEAT] "
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Feature Area
+      options:
+        - Frontend (UI/UX)
+        - Backend (API)
+        - Payments (Stripe/Crypto)
+        - Database
+        - i18n (Localization)
+        - Infrastructure
+        - Agent Integration
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: "Describe the feature and why it's needed"
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: "What must be true for this to be considered done?"
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - "🔴 Critical"
+        - "🟡 High"
+        - "🟢 Normal"
+        - "⚪ Low"
+    validations:
+      required: true

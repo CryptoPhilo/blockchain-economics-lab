@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: "📋 Organization Chart"
+    url: "https://github.com/OWNER/blockchain-economics-lab/blob/main/ORGANIZATION.md"
+    about: "View the agent organization structure"
+  - name: "📖 Website Guide"
+    url: "https://github.com/OWNER/blockchain-economics-lab/blob/main/docs/WEBSITE_GUIDE.md"
+    about: "Website architecture and setup guide"

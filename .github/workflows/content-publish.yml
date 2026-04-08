@@ -1,0 +1,33 @@
+name: Content Publishing
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'content/reports/**'
+  workflow_dispatch:
+    inputs:
+      report_slug:
+        description: 'Report slug to publish'
+        required: true
+
+jobs:
+  publish:
+    name: 📝 Publish Report
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Upload report to Supabase Storage
+        run: node scripts/publish-report.js
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          REPORT_SLUG: ${{ github.event.inputs.report_slug }}
+      - name: Notify agents
+        run: |
+          echo "📢 Report published! Triggering marketing pipeline..."

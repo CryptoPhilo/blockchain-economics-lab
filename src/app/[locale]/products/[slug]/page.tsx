@@ -108,9 +108,9 @@ export default async function ProductDetailPage({ params }: Props) {
             <CheckoutButton product={product} locale={locale} />
 
             <div className="mt-6 pt-6 border-t border-white/10">
-              <p className="text-xs text-gray-500 text-center">Secure payment via Stripe & Crypto</p>
+              <p className="text-xs text-gray-500 text-center">Secure crypto payment — BTC, ETH, USDT, USDC</p>
               <div className="flex justify-center gap-3 mt-3 text-lg">
-                <span>💳</span><span>₿</span><span>Ξ</span><span>₮</span>
+                <span>₿</span><span>Ξ</span><span>₮</span><span>💲</span>
               </div>
             </div>
           </div>

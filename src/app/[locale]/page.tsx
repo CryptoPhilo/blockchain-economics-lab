@@ -119,10 +119,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       {/* Payment Methods Banner */}
       <section className="max-w-6xl mx-auto px-6 pb-20">
         <div className="rounded-2xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 p-10 text-center">
-          <h3 className="text-2xl font-bold mb-4">Flexible Payment Options</h3>
-          <p className="text-gray-400 mb-6">Pay with credit card or cryptocurrency — BTC, ETH, USDT, USDC accepted</p>
+          <h3 className="text-2xl font-bold mb-4">Crypto-Native Payments</h3>
+          <p className="text-gray-400 mb-6">Pay with cryptocurrency — BTC, ETH, USDT, USDC accepted</p>
           <div className="flex justify-center gap-6 text-3xl">
-            <span title="Visa/Mastercard">💳</span>
             <span title="Bitcoin">₿</span>
             <span title="Ethereum">Ξ</span>
             <span title="USDT">₮</span>

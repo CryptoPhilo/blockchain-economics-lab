@@ -1,0 +1,50 @@
+name: "⚙️ Operations Task"
+description: "Operational task (deployment, monitoring, data pipeline)"
+title: "[OPS] "
+labels: ["operations"]
+body:
+  - type: dropdown
+    id: ops-type
+    attributes:
+      label: Operations Type
+      options:
+        - Deployment
+        - Monitoring / Alerting
+        - Data Pipeline
+        - Content Publishing
+        - Marketing Campaign
+        - Community Management
+        - Budget / Cost Review
+        - Security / Access
+    validations:
+      required: true
+  - type: dropdown
+    id: assigned-agent
+    attributes:
+      label: Assigned Agent
+      options:
+        - "agent-ceo (연구소장)"
+        - "agent-coo (운영총괄)"
+        - "agent-cmo (마케팅총괄)"
+        - "agent-data-engineer (데이터 엔지니어)"
+        - "agent-content-marketer (콘텐츠 마케터)"
+        - "agent-community-manager (커뮤니티 매니저)"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Task Description
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - "🔴 Critical"
+        - "🟡 High"
+        - "🟢 Normal"
+        - "⚪ Low"
+    validations:
+      required: true

@@ -1,0 +1,56 @@
+name: Agent Heartbeat
+
+on:
+  schedule:
+    # CEO daily at 00:00 UTC (09:00 KST)
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      agent:
+        description: 'Agent to trigger'
+        required: true
+        type: choice
+        options:
+          - all-daily
+          - agent-ceo
+          - agent-cro
+          - agent-coo
+          - agent-cmo
+          - agent-data-engineer
+
+jobs:
+  daily-agents:
+    name: 🤖 Daily Agent Check
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 0 * * *' || github.event.inputs.agent == 'all-daily'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Check pending research tasks
+        run: |
+          echo "🔍 Checking pending tasks for daily agents..."
+          node scripts/agent-heartbeat.js --agents=ceo,cro,coo,cmo
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+
+  data-pipeline:
+    name: 📊 Data Pipeline Check
+    runs-on: ubuntu-latest
+    if: github.event.inputs.agent == 'agent-data-engineer'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Check data pipelines
+        run: node scripts/agent-heartbeat.js --agents=data-engineer
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
