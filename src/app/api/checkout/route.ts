@@ -66,6 +66,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url: session.url })
   } catch (err: any) {
     console.error('Checkout error:', err)
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

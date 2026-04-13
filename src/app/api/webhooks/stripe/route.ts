@@ -28,6 +28,28 @@ export async function POST(request: NextRequest) {
 
       if (!product_id || !user_id || user_id === 'guest') break
 
+      // STRIX-BL-001: Verify payment amount matches product price
+      const { data: product } = await supabase
+        .from('products')
+        .select('id, price_usd_cents, title_en')
+        .eq('id', product_id)
+        .single()
+
+      if (!product) {
+        console.error(`[Stripe Webhook] Product not found: ${product_id}`)
+        break
+      }
+
+      const paidAmount = session.amount_total || 0
+      if (paidAmount < product.price_usd_cents) {
+        console.error(
+          `[Stripe Webhook] PRICE MISMATCH: paid=${paidAmount} expected=${product.price_usd_cents} ` +
+          `product=${product_id} session=${session.id} user=${user_id}`
+        )
+        // Do NOT grant access — log and skip
+        break
+      }
+
       // Create order
       const { data: order } = await supabase
         .from('orders')

@@ -215,6 +215,132 @@ export interface ProjectSubscriptionItem {
   project?: TrackedProject
 }
 
+// ============================================================
+// Referral Tracking Types
+// ============================================================
+
+export type ExchangeName = 'binance' | 'bybit' | 'okx'
+export type ReferralStatus = 'pending' | 'active' | 'suspended'
+export type ReferralSource = 'report' | 'newsletter' | 'web' | 'telegram' | 'twitter' | 'score_lookup'
+export type ReferralContentType = 'report' | 'newsletter' | 'trade_thesis' | 'forensic_alert' | 'score_page'
+export type EarningsStatus = 'pending' | 'confirmed' | 'paid'
+
+export interface ExchangeReferral {
+  id: string
+  exchange: ExchangeName
+  referral_code: string
+  referral_url: string
+  revshare_pct?: number
+  status: ReferralStatus
+  applied_at?: string
+  approved_at?: string
+  created_at: string
+}
+
+export interface ReferralClick {
+  id: string
+  user_id?: string
+  exchange: ExchangeName
+  source: ReferralSource
+  content_id?: string
+  content_type?: ReferralContentType
+  ip_country?: string
+  geo_blocked: boolean
+  clicked_at: string
+}
+
+export interface ReferralEarnings {
+  id: string
+  exchange: ExchangeName
+  period_start: string
+  period_end: string
+  referred_users: number
+  active_traders: number
+  total_volume_usd: number
+  commission_usd: number
+  status: EarningsStatus
+  created_at: string
+}
+
+// ============================================================
+// Newsletter & Subscriber Types
+// ============================================================
+
+export type NewsletterType = 'market_pulse' | 'deep_dive' | 'forensic_alert' | 'trade_thesis'
+export type NewsletterStatus = 'draft' | 'review' | 'approved' | 'sending' | 'sent'
+export type NewsletterEventType = 'delivered' | 'opened' | 'clicked' | 'bounced' | 'unsubscribed'
+export type SubscriberSource = 'website' | 'report_download' | 'referral' | 'score_lookup' | 'telegram' | 'twitter'
+export type ThreatLevel = 'clear' | 'watch' | 'caution' | 'warning' | 'critical'
+
+export interface Subscriber {
+  id: string
+  email: string
+  name?: string
+  locale: Locale
+  source?: SubscriberSource
+  opted_in: boolean
+  opt_in_token?: string
+  opt_in_sent_at?: string
+  confirmed_at?: string
+  unsubscribed: boolean
+  unsubscribed_at?: string
+  ip_country?: string
+  created_at: string
+}
+
+export interface Newsletter {
+  id: string
+  type: NewsletterType
+  title_en: string
+  title_ko?: string
+  content_md: string
+  content_html?: string
+  status: NewsletterStatus
+  scheduled_at?: string
+  sent_at?: string
+  total_recipients: number
+  created_at: string
+}
+
+export interface NewsletterEvent {
+  id: string
+  newsletter_id: string
+  subscriber_id: string
+  event_type: NewsletterEventType
+  metadata?: Record<string, any>
+  occurred_at: string
+}
+
+// ============================================================
+// BCE Maturity Score Types
+// ============================================================
+
+export interface BCEMaturityScores {
+  technology: number
+  business: number
+  tokenomics: number
+  governance: number
+  community: number
+  compliance: number
+  narrative: number
+}
+
+export const BCE_SCORE_WEIGHTS: Record<keyof BCEMaturityScores, number> = {
+  technology: 0.20,
+  business: 0.20,
+  tokenomics: 0.15,
+  governance: 0.10,
+  community: 0.10,
+  compliance: 0.10,
+  narrative: 0.15,
+}
+
+export function calculateBCEScore(scores: BCEMaturityScores): number {
+  return Object.entries(BCE_SCORE_WEIGHTS).reduce((total, [key, weight]) => {
+    return total + (scores[key as keyof BCEMaturityScores] || 0) * weight
+  }, 0)
+}
+
 // Helper: get localized field from product/category
 export function getLocalizedField<T extends Record<string, any>>(
   item: T,

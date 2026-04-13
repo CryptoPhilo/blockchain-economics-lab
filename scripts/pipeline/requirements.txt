@@ -1,0 +1,29 @@
+# Blockchain Economics Lab - Pipeline Requirements
+# Generated dependencies for the data collection, analysis, and report generation pipeline
+
+# PDF Generation and Reporting
+reportlab==4.4.10
+
+# Database and Storage
+supabase==2.28.3
+
+# HTTP Requests
+requests==2.33.1
+
+# Data Processing and Analysis
+numpy==2.2.6
+matplotlib==3.10.8
+
+# Web Scraping
+beautifulsoup4==4.14.3
+
+# Configuration and Data Formats
+PyYAML==6.0.3
+
+# HTML to PDF Conversion (for slide generation)
+playwright==1.58.0
+
+# Google Drive Integration
+google-api-python-client==2.194.0
+google-auth==2.49.2
+google-auth-oauthlib==1.3.1

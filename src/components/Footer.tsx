@@ -42,6 +42,7 @@ export default function Footer() {
               <li><Link href={`/${locale}/products?category=tokenomics`} className="hover:text-gray-300 transition-colors">Tokenomics</Link></li>
               <li><Link href={`/${locale}/products?category=defi`} className="hover:text-gray-300 transition-colors">DeFi Research</Link></li>
               <li><Link href={`/${locale}/products?category=macro-crypto`} className="hover:text-gray-300 transition-colors">Macro & Crypto</Link></li>
+              <li><Link href={`/${locale}/reports`} className="hover:text-gray-300 transition-colors">All Reports</Link></li>
             </ul>
           </div>
 
@@ -49,14 +50,24 @@ export default function Footer() {
           <div>
             <h4 className="font-semibold text-white mb-4">{t('legal')}</h4>
             <ul className="space-y-2.5 text-sm text-gray-500">
-              <li><Link href="#" className="hover:text-gray-300 transition-colors">{t('privacy')}</Link></li>
-              <li><Link href="#" className="hover:text-gray-300 transition-colors">{t('terms')}</Link></li>
-              <li><Link href="#" className="hover:text-gray-300 transition-colors">{t('contact')}</Link></li>
+              <li><Link href={`/${locale}/privacy`} className="hover:text-gray-300 transition-colors">{t('privacy')}</Link></li>
+              <li><Link href={`/${locale}/terms`} className="hover:text-gray-300 transition-colors">{t('terms')}</Link></li>
+              <li><Link href={`/${locale}/contact`} className="hover:text-gray-300 transition-colors">{t('contact')}</Link></li>
             </ul>
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-white/5 text-center text-sm text-gray-600">
+        {/* Disclaimer */}
+        <div className="mt-10 pt-8 border-t border-white/5">
+          <p className="text-xs text-gray-600 leading-relaxed text-center max-w-3xl mx-auto">
+            <strong className="text-gray-500">Disclaimer:</strong>{' '}
+            This content is produced by Blockchain Economics Lab for informational and educational purposes only.
+            It does not constitute financial, investment, or trading advice. Cryptocurrency markets carry significant risk.
+            Users are solely responsible for their own trading decisions.
+          </p>
+        </div>
+
+        <div className="mt-6 pt-4 border-t border-white/5 text-center text-sm text-gray-600">
           {t('copyright')}
         </div>
       </div>

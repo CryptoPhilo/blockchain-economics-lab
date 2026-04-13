@@ -72,12 +72,20 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
                   {getLocalizedField(item.product, 'description', locale as Locale)}
                 </p>
                 <div className="flex gap-2">
-                  <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors">
+                  <a
+                    href={`/api/reports/${item.product?.id || item.product_id}?lang=${locale}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
                     {t('viewReport')}
-                  </button>
-                  <button className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-lg border border-white/10 transition-colors">
+                  </a>
+                  <a
+                    href={`/api/reports/${item.product?.id || item.product_id}?lang=${locale}&download=true`}
+                    className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-lg border border-white/10 transition-colors"
+                  >
                     {t('downloadReport')}
-                  </button>
+                  </a>
                 </div>
               </div>
             ))}

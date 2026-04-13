@@ -3,3 +3,20 @@ node_modules/
 .env.local
 .env*.local
 .vercel
+tsconfig.tsbuildinfo
+
+# Pipeline outputs — reports, PDFs, manifests
+scripts/pipeline/output/
+scripts/pipeline/collectors/.cache/
+scripts/pipeline/scan_results/
+data/
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Service account credentials
+scripts/pipeline/.gdrive_service_account.json
+
+# Claude / Cowork session data
+.claude/

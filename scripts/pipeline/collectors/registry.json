@@ -1,0 +1,94 @@
+{
+  "CoinGecko Markets": {
+    "module": "collector_exchange",
+    "category": "market_data",
+    "status": "integrated"
+  },
+  "CoinGecko Global": {
+    "module": "collector_macro",
+    "category": "market_data",
+    "status": "integrated"
+  },
+  "Alternative.me Fear & Greed": {
+    "module": "collector_macro",
+    "category": "market_data",
+    "status": "integrated"
+  },
+  "Etherscan": {
+    "module": "collector_onchain",
+    "category": "onchain",
+    "status": "integrated"
+  },
+  "DeFiLlama": {
+    "module": "collector_onchain",
+    "category": "defi",
+    "status": "integrated"
+  },
+  "GitHub API": {
+    "module": "collector_fundamentals",
+    "category": "developer",
+    "status": "integrated"
+  },
+  "DefiLlama Yields": {
+    "module": "collector_defillama_yields",
+    "category": "defi",
+    "status": "validated",
+    "target_reports": [
+      "econ"
+    ]
+  },
+  "DeFiLlama Stablecoins": {
+    "module": "collector_defillama_stablecoins",
+    "category": "defi",
+    "status": "validated",
+    "target_reports": [
+      "econ",
+      "mat"
+    ]
+  },
+  "Blockchain.com Stats": {
+    "module": "collector_blockchain_com_stats",
+    "category": "onchain",
+    "status": "validated",
+    "target_reports": [
+      "econ",
+      "for"
+    ]
+  },
+  "CryptoCompare": {
+    "module": "collector_cryptocompare",
+    "category": "market_data",
+    "status": "validated",
+    "target_reports": [
+      "econ",
+      "for"
+    ]
+  },
+  "CoinGlass Derivatives": {
+    "module": "collector_coinglass_derivatives",
+    "category": "derivatives",
+    "status": "integrated",
+    "target_reports": [
+      "for",
+      "econ"
+    ]
+  },
+  "Snapshot.org Governance": {
+    "module": "collector_snapshot_governance",
+    "category": "governance",
+    "status": "integrated",
+    "target_reports": [
+      "econ",
+      "mat"
+    ]
+  },
+  "Santiment Social": {
+    "module": "collector_santiment_social",
+    "category": "social",
+    "status": "integrated",
+    "target_reports": [
+      "econ",
+      "mat"
+    ]
+  }
+}
