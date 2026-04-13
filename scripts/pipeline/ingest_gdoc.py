@@ -97,16 +97,15 @@ PROCESSED_TRACKER_NAME = '_processed.json'
 def get_drive_service():
     """Authenticate and return Google Drive service.
 
-    Uses service account credentials directly (shared folder access).
-    Domain-wide delegation (with_subject) is NOT required since the
-    BCE Lab Reports folder is shared with the service account.
+    Uses service account with domain-wide delegation via zhang@coinlab.co.kr.
+    This grants full Drive read/write access including file uploads.
     """
     SCOPES = [
         'https://www.googleapis.com/auth/drive',
     ]
     creds = service_account.Credentials.from_service_account_file(SA_FILE, scopes=SCOPES)
-    # Note: with_subject delegation removed — service account has direct access
-    # to the shared BCE Lab Reports folder.
+    if DELEGATE_EMAIL:
+        creds = creds.with_subject(DELEGATE_EMAIL)
 
     drive = build('drive', 'v3', credentials=creds)
     return drive, creds
