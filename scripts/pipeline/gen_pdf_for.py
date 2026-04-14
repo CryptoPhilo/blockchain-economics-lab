@@ -109,63 +109,105 @@ def clean_text_remove_tables(text):
     return re.sub(table_pattern, '', text).strip()
 
 
+def _strip_markdown_bold(text):
+    """
+    Robustly strip all **bold** markdown markers from text, converting to
+    ReportLab <b> tags. Handles edge cases: unbalanced markers, nested,
+    escaped, and stray asterisks.
+    OPS-005 fix: ensures no literal ** ever appears in final PDF output.
+    """
+    # Step 1: Normalize escaped bold from Google Docs export
+    text = re.sub(r'\\\*\\\*(.+?)\\\*\\\*', r'**\1**', text, flags=re.DOTALL)
+
+    # Step 2: Balance ** markers — if odd count, drop the last unpaired one
+    parts = text.split('**')
+    if len(parts) > 1 and (len(parts) - 1) % 2 == 1:
+        parts[-2] = parts[-2] + parts[-1]
+        parts.pop()
+        text = '**'.join(parts)
+
+    # Step 3: Convert **bold** → <b>bold</b>
+    text = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text, flags=re.DOTALL)
+
+    # Step 4: Safety net — remove any remaining literal ** that slipped through
+    text = text.replace('**', '')
+
+    return text
+
+
+def _strip_markdown_italic(text):
+    """Convert *italic* → <i>italic</i>, avoiding false matches inside tags."""
+    return re.sub(r'(?<![<\w/])\*([^*\n]+?)\*(?![>\w])', r'<i>\1</i>', text)
+
+
 def markdown_to_paragraphs(text, styles, max_width=None, lang='en'):
     """
     Convert markdown text to reportlab Paragraphs, respecting basic formatting.
     Handles: **bold**, *italic*, ### sub-headers, bullet points
 
-    Uses ECON pipeline's improved _md_to_rl() for robust XML conversion
-    (OPS-005: ** balancing + bullet paragraph splitting).
+    Uses ECON pipeline's improved markdown_to_paragraphs() as primary path.
+    Falls back to a robust local implementation that guarantees no stray **
+    markers remain in the output (OPS-005).
     """
     # Import improved converter from gen_pdf_econ
-    from gen_pdf_econ import _md_to_rl as _md_to_rl_econ
-    from gen_pdf_econ import markdown_to_paragraphs as _econ_md_to_para
-
-    # Delegate to ECON's improved implementation
     try:
+        from gen_pdf_econ import markdown_to_paragraphs as _econ_md_to_para
         return _econ_md_to_para(text, styles, lang=lang)
     except Exception:
-        # Fallback to simple implementation
-        flowables = []
-        text = clean_text_remove_tables(text)
+        pass
 
-        # OPS-005: Force each bullet onto its own paragraph
-        text = re.sub(r'(?<!\n)\n(\s*(?:[*\-\u2022]|\d+[.)])\s+)', r'\n\n\1', text)
+    # ── Robust fallback (OPS-005: guaranteed no literal ** in output) ──
+    flowables = []
+    text = clean_text_remove_tables(text)
 
-        for paragraph_text in text.split('\n\n'):
-            p = paragraph_text.strip()
-            if not p:
-                continue
+    # Strip triple/double-backtick code fences
+    text = re.sub(r'```[a-zA-Z0-9_-]*\n?', '', text)
+    text = re.sub(r'``([\s\S]*?)``', r'\1', text)
 
-            if p.startswith('### '):
-                sub_title = p[4:].strip()
-                flowables.append(Spacer(1, 10))
-                flowables.append(Paragraph(f'<b>{sub_title}</b>', styles['h3']))
-                flowables.append(Spacer(1, 4))
-                continue
+    # Force each bullet onto its own paragraph
+    text = re.sub(r'(?<!\n)\n(\s*(?:[*\-\u2022]|\d+[.)])\s+)', r'\n\n\1', text)
 
-            # OPS-005: Balance ** markers
-            parts = p.split('**')
-            if len(parts) > 1 and (len(parts) - 1) % 2 == 1:
-                parts[-2] = parts[-2] + parts[-1]
-                parts.pop()
-                p = '**'.join(parts)
+    for paragraph_text in text.split('\n\n'):
+        p = paragraph_text.strip()
+        if not p:
+            continue
 
-            p = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', p)
-            p = re.sub(r'\*(.*?)\*', r'<i>\1</i>', p)
-
-            if p.startswith('- ') or p.startswith('• '):
-                bullet_text = p[2:] if p[0] in '-•' else p
-                flowables.append(Paragraph(f'\u2022 {bullet_text}', styles['bullet']))
-            elif p.startswith('<b>') and ':' in p[:60]:
-                style_name = 'callout_forensic' if 'callout_forensic' in styles else 'callout'
-                flowables.append(Paragraph(p, styles[style_name]))
-            else:
-                flowables.append(Paragraph(p, styles['body']))
-
+        if p.startswith('### '):
+            sub_title = p[4:].strip()
+            sub_title = _strip_markdown_bold(sub_title)
+            flowables.append(Spacer(1, 10))
+            flowables.append(Paragraph(f'<b>{sub_title}</b>', styles['h3']))
             flowables.append(Spacer(1, 4))
+            continue
 
-        return flowables
+        # Escape XML special chars before markdown conversion
+        p = p.replace('&', '&amp;')
+
+        # Convert markdown formatting to ReportLab XML
+        p = _strip_markdown_bold(p)
+        p = _strip_markdown_italic(p)
+
+        # Strip stray backticks
+        p = p.replace('`', '')
+
+        # Strip markdown links: [text](url) → text
+        p = re.sub(r'\[([^\]]+?)\]\([^)]+?\)', r'\1', p)
+
+        # Sanitize stray < > that aren't valid XML tags
+        p = re.sub(r'<(?!/?(?:b|i|font|sub|super|br)\b)', '&lt;', p)
+
+        if p.startswith('- ') or p.startswith('• ') or p.startswith('\u2022 '):
+            bullet_text = re.sub(r'^[-•\u2022]\s*', '', p)
+            flowables.append(Paragraph(f'\u2022 {bullet_text}', styles['bullet']))
+        elif p.startswith('<b>') and ':' in p[:60]:
+            style_name = 'callout_forensic' if 'callout_forensic' in styles else 'callout'
+            flowables.append(Paragraph(p, styles[style_name]))
+        else:
+            flowables.append(Paragraph(p, styles['body']))
+
+        flowables.append(Spacer(1, 4))
+
+    return flowables
 
 
 # ═══════════════════════════════════════════
@@ -265,8 +307,24 @@ def generate_pdf_for(md_path: str, metadata: dict, lang: str = 'en', output_path
     # Add first content page break
     story.append(PageBreak())
 
+    # Major sections that should start on a new page
+    PAGE_BREAK_SECTIONS = {
+        'executive summary', 'risk indicator', 'manipulation detection',
+        'on-chain', 'technical analysis', 'market forensic',
+        'conclusion', 'recommendation', 'monitoring', 'disclaimer',
+        # Korean equivalents
+        '종합 요약', '위험 지표', '시장 조작', '온체인', '기술 분석',
+        '시장 포렌식', '결론', '권고', '모니터링',
+    }
+
     # Process each section
-    for section_title, section_content in sections:
+    for idx, (section_title, section_content) in enumerate(sections):
+        # Add page break before major sections (skip first section — already on new page)
+        if idx > 0:
+            title_lower = section_title.lower()
+            if any(kw in title_lower for kw in PAGE_BREAK_SECTIONS):
+                story.append(PageBreak())
+
         # Section header (returns list, must extend) - use forensic styling
         story.extend(section_header(section_title, styles, report_type='for'))
 

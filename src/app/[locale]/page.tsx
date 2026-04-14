@@ -5,8 +5,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getLocalizedField, type Locale } from '@/lib/types'
 import ProductCard from '@/components/ProductCard'
 import DisclaimerBanner from '@/components/DisclaimerBanner'
-import ForensicTickerBar from '@/components/ForensicTickerBar'
-import ForensicAlertSection from '@/components/ForensicAlertSection'
+import ForensicSlideShowcase from '@/components/ForensicSlideShowcase'
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
@@ -47,11 +46,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   return (
     <div>
-      {/* Forensic Alert Ticker — scrolling red bar at the very top */}
-      <Suspense fallback={null}>
-        <ForensicTickerBar />
-      </Suspense>
-
       {/* Hero Section — 360° Project Intelligence */}
       <section className="relative overflow-hidden bg-gradient-to-br from-gray-950 via-indigo-950 to-gray-950 py-24 px-6">
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
@@ -148,9 +142,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
       </section>
 
-      {/* Latest Forensic Alerts — card previews with risk gauge */}
+      {/* Forensic Report Slide Thumbnails — center-stage visual showcase */}
       <Suspense fallback={null}>
-        <ForensicAlertSection />
+        <ForensicSlideShowcase />
       </Suspense>
 
       {/* Tracked Projects Scores */}
