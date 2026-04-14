@@ -343,8 +343,8 @@ def process_for_report(file_info: dict, dry_run: bool = False) -> dict:
         except Exception as e:
             print(f"  ⚠ Thumbnail upload failed: {e}")
 
-    # 7. Supabase: coming_soon → published + card_data
-    print(f"[7/7] Supabase 업데이트 (coming_soon → published + card_data)...")
+    # 7. Supabase: coming_soon → published + card_data + auto-title
+    print(f"[7/7] Supabase 업데이트 (coming_soon → published + card_data + title)...")
     try:
         card_db = None
         if card_result:
@@ -358,6 +358,24 @@ def process_for_report(file_info: dict, dry_run: bool = False) -> dict:
                 'card_data': cd,
                 'card_qa_status': 'pending',  # QA 승인 대기
             }
+
+            # Auto-generate report titles from card_data
+            try:
+                from gen_report_title import generate_titles
+                titles = generate_titles(
+                    card_data=cd,
+                    project_name=file_info.get('project_name', slug),
+                    symbol=file_info.get('symbol', slug.upper()),
+                    summary_en=cd.get('summary_en'),
+                    summary_ko=cd.get('summary_ko'),
+                )
+                card_db['title_en'] = titles['title_en']
+                card_db['title_ko'] = titles['title_ko']
+                print(f"  ✓ Title EN: {titles['title_en']}")
+                print(f"  ✓ Title KO: {titles['title_ko']}")
+            except Exception as e:
+                print(f"  ⚠ Title generation failed (non-blocking): {e}")
+
         _publish_supabase(slug, rtype, version, gdrive_urls, card_db=card_db)
         result['status'] = 'published'
         print(f"  ✓ published (card_qa_status: pending)")
