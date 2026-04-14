@@ -46,103 +46,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   return (
     <div>
-      {/* Hero Section — 360° Project Intelligence */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-gray-950 via-indigo-950 to-gray-950 py-24 px-6">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
-        <div className="relative max-w-5xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm mb-8">
-            <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
-            360° Project Intelligence
-          </div>
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent mb-6">
-            {isKo
-              ? '경제 설계 · 성숙도 · 리스크\n한 곳에서'
-              : 'Economics · Maturity · Risk\nAll in One Place'}
-          </h1>
-          <p className="text-xl text-gray-400 max-w-3xl mx-auto mb-4">
-            {isKo
-              ? 'Delphi급 분석을 1/20 가격에. AI 연구 에이전트가 생산하는 7개 언어 보고서.'
-              : 'Delphi-grade analysis at 1/20th the price. AI-powered reports in 7 languages.'}
-          </p>
-          <p className="text-sm text-gray-500 max-w-2xl mx-auto mb-10">
-            {isKo
-              ? '토큰노믹스 분석, 성숙도 평가, 포렌식 리스크 — 단일 프로젝트에 대한 360° 인텔리전스를 하나의 구독으로.'
-              : 'Tokenomics analysis, maturity assessment, forensic risk — 360° intelligence for every project, in one subscription.'}
-          </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <Link
-              href={`/${locale}/score`}
-              className="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40"
-            >
-              {isKo ? '프로젝트 점수 조회' : 'Lookup Project Scores'}
-            </Link>
-            <Link
-              href={`/${locale}/subscribe`}
-              className="px-8 py-3.5 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-xl border border-white/10 transition-all"
-            >
-              {isKo ? '무료 뉴스레터 구독' : 'Free Newsletter'}
-            </Link>
-          </div>
-        </div>
-
-        {/* 3 Report Types */}
-        <div className="relative max-w-4xl mx-auto mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            {
-              icon: '📊',
-              type: 'ECON',
-              title: isKo ? '경제 설계 분석' : 'Economic Design',
-              desc: isKo ? '토크노믹스, 가치 축적, 인센티브 설계' : 'Tokenomics, value accrual, incentive design',
-              price: '$49',
-              color: 'from-blue-500/10 to-blue-600/5 border-blue-500/20',
-            },
-            {
-              icon: '📈',
-              type: 'MAT',
-              title: isKo ? '성숙도 평가' : 'Maturity Assessment',
-              desc: isKo ? '7축 BCE Score™, 내러티브 건강도' : '7-axis BCE Score™, narrative health',
-              price: '$39',
-              color: 'from-green-500/10 to-green-600/5 border-green-500/20',
-            },
-            {
-              icon: '🔍',
-              type: 'FOR',
-              title: isKo ? '포렌식 리스크' : 'Forensic Risk',
-              desc: isKo ? '온체인 포렌식, 5단계 위협 평가' : 'On-chain forensics, 5-level threat assessment',
-              price: '$29',
-              color: 'from-red-500/10 to-red-600/5 border-red-500/20',
-            },
-          ].map((report) => (
-            <div
-              key={report.type}
-              className={`p-6 rounded-xl bg-gradient-to-br ${report.color} border text-center`}
-            >
-              <span className="text-3xl">{report.icon}</span>
-              <div className="text-xs font-mono text-gray-500 mt-2">{report.type}</div>
-              <h3 className="font-bold text-white mt-2">{report.title}</h3>
-              <p className="text-xs text-gray-400 mt-2">{report.desc}</p>
-              <p className="text-lg font-bold text-indigo-400 mt-3">{report.price}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Stats */}
-        <div className="relative max-w-4xl mx-auto mt-12 grid grid-cols-2 md:grid-cols-4 gap-6">
-          {[
-            { value: '7', label: isKo ? '개 언어' : 'Languages' },
-            { value: '360°', label: isKo ? '통합 인텔리전스' : 'Intelligence' },
-            { value: '$19', label: isKo ? '월 구독' : '/mo All Access' },
-            { value: 'AI', label: isKo ? '에이전트 구동' : 'Agent Powered' },
-          ].map((stat) => (
-            <div key={stat.label} className="text-center p-4 rounded-xl bg-white/5 border border-white/5">
-              <div className="text-2xl font-bold text-indigo-400">{stat.value}</div>
-              <div className="text-sm text-gray-500 mt-1">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Forensic Report Slide Thumbnails — center-stage visual showcase */}
+      {/* ★ Forensic Report Slide Thumbnails — TOP of page */}
       <Suspense fallback={null}>
         <ForensicSlideShowcase />
       </Suspense>
@@ -209,6 +113,78 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           >
             {isKo ? '전체 보고서 보기' : 'Browse All Reports'} →
           </Link>
+        </div>
+      </section>
+
+      {/* About — 360° Project Intelligence (moved below content) */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-gray-950 via-indigo-950 to-gray-950 py-20 px-6">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
+        <div className="relative max-w-5xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent mb-6">
+            {isKo
+              ? '경제 설계 · 성숙도 · 리스크\n한 곳에서'
+              : 'Economics · Maturity · Risk\nAll in One Place'}
+          </h2>
+          <p className="text-lg text-gray-400 max-w-3xl mx-auto mb-8">
+            {isKo
+              ? 'AI 연구 에이전트가 생산하는 7개 언어 보고서. 토큰노믹스 분석, 성숙도 평가, 포렌식 리스크를 하나의 구독으로.'
+              : 'AI-powered reports in 7 languages. Tokenomics, maturity, forensic risk — 360° intelligence in one subscription.'}
+          </p>
+          <div className="flex gap-4 justify-center flex-wrap mb-12">
+            <Link
+              href={`/${locale}/score`}
+              className="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40"
+            >
+              {isKo ? '프로젝트 점수 조회' : 'Lookup Project Scores'}
+            </Link>
+            <Link
+              href={`/${locale}/subscribe`}
+              className="px-8 py-3.5 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-xl border border-white/10 transition-all"
+            >
+              {isKo ? '무료 뉴스레터 구독' : 'Free Newsletter'}
+            </Link>
+          </div>
+
+          {/* 3 Report Types */}
+          <div className="relative max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                icon: '📊',
+                type: 'ECON',
+                title: isKo ? '경제 설계 분석' : 'Economic Design',
+                desc: isKo ? '토크노믹스, 가치 축적, 인센티브 설계' : 'Tokenomics, value accrual, incentive design',
+                price: '$49',
+                color: 'from-blue-500/10 to-blue-600/5 border-blue-500/20',
+              },
+              {
+                icon: '📈',
+                type: 'MAT',
+                title: isKo ? '성숙도 평가' : 'Maturity Assessment',
+                desc: isKo ? '7축 BCE Score™, 내러티브 건강도' : '7-axis BCE Score™, narrative health',
+                price: '$39',
+                color: 'from-green-500/10 to-green-600/5 border-green-500/20',
+              },
+              {
+                icon: '🔍',
+                type: 'FOR',
+                title: isKo ? '포렌식 리스크' : 'Forensic Risk',
+                desc: isKo ? '온체인 포렌식, 5단계 위협 평가' : 'On-chain forensics, 5-level threat assessment',
+                price: '$29',
+                color: 'from-red-500/10 to-red-600/5 border-red-500/20',
+              },
+            ].map((report) => (
+              <div
+                key={report.type}
+                className={`p-6 rounded-xl bg-gradient-to-br ${report.color} border text-center`}
+              >
+                <span className="text-3xl">{report.icon}</span>
+                <div className="text-xs font-mono text-gray-500 mt-2">{report.type}</div>
+                <h3 className="font-bold text-white mt-2">{report.title}</h3>
+                <p className="text-xs text-gray-400 mt-2">{report.desc}</p>
+                <p className="text-lg font-bold text-indigo-400 mt-3">{report.price}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
