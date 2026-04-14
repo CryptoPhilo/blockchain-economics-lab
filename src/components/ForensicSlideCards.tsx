@@ -79,7 +79,7 @@ function SlideCard({ report, locale }: { report: any; locale: string }) {
         {/* CONFIDENTIAL watermark */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
           <span
-            className="text-[80px] font-black text-red-200/15 tracking-[0.3em] whitespace-nowrap select-none"
+            className="text-[48px] lg:text-[64px] font-black text-red-200/15 tracking-[0.2em] whitespace-nowrap select-none"
             style={{ transform: 'rotate(-25deg)' }}
           >
             CONFIDENTIAL
@@ -109,10 +109,10 @@ function SlideCard({ report, locale }: { report: any; locale: string }) {
         {/* Main content */}
         <div className="absolute inset-0 flex flex-col justify-center px-8 pt-12">
           <div className="mb-3">
-            <h3 className="text-2xl md:text-3xl font-black text-[#1A1A1A] leading-tight">
+            <h3 className="text-xl lg:text-2xl font-black text-[#1A1A1A] leading-tight">
               {tp?.name ?? 'Unknown Project'}
             </h3>
-            <p className="text-sm font-semibold text-[#777] mt-1">
+            <p className="text-xs font-semibold text-[#777] mt-1">
               {tp?.symbol ?? ''}{' '}
               {change24h !== 0 && (
                 <span className={change24h >= 0 ? 'text-green-700' : 'text-red-700'}>
@@ -123,20 +123,20 @@ function SlideCard({ report, locale }: { report: any; locale: string }) {
           </div>
 
           {/* Risk Score gauge */}
-          <div className="flex items-center gap-4 mb-3">
-            <div className="relative w-14 h-14">
-              <svg className="w-14 h-14" viewBox="0 0 56 56">
-                <circle cx="28" cy="28" r="24" fill="none" stroke="#E0D8CC" strokeWidth="4" />
+          <div className="flex items-center gap-3 mb-3">
+            <div className="relative w-11 h-11">
+              <svg className="w-11 h-11" viewBox="0 0 44 44">
+                <circle cx="22" cy="22" r="19" fill="none" stroke="#E0D8CC" strokeWidth="3" />
                 <circle
-                  cx="28" cy="28" r="24" fill="none"
+                  cx="22" cy="22" r="19" fill="none"
                   stroke={config.stroke}
-                  strokeWidth="4" strokeLinecap="round"
-                  strokeDasharray={`${(riskScore / 100) * 150.8} 150.8`}
-                  transform="rotate(-90 28 28)"
+                  strokeWidth="3" strokeLinecap="round"
+                  strokeDasharray={`${(riskScore / 100) * 119.4} 119.4`}
+                  transform="rotate(-90 22 22)"
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-sm font-black text-[#1A1A1A]">{riskScore}</span>
+                <span className="text-xs font-black text-[#1A1A1A]">{riskScore}</span>
               </div>
             </div>
             <div>
@@ -208,15 +208,11 @@ export default function ForensicSlideCards({ reports, locale }: ForensicSlideCar
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            <div className="lg:col-span-3">
-              <SlideCard report={reports[0]} locale={locale} />
-            </div>
-            <div className="lg:col-span-2 flex flex-col gap-6">
-              {reports.slice(1, 3).map((r: any) => (
-                <SlideCard key={r.id} report={r} locale={locale} />
-              ))}
-            </div>
+          /* 3 cards: equal-width columns */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {reports.slice(0, 3).map((r: any) => (
+              <SlideCard key={r.id} report={r} locale={locale} />
+            ))}
           </div>
         )}
 
