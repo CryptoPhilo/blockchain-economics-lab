@@ -24,7 +24,15 @@ const TYPE_CONFIG = {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getLocalizedTitle(report: any, locale: string): string {
   const key = `title_${locale}`
-  return report[key] || report.title_en || `Report v${report.version}`
+  if (report[key]) return report[key]
+  if (report.title_en) return report.title_en
+  // Fallback: use project name + report type instead of generic "Report v1"
+  const project = report.project
+  const typeName = report.report_type === 'forensic' ? (locale === 'ko' ? '포렌식 분석' : 'Forensic Analysis')
+    : report.report_type === 'econ' ? (locale === 'ko' ? '경제 분석' : 'Economic Analysis')
+    : (locale === 'ko' ? '성숙도 분석' : 'Maturity Analysis')
+  const name = project?.name || project?.symbol || ''
+  return name ? `${name} ${typeName} v${report.version}` : `${typeName} v${report.version}`
 }
 
 function formatDate(dateStr: string | null): string {

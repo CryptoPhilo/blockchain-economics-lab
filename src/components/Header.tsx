@@ -26,11 +26,11 @@ export default function Header() {
   }
 
   const navItems = [
-    { href: `/${locale}/projects`, label: t('projects') || 'Projects' },
-    { href: `/${locale}/reports`, label: locale === 'ko' ? '리포트' : 'Reports' },
-    { href: `/${locale}/score`, label: 'Score' },
+    { href: `/${locale}/projects`, label: t('projects') },
+    { href: `/${locale}/reports`, label: t('reports') },
+    { href: `/${locale}/score`, label: t('score') },
     { href: `/${locale}/products`, label: t('products') },
-    { href: `/${locale}/subscribe`, label: locale === 'ko' ? '뉴스레터' : 'Newsletter' },
+    { href: `/${locale}/subscribe`, label: t('newsletter') },
     { href: `/${locale}/dashboard`, label: t('dashboard') },
   ]
 

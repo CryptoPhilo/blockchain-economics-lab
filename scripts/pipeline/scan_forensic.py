@@ -257,13 +257,25 @@ def register_coming_soon(triggers: list[dict], dry_run: bool = False) -> list[di
             print(f"  forensic_trigger 등록 실패 {slug}: {e}")
             continue
 
-        # 2. Insert project_reports with coming_soon
+        # 2. Insert project_reports with coming_soon + Phase 1 title
         direction_ko = '급등' if t['direction'] == 'up' else '급락'
         trigger_reason = (
             f"24h {direction_ko} {t['price_change_24h']:+.1f}% "
             f"(시장평균 {t['market_avg_change_24h']:+.1f}%, "
             f"초과변동 {t['relative_deviation']:.1f}%)"
         )
+
+        # Phase 1 제목: 트리거 사유 기반 자동 생성
+        from gen_report_title import generate_trigger_titles
+        trigger_titles = generate_trigger_titles(
+            trigger_data={
+                'price_change_24h': t['price_change_24h'],
+                'relative_deviation': t.get('relative_deviation'),
+                'risk_level': t.get('risk_level'),
+            },
+            symbol=t['symbol'],
+        )
+
         report_data = {
             'project_id': project_id,
             'report_type': 'forensic',
@@ -272,6 +284,8 @@ def register_coming_soon(triggers: list[dict], dry_run: bool = False) -> list[di
             'trigger_reason': trigger_reason,
             'trigger_data': json.dumps(t),
             'triggered_at': scan_ts,
+            'title_en': trigger_titles['title_en'],
+            'title_ko': trigger_titles['title_ko'],
         }
         try:
             rpt_result = sb.table('project_reports').insert(report_data).execute()

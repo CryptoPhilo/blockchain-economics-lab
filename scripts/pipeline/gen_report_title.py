@@ -1,20 +1,25 @@
 """
-gen_report_title.py — 포렌식 보고서 제목 자동 생성
+gen_report_title.py — 포렌식 보고서 제목 자동 생성 (2단계)
 
-card_data(요약, 가격변동, 키워드)로부터 한/영 제목을 자동 생성한다.
-사용자가 읽고 클릭하고 싶은 제목을 만드는 것이 목표.
+■ Phase 1: coming_soon 단계 — 트리거 사유 기반 제목
+  분석 대상으로 선정된 이유(가격 이상 변동, 거래량 급증 등)를 제목에 반영.
+  예: "RAVE 87.8% 급등 감지: 포렌식 분석 개시"
 
-예시 출력:
-  EN: "ENJ Surges 45%: Short Squeeze Drives Inorganic Rally"
-  KO: "ENJ 45% 급등: 숏스퀴즈가 이끄는 비유기적 상승"
+■ Phase 2: published 단계 — 보고서 내용 기반 제목
+  card_data(요약, 가격변동, 키워드)로부터 최종 제목을 생성.
+  예: "ENJ 45% 급등: 숏스퀴즈가 이끄는 비유기적 상승"
 
 Usage:
-    # 단독 실행 (기존 보고서 백필)
-    python gen_report_title.py --backfill
+    # Phase 1: 트리거 기반 제목 (coming_soon)
+    from gen_report_title import generate_trigger_titles
+    titles = generate_trigger_titles(trigger_data, symbol)
 
-    # 파이프라인에서 호출
+    # Phase 2: 보고서 기반 제목 (published)
     from gen_report_title import generate_titles
     titles = generate_titles(card_data, project_name, symbol)
+
+    # 백필
+    python gen_report_title.py --backfill
 """
 from __future__ import annotations
 
@@ -138,7 +143,68 @@ def _pick_en_finding(keywords_en: list[str], summary_en: str) -> str:
     return 'Forensic Risk Analysis'
 
 
-# ── 제목 생성 메인 함수 ──
+# ── Phase 1: 트리거 사유 기반 제목 (coming_soon 단계) ──
+
+_KO_TRIGGER_SUFFIX = {
+    'big_up':   '급등 감지: 포렌식 분석 개시',
+    'up':       '상승 감지: 포렌식 분석 개시',
+    'small_up': '이상 변동 감지: 포렌식 분석 개시',
+    'flat':     '이상 징후 감지: 포렌식 분석 개시',
+    'small_dn': '이상 변동 감지: 포렌식 분석 개시',
+    'down':     '하락 감지: 포렌식 분석 개시',
+    'big_dn':   '급락 감지: 포렌식 분석 개시',
+}
+
+_EN_TRIGGER_SUFFIX = {
+    'big_up':   'Surge Detected: Forensic Analysis Initiated',
+    'up':       'Rally Detected: Forensic Analysis Initiated',
+    'small_up': 'Anomaly Detected: Forensic Analysis Initiated',
+    'flat':     'Anomaly Detected: Forensic Analysis Initiated',
+    'small_dn': 'Anomaly Detected: Forensic Analysis Initiated',
+    'down':     'Drop Detected: Forensic Analysis Initiated',
+    'big_dn':   'Plunge Detected: Forensic Analysis Initiated',
+}
+
+
+def generate_trigger_titles(
+    trigger_data: dict,
+    symbol: str,
+) -> dict:
+    """
+    Phase 1: 트리거 데이터로부터 coming_soon 단계 제목을 생성한다.
+
+    trigger_data should contain:
+        - price_change_24h: float
+        - relative_deviation: float (optional)
+        - risk_level: str (optional)
+
+    Returns:
+        {
+            'title_en': 'RAVE 87.8% Surge Detected: Forensic Analysis Initiated',
+            'title_ko': 'RAVE 87.8% 급등 감지: 포렌식 분석 개시',
+        }
+    """
+    change = float(trigger_data.get('price_change_24h', 0) or 0)
+    pct = f"{abs(change):.1f}"
+    dk = _direction_key(change)
+
+    ko_suffix = _KO_TRIGGER_SUFFIX[dk]
+    en_suffix = _EN_TRIGGER_SUFFIX[dk]
+
+    if dk == 'flat':
+        title_ko = f"{symbol} {ko_suffix}"
+        title_en = f"{symbol} {en_suffix}"
+    else:
+        title_ko = f"{symbol} {pct}% {ko_suffix}"
+        title_en = f"{symbol} {pct}% {en_suffix}"
+
+    return {
+        'title_en': title_en,
+        'title_ko': title_ko,
+    }
+
+
+# ── Phase 2: 제목 생성 메인 함수 (published 단계) ──
 
 def generate_titles(
     card_data: dict,
@@ -266,8 +332,22 @@ if __name__ == '__main__':
     if args.backfill:
         backfill_titles()
     else:
-        # Demo
-        demo = generate_titles(
+        # Demo: Phase 1 (trigger-based, coming_soon)
+        print("=== Phase 1: Trigger-based title (coming_soon) ===")
+        trigger_demo = generate_trigger_titles(
+            trigger_data={
+                'price_change_24h': 87.8,
+                'relative_deviation': 83.25,
+                'risk_level': 'high',
+            },
+            symbol='RAVE',
+        )
+        print(f"  EN: {trigger_demo['title_en']}")
+        print(f"  KO: {trigger_demo['title_ko']}")
+
+        # Demo: Phase 2 (report-based, published)
+        print("\n=== Phase 2: Report-based title (published) ===")
+        report_demo = generate_titles(
             card_data={
                 'price_change_24h': 45.2,
                 'keywords_ko': ['고래활동', '내부자거래', '조작의심'],
@@ -277,5 +357,5 @@ if __name__ == '__main__':
             project_name='RaveDAO',
             symbol='RAVE',
         )
-        print(f"EN: {demo['title_en']}")
-        print(f"KO: {demo['title_ko']}")
+        print(f"  EN: {report_demo['title_en']}")
+        print(f"  KO: {report_demo['title_ko']}")

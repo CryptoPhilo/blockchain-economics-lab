@@ -20,3 +20,4 @@ scripts/pipeline/.gdrive_service_account.json
 
 # Claude / Cowork session data
 .claude/
+.env.d/

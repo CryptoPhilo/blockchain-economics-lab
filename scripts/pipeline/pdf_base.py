@@ -374,6 +374,12 @@ def thin_line():
 
 def section_header(text, styles, report_type='econ'):
     """Create a styled section header with accent line."""
+    import re as _rh
+    # Strip markdown bold markers and backslash escapes from section titles
+    text = _rh.sub(r'\\\*\\\*(.+?)\\\*\\\*', r'**\1**', text, flags=_rh.DOTALL)
+    text = _rh.sub(r'\*\*(.+?)\*\*', r'\1', text, flags=_rh.DOTALL)
+    text = text.replace('**', '')
+    text = _rh.sub(r'\\(.)', r'\1', text)  # unescape \. \# etc.
     style_key = 'h1_forensic' if report_type == 'for' else 'h1'
     color = 'forensic_red' if report_type == 'for' else 'section_divider_bg'
     return [Spacer(1, 4), Paragraph(text, styles[style_key]), accent_line(color)]

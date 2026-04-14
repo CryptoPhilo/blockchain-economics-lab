@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>
@@ -12,9 +13,15 @@ const riskConfig: Record<string, { color: string; bg: string; border: string; st
   elevated: { color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/30', stroke: '#EAB308' },
 }
 
+// Locale → Intl locale string for date formatting
+const localeMap: Record<string, string> = {
+  en: 'en-US', ko: 'ko-KR', ja: 'ja-JP', zh: 'zh-CN',
+  fr: 'fr-FR', es: 'es-ES', de: 'de-DE',
+}
+
 export default async function ForensicReportPage({ params }: Props) {
   const { locale, slug } = await params
-  const isKo = locale === 'ko'
+  const t = await getTranslations('forensicDetail')
   const supabase = await createServerSupabaseClient()
 
   // Fetch the project
@@ -45,21 +52,34 @@ export default async function ForensicReportPage({ params }: Props) {
   const config = riskConfig[level] || riskConfig.elevated
   const riskScore = report.card_risk_score ?? cardData?.risk_score ?? 0
 
-  const keywords: string[] = isKo
-    ? (report.card_keywords ?? cardData?.keywords_ko ?? cardData?.keywords ?? [])
-    : (cardData?.keywords_en ?? report.card_keywords ?? [])
+  // Locale-aware keyword/summary resolution
+  const keywordsLocaleKey = `keywords_${locale}`
+  const summaryLocaleKey = `card_summary_${locale}`
+  const keywords: string[] =
+    (cardData as any)?.[keywordsLocaleKey]
+    ?? (locale === 'ko' ? (report.card_keywords ?? cardData?.keywords_ko ?? cardData?.keywords ?? []) : [])
+    || (cardData?.keywords_en ?? report.card_keywords ?? [])
 
-  const summary = isKo
-    ? (report.card_summary_ko || report.card_summary_en || cardData?.summary || '')
-    : (report.card_summary_en || cardData?.summary || '')
+  const summary =
+    (report as any)[`card_summary_${locale}`]
+    || report.card_summary_en
+    || cardData?.summary
+    || ''
 
   const change24h = cardData?.price_change_24h ?? cardData?.change_24h ?? 0
   const direction = cardData?.direction ?? (change24h >= 0 ? 'up' : 'down')
   const generatedAt = cardData?.generated_at || report.published_at || report.created_at
 
-  const levelLabel = isKo
-    ? (level === 'critical' ? '심각' : level === 'high' ? '높음' : '경계')
-    : (level.charAt(0).toUpperCase() + level.slice(1))
+  const levelLabel =
+    level === 'critical' ? t('riskCritical')
+    : level === 'high' ? t('riskHigh')
+    : t('riskElevated')
+
+  // Resolve the best available PDF URL for the current locale
+  const urlsByLang = report.gdrive_urls_by_lang as Record<string, string> | null
+  const localizedUrl = urlsByLang?.[locale] || urlsByLang?.['en'] || null
+  const primaryUrl = report.file_url || report.gdrive_url || localizedUrl
+  const hasReport = !!primaryUrl
 
   return (
     <div className="min-h-screen">
@@ -69,11 +89,11 @@ export default async function ForensicReportPage({ params }: Props) {
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm text-gray-500 mb-8">
             <Link href={`/${locale}`} className="hover:text-indigo-400 transition-colors">
-              {isKo ? '홈' : 'Home'}
+              {t('home')}
             </Link>
             <span>/</span>
             <Link href={`/${locale}/reports?type=forensic`} className="hover:text-indigo-400 transition-colors">
-              {isKo ? '포렌식 보고서' : 'Forensic Reports'}
+              {t('forensicReports')}
             </Link>
             <span>/</span>
             <span className="text-gray-300">{project.name}</span>
@@ -84,7 +104,7 @@ export default async function ForensicReportPage({ params }: Props) {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">
                 <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase ${config.bg} ${config.color} border ${config.border}`}>
-                  🔍 {isKo ? '포렌식' : 'FORENSIC'}
+                  🔍 {t('forensic')}
                 </span>
                 <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase ${config.bg} ${config.color} border ${config.border}`}>
                   ⚠ {levelLabel}
@@ -98,7 +118,7 @@ export default async function ForensicReportPage({ params }: Props) {
 
               {change24h !== 0 && (
                 <p className="text-lg mb-4">
-                  <span className="text-gray-500 mr-2">{isKo ? '24시간 변동' : '24h Change'}:</span>
+                  <span className="text-gray-500 mr-2">{t('change24h')}:</span>
                   <span className={change24h >= 0 ? 'text-green-400 font-semibold' : 'text-red-400 font-semibold'}>
                     {change24h >= 0 ? '+' : ''}{Number(change24h).toFixed(1)}%
                     {direction === 'up' ? ' ↑' : ' ↓'}
@@ -129,10 +149,10 @@ export default async function ForensicReportPage({ params }: Props) {
                 </div>
               </div>
               <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
-                {isKo ? '위험 점수' : 'Risk Score'}
+                {t('riskScore')}
               </p>
               <p className={`text-sm font-bold ${config.color} mt-1`}>
-                {levelLabel} {isKo ? '위험' : 'Risk'}
+                {levelLabel} {t('risk')}
               </p>
             </div>
           </div>
@@ -145,7 +165,7 @@ export default async function ForensicReportPage({ params }: Props) {
         {keywords.length > 0 && (
           <div className="mb-10">
             <h2 className="text-xl font-bold text-white mb-4">
-              {isKo ? '주요 발견 키워드' : 'Key Findings'}
+              {t('keyFindings')}
             </h2>
             <div className="flex flex-wrap gap-3">
               {keywords.map((kw: string, i: number) => (
@@ -163,21 +183,43 @@ export default async function ForensicReportPage({ params }: Props) {
         {/* Report details / Coming soon */}
         <div className="rounded-2xl bg-white/[0.03] border border-white/10 p-8 mb-10">
           <h2 className="text-xl font-bold text-white mb-4">
-            {isKo ? '포렌식 분석 보고서' : 'Forensic Analysis Report'}
+            {t('reportTitle')}
           </h2>
 
-          {report.file_url || report.gdrive_url ? (
+          {hasReport ? (
             <div className="flex flex-col gap-4">
-              {report.gdrive_url && (
-                <a
-                  href={report.gdrive_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-xl transition-colors w-fit"
-                >
-                  📄 {isKo ? '전체 보고서 보기 (Google Drive)' : 'View Full Report (Google Drive)'}
-                </a>
+              {/* Primary download: locale-specific or fallback */}
+              <a
+                href={primaryUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-xl transition-colors w-fit"
+              >
+                📄 {t('viewReport')}
+              </a>
+
+              {/* Other language versions */}
+              {urlsByLang && Object.keys(urlsByLang).length > 1 && (
+                <div className="flex flex-wrap gap-2 mt-1">
+                  <span className="text-sm text-gray-500 self-center mr-1">
+                    {t('otherLanguages')}
+                  </span>
+                  {Object.entries(urlsByLang)
+                    .filter(([lang]) => lang !== locale)
+                    .map(([lang, url]) => (
+                      <a
+                        key={lang}
+                        href={url as string}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1 text-xs font-medium bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-lg border border-white/10 transition-colors uppercase"
+                      >
+                        {lang}
+                      </a>
+                    ))}
+                </div>
               )}
+
               {report.gdrive_url_free && (
                 <a
                   href={report.gdrive_url_free}
@@ -185,7 +227,7 @@ export default async function ForensicReportPage({ params }: Props) {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl transition-colors w-fit"
                 >
-                  📄 {isKo ? '무료 요약 보기' : 'View Free Summary'}
+                  📄 {t('freeSummary')}
                 </a>
               )}
             </div>
@@ -193,14 +235,10 @@ export default async function ForensicReportPage({ params }: Props) {
             <div className="text-center py-12">
               <div className="text-4xl mb-4">🔍</div>
               <p className="text-lg text-gray-400 mb-2">
-                {isKo
-                  ? '전체 포렌식 보고서가 곧 공개됩니다.'
-                  : 'Full forensic report coming soon.'}
+                {t('comingSoonTitle')}
               </p>
               <p className="text-sm text-gray-500">
-                {isKo
-                  ? '위 요약은 AI 포렌식 분석의 핵심 발견을 담고 있습니다. 전체 보고서에는 온체인 데이터 분석, 거래소 유출입 패턴, 파생상품 시장 분석이 포함됩니다.'
-                  : 'The summary above contains key findings from our AI forensic analysis. The full report will include on-chain data analysis, exchange flow patterns, and derivatives market analysis.'}
+                {t('comingSoonDesc')}
               </p>
             </div>
           )}
@@ -210,25 +248,25 @@ export default async function ForensicReportPage({ params }: Props) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
           <div className="rounded-xl bg-white/[0.03] border border-white/5 p-5">
             <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-              {isKo ? '보고서 유형' : 'Report Type'}
+              {t('reportType')}
             </p>
             <p className="text-white font-semibold">
-              {isKo ? '포렌식 리스크 분석' : 'Forensic Risk Analysis'}
+              {t('reportTypeName')}
             </p>
           </div>
           <div className="rounded-xl bg-white/[0.03] border border-white/5 p-5">
             <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-              {isKo ? '버전' : 'Version'}
+              {t('versionLabel')}
             </p>
             <p className="text-white font-semibold">v{report.version || 1}</p>
           </div>
           <div className="rounded-xl bg-white/[0.03] border border-white/5 p-5">
             <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-              {isKo ? '분석 일시' : 'Analysis Date'}
+              {t('analysisDate')}
             </p>
             <p className="text-white font-semibold">
               {generatedAt
-                ? new Date(generatedAt).toLocaleDateString(isKo ? 'ko-KR' : 'en-US', {
+                ? new Date(generatedAt).toLocaleDateString(localeMap[locale] || 'en-US', {
                     year: 'numeric', month: 'long', day: 'numeric'
                   })
                 : '—'}
@@ -239,9 +277,7 @@ export default async function ForensicReportPage({ params }: Props) {
         {/* Disclaimer */}
         <div className="rounded-xl bg-yellow-500/5 border border-yellow-500/20 p-6">
           <p className="text-xs text-yellow-600/80 leading-relaxed">
-            {isKo
-              ? '⚠ 면책 조항: 이 포렌식 분석은 AI 기반 온체인 데이터 분석과 시장 패턴 감지를 통해 생성되었습니다. 투자 조언이 아니며, 모든 투자 결정은 본인의 책임 하에 이루어져야 합니다. 과거의 패턴이 미래의 결과를 보장하지 않습니다.'
-              : '⚠ Disclaimer: This forensic analysis is generated through AI-powered on-chain data analysis and market pattern detection. This is not investment advice. All investment decisions should be made at your own risk. Past patterns do not guarantee future results.'}
+            ⚠ {t('disclaimer')}
           </p>
         </div>
 
@@ -252,7 +288,7 @@ export default async function ForensicReportPage({ params }: Props) {
             className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all font-medium"
           >
             <span>←</span>
-            <span>{isKo ? '전체 포렌식 보고서' : 'All Forensic Reports'}</span>
+            <span>{t('allForensicReports')}</span>
           </Link>
         </div>
       </div>

@@ -42,6 +42,7 @@ Report generation follows a strict 5-stage process:
 - `report-pipeline` - Main orchestrator for report generation (다국어 PDF)
 - `slide-econ`, `slide-mat`, `slide-for` - Slide deck generation for each report type
 - `auto-analysis` - Automated analysis workflow
+- `deploy` - **프론트엔드 배포** (lint/typecheck 검증 → git push → Vercel 자동 빌드 → 라이브 검증)
 - `gdrive-upload` - Google Drive integration (exec-report가 내부적으로 호출)
 - `resend-email` - Email delivery service (exec-report가 내부적으로 호출)
 

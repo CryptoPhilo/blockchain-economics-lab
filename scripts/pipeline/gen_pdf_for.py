@@ -307,23 +307,11 @@ def generate_pdf_for(md_path: str, metadata: dict, lang: str = 'en', output_path
     # Add first content page break
     story.append(PageBreak())
 
-    # Major sections that should start on a new page
-    PAGE_BREAK_SECTIONS = {
-        'executive summary', 'risk indicator', 'manipulation detection',
-        'on-chain', 'technical analysis', 'market forensic',
-        'conclusion', 'recommendation', 'monitoring', 'disclaimer',
-        # Korean equivalents
-        '종합 요약', '위험 지표', '시장 조작', '온체인', '기술 분석',
-        '시장 포렌식', '결론', '권고', '모니터링',
-    }
-
-    # Process each section
+    # Process each section — every ## section starts on a new page for clean layout
     for idx, (section_title, section_content) in enumerate(sections):
-        # Add page break before major sections (skip first section — already on new page)
+        # Add page break before every section (skip first — already on new page after cover)
         if idx > 0:
-            title_lower = section_title.lower()
-            if any(kw in title_lower for kw in PAGE_BREAK_SECTIONS):
-                story.append(PageBreak())
+            story.append(PageBreak())
 
         # Section header (returns list, must extend) - use forensic styling
         story.extend(section_header(section_title, styles, report_type='for'))
