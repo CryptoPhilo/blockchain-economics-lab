@@ -1,11 +1,10 @@
-import { Suspense } from 'react'
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getLocalizedField, type Locale } from '@/lib/types'
 import ProductCard from '@/components/ProductCard'
 import DisclaimerBanner from '@/components/DisclaimerBanner'
-import ForensicSlideShowcase from '@/components/ForensicSlideShowcase'
+import ForensicSlideCards from '@/components/ForensicSlideCards'
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
@@ -15,10 +14,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   let featuredProducts: any[] = []
   let categories: any[] = []
   let trackedProjects: any[] = []
+  let forensicReports: any[] = []
 
   try {
     const supabase = await createServerSupabaseClient()
-    const [productsRes, categoriesRes, projectsRes] = await Promise.all([
+    const [productsRes, categoriesRes, projectsRes, forensicRes] = await Promise.all([
       supabase
         .from('products')
         .select('*, category:categories(*)')
@@ -36,20 +36,37 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         .in('status', ['active', 'monitoring_only'])
         .order('maturity_score', { ascending: false, nullsFirst: false })
         .limit(9),
+      supabase
+        .from('project_reports')
+        .select(`
+          id, project_id, risk_level,
+          card_data, card_summary_en, card_summary_ko,
+          card_keywords, card_risk_score, card_thumbnail_url,
+          tracked_projects!inner(id, name, slug, symbol)
+        `)
+        .eq('report_type', 'forensic')
+        .in('status', ['published', 'coming_soon'])
+        .in('card_qa_status', ['approved', 'pending'])
+        .not('card_data', 'is', null)
+        .order('published_at', { ascending: false })
+        .limit(3),
     ])
     featuredProducts = productsRes.data || []
     categories = categoriesRes.data || []
     trackedProjects = projectsRes.data || []
+    forensicReports = (forensicRes.data || []).filter(
+      (r: any) => r.tracked_projects !== null && r.card_data !== null
+    )
   } catch (e) {
     console.error('Failed to fetch data:', e)
   }
 
   return (
     <div>
-      {/* ★ Forensic Report Slide Thumbnails — TOP of page */}
-      <Suspense fallback={null}>
-        <ForensicSlideShowcase />
-      </Suspense>
+      {/* ★ Forensic Report Slide Thumbnails — TOP of page (sync render, no Suspense) */}
+      {forensicReports.length > 0 && (
+        <ForensicSlideCards reports={forensicReports} locale={locale} />
+      )}
 
       {/* Tracked Projects Scores */}
       {trackedProjects.length > 0 && (
