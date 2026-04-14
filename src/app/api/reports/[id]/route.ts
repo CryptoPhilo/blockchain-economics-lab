@@ -76,6 +76,7 @@ export async function GET(
     // Track download
     await supabase
       .from('user_library')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .update({ download_count: (access as any).download_count + 1 || 1 })
       .eq('id', access.id)
   }

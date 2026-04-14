@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useLocale, useTranslations } from 'next-intl'
+import { useLocale } from 'next-intl'
 import { useSearchParams } from 'next/navigation'
 import DisclaimerBanner from '@/components/DisclaimerBanner'
 

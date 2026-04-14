@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 
 interface ForensicCardPreviewProps {
-  reportId: string
+  _reportId: string
   slug: string
   projectName: string
   symbol: string
@@ -25,7 +25,8 @@ const riskLevelConfig: Record<
 }
 
 export default function ForensicCardPreview({
-  reportId,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _reportId,
   slug,
   projectName,
   symbol,

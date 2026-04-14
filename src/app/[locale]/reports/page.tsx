@@ -14,12 +14,14 @@ const LANG_NAMES: Record<string, string> = {
   fr: 'Français', es: 'Español', de: 'Deutsch',
 }
 
+ 
 const TYPE_CONFIG = {
   econ: { color: 'bg-blue-500/20 text-blue-400 border-blue-500/30', label: 'ECON', icon: '📊' },
   maturity: { color: 'bg-green-500/20 text-green-400 border-green-500/30', label: 'MAT', icon: '📈' },
   forensic: { color: 'bg-red-500/20 text-red-400 border-red-500/30', label: 'FOR', icon: '🔍' },
 } as const
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getLocalizedTitle(report: any, locale: string): string {
   const key = `title_${locale}`
   return report[key] || report.title_en || `Report v${report.version}`
@@ -211,6 +213,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
           <div className="relative">
             <select
               defaultValue={filterProject || 'all'}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               onChange={`window.location.href='${filterUrl({ project: '__PROJ__' })}'.replace('__PROJ__', this.value)` as any}
               className="appearance-none pl-4 pr-10 py-2 rounded-full text-sm font-medium bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 cursor-pointer focus:outline-none focus:border-indigo-500/50"
             >
@@ -261,6 +264,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
       {/* Reports List */}
       {reports && reports.length > 0 ? (
         <div className="grid gap-4">
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           {reports.map((report: any) => {
             const project = report.project
             const typeKey = report.report_type as keyof typeof TYPE_CONFIG

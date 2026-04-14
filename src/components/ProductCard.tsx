@@ -41,7 +41,9 @@ export default function ProductCard({ product, locale }: Props) {
       {/* Category */}
       {product.category && (
         <p className="text-xs text-gray-600 mb-2">
-          {(product.category as any).icon} {getLocalizedField(product.category as any, 'name', locale)}
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          {(product.category as any).icon} {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          {getLocalizedField(product.category as any, 'name', locale)}
         </p>
       )}
 

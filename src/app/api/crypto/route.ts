@@ -82,6 +82,7 @@ export async function POST(request: NextRequest) {
       price,
       expiresAt: expiresAt.toISOString(),
     })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     console.error('Crypto payment error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

@@ -57,6 +57,7 @@ export default function CryptoPayment({ product }: Props) {
   }, [status, paymentInfo])
 
   if (status === 'awaiting' && paymentInfo) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const crypto = CRYPTOS.find(c => c.symbol === selectedCrypto)!
     return (
       <div className="space-y-4">

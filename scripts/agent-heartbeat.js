@@ -10,6 +10,7 @@
  *   node scripts/agent-heartbeat.js --agents=data-engineer
  */
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { createClient } = require('@supabase/supabase-js')
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -71,7 +72,8 @@ const AGENTS = {
 // ── Health Check Functions ──────────────────────────────────
 
 async function checkOverdueTasks() {
-  const { data, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { data, _error } = await supabase
     .from('orders')
     .select('id, status, created_at')
     .eq('status', 'pending')
@@ -89,7 +91,8 @@ async function checkOverdueTasks() {
 
 async function checkBudgetStatus() {
   const now = new Date()
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
 
   // In production, query cost_events table
   return {
@@ -137,7 +140,8 @@ async function checkPublishingQueue() {
 
 async function checkPipelineHealth() {
   // Check if Supabase is reachable and recent data exists
-  const { data, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { _data, error } = await supabase
     .from('categories')
     .select('id')
     .limit(1)

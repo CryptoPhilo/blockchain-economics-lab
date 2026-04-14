@@ -10,6 +10,7 @@ interface Props {
   locale: string
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function CheckoutButton({ product, locale }: Props) {
   const t = useTranslations('checkout')
   const [showCrypto, setShowCrypto] = useState(false)

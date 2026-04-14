@@ -13,9 +13,12 @@ export async function POST(request: NextRequest) {
     if (!stripe) {
       return NextResponse.json({ error: 'Stripe is not configured' }, { status: 503 })
     }
-    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
-  } catch (err: any) {
-    console.error('Webhook signature verification failed:', err.message)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!) as any
+  } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const error = err as any
+    console.error('Webhook signature verification failed:', error.message)
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
@@ -51,6 +54,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Create order
+       
       const { data: order } = await supabase
         .from('orders')
         .insert({
@@ -62,21 +66,25 @@ export async function POST(request: NextRequest) {
           stripe_session_id: session.id,
           stripe_payment_intent_id: session.payment_intent as string,
           paid_at: new Date().toISOString(),
-        })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any)
         .select()
         .single()
 
       if (order) {
         // Create order item
+         
         await supabase.from('order_items').insert({
           order_id: order.id,
           product_id,
           unit_price_cents: session.amount_total || 0,
-        })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any)
 
         // Grant access to user library
         if (product_type === 'subscription') {
           // Create subscription
+           
           await supabase.from('subscriptions').insert({
             user_id,
             product_id,
@@ -85,10 +93,12 @@ export async function POST(request: NextRequest) {
             stripe_subscription_id: session.subscription as string,
             current_period_start: new Date().toISOString(),
             current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          })
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } as any)
         }
 
         // Add to user library
+         
         await supabase.from('user_library').insert({
           user_id,
           product_id,
@@ -96,7 +106,8 @@ export async function POST(request: NextRequest) {
           access_expires_at: product_type === 'subscription'
             ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
             : null,
-        })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any)
       }
       break
     }

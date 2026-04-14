@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
     // Create Stripe checkout session
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sessionParams: any = {
       payment_method_types: ['card'],
       line_items: [
@@ -64,8 +65,10 @@ export async function POST(request: NextRequest) {
     const session = await stripe.checkout.sessions.create(sessionParams)
 
     return NextResponse.json({ url: session.url })
-  } catch (err: any) {
-    console.error('Checkout error:', err)
+  } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const error = err as any
+    console.error('Checkout error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

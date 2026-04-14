@@ -21,6 +21,7 @@ export default function Header() {
     } else {
       segments.splice(1, 0, newLocale)
     }
+    // eslint-disable-next-line react-hooks/immutability
     window.location.href = segments.join('/') || '/'
   }
 

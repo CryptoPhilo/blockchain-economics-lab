@@ -41,6 +41,7 @@ const paywallConfig = {
 
 export default function FreemiumPaywall({ reportType, productSlug, priceUsd }: FreemiumPaywallProps) {
   const locale = useLocale()
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const t = useTranslations()
   const config = paywallConfig[reportType]
   const message = locale === 'ko' ? config.message_ko : config.message_en

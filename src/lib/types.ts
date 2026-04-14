@@ -184,6 +184,7 @@ export interface ForensicMonitoringLog {
   exchange_netflow_pct?: number
   insider_activity?: string
   total_flags: number
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   flag_details?: Record<string, any>
   action: string
   analyst_id?: string
@@ -307,6 +308,7 @@ export interface NewsletterEvent {
   newsletter_id: string
   subscriber_id: string
   event_type: NewsletterEventType
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   metadata?: Record<string, any>
   occurred_at: string
 }
@@ -342,6 +344,7 @@ export function calculateBCEScore(scores: BCEMaturityScores): number {
 }
 
 // Helper: get localized field from product/category
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getLocalizedField<T extends Record<string, any>>(
   item: T,
   field: string,

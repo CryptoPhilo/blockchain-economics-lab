@@ -15,7 +15,6 @@ import { cryptoConfirmLimiter, getRateLimitId, rateLimitResponse } from '@/lib/r
 const ETH_TX_HASH_RE = /^0x[a-fA-F0-9]{64}$/
 const BTC_TX_HASH_RE = /^[a-fA-F0-9]{64}$/
 
-const COINGECKO_API = 'https://api.coingecko.com/api/v3'
 const MIN_CONFIRMATIONS: Record<string, number> = {
   crypto_btc: 3,
   crypto_eth: 12,
@@ -83,7 +82,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createServerSupabaseClient()
 
     // FIX 1: Require authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
@@ -140,7 +139,8 @@ export async function POST(request: NextRequest) {
     // Check based on payment method
     if (paymentMethod === 'crypto_eth' || paymentMethod === 'crypto_usdt' || paymentMethod === 'crypto_usdc') {
       try {
-        const result = await checkEthTxConfirmation(order.crypto_tx_hash)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const result = await checkEthTxConfirmation(order.crypto_tx_hash as any)
 
         if (result.confirmed) {
           // Mark order as completed
@@ -160,7 +160,8 @@ export async function POST(request: NextRequest) {
             .eq('order_id', order_id)
 
           if (items && items.length > 0) {
-            const libraryInserts = items.map((item) => ({
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const libraryInserts = items.map((item: any) => ({
               user_id: order.user_id || '',
               product_id: item.product_id,
               order_id: order_id,
@@ -182,7 +183,8 @@ export async function POST(request: NextRequest) {
           confirmations: result.confirmations,
         })
       } catch (err) {
-        console.error('[Crypto] ETH check failed:', err)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        console.error('[Crypto] ETH check failed:', err as any)
         return NextResponse.json({ error: 'Payment verification unavailable' }, { status: 503 })
       }
     }
@@ -222,7 +224,8 @@ export async function POST(request: NextRequest) {
                 .eq('order_id', order_id)
 
               if (items && items.length > 0) {
-                const libraryInserts = items.map((item) => ({
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const libraryInserts = items.map((item: any) => ({
                   user_id: order.user_id || '',
                   product_id: item.product_id,
                   order_id: order_id,

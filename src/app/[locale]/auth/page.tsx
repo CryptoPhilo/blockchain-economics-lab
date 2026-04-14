@@ -34,8 +34,10 @@ export default function AuthPage() {
         if (error) throw error
         window.location.href = `/${locale}/dashboard`
       }
-    } catch (err: any) {
-      setMessage(err.message)
+    } catch (err) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const errorMessage = (err as any).message
+      setMessage(errorMessage)
     } finally {
       setLoading(false)
     }

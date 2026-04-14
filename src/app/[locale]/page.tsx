@@ -11,9 +11,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const t = await getTranslations()
   const isKo = locale === 'ko'
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let featuredProducts: any[] = []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let categories: any[] = []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let trackedProjects: any[] = []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let forensicReports: any[] = []
 
   try {
@@ -54,7 +58,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     featuredProducts = productsRes.data || []
     categories = categoriesRes.data || []
     trackedProjects = projectsRes.data || []
+     
     forensicReports = (forensicRes.data || []).filter(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (r: any) => r.tracked_projects !== null && r.card_data !== null
     )
   } catch (e) {

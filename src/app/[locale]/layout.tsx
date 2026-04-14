@@ -13,6 +13,7 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (!locales.includes(locale as any)) notFound()
   const messages = await getMessages()
 

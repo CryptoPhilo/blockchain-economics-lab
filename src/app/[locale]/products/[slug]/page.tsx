@@ -24,6 +24,7 @@ export default async function ProductDetailPage({ params }: Props) {
   if (!product) notFound()
 
   // If bundle, fetch items
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let bundleItems: any[] = []
   if (product.type === 'bundle') {
     const { data } = await supabase
@@ -66,6 +67,7 @@ export default async function ProductDetailPage({ params }: Props) {
 
           {product.tags?.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-8">
+              { }
               {product.tags.map((tag: string) => (
                 <span key={tag} className="px-3 py-1 bg-white/5 rounded-full text-sm text-gray-400">#{tag}</span>
               ))}
@@ -77,6 +79,7 @@ export default async function ProductDetailPage({ params }: Props) {
             <div className="mt-8">
               <h3 className="text-xl font-semibold mb-4">{t('products.includes')}</h3>
               <div className="space-y-3">
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                 {bundleItems.map((item: any) => (
                   <div key={item.id} className="flex items-center gap-3 p-4 rounded-lg bg-white/5 border border-white/5">
                     <span className="text-green-400">✓</span>

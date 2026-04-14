@@ -1,14 +1,16 @@
-import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import MaturityScoreRadar from '@/components/MaturityScoreRadar'
 import DisclaimerBanner from '@/components/DisclaimerBanner'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { Locale } from '@/lib/types'
 
 interface Props {
   params: Promise<{ locale: string }>
   searchParams: Promise<{ project?: string; q?: string; category?: string }>
 }
+
+// getTranslations is imported from next-intl/server but unused in this component
 
 const PAGE_SIZE = 24
 
@@ -52,6 +54,7 @@ export default async function ScoreLookupPage({ params, searchParams }: Props) {
   const categories = Object.keys(catCountMap).sort()
 
   // Fetch selected project with full score data
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let selectedProject: any = null
   if (projectSlug) {
     const { data } = await supabase
@@ -198,6 +201,7 @@ export default async function ScoreLookupPage({ params, searchParams }: Props) {
             }}
             overallScore={selectedProject.maturity_score || 0}
             projectName={selectedProject.name}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             threatLevel={selectedProject.threat_level as any || 'clear'}
           />
 

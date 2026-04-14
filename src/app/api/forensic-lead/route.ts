@@ -105,7 +105,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ForensicL
     }
 
     // Insert into email_leads table
-    const { data: lead, error: leadError } = await supabase.from('email_leads').insert({
+    const { error: leadError } = await supabase.from('email_leads').insert({
       email: email.toLowerCase(),
       report_id: reportId,
       source: 'for_card',

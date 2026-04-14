@@ -10,8 +10,11 @@
  *   node scripts/publish-report.js --file=content/reports/eth-gas-q2.pdf --slug=ethereum-gas-q2-2026
  */
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const fs = require('fs')
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const path = require('path')
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { createClient } = require('@supabase/supabase-js')
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -41,7 +44,8 @@ async function uploadReport(filePath, slug) {
 
   console.log(`📤 Uploading ${filePath} → ${storagePath}`)
 
-  const { data, error } = await supabase.storage
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { _data, error } = await supabase.storage
     .from('reports')
     .upload(storagePath, fileBuffer, {
       contentType: ext === '.pdf' ? 'application/pdf' : 'application/octet-stream',

@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from 'react'
  */
 
 interface ForensicSlideCardsProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   reports: any[]
   locale: string
 }
@@ -37,10 +38,13 @@ const riskConfig: Record<string, { accent: string; badge: string; glow: string; 
   },
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SlideCard({ report, locale }: { report: any; locale: string }) {
   const tp = Array.isArray(report.tracked_projects)
     ? report.tracked_projects[0]
-    : (report.tracked_projects as any)
+    : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (report.tracked_projects as any)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cardData = report.card_data as Record<string, any> | null
   const level = (report.risk_level || cardData?.risk_level || 'elevated').toLowerCase()
   const config = riskConfig[level] || riskConfig.elevated
@@ -74,6 +78,7 @@ function SlideCard({ report, locale }: { report: any; locale: string }) {
         href={`/${locale}/reports/forensic/${slug}`}
         className="group block relative overflow-hidden rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-[1.02] flex-shrink-0 w-[340px] md:w-[400px]"
       >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={report.card_thumbnail_url}
           alt={`${tp?.name ?? 'Project'} Forensic Report`}
@@ -200,6 +205,7 @@ function SlideCard({ report, locale }: { report: any; locale: string }) {
  * Duplicates cards to create seamless loop effect.
  * Pauses on hover so users can click.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function CarouselTrack({ reports, locale }: { reports: any[]; locale: string }) {
   const trackRef = useRef<HTMLDivElement>(null)
   const [isPaused, setIsPaused] = useState(false)
@@ -244,6 +250,7 @@ function CarouselTrack({ reports, locale }: { reports: any[]; locale: string }) 
       onMouseLeave={() => setIsPaused(false)}
       style={{ scrollBehavior: 'auto' }}
     >
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       {tripled.map((r: any, idx: number) => (
         <SlideCard key={`${r.id}-${idx}`} report={r} locale={locale} />
       ))}
@@ -282,6 +289,7 @@ export default function ForensicSlideCards({ reports, locale }: ForensicSlideCar
       ) : reports.length === 2 ? (
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {reports.map((r: any) => (
               <SlideCard key={r.id} report={r} locale={locale} />
             ))}

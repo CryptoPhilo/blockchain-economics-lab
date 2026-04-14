@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Re-subscribe
+       
       await supabase
         .from('subscribers')
         .update({
@@ -49,7 +50,8 @@ export async function POST(request: NextRequest) {
           opt_in_sent_at: new Date().toISOString(),
           locale,
           ip_country: country,
-        })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any)
         .eq('id', existing.id)
     } else {
       // New subscriber

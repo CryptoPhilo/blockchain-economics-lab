@@ -81,7 +81,7 @@ export default async function ProjectsPage({ params, searchParams }: Props) {
 
   // Get report counts per project (only for displayed projects)
   const projectIds = (projects || []).map((p) => p.id)
-  let reportMap: Record<string, { econ: number; maturity: number; forensic: number }> = {}
+  const reportMap: Record<string, { econ: number; maturity: number; forensic: number }> = {}
 
   if (projectIds.length > 0) {
     const { data: reports } = await supabase

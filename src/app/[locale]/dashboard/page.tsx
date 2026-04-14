@@ -43,6 +43,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
         <section className="mb-12">
           <h2 className="text-xl font-semibold mb-4">{t('mySubscriptions')}</h2>
           <div className="grid gap-4">
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {subscriptions.map((sub: any) => (
               <div key={sub.id} className="p-5 rounded-xl bg-green-500/5 border border-green-500/20 flex items-center justify-between">
                 <div>
@@ -65,6 +66,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
         <h2 className="text-xl font-semibold mb-4">{t('myLibrary')}</h2>
         {library && library.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {library.map((item: any) => (
               <div key={item.id} className="p-5 rounded-xl bg-white/5 border border-white/5">
                 <h3 className="font-semibold mb-2">{getLocalizedField(item.product, 'title', locale as Locale)}</h3>
@@ -116,10 +118,12 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
                 </tr>
               </thead>
               <tbody>
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                 {orders.map((order: any) => (
                   <tr key={order.id} className="border-b border-white/5">
                     <td className="py-3 text-gray-400">{new Date(order.created_at).toLocaleDateString()}</td>
                     <td className="py-3">
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {order.items?.map((item: any) => (
                         <span key={item.id}>{getLocalizedField(item.product, 'title', locale as Locale)}</span>
                       ))}

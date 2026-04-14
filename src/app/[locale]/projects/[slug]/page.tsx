@@ -155,6 +155,7 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
       {/* Reports Grid */}
       {reports && reports.length > 0 ? (
         <div className="grid gap-4">
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           {reports.map((report: any) => {
             const typeKey = report.report_type as keyof typeof TYPE_CONFIG
             const config = TYPE_CONFIG[typeKey]
