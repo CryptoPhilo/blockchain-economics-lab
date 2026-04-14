@@ -41,7 +41,8 @@ from reportlab.platypus import (
 
 from pdf_base import (
     make_styles, section_header, build_table, draw_cover_econ_mat,
-    make_header_footer, add_disclaimer, create_doc, USABLE_W, C
+    make_header_footer, add_disclaimer, create_doc, USABLE_W, C,
+    wrap_cjk_runs
 )
 from config import report_filename, COLORS
 from chart_engine import get_chart_engine, Palette
@@ -66,6 +67,9 @@ def parse_markdown(md_text):
     for part in parts[1:]:
         lines = part.split('\n')
         title = lines[0].strip()
+        # Clean markdown formatting from title: **bold**, \escapes, brackets
+        title = re.sub(r'\*\*(.+?)\*\*', r'\1', title)
+        title = title.replace('\\', '')
         content = '\n'.join(lines[1:]).strip()
         sections.append((title, content))
 
@@ -110,40 +114,113 @@ def clean_text_remove_tables(text):
     return re.sub(table_pattern, '', text).strip()
 
 
-def markdown_to_paragraphs(text, styles, max_width=None):
+def _md_to_rl(text, lang='en'):
+    """Convert markdown inline formatting to ReportLab XML tags.
+    Mirrors gen_pdf_econ._md_to_rl: handles Google-Docs escaped patterns,
+    strips stray backslash escapes, drops triple-backtick code fences
+    (keeping content as plain text), wraps CJK runs in font tags for
+    universal glyph coverage.
+    """
+    # 0. Strip triple-backtick code fences (keep content)
+    text = re.sub(r'```[a-zA-Z0-9_-]*\n?', '', text)
+    # Also handle double-backtick spans: keep content without font swap
+    text = re.sub(r'``\s*([\s\S]*?)\s*``', r'\1', text)
+
+    # 1. Normalise within-paragraph line breaks
+    text = re.sub(r'(?<!\n)\n(?!\n)', ' ', text)
+
+    # 2. Escaped markdown → real markdown
+    text = re.sub(r'\\\*\\\*(.+?)\\\*\\\*', r'**\1**', text, flags=re.DOTALL)
+    text = re.sub(r'(?<!\\\*)\\\*([^*]+?)\\\*(?!\\\*)', r'*\1*', text)
+
+    # 3. Strip backslash escapes that don't need XML treatment
+    text = text.replace('\\-', '-').replace('\\.', '.')
+    text = text.replace('\\/', '/').replace('\\_', '_')
+    text = text.replace('\\`', '`')
+    text = text.replace('\\"', '"').replace("\\'", "'")
+
+    # 4. XML escape & (must precede &lt;/&gt; conversion)
+    text = text.replace('&', '&amp;')
+
+    # 4b. Escaped angle brackets → XML entities (AFTER & escape)
+    text = text.replace('\\<', '&lt;').replace('\\>', '&gt;')
+    text = re.sub(r'\\(.)', r'\1', text)
+
+    # 4c. Balance ** markers — strip the last unpaired one if odd count,
+    # so non-greedy bold regex can't mispair across bullet items.
+    parts = text.split('**')
+    if len(parts) > 1 and (len(parts) - 1) % 2 == 1:
+        parts[-2] = parts[-2] + parts[-1]
+        parts.pop()
+        text = '**'.join(parts)
+
+    # 5. Markdown → RL XML
+    text = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text, flags=re.DOTALL)
+    text = text.replace('**', '')
+    text = re.sub(r'(?<![<\w/])\*([^*\n]+?)\*(?![>\w])', r'<i>\1</i>', text)
+    # Inline single-backtick code → italic (no Courier, no CJK-breaking font swap)
+    text = re.sub(r'`([^`]+?)`', r'<i>\1</i>', text)
+    text = re.sub(r'\[([^\]]+?)\]\([^)]+?\)', r'\1', text)
+
+    # 6. Sanitise stray < not part of allowed tags
+    text = re.sub(r'<(?!/?(?:b|i|font|sub|super|br)\b)', '&lt;', text)
+
+    # 6b. Wrap CJK / arrow / box-drawing runs in per-script font tags
+    text = wrap_cjk_runs(text, lang=lang)
+
+    # 7. Balance unpaired tags
+    ob = len(re.findall(r'<b>', text)); cb = len(re.findall(r'</b>', text))
+    if ob > cb:   text += '</b>' * (ob - cb)
+    elif cb > ob: text = '<b>' * (cb - ob) + text
+    oi = len(re.findall(r'<i>', text)); ci = len(re.findall(r'</i>', text))
+    if oi > ci:   text += '</i>' * (oi - ci)
+    elif ci > oi: text = '<i>' * (ci - oi) + text
+
+    # 8. Remove empty tags
+    text = re.sub(r'<i>\s*</i>', '', text)
+    text = re.sub(r'<b>\s*</b>', '', text)
+    return text
+
+
+def markdown_to_paragraphs(text, styles, max_width=None, lang='en'):
     """
     Convert markdown text to reportlab Paragraphs, respecting basic formatting.
-    Handles: **bold**, *italic*, ### sub-headers, bullet points
+    Handles: **bold**, *italic*, \\-escaped artefacts, ### sub-headers, bullets.
     """
     flowables = []
     text = clean_text_remove_tables(text)
+
+    def _safe_para(t, style):
+        try:
+            return Paragraph(t, style)
+        except Exception:
+            return Paragraph(re.sub(r'<[^>]+>', '', t), style)
+
+    # Force each bullet / numbered list item to its own paragraph so inline
+    # bold/italic substitutions never cross item boundaries.
+    text = re.sub(r'(?<!\n)\n(\s*(?:[*\-\u2022]|\d+[.)])\s+)', r'\n\n\1', text)
 
     for paragraph_text in text.split('\n\n'):
         p = paragraph_text.strip()
         if not p:
             continue
 
-        # Handle ### sub-headers
+        # ### sub-headers
         if p.startswith('### '):
-            sub_title = p[4:].strip()
+            sub_title = _md_to_rl(p[4:].strip(), lang=lang)
             flowables.append(Spacer(1, 10))
-            flowables.append(Paragraph(f'<b>{sub_title}</b>', styles['h3']))
+            flowables.append(_safe_para(f'<b>{sub_title}</b>', styles['h3']))
             flowables.append(Spacer(1, 4))
             continue
 
-        # Convert **bold** to <b>...</b>
-        p = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', p)
-        # Convert *italic* to <i>...</i>
-        p = re.sub(r'\*(.*?)\*', r'<i>\1</i>', p)
+        p = _md_to_rl(p, lang=lang)
 
-        # Detect if it starts with - (bullet)
-        if p.startswith('- '):
-            flowables.append(Paragraph(p[2:], styles['bullet']))
+        if p.startswith('- ') or p.startswith('* '):
+            flowables.append(_safe_para(f'\u2022 {p[2:]}', styles['bullet']))
         elif p.startswith('<b>') and ':' in p:
-            # Bold key-value pair (e.g., "<b>Key</b>: value")
-            flowables.append(Paragraph(p, styles['callout']))
+            flowables.append(_safe_para(p, styles['callout']))
         else:
-            flowables.append(Paragraph(p, styles['body']))
+            flowables.append(_safe_para(p, styles['body']))
 
         flowables.append(Spacer(1, 4))
 
@@ -263,7 +340,10 @@ def generate_pdf_mat(md_path: str, metadata: dict, lang: str = 'en', output_path
     story.append(PageBreak())
 
     # Process each section
-    for section_title, section_content in sections:
+    for idx, (section_title, section_content) in enumerate(sections):
+        # PageBreak before each chapter (except the first, which follows cover break)
+        if idx > 0:
+            story.append(PageBreak())
         # Section header (returns list, must extend)
         story.extend(section_header(section_title, styles, report_type='mat'))
 
@@ -276,7 +356,7 @@ def generate_pdf_mat(md_path: str, metadata: dict, lang: str = 'en', output_path
 
             # Add prose before first table
             if clean_prose:
-                story.extend(markdown_to_paragraphs(clean_prose, styles))
+                story.extend(markdown_to_paragraphs(clean_prose, styles, lang=lang))
 
             # Add tables and associated charts
             for (headers, rows), _ in tables_in_section:
@@ -303,7 +383,7 @@ def generate_pdf_mat(md_path: str, metadata: dict, lang: str = 'en', output_path
 
         else:
             # No tables - just prose
-            story.extend(markdown_to_paragraphs(section_content, styles))
+            story.extend(markdown_to_paragraphs(section_content, styles, lang=lang))
 
         # On-Chain/Off-Chain special handling: add donut chart
         if 'on-chain' in section_title.lower() and charts_data.get('onchain_offchain'):

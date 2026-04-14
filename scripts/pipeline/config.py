@@ -104,25 +104,49 @@ MARKET_BENCHMARK = {
 }
 
 # ═══════════════════════════════════════════
-# COLORS (BCE Lab brand)
+# COLORS (Tiger Research + BCE Lab branding)
 # ═══════════════════════════════════════════
 COLORS = {
-    'indigo':     '#4F46E5',
-    'dark_bg':    '#0F172A',
-    'slate_800':  '#1E293B',
-    'slate_700':  '#334155',
-    'slate_600':  '#475569',
-    'slate_100':  '#F1F5F9',
-    'slate_50':   '#F8FAFC',
-    'white':      '#FFFFFF',
-    'light_gray': '#E2E8F0',
-    'mid_gray':   '#94A3B8',
-    'green':      '#16A34A',
-    'red':        '#DC2626',
-    'amber':      '#D97706',
-    'blue':       '#2563EB',
-    'purple':     '#7C3AED',
-    'forensic_red': '#B91C1C',
+    # Typography (Tiger Research inspired)
+    'primary_text':      '#1A1A1A',       # Near-black for titles, main text
+    'body_text':         '#333333',       # Dark gray for body
+    'accent':            '#2D8F5E',       # BCE Lab green — brand identity
+    'accent_coral':      '#E8724A',       # Tiger Research coral — captions, highlights
+    'section_divider_bg': '#2D8F5E',      # Green for dividers and section markers
+
+    # Table styling (Tiger Research + functional)
+    'table_header_bg':   '#3D3D3D',       # Dark gray header
+    'table_alt_row':     '#F8F8F8',       # Very light gray alternating rows
+    'table_border':      '#E0E0E0',       # Light gray borders
+
+    # Neutrals & support
+    'white':             '#FFFFFF',
+    'light_gray':        '#E0E0E0',
+    'mid_gray':          '#999999',
+    'slate_50':          '#F8FAFC',
+
+    # Semantic text colors (3-color hierarchy)
+    'score_green':       '#2D8F5E',       # Scores, positive labels (평가, 장점, 결론 label)
+    'risk_red':          '#C0392B',       # Risk/warning labels (한계, 리스크)
+    'conclusion_bg':     '#F5F7F5',       # Conclusion box background
+
+    # Legacy semantic colors
+    'forensic_red':      '#DC2626',       # High contrast red for forensic reports
+    'green':             '#16A34A',
+    'red':               '#DC2626',
+    'amber':             '#D97706',
+    'blue':              '#2563EB',
+
+    # Legacy/fallback (kept for backward compatibility)
+    'indigo':            '#4F46E5',
+    'accent_green':      '#2D8F5E',       # Maps to new primary accent
+    'dark_bg':           '#1B2631',
+    'cover_strip':       '#2C3E50',
+    'slate_800':         '#1E293B',
+    'slate_700':         '#334155',
+    'slate_600':         '#475569',
+    'slate_100':         '#F1F5F9',
+    'table_header':      '#3D3D3D',
 }
 
 # ═══════════════════════════════════════════

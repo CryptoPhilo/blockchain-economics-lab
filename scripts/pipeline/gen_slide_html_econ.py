@@ -34,6 +34,26 @@ try:
 except ImportError:
     HAS_PLOTLY = False
 
+# ── Matplotlib (reliable Korean font rendering) ─────────────
+try:
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from matplotlib.font_manager import FontProperties
+    import numpy as np
+    _FONTS_DIR = Path(__file__).parent / 'fonts'
+    _KR_FONT_PATH = _FONTS_DIR / 'NotoSansKR-Regular.ttf'
+    _KR_FONT_BOLD_PATH = _FONTS_DIR / 'NotoSansKR-Bold.ttf'
+    if _KR_FONT_PATH.exists():
+        _KR_FONT = FontProperties(fname=str(_KR_FONT_PATH))
+        _KR_FONT_BOLD = FontProperties(fname=str(_KR_FONT_BOLD_PATH)) if _KR_FONT_BOLD_PATH.exists() else _KR_FONT
+    else:
+        _KR_FONT = FontProperties()
+        _KR_FONT_BOLD = FontProperties()
+    HAS_MPL = True
+except ImportError:
+    HAS_MPL = False
+
 # ═══════════════════════════════════════════════════════════════
 #  DESIGN SYSTEM  –  Beige + Gold theme matching BCE Lab samples
 # ═══════════════════════════════════════════════════════════════
@@ -689,15 +709,36 @@ ICONS = {
 
 
 # ═══════════════════════════════════════════════════════════════
-#  CHART HELPERS  –  Plotly → base64 PNG
+#  CHART HELPERS  –  matplotlib → base64 PNG (Korean font safe)
 # ═══════════════════════════════════════════════════════════════
 
-def _chart_to_b64(fig: go.Figure, width=500, height=350) -> str:
-    """Render Plotly figure to base64 PNG string."""
+def _mpl_font(size=12, bold=False):
+    """Return FontProperties copy with given size (Korean-safe)."""
+    if not HAS_MPL:
+        return {}
+    base = _KR_FONT_BOLD if bold else _KR_FONT
+    fp = base.copy()
+    fp.set_size(size)
+    return fp
+
+
+def _mpl_to_b64(fig, dpi=200) -> str:
+    """Render matplotlib figure to base64 PNG string with transparent bg."""
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', dpi=dpi, bbox_inches='tight',
+                transparent=True, facecolor='none', edgecolor='none')
+    plt.close(fig)
+    buf.seek(0)
+    return base64.b64encode(buf.getvalue()).decode()
+
+
+def _chart_to_b64(fig_or_go, width=500, height=350) -> str:
+    """Render Plotly figure to base64 PNG (fallback, non-Korean charts only)."""
+    fig = fig_or_go
     fig.update_layout(
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(family='Helvetica, Arial, sans-serif', size=12, color=THEME['text']),
+        font=dict(family='Noto Sans KR, Helvetica, Arial, sans-serif', size=12, color=THEME['text']),
         margin=dict(l=40, r=20, t=40, b=40),
     )
     buf = io.BytesIO()
@@ -709,110 +750,315 @@ def _chart_to_b64(fig: go.Figure, width=500, height=350) -> str:
 
 
 def _make_donut_chart(labels, values, title='', width=420, height=350) -> str:
-    colors = CHART_COLORS[:len(labels)]
-    fig = go.Figure(go.Pie(
-        labels=labels, values=values, hole=0.55,
-        marker=dict(colors=colors, line=dict(color=THEME['bg'], width=2)),
-        textinfo='label+percent', textfont=dict(size=12),
-        insidetextorientation='auto',
-    ))
-    fig.update_layout(title=dict(text=title, font=dict(size=15, color=THEME['text'])),
-                      showlegend=False, width=width, height=height)
-    return _chart_to_b64(fig, width, height)
+    """Donut chart with Korean labels using matplotlib."""
+    if HAS_MPL:
+        colors = CHART_COLORS[:len(labels)]
+        fig, ax = plt.subplots(figsize=(width/100, height/100))
+        fig.patch.set_alpha(0)
+        wedges, texts, autotexts = ax.pie(
+            values, labels=None, colors=colors, autopct='%1.1f%%',
+            startangle=90, pctdistance=0.78,
+            wedgeprops=dict(width=0.45, edgecolor=THEME['bg'], linewidth=2),
+        )
+        for t in autotexts:
+            t.set_fontproperties(_mpl_font(10))
+            t.set_color('#FFFFFF')
+            t.set_fontweight('bold')
+        # Add labels outside
+        for i, (wedge, label) in enumerate(zip(wedges, labels)):
+            ang = (wedge.theta2 + wedge.theta1) / 2
+            x = np.cos(np.radians(ang))
+            y = np.sin(np.radians(ang))
+            ha = 'left' if x > 0 else 'right'
+            ax.annotate(label, xy=(0.78*x, 0.78*y), xytext=(1.25*x, 1.15*y),
+                       fontproperties=_mpl_font(11),
+                       ha=ha, va='center', color=THEME['text'],
+                       arrowprops=dict(arrowstyle='-', color=THEME['text_muted'], lw=0.8))
+        if title:
+            ax.set_title(title, fontproperties=_mpl_font(14, bold=True),
+                        color=THEME['text'], pad=12)
+        ax.set_aspect('equal')
+        return _mpl_to_b64(fig)
+    else:
+        # Plotly fallback
+        colors = CHART_COLORS[:len(labels)]
+        fig = go.Figure(go.Pie(
+            labels=labels, values=values, hole=0.55,
+            marker=dict(colors=colors, line=dict(color=THEME['bg'], width=2)),
+            textinfo='label+percent', textfont=dict(size=12),
+            insidetextorientation='auto',
+        ))
+        fig.update_layout(title=dict(text=title, font=dict(size=15, color=THEME['text'])),
+                          showlegend=False, width=width, height=height)
+        return _chart_to_b64(fig, width, height)
 
 
 def _make_radar_chart(categories, values, title='', max_val=10, width=420, height=380) -> str:
-    # Add score labels to categories
-    labeled = [f'{c}\n({v:.0f}/{max_val})' for c, v in zip(categories, values)]
-    fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(
-        r=values + [values[0]],
-        theta=labeled + [labeled[0]],
-        fill='toself',
-        fillcolor='rgba(184,134,11,0.2)',
-        line=dict(color=THEME['gold'], width=3),
-        marker=dict(size=9, color=THEME['gold']),
-    ))
-    fig.update_layout(
-        polar=dict(
-            radialaxis=dict(visible=True, range=[0, max_val], showticklabels=True,
-                           tickfont=dict(size=10), gridcolor=THEME['border_light']),
-            angularaxis=dict(tickfont=dict(size=12, color=THEME['text'])),
-            bgcolor='rgba(0,0,0,0)',
-        ),
-        title=dict(text=title, font=dict(size=15, color=THEME['text'])),
-        showlegend=False, width=width, height=height,
-        margin=dict(l=80, r=80, t=50, b=80),
-    )
-    return _chart_to_b64(fig, width, height)
+    """Radar/spider chart with Korean labels using matplotlib."""
+    if HAS_MPL:
+        N = len(categories)
+        angles = [n / float(N) * 2 * np.pi for n in range(N)]
+        angles += angles[:1]
+        vals = list(values) + [values[0]]
+
+        fig, ax = plt.subplots(figsize=(width/100, height/100), subplot_kw=dict(polar=True))
+        fig.patch.set_alpha(0)
+        ax.set_facecolor('none')
+
+        # Draw the polygon
+        ax.fill(angles, vals, color=THEME['gold'], alpha=0.2)
+        ax.plot(angles, vals, color=THEME['gold'], linewidth=2.5)
+        ax.scatter(angles[:-1], values, color=THEME['gold'], s=60, zorder=5)
+
+        # Set radial axis
+        ax.set_ylim(0, max_val)
+        ax.set_yticks([max_val*0.25, max_val*0.5, max_val*0.75, max_val])
+        for label in ax.get_yticklabels():
+            label.set_fontproperties(_mpl_font(9))
+            label.set_color(THEME['text_muted'])
+        ax.yaxis.grid(True, color=THEME['border_light'], linewidth=0.8)
+        ax.xaxis.grid(True, color=THEME['border_light'], linewidth=0.8)
+
+        # Set angular labels with scores
+        ax.set_xticks(angles[:-1])
+        labeled = [f'{c}\n({v:.0f}/{max_val})' for c, v in zip(categories, values)]
+        ax.set_xticklabels(labeled)
+        for label in ax.get_xticklabels():
+            label.set_fontproperties(_mpl_font(11))
+            label.set_color(THEME['text'])
+
+        if title:
+            ax.set_title(title, fontproperties=_mpl_font(14, bold=True),
+                        color=THEME['text'], pad=20)
+        return _mpl_to_b64(fig)
+    else:
+        # Plotly fallback
+        labeled = [f'{c}\n({v:.0f}/{max_val})' for c, v in zip(categories, values)]
+        fig = go.Figure()
+        fig.add_trace(go.Scatterpolar(
+            r=values + [values[0]], theta=labeled + [labeled[0]],
+            fill='toself', fillcolor='rgba(184,134,11,0.2)',
+            line=dict(color=THEME['gold'], width=3),
+            marker=dict(size=9, color=THEME['gold']),
+        ))
+        fig.update_layout(
+            polar=dict(
+                radialaxis=dict(visible=True, range=[0, max_val], showticklabels=True,
+                               tickfont=dict(size=10), gridcolor=THEME['border_light']),
+                angularaxis=dict(tickfont=dict(size=12, color=THEME['text'])),
+                bgcolor='rgba(0,0,0,0)',
+            ),
+            title=dict(text=title, font=dict(size=15, color=THEME['text'])),
+            showlegend=False, width=width, height=height,
+            margin=dict(l=80, r=80, t=50, b=80),
+        )
+        return _chart_to_b64(fig, width, height)
 
 
 def _make_bar_chart(labels, values, title='', horizontal=False, width=500, height=300) -> str:
-    colors = CHART_COLORS[:len(labels)]
-    if horizontal:
-        fig = go.Figure(go.Bar(y=labels, x=values, orientation='h',
-                               marker_color=colors, text=values,
-                               textposition='outside', textfont=dict(size=12)))
+    """Bar chart with Korean labels using matplotlib."""
+    if HAS_MPL:
+        colors = CHART_COLORS[:len(labels)]
+        fig, ax = plt.subplots(figsize=(width/100, height/100))
+        fig.patch.set_alpha(0)
+        ax.set_facecolor('none')
+
+        if horizontal:
+            y_pos = range(len(labels))
+            bars = ax.barh(y_pos, values, color=colors, edgecolor='none', height=0.6)
+            ax.set_yticks(y_pos)
+            ax.set_yticklabels(labels)
+            for label in ax.get_yticklabels():
+                label.set_fontproperties(_mpl_font(11))
+                label.set_color(THEME['text'])
+            for bar, val in zip(bars, values):
+                ax.text(bar.get_width() + 0.3, bar.get_y() + bar.get_height()/2,
+                       f'{val}', va='center', fontproperties=_mpl_font(11),
+                       color=THEME['text'])
+        else:
+            x_pos = range(len(labels))
+            bars = ax.bar(x_pos, values, color=colors, edgecolor='none', width=0.6)
+            ax.set_xticks(x_pos)
+            ax.set_xticklabels(labels)
+            for label in ax.get_xticklabels():
+                label.set_fontproperties(_mpl_font(11))
+                label.set_color(THEME['text'])
+            for bar, val in zip(bars, values):
+                ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.3,
+                       f'{val}', ha='center', fontproperties=_mpl_font(11),
+                       color=THEME['text'])
+
+        ax.yaxis.grid(True, color=THEME['border_light'], linewidth=0.8, alpha=0.5)
+        ax.set_axisbelow(True)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_color(THEME['border_light'])
+        ax.spines['bottom'].set_color(THEME['border_light'])
+        for label in ax.get_yticklabels():
+            label.set_fontproperties(_mpl_font(10))
+            label.set_color(THEME['text_muted'])
+
+        if title:
+            ax.set_title(title, fontproperties=_mpl_font(14, bold=True),
+                        color=THEME['text'], pad=12)
+        return _mpl_to_b64(fig)
     else:
-        fig = go.Figure(go.Bar(x=labels, y=values,
-                               marker_color=colors, text=values,
-                               textposition='outside', textfont=dict(size=12)))
-    fig.update_layout(title=dict(text=title, font=dict(size=15, color=THEME['text'])),
-                      showlegend=False, width=width, height=height,
-                      yaxis=dict(showgrid=True, gridcolor=THEME['border_light']))
-    return _chart_to_b64(fig, width, height)
+        # Plotly fallback
+        colors = CHART_COLORS[:len(labels)]
+        if horizontal:
+            fig = go.Figure(go.Bar(y=labels, x=values, orientation='h',
+                                   marker_color=colors, text=values,
+                                   textposition='outside', textfont=dict(size=12)))
+        else:
+            fig = go.Figure(go.Bar(x=labels, y=values,
+                                   marker_color=colors, text=values,
+                                   textposition='outside', textfont=dict(size=12)))
+        fig.update_layout(title=dict(text=title, font=dict(size=15, color=THEME['text'])),
+                          showlegend=False, width=width, height=height,
+                          yaxis=dict(showgrid=True, gridcolor=THEME['border_light']))
+        return _chart_to_b64(fig, width, height)
 
 
 def _make_risk_bubble(risks: list, title='', width=500, height=350) -> str:
-    """Risk matrix bubble chart. Each risk: {name, probability, impact, severity}."""
-    fig = go.Figure()
-    sev_colors = {'critical': THEME['red'], 'high': '#E65100',
-                  'medium': THEME['gold'], 'low': THEME['green']}
-    text_positions = ['top center', 'bottom center', 'top right', 'bottom left', 'top left', 'bottom right']
-    for i, r in enumerate(risks):
-        fig.add_trace(go.Scatter(
-            x=[r.get('probability', 3)], y=[r.get('impact', 3)],
-            mode='markers+text', text=[r.get('name', '')[:16]],
-            textposition=text_positions[i % len(text_positions)],
-            textfont=dict(size=11),
-            marker=dict(size=r.get('impact', 3)*12,
-                       color=sev_colors.get(r.get('severity', 'medium'), THEME['gold']),
-                       opacity=0.75, line=dict(width=2, color='#FFF')),
-            showlegend=False,
-        ))
-    fig.update_layout(
-        title=dict(text=title, font=dict(size=15, color=THEME['text'])),
-        xaxis=dict(title='Probability →', range=[0, 6], showgrid=True,
-                  gridcolor=THEME['border_light']),
-        yaxis=dict(title='Impact ↑', range=[0, 6], showgrid=True,
-                  gridcolor=THEME['border_light']),
-        width=width, height=height,
-    )
-    # Quadrant shading
-    fig.add_shape(type='rect', x0=3, y0=3, x1=6, y1=6,
-                  fillcolor='rgba(198,40,40,0.08)', line_width=0)
-    return _chart_to_b64(fig, width, height)
+    """Risk matrix bubble chart with Korean labels using matplotlib."""
+    if HAS_MPL:
+        sev_colors = {'critical': THEME['red'], 'high': '#E65100',
+                      'medium': THEME['gold'], 'low': THEME['green']}
+        fig, ax = plt.subplots(figsize=(width/100, height/100))
+        fig.patch.set_alpha(0)
+        ax.set_facecolor('none')
+
+        # Quadrant shading (high-risk zone)
+        from matplotlib.patches import Rectangle
+        ax.add_patch(Rectangle((3, 3), 3, 3, facecolor=(198/255, 40/255, 40/255, 0.08),
+                               edgecolor='none', zorder=0))
+
+        text_offsets = [(0, 12), (0, -14), (8, 10), (-8, -14), (-8, 10), (8, -14)]
+        for i, r in enumerate(risks):
+            x = r.get('probability', 3)
+            y = r.get('impact', 3)
+            sev = r.get('severity', 'medium')
+            color = sev_colors.get(sev, THEME['gold'])
+            size = r.get('impact', 3) * 120
+
+            ax.scatter(x, y, s=size, c=color, alpha=0.75,
+                      edgecolors='#FFFFFF', linewidths=2, zorder=3)
+
+            ox, oy = text_offsets[i % len(text_offsets)]
+            name = r.get('name', '')[:16]
+            ax.annotate(name, (x, y), textcoords='offset points', xytext=(ox, oy),
+                       fontproperties=_mpl_font(10), color=THEME['text'],
+                       ha='center', va='center', zorder=4)
+
+        ax.set_xlim(0, 6)
+        ax.set_ylim(0, 6)
+        ax.set_xlabel('Probability', fontproperties=_mpl_font(11),
+                     color=THEME['text_muted'])
+        ax.set_ylabel('Impact', fontproperties=_mpl_font(11),
+                     color=THEME['text_muted'])
+        ax.xaxis.grid(True, color=THEME['border_light'], linewidth=0.8, alpha=0.5)
+        ax.yaxis.grid(True, color=THEME['border_light'], linewidth=0.8, alpha=0.5)
+        ax.set_axisbelow(True)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_color(THEME['border_light'])
+        ax.spines['bottom'].set_color(THEME['border_light'])
+        for label in ax.get_xticklabels() + ax.get_yticklabels():
+            label.set_fontproperties(_mpl_font(10))
+            label.set_color(THEME['text_muted'])
+
+        if title:
+            ax.set_title(title, fontproperties=_mpl_font(14, bold=True),
+                        color=THEME['text'], pad=12)
+        return _mpl_to_b64(fig)
+    else:
+        # Plotly fallback
+        fig = go.Figure()
+        sev_colors = {'critical': THEME['red'], 'high': '#E65100',
+                      'medium': THEME['gold'], 'low': THEME['green']}
+        text_positions = ['top center', 'bottom center', 'top right', 'bottom left', 'top left', 'bottom right']
+        for i, r in enumerate(risks):
+            fig.add_trace(go.Scatter(
+                x=[r.get('probability', 3)], y=[r.get('impact', 3)],
+                mode='markers+text', text=[r.get('name', '')[:16]],
+                textposition=text_positions[i % len(text_positions)],
+                textfont=dict(size=11),
+                marker=dict(size=r.get('impact', 3)*12,
+                           color=sev_colors.get(r.get('severity', 'medium'), THEME['gold']),
+                           opacity=0.75, line=dict(width=2, color='#FFF')),
+                showlegend=False,
+            ))
+        fig.update_layout(
+            title=dict(text=title, font=dict(size=15, color=THEME['text'])),
+            xaxis=dict(title='Probability →', range=[0, 6], showgrid=True,
+                      gridcolor=THEME['border_light']),
+            yaxis=dict(title='Impact ↑', range=[0, 6], showgrid=True,
+                      gridcolor=THEME['border_light']),
+            width=width, height=height,
+        )
+        fig.add_shape(type='rect', x0=3, y0=3, x1=6, y1=6,
+                      fillcolor='rgba(198,40,40,0.08)', line_width=0)
+        return _chart_to_b64(fig, width, height)
 
 
 def _make_gauge(value, max_val=100, title='', width=320, height=250) -> str:
-    fig = go.Figure(go.Indicator(
-        mode='gauge+number',
-        value=value,
-        title=dict(text=title, font=dict(size=14)),
-        gauge=dict(
-            axis=dict(range=[0, max_val], tickwidth=1, tickcolor=THEME['text_muted']),
-            bar=dict(color=THEME['gold']),
-            bgcolor=THEME['bg_alt'],
-            bordercolor=THEME['border'],
-            steps=[
-                dict(range=[0, max_val*0.3], color='rgba(198,40,40,0.15)'),
-                dict(range=[max_val*0.3, max_val*0.7], color='rgba(184,134,11,0.12)'),
-                dict(range=[max_val*0.7, max_val], color='rgba(46,125,50,0.12)'),
-            ],
-        ),
-    ))
-    fig.update_layout(width=width, height=height)
-    return _chart_to_b64(fig, width, height)
+    """Gauge chart – uses matplotlib arc for Korean text support."""
+    if HAS_MPL:
+        from matplotlib.patches import Arc, FancyArrowPatch
+        fig, ax = plt.subplots(figsize=(width/100, height/100))
+        fig.patch.set_alpha(0)
+        ax.set_facecolor('none')
+
+        # Draw gauge arc segments
+        import matplotlib.colors as mcolors
+        segments = [
+            (0, 60, 'rgba(198,40,40,0.25)'),
+            (60, 126, 'rgba(184,134,11,0.20)'),
+            (126, 180, 'rgba(46,125,50,0.20)'),
+        ]
+        for start, end, color in segments:
+            arc = Arc((0.5, 0), 0.8, 0.8, angle=0, theta1=start, theta2=end,
+                     color=THEME['border_light'], linewidth=20, zorder=1)
+            ax.add_patch(arc)
+
+        # Needle
+        frac = value / max_val
+        angle = np.pi * (1 - frac)
+        nx = 0.5 + 0.35 * np.cos(angle)
+        ny = 0.35 * np.sin(angle)
+        ax.annotate('', xy=(nx, ny), xytext=(0.5, 0),
+                    arrowprops=dict(arrowstyle='->', color=THEME['gold'], lw=2.5))
+
+        # Value text
+        ax.text(0.5, -0.08, f'{value}', ha='center', va='center',
+               fontproperties=_mpl_font(22, bold=True), color=THEME['text'])
+        if title:
+            ax.text(0.5, -0.22, title, ha='center', va='center',
+                   fontproperties=_mpl_font(11), color=THEME['text_muted'])
+
+        ax.set_xlim(-0.05, 1.05)
+        ax.set_ylim(-0.35, 0.55)
+        ax.set_aspect('equal')
+        ax.axis('off')
+        return _mpl_to_b64(fig)
+    else:
+        # Plotly fallback
+        fig = go.Figure(go.Indicator(
+            mode='gauge+number', value=value,
+            title=dict(text=title, font=dict(size=14)),
+            gauge=dict(
+                axis=dict(range=[0, max_val], tickwidth=1, tickcolor=THEME['text_muted']),
+                bar=dict(color=THEME['gold']),
+                bgcolor=THEME['bg_alt'], bordercolor=THEME['border'],
+                steps=[
+                    dict(range=[0, max_val*0.3], color='rgba(198,40,40,0.15)'),
+                    dict(range=[max_val*0.3, max_val*0.7], color='rgba(184,134,11,0.12)'),
+                    dict(range=[max_val*0.7, max_val], color='rgba(46,125,50,0.12)'),
+                ],
+            ),
+        ))
+        fig.update_layout(width=width, height=height)
+        return _chart_to_b64(fig, width, height)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -1130,7 +1376,7 @@ def slide_token_economy(d: dict) -> str:
     # Chart data
     labels = list(distribution.keys()) if distribution else ['Community', 'Team', 'Treasury', 'Investors']
     values = list(distribution.values()) if distribution else [40, 20, 15, 25]
-    donut_b64 = _make_donut_chart(labels, values, f'{symbol} Token Distribution', 400, 280) if HAS_PLOTLY else ''
+    donut_b64 = _make_donut_chart(labels, values, f'{symbol} Token Distribution', 400, 280) if (HAS_MPL or HAS_PLOTLY) else ''
 
     # Allocation details with horizontal bars
     alloc_html = ''
@@ -1343,8 +1589,8 @@ def slide_risk_assessment(d: dict) -> str:
     top_name = top_risk.get('name', '')
     top_desc = top_risk.get('description', '')
 
-    # Bubble chart
-    bubble_b64 = _make_risk_bubble(risk_items, 'Impact vs Probability', 540, 340) if HAS_PLOTLY and risk_items else ''
+    # Bubble chart (matplotlib preferred, Plotly fallback)
+    bubble_b64 = _make_risk_bubble(risk_items, 'Impact vs Probability', 540, 340) if (HAS_MPL or HAS_PLOTLY) and risk_items else ''
 
     # Risk list with expanded descriptions
     risk_list_html = ''
@@ -1376,8 +1622,8 @@ def slide_risk_assessment(d: dict) -> str:
         <div class="section-subtitle">Threat Analysis & Severity Matrix</div>
         <div style="font-size:14px;margin-bottom:12px;color:{THEME['text_mid']};font-weight:600;"><strong>분석 결과:</strong> {summary_text}</div>
         <div class="two-col" style="flex:1;">
-          <div class="chart-container">
-            {_img_tag(bubble_b64, 'Risk Matrix') if bubble_b64 else ''}
+          <div class="chart-container" style="max-height:340px;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+            {f'<img src="data:image/png;base64,{bubble_b64}" alt="Risk Matrix" style="max-width:100%;max-height:320px;object-fit:contain;" />' if bubble_b64 else ''}
           </div>
           <div style="display:flex;flex-direction:column;">
             <div class="card" style="border-left:5px solid {THEME['red']};margin-bottom:14px;flex:1;">
@@ -1513,7 +1759,7 @@ def slide_final_assessment(d: dict) -> str:
             values.append(7)
 
     radar_b64 = _make_radar_chart(categories, values, '',
-                                   max_val=10, width=480, height=360) if HAS_PLOTLY and categories else ''
+                                   max_val=10, width=480, height=360) if (HAS_MPL or HAS_PLOTLY) and categories else ''
 
     # Checklist
     check_html = ''
@@ -1635,32 +1881,62 @@ def generate_html(project_data: dict) -> str:
 
 
 def html_to_pdf(html: str, output_path: str) -> str:
-    """Convert HTML string to PDF using Playwright headless Chromium."""
-    from playwright.sync_api import sync_playwright
+    """Convert HTML string to PDF. Tries Playwright first, falls back to WeasyPrint."""
 
-    with tempfile.NamedTemporaryFile(suffix='.html', delete=False, mode='w', encoding='utf-8') as f:
-        f.write(html)
-        tmp_html = f.name
-
+    # ── Attempt 1: Playwright (best quality) ──
     try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch()
-            page = browser.new_page(viewport={'width': 1280, 'height': 720})
-            page.goto(f'file://{tmp_html}', wait_until='networkidle', timeout=30000)
-            # Wait for fonts
-            page.wait_for_timeout(2000)
-            page.pdf(
-                path=output_path,
-                width='1280px',
-                height='720px',
-                print_background=True,
-                margin={'top': '0', 'right': '0', 'bottom': '0', 'left': '0'},
-            )
-            browser.close()
-    finally:
-        os.unlink(tmp_html)
+        from playwright.sync_api import sync_playwright
 
-    return output_path
+        with tempfile.NamedTemporaryFile(suffix='.html', delete=False, mode='w', encoding='utf-8') as f:
+            f.write(html)
+            tmp_html = f.name
+
+        try:
+            with sync_playwright() as p:
+                launch_args = {'args': ['--no-sandbox', '--disable-gpu']}
+                import glob as _glob
+                _pw_dir = os.environ.get('PLAYWRIGHT_BROWSERS_PATH', os.path.expanduser('~/.cache/ms-playwright'))
+                _hs_candidates = _glob.glob(os.path.join(_pw_dir, 'chromium_headless_shell-*/chrome-linux/headless_shell'))
+                _ch_candidates = _glob.glob(os.path.join(_pw_dir, 'chromium-*/chrome-linux/chrome'))
+                if _hs_candidates:
+                    launch_args['executable_path'] = sorted(_hs_candidates)[-1]
+                elif _ch_candidates:
+                    launch_args['executable_path'] = sorted(_ch_candidates)[-1]
+                browser = p.chromium.launch(**launch_args)
+                page = browser.new_page(viewport={'width': 1280, 'height': 720})
+                page.goto(f'file://{tmp_html}', wait_until='networkidle', timeout=30000)
+                page.wait_for_timeout(2000)
+                page.pdf(
+                    path=output_path,
+                    width='1280px',
+                    height='720px',
+                    print_background=True,
+                    margin={'top': '0', 'right': '0', 'bottom': '0', 'left': '0'},
+                )
+                browser.close()
+                return output_path
+        except Exception as e:
+            print(f"⚠ Playwright PDF failed ({e}), trying WeasyPrint fallback...")
+        finally:
+            if os.path.exists(tmp_html):
+                os.unlink(tmp_html)
+    except ImportError:
+        print("⚠ Playwright not available, trying WeasyPrint...")
+
+    # ── Attempt 2: WeasyPrint fallback ──
+    try:
+        import weasyprint
+        # Inject @page CSS for landscape 16:9
+        page_css = '@page { size: 1280px 720px; margin: 0; }'
+        styled_html = html.replace('</head>', f'<style>{page_css}</style></head>')
+        doc = weasyprint.HTML(string=styled_html)
+        doc.write_pdf(output_path)
+        print("✓ PDF generated via WeasyPrint fallback")
+        return output_path
+    except ImportError:
+        raise RuntimeError("Neither Playwright nor WeasyPrint available for PDF generation")
+    except Exception as e:
+        raise RuntimeError(f"WeasyPrint PDF generation failed: {e}")
 
 
 def generate_slide_econ(project_data: dict, output_dir: str = '/tmp') -> Tuple[str, dict]:

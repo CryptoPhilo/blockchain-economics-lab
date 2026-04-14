@@ -54,6 +54,33 @@ Report generation follows a strict 5-stage process:
 4. **philoskor@gmail.com** 으로 이메일 발송 (Drive 링크 포함)
 5. Supabase board_reports 테이블에 메타데이터 기록
 
+## 티켓 생성 규칙 (CEO-006 / QA-006 승인)
+
+**모든 업무는 Supabase `tickets` 테이블에 티켓으로 관리한다.** 프롬프트가 티켓 생성 없이 실행되는 것을 방지하기 위해 다음 규칙을 따른다.
+
+### 프롬프트 유형 판별
+
+| 유형 | 판별 기준 | 티켓 생성 |
+|------|-----------|----------|
+| **지시** | "~해줘", "~할 것", "~하도록", "~를 수정해", 스크린샷+수정 요청 | ✅ 필수 |
+| **검토/확인** | "~인지 확인해", "~를 검토해", "~를 점검해" | ✅ 필수 |
+| **질문/대화** | "이게 뭐야?", "왜 그런 거지?", "어떻게 해?" | ❌ 불요 |
+
+### 티켓 생성 타이밍
+
+1. **단건 지시**: 작업 착수 **전** tickets 테이블에 INSERT (status: `in_progress`)
+2. **실시간 피드백 루프** (스크린샷 → 수정 → 확인 반복): 루프 **종료 후** 일괄 등록 (status: `done`, origin: `session_retroactive`)
+3. **세션 종료 시**: 해당 세션에서 수행된 모든 작업을 복기하여 누락 티켓 소급 등록
+
+### 티켓 코드 체계
+
+담당 부서 prefix를 따른다: `OPS-`, `RES-`, `MKT-`, `QA-`, `SEC-`, `STR-`
+보드 리포트 하위 작업: `{report_id}-T{##}` (예: `QA-006-T01`)
+
+### Board 보고 연동
+
+티켓 생성 시 `board_report_id` 필드에 관련 보드 리포트 ID를 기록한다.
+
 ## Deprecated (Do Not Use)
 
 - `_legacy_gen_*.py` - Legacy generator scripts (deprecated)

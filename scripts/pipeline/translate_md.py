@@ -298,22 +298,41 @@ def _translate_google(text: str, target_lang: str, _ctx: str = '') -> str:
     """
     Google Translate backend via deep-translator library.
     Free, no API key required, high quality.
+    Includes retry with exponential backoff for rate-limiting.
     """
+    import time as _time
     if not text or not text.strip():
         return text
     # Skip very short or code-like text
     stripped = text.strip()
     if len(stripped) <= 3 or stripped.isupper() or re.match(r'^[\d.%$,+\-×/()]+$', stripped):
         return text
-
-    try:
-        from deep_translator import GoogleTranslator
-        gl = _GOOGLE_LANG_MAP.get(target_lang, target_lang)
-        result = GoogleTranslator(source='en', target=gl).translate(stripped)
-        return result if result else text
-    except Exception as e:
-        logger.warning(f"Google translate error: {e}")
+    # Skip base64 image data (too long, not translatable)
+    if stripped.startswith('[image') and 'data:image' in stripped:
         return text
+    # Google free API limit ~5000 chars — skip if too long
+    if len(stripped) > 4500:
+        logger.warning(f"Google translate skip: text too long ({len(stripped)} chars)")
+        return text
+
+    MAX_RETRIES = 3
+    for attempt in range(MAX_RETRIES):
+        try:
+            from deep_translator import GoogleTranslator
+            gl = _GOOGLE_LANG_MAP.get(target_lang, target_lang)
+            result = GoogleTranslator(source='auto', target=gl).translate(stripped)
+            # Small throttle to avoid rate limiting
+            _time.sleep(0.3)
+            return result if result else text
+        except Exception as e:
+            if attempt < MAX_RETRIES - 1:
+                wait = (attempt + 1) * 3  # 3s, 6s
+                logger.warning(f"Google translate retry {attempt+1}: {str(e)[:100]}")
+                _time.sleep(wait)
+            else:
+                logger.warning(f"Google translate error (final): {str(e)[:100]}")
+                return text
+    return text
 
 
 def _translate_batch_google(texts: List[str], target_lang: str) -> List[str]:
@@ -324,7 +343,7 @@ def _translate_batch_google(texts: List[str], target_lang: str) -> List[str]:
     try:
         from deep_translator import GoogleTranslator
         gl = _GOOGLE_LANG_MAP.get(target_lang, target_lang)
-        translator = GoogleTranslator(source='en', target=gl)
+        translator = GoogleTranslator(source='auto', target=gl)
 
         results = []
         # Google Translate has a ~5000 char limit per call, batch accordingly
@@ -528,7 +547,9 @@ def _translate_line(line_type: str, line: str, target_lang: str, translate_fn) -
         return line
 
     if line_type == 'table_row':
-        # Translate cell contents, preserve | structure
+        # Translate cell contents, preserve | structure.
+        # CRITICAL: translator output must NOT contain '|' (would break table
+        # geometry). If it does, fall back to original cell.
         cells = line.split('|')
         translated_cells = []
         for cell in cells:
@@ -542,6 +563,12 @@ def _translate_line(line_type: str, line: str, target_lang: str, translate_fn) -
             else:
                 padding = len(cell) - len(cell.lstrip())
                 translated = translate_fn(stripped, target_lang)
+                # Defensive: strip any pipe characters the translator may have
+                # emitted (including full-width ｜). Keep original if the
+                # translation is empty after cleaning.
+                translated = translated.replace('|', ' ').replace('\uff5c', ' ').strip()
+                if not translated:
+                    translated = stripped
                 translated_cells.append(' ' * padding + translated + ' ')
         return '|'.join(translated_cells)
 
@@ -600,7 +627,11 @@ def _translate_body_batch(classified: List[Tuple[str, str]], target_lang: str) -
         elif line_type in ('code_fence', 'code_line', 'table_sep', 'empty', 'html'):
             result_lines.append(line)
         elif line_type == 'table_row':
-            result_lines.append(_translate_line(line_type, line, target_lang, _translate_stub))
+            # Per-cell Claude translation with pipe-sanitization.
+            # We use single-call Claude (not batched) because each cell is
+            # small — sending through `_translate_claude` honours ANTHROPIC
+            # env and falls back to stub if unavailable.
+            result_lines.append(_translate_line(line_type, line, target_lang, _translate_claude))
         else:
             result_lines.append(line)
 
@@ -692,10 +723,10 @@ def translate_md_file(
     if not output_dir:
         output_dir = os.path.dirname(input_path)
 
-    # Replace language code in filename
+    # Replace language code in filename (support any source lang suffix)
     base = os.path.basename(input_path)
-    out_name = re.sub(r'_en\.md$', f'_{target_lang}.md', base)
-    if out_name == base:  # no _en suffix found
+    out_name = re.sub(r'_(en|ko|ja|zh|fr|es|de)\.md$', f'_{target_lang}.md', base)
+    if out_name == base:  # no recognised lang suffix
         name, ext = os.path.splitext(base)
         out_name = f"{name}_{target_lang}{ext}"
 

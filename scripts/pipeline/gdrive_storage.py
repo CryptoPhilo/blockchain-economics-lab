@@ -74,17 +74,27 @@ except ImportError:
 
 # ─── Configuration ───────────────────────────────────────────
 
-GDRIVE_ROOT_FOLDER_ID = os.environ.get('GDRIVE_ROOT_FOLDER_ID', '')
-GDRIVE_SERVICE_ACCOUNT_FILE = os.environ.get('GDRIVE_SERVICE_ACCOUNT_FILE', '')
+_SCRIPT_DIR = Path(__file__).resolve().parent
+
+GDRIVE_ROOT_FOLDER_ID = os.environ.get(
+    'GDRIVE_ROOT_FOLDER_ID', '1E87EcasPlrGuet0t6e1CA9kLFO0sTdFq'
+)
+GDRIVE_SERVICE_ACCOUNT_FILE = os.environ.get(
+    'GDRIVE_SERVICE_ACCOUNT_FILE',
+    str(_SCRIPT_DIR / '.gdrive_service_account.json')  # fallback to local file
+)
 GDRIVE_OAUTH_CREDENTIALS = os.environ.get('GDRIVE_OAUTH_CREDENTIALS', '')
-GDRIVE_DELEGATE_EMAIL = os.environ.get('GDRIVE_DELEGATE_EMAIL', '')
+GDRIVE_DELEGATE_EMAIL = os.environ.get(
+    'GDRIVE_DELEGATE_EMAIL', 'zhang@coinlab.co.kr'
+)
 GDRIVE_TOKEN_FILE = os.environ.get(
     'GDRIVE_TOKEN_FILE',
-    str(Path(__file__).parent / '.gdrive_token.json')
+    str(_SCRIPT_DIR / '.gdrive_token.json')
 )
 
-SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
-SUPABASE_SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_KEY', '')
+# Supabase: try pipeline-specific env vars, then fall back to Next.js env vars
+SUPABASE_URL = os.environ.get('SUPABASE_URL') or os.environ.get('NEXT_PUBLIC_SUPABASE_URL', '')
+SUPABASE_SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_KEY') or os.environ.get('NEXT_PUBLIC_SUPABASE_ANON_KEY', '')
 
 SCOPES = ['https://www.googleapis.com/auth/drive']
 

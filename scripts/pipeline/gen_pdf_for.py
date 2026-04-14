@@ -109,45 +109,63 @@ def clean_text_remove_tables(text):
     return re.sub(table_pattern, '', text).strip()
 
 
-def markdown_to_paragraphs(text, styles, max_width=None):
+def markdown_to_paragraphs(text, styles, max_width=None, lang='en'):
     """
     Convert markdown text to reportlab Paragraphs, respecting basic formatting.
     Handles: **bold**, *italic*, ### sub-headers, bullet points
+
+    Uses ECON pipeline's improved _md_to_rl() for robust XML conversion
+    (OPS-005: ** balancing + bullet paragraph splitting).
     """
-    flowables = []
-    text = clean_text_remove_tables(text)
+    # Import improved converter from gen_pdf_econ
+    from gen_pdf_econ import _md_to_rl as _md_to_rl_econ
+    from gen_pdf_econ import markdown_to_paragraphs as _econ_md_to_para
 
-    for paragraph_text in text.split('\n\n'):
-        p = paragraph_text.strip()
-        if not p:
-            continue
+    # Delegate to ECON's improved implementation
+    try:
+        return _econ_md_to_para(text, styles, lang=lang)
+    except Exception:
+        # Fallback to simple implementation
+        flowables = []
+        text = clean_text_remove_tables(text)
 
-        # Handle ### sub-headers
-        if p.startswith('### '):
-            sub_title = p[4:].strip()
-            flowables.append(Spacer(1, 10))
-            flowables.append(Paragraph(f'<b>{sub_title}</b>', styles['h3']))
+        # OPS-005: Force each bullet onto its own paragraph
+        text = re.sub(r'(?<!\n)\n(\s*(?:[*\-\u2022]|\d+[.)])\s+)', r'\n\n\1', text)
+
+        for paragraph_text in text.split('\n\n'):
+            p = paragraph_text.strip()
+            if not p:
+                continue
+
+            if p.startswith('### '):
+                sub_title = p[4:].strip()
+                flowables.append(Spacer(1, 10))
+                flowables.append(Paragraph(f'<b>{sub_title}</b>', styles['h3']))
+                flowables.append(Spacer(1, 4))
+                continue
+
+            # OPS-005: Balance ** markers
+            parts = p.split('**')
+            if len(parts) > 1 and (len(parts) - 1) % 2 == 1:
+                parts[-2] = parts[-2] + parts[-1]
+                parts.pop()
+                p = '**'.join(parts)
+
+            p = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', p)
+            p = re.sub(r'\*(.*?)\*', r'<i>\1</i>', p)
+
+            if p.startswith('- ') or p.startswith('• '):
+                bullet_text = p[2:] if p[0] in '-•' else p
+                flowables.append(Paragraph(f'\u2022 {bullet_text}', styles['bullet']))
+            elif p.startswith('<b>') and ':' in p[:60]:
+                style_name = 'callout_forensic' if 'callout_forensic' in styles else 'callout'
+                flowables.append(Paragraph(p, styles[style_name]))
+            else:
+                flowables.append(Paragraph(p, styles['body']))
+
             flowables.append(Spacer(1, 4))
-            continue
 
-        # Convert **bold** to <b>...</b>
-        p = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', p)
-        # Convert *italic* to <i>...</i>
-        p = re.sub(r'\*(.*?)\*', r'<i>\1</i>', p)
-
-        # Detect if it starts with - (bullet)
-        if p.startswith('- '):
-            flowables.append(Paragraph(p[2:], styles['bullet']))
-        elif p.startswith('<b>') and ':' in p:
-            # Bold key-value pair (e.g., "<b>Key</b>: value")
-            # Use forensic callout style for forensic reports
-            flowables.append(Paragraph(p, styles['callout_forensic']))
-        else:
-            flowables.append(Paragraph(p, styles['body']))
-
-        flowables.append(Spacer(1, 4))
-
-    return flowables
+        return flowables
 
 
 # ═══════════════════════════════════════════

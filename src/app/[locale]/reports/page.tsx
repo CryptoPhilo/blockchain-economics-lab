@@ -54,16 +54,17 @@ export default async function ReportsPage({ params, searchParams }: Props) {
   }
 
   // Build optimized Supabase query with DB-level filters
+  // Include both 'published' and 'coming_soon' reports (OPS-007)
   let countQuery = supabase
     .from('project_reports')
     .select('id', { count: 'exact', head: true })
-    .eq('status', 'published')
+    .in('status', ['published', 'coming_soon'])
 
   let dataQuery = supabase
     .from('project_reports')
     .select('*, project:tracked_projects(id, name, slug, symbol, chain, category)')
-    .eq('status', 'published')
-    .order('published_at', { ascending: false })
+    .in('status', ['published', 'coming_soon'])
+    .order('published_at', { ascending: false, nullsFirst: false })
 
   // Apply type filter at DB level
   if (filterType && filterType !== 'all') {
@@ -305,8 +306,12 @@ export default async function ReportsPage({ params, searchParams }: Props) {
                     </div>
                   </div>
 
-                  {/* Download button — link to GDrive */}
-                  {gdriveUrls[locale] || gdriveUrls['en'] ? (
+                  {/* Download button or Coming Soon badge (OPS-007) */}
+                  {report.status === 'coming_soon' ? (
+                    <span className="px-4 py-2 bg-amber-500/10 text-amber-400 text-sm font-medium rounded-lg border border-amber-500/20 cursor-default shrink-0">
+                      🔜 Coming Soon
+                    </span>
+                  ) : gdriveUrls[locale] || gdriveUrls['en'] ? (
                     <a
                       href={gdriveUrls[locale] || gdriveUrls['en']}
                       target="_blank"
