@@ -1,5 +1,3 @@
-'use server'
-
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 
