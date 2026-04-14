@@ -53,7 +53,7 @@ export default async function ForensicAlertSection() {
     }
 
     const validReports = reports.filter(
-      (report): report is ForensicReport =>
+      (report) =>
         report.tracked_projects !== null &&
         report.card_data !== null &&
         typeof report.card_data === 'object'
@@ -76,20 +76,24 @@ export default async function ForensicAlertSection() {
         {/* Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {validReports.map((report) => {
-            const riskLevel = report.card_data?.risk_level ?? 'Elevated'
-            const change24h = report.card_data?.price_change_24h ?? report.card_data?.change_24h ?? 0
+            const tp = Array.isArray(report.tracked_projects)
+              ? report.tracked_projects[0]
+              : (report.tracked_projects as any)
+            const cardData = report.card_data as Record<string, any> | null
+            const riskLevel = cardData?.risk_level ?? 'Elevated'
+            const change24h = cardData?.price_change_24h ?? cardData?.change_24h ?? 0
             const summaryText =
               report.card_summary_en ||
-              report.card_data?.summary ||
+              cardData?.summary ||
               'Forensic analysis in progress...'
 
             return (
               <ForensicCardPreview
                 key={report.id}
                 reportId={report.id}
-                slug={report.tracked_projects.slug}
-                projectName={report.tracked_projects.name}
-                symbol={report.tracked_projects.symbol}
+                slug={tp?.slug ?? ''}
+                projectName={tp?.name ?? 'Unknown'}
+                symbol={tp?.symbol ?? ''}
                 change24h={change24h}
                 riskLevel={riskLevel as 'Critical' | 'High' | 'Elevated'}
                 riskScore={report.card_risk_score ?? 0}

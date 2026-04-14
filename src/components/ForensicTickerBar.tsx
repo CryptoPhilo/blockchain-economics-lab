@@ -40,19 +40,21 @@ export default async function ForensicTickerBar() {
 
     const formattedAlerts: ForensicAlert[] = alerts
       .filter(
-        (alert): alert is typeof alert & {
-          tracked_projects: { slug: string; symbol: string }
-          card_data: Record<string, any>
-        } =>
-          alert.tracked_projects !== null && alert.card_data !== null
+        (alert) => alert.tracked_projects !== null && alert.card_data !== null
       )
-      .map((alert) => ({
-        id: alert.id,
-        slug: alert.tracked_projects.slug,
-        symbol: alert.tracked_projects.symbol,
-        change_24h: alert.card_data?.price_change_24h ?? alert.card_data?.change_24h ?? 0,
-        project_id: alert.project_id,
-      }))
+      .map((alert) => {
+        const tp = Array.isArray(alert.tracked_projects)
+          ? alert.tracked_projects[0]
+          : (alert.tracked_projects as any)
+        const cd = alert.card_data as Record<string, any>
+        return {
+          id: alert.id,
+          slug: tp?.slug ?? '',
+          symbol: tp?.symbol ?? '',
+          change_24h: cd?.price_change_24h ?? cd?.change_24h ?? 0,
+          project_id: alert.project_id,
+        }
+      })
 
     if (formattedAlerts.length === 0) {
       return null

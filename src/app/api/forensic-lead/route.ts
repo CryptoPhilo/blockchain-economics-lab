@@ -118,8 +118,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<ForensicL
     }
 
     // Prepare and send email with download link
-    const projectName = report.tracked_projects?.name || 'Forensic Report'
-    const projectSymbol = report.tracked_projects?.symbol || ''
+    const tp = Array.isArray(report.tracked_projects)
+      ? report.tracked_projects[0]
+      : report.tracked_projects
+    const projectName = tp?.name || 'Forensic Report'
+    const projectSymbol = tp?.symbol || ''
 
     const htmlContent = `
 <!DOCTYPE html>
