@@ -54,12 +54,13 @@ export default async function ForensicReportPage({ params }: Props) {
 
   // Locale-aware keyword/summary resolution
   const keywordsLocaleKey = `keywords_${locale}`
-  const summaryLocaleKey = `card_summary_${locale}`
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const keywords: string[] =
-    (cardData as any)?.[keywordsLocaleKey]
-    ?? (locale === 'ko' ? (report.card_keywords ?? cardData?.keywords_ko ?? cardData?.keywords ?? []) : [])
+    ((cardData as any)?.[keywordsLocaleKey]
+    ?? (locale === 'ko' ? (report.card_keywords ?? cardData?.keywords_ko ?? cardData?.keywords ?? []) : []))
     || (cardData?.keywords_en ?? report.card_keywords ?? [])
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const summary =
     (report as any)[`card_summary_${locale}`]
     || report.card_summary_en
