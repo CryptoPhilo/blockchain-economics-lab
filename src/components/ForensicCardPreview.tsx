@@ -36,7 +36,9 @@ export default function ForensicCardPreview({
   summaryText,
 }: ForensicCardPreviewProps) {
   const [isHovering, setIsHovering] = useState(false)
-  const config = riskLevelConfig[riskLevel]
+  // Normalize riskLevel — DB stores lowercase ('high') but config uses capitalized ('High')
+  const normalizedLevel = (riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1).toLowerCase()) as keyof typeof riskLevelConfig
+  const config = riskLevelConfig[normalizedLevel] || riskLevelConfig.Elevated
 
   // Risk gauge angle calculation (0-180 degrees for arc)
   const gaugeAngle = (riskScore / 100) * 180
@@ -60,7 +62,7 @@ export default function ForensicCardPreview({
             <p className="text-sm text-gray-400">{symbol}</p>
           </div>
           <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${config.bg}`}>
-            ⚠ {riskLevel}
+            ⚠ {normalizedLevel}
           </span>
         </div>
 
@@ -109,7 +111,7 @@ export default function ForensicCardPreview({
           </div>
           <div className="flex-1">
             <p className="text-xs text-gray-500">Risk Score</p>
-            <p className={`text-sm font-semibold ${config.text}`}>{riskLevel}</p>
+            <p className={`text-sm font-semibold ${config.text}`}>{normalizedLevel}</p>
           </div>
         </div>
 
