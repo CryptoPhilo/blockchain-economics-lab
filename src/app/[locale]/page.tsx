@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
@@ -47,7 +48,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   return (
     <div>
       {/* Forensic Alert Ticker — scrolling red bar at the very top */}
-      <ForensicTickerBar />
+      <Suspense fallback={null}>
+        <ForensicTickerBar />
+      </Suspense>
 
       {/* Hero Section — 360° Project Intelligence */}
       <section className="relative overflow-hidden bg-gradient-to-br from-gray-950 via-indigo-950 to-gray-950 py-24 px-6">
@@ -146,7 +149,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       </section>
 
       {/* Latest Forensic Alerts — card previews with risk gauge */}
-      <ForensicAlertSection />
+      <Suspense fallback={null}>
+        <ForensicAlertSection />
+      </Suspense>
 
       {/* Tracked Projects Scores */}
       {trackedProjects.length > 0 && (
