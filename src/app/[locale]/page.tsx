@@ -34,7 +34,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         .order('sort_order'),
       supabase
         .from('project_reports')
-        .select('*, tracked_projects(*)')
+        .select('*, tracked_projects!inner(id, name, slug, symbol, chain, category)')
         .eq('report_type', 'forensic')
         .eq('status', 'published')
         .not('card_data', 'is', null)

@@ -79,6 +79,87 @@ KEYWORD_TAXONOMY = {
     'distribution': '분산단계',
 }
 
+# ── Multilingual keyword dictionaries ──────────────────────────
+# Each maps Korean display keyword → localized display keyword
+
+KEYWORD_JA = {
+    '시세조종': '相場操縦', '펌프앤덤프': 'パンプ＆ダンプ', 'Pump&Dump': 'パンプ＆ダンプ',
+    '워시트레이딩': 'ウォッシュトレーディング', 'Wash Trading': 'ウォッシュトレーディング',
+    '스푸핑': 'スプーフィング', 'Spoofing': 'スプーフィング',
+    '숏스퀴즈': 'ショートスクイーズ', 'Short Squeeze': 'ショートスクイーズ',
+    '롱스퀴즈': 'ロングスクイーズ', '유동성덫': '流動性トラップ',
+    '급등': '急騰', '급락': '急落', '과열': '過熱', '폭락': '暴落',
+    'Blow-off Top': 'ブローオフトップ',
+    '고래활동': 'クジラ活動', '내부자거래': 'インサイダー取引',
+    '대규모청산': '大規模清算', '펀딩비이상': 'ファンディングレート異常',
+    '고레버리지': '高レバレッジ', '디커플링': 'デカップリング',
+    '조작의심': '操作疑惑', '러그풀위험': 'ラグプルリスク',
+    '폰지구조': 'ポンジ構造', '분산단계': '分散段階',
+}
+
+KEYWORD_ZH = {
+    '시세조종': '市场操纵', '펌프앤덤프': '拉高出货', 'Pump&Dump': '拉高出货',
+    '워시트레이딩': '洗售交易', 'Wash Trading': '洗售交易',
+    '스푸핑': '欺骗挂单', 'Spoofing': '欺骗挂单',
+    '숏스퀴즈': '空头挤压', 'Short Squeeze': '空头挤压',
+    '롱스퀴즈': '多头挤压', '유동성덫': '流动性陷阱',
+    '급등': '暴涨', '급락': '暴跌', '과열': '过热', '폭락': '崩盘',
+    'Blow-off Top': '吹顶', '고래활동': '巨鲸活动', '내부자거래': '内幕交易',
+    '대규모청산': '大规模清算', '펀딩비이상': '资金费率异常',
+    '고레버리지': '高杠杆', '디커플링': '脱钩',
+    '조작의심': '操纵嫌疑', '러그풀위험': '跑路风险',
+    '폰지구조': '庞氏结构', '분산단계': '分发阶段',
+}
+
+KEYWORD_FR = {
+    '시세조종': 'Manipulation de marché', '펌프앤덤프': 'Pump & Dump', 'Pump&Dump': 'Pump & Dump',
+    '워시트레이딩': 'Wash Trading', 'Wash Trading': 'Wash Trading',
+    '스푸핑': 'Spoofing', 'Spoofing': 'Spoofing',
+    '숏스퀴즈': 'Short Squeeze', 'Short Squeeze': 'Short Squeeze',
+    '롱스퀴즈': 'Long Squeeze', '유동성덫': 'Piège de liquidité',
+    '급등': 'Hausse soudaine', '급락': 'Chute brutale', '과열': 'Surchauffe', '폭락': 'Effondrement',
+    'Blow-off Top': 'Blow-off Top', '고래활동': 'Activité de baleine', '내부자거래': 'Délit d\'initié',
+    '대규모청산': 'Liquidation massive', '펀딩비이상': 'Anomalie du taux de financement',
+    '고레버리지': 'Levier élevé', '디커플링': 'Découplage',
+    '조작의심': 'Manipulation suspectée', '러그풀위험': 'Risque de rug pull',
+    '폰지구조': 'Structure Ponzi', '분산단계': 'Phase de distribution',
+}
+
+KEYWORD_ES = {
+    '시세조종': 'Manipulación de mercado', '펌프앤덤프': 'Pump & Dump', 'Pump&Dump': 'Pump & Dump',
+    '워시트레이딩': 'Wash Trading', 'Wash Trading': 'Wash Trading',
+    '스푸핑': 'Spoofing', 'Spoofing': 'Spoofing',
+    '숏스퀴즈': 'Short Squeeze', 'Short Squeeze': 'Short Squeeze',
+    '롱스퀴즈': 'Long Squeeze', '유동성덫': 'Trampa de liquidez',
+    '급등': 'Alza repentina', '급락': 'Caída brusca', '과열': 'Sobrecalentamiento', '폭락': 'Desplome',
+    'Blow-off Top': 'Blow-off Top', '고래활동': 'Actividad de ballena', '내부자거래': 'Tráfico de información',
+    '대규모청산': 'Liquidación masiva', '펀딩비이상': 'Anomalía de tasa de financiación',
+    '고레버리지': 'Alto apalancamiento', '디커플링': 'Desacoplamiento',
+    '조작의심': 'Manipulación sospechada', '러그풀위험': 'Riesgo de rug pull',
+    '폰지구조': 'Estructura Ponzi', '분산단계': 'Fase de distribución',
+}
+
+KEYWORD_DE = {
+    '시세조종': 'Marktmanipulation', '펌프앤덤프': 'Pump & Dump', 'Pump&Dump': 'Pump & Dump',
+    '워시트레이딩': 'Wash Trading', 'Wash Trading': 'Wash Trading',
+    '스푸핑': 'Spoofing', 'Spoofing': 'Spoofing',
+    '숏스퀴즈': 'Short Squeeze', 'Short Squeeze': 'Short Squeeze',
+    '롱스퀴즈': 'Long Squeeze', '유동성덫': 'Liquiditätsfalle',
+    '급등': 'Kursanstieg', '급락': 'Kurseinbruch', '과열': 'Überhitzung', '폭락': 'Absturz',
+    'Blow-off Top': 'Blow-off Top', '고래활동': 'Wal-Aktivität', '내부자거래': 'Insiderhandel',
+    '대규모청산': 'Massenliquidation', '펀딩비이상': 'Finanzierungsratenanomalie',
+    '고레버리지': 'Hoher Hebel', '디커플링': 'Entkopplung',
+    '조작의심': 'Manipulationsverdacht', '러그풀위험': 'Rug-Pull-Risiko',
+    '폰지구조': 'Ponzi-Struktur', '분산단계': 'Verteilungsphase',
+}
+
+# Consolidated lookup by language code
+KEYWORD_I18N = {
+    'en': None,  # Uses KEYWORD_EN below
+    'ja': KEYWORD_JA, 'zh': KEYWORD_ZH,
+    'fr': KEYWORD_FR, 'es': KEYWORD_ES, 'de': KEYWORD_DE,
+}
+
 # English display versions for card_summary_en
 KEYWORD_EN = {
     '시세조종': 'Market Manipulation',
@@ -524,6 +605,29 @@ def generate_for_card(
         risk_level = 'elevated'
     print(f"  Risk: {risk_score}/100 ({risk_level})")
 
+    # 3.5 Extract summaries from all available translated files
+    summary_by_lang = {'ko': summary_ko, 'en': summary_en}
+    keywords_by_lang = {
+        'ko': keywords,
+        'en': [KEYWORD_EN.get(k, k) for k in keywords],
+    }
+    trans_langs = ['ja', 'zh', 'fr', 'es', 'de']
+    if output_dir:
+        for tl in trans_langs:
+            tl_path = Path(output_dir) / f"{slug}_for_v{trigger_data.get('version', 1)}_{tl}.md"
+            if not tl_path.exists():
+                # Also try without version
+                candidates = list(Path(output_dir).glob(f"{slug}*_for_*_{tl}.md"))
+                tl_path = candidates[0] if candidates else None
+            if tl_path and tl_path.exists():
+                tl_md = tl_path.read_text(encoding='utf-8')
+                summary_by_lang[tl] = extract_summary(tl_md, lang=tl)
+                # Map keywords to localized versions
+                kw_dict = KEYWORD_I18N.get(tl)
+                if kw_dict:
+                    keywords_by_lang[tl] = [kw_dict.get(k, k) for k in keywords]
+                print(f"  Summary {tl.upper()}: {summary_by_lang[tl][:60]}...")
+
     # 4. Build card_data
     card_data = {
         'slug': slug,
@@ -531,8 +635,10 @@ def generate_for_card(
         'symbol': symbol,
         'keywords': keywords,
         'keywords_en': [KEYWORD_EN.get(k, k) for k in keywords],
+        'keywords_by_lang': keywords_by_lang,
         'summary_ko': summary_ko,
         'summary_en': summary_en,
+        'summary_by_lang': summary_by_lang,
         'risk_score': risk_score,
         'risk_level': risk_level,
         'price_change_24h': trigger_data.get('price_change_24h', 0),

@@ -1,189 +1,239 @@
 #!/usr/bin/env python3
 """
-Reprocess [?] OCR failures using Gemini 2.5 Flash vision.
+Reprocess [?] OCR failures using Gemini 2.0 Flash (fast, free tier).
+
+Strategy:
+  1. Process ONLY Korean files (source of truth)
+  2. Batch all [?] in a file into ONE Gemini call
+  3. Propagate results to all 6 translated language files
 
 Usage:
-  export GEMINI_API_KEY=your_key
+  export GEMINI_API_KEY=key1
+  export GEMINI_API_KEY_2=key2
+  export GEMINI_API_KEY_3=key3
   python reprocess_failed_ocr.py
-
-Reads _equation_ocr_results.json to find which files/images failed,
-then uses Gemini to re-OCR them from the original base64 data.
-Since the base64 definitions have been stripped from the processed .md files,
-this script works on files that still contain [?] placeholders and
-attempts to resolve them using Gemini vision with contextual hints.
 """
-import json
-import os
-import re
-import sys
-import time
+import json, os, re, sys, time
 from pathlib import Path
 
-# Ensure pipeline modules are importable
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
 OUTPUT_DIR = Path(os.path.dirname(os.path.abspath(__file__))) / 'output'
-LANGS = ['ko', 'en', 'ja', 'zh', 'fr', 'es', 'de']
+TRANS_LANGS = ['en', 'ja', 'zh', 'fr', 'es', 'de']
 
 
-def load_failed_images() -> dict:
-    """Load the OCR results and find failures."""
-    results_path = OUTPUT_DIR / '_equation_ocr_results.json'
-    if not results_path.exists():
-        print("ERROR: _equation_ocr_results.json not found")
-        sys.exit(1)
-
-    results = json.loads(results_path.read_text())
-    failures = {}
-    for fname, mapping in results.items():
-        failed = {k: v for k, v in mapping.items() if v == '[?]'}
-        if failed:
-            failures[fname] = failed
-    return failures
+def get_api_keys():
+    keys = []
+    k1 = os.environ.get('GEMINI_API_KEY') or os.environ.get('GOOGLE_AI_API_KEY', '')
+    if k1: keys.append(k1)
+    for s in ['_2', '_3', '_4', '_5']:
+        k = os.environ.get(f'GEMINI_API_KEY{s}', '')
+        if k: keys.append(k)
+    return keys
 
 
-def reprocess_with_gemini():
-    """Re-OCR failed images using Gemini 2.5 Flash."""
-    api_key = os.environ.get('GEMINI_API_KEY') or os.environ.get('GOOGLE_AI_API_KEY', '')
-    if not api_key:
-        print("ERROR: Set GEMINI_API_KEY environment variable")
-        print("  Get a free key at: https://aistudio.google.com/apikey")
-        sys.exit(1)
+def gemini_call(api_keys, key_idx, prompt):
+    """Make a Gemini call with key rotation on 429."""
+    from google import genai
+    from google.genai import types
 
-    try:
-        from google import genai
-        from google.genai import types
-    except ImportError:
-        print("ERROR: pip install google-genai")
-        sys.exit(1)
+    for attempt in range(len(api_keys) * 2):
+        key = api_keys[key_idx[0] % len(api_keys)]
+        try:
+            client = genai.Client(api_key=key)
+            r = client.models.generate_content(
+                model='gemini-2.0-flash',
+                contents=prompt,
+                config=types.GenerateContentConfig(temperature=0, max_output_tokens=500),
+            )
+            return (r.text or '').strip()
+        except Exception as e:
+            if '429' in str(e) or 'RESOURCE_EXHAUSTED' in str(e):
+                key_idx[0] += 1
+                wait = 15
+                print(f"    [429] → key{key_idx[0] % len(api_keys)}, wait {wait}s")
+                time.sleep(wait)
+            else:
+                print(f"    [ERR] {type(e).__name__}: {str(e)[:100]}")
+                return None
+    return None
 
-    client = genai.Client(api_key=api_key)
-    failures = load_failed_images()
 
-    total_files = len(failures)
-    total_failed = sum(len(v) for v in failures.values())
-    print(f"Found {total_failed} failed OCR images across {total_files} files\n")
+def process_korean_file(ko_path, api_keys, key_idx):
+    """Process all [?] in a Korean file with a single batched Gemini call."""
+    content = ko_path.read_text(encoding='utf-8')
+    if '[?]' not in content:
+        return {}, False
 
-    if total_failed == 0:
-        print("Nothing to reprocess!")
+    # Collect all lines with [?] and their context
+    lines = content.split('\n')
+    q_lines = []
+    for li, line in enumerate(lines):
+        cnt = line.count('[?]')
+        if cnt > 0:
+            ctx_s = max(0, li - 2)
+            ctx_e = min(len(lines), li + 3)
+            ctx = '\n'.join(lines[ctx_s:ctx_e])
+            q_lines.append({'line_idx': li, 'count': cnt, 'line': line, 'context': ctx})
+
+    if not q_lines:
+        return {}, False
+
+    total_qs = sum(q['count'] for q in q_lines)
+
+    # Build a single batched prompt
+    sections = []
+    for qi, q in enumerate(q_lines, 1):
+        sections.append(
+            f"## 위치 {qi} (줄 {q['line_idx']+1}, [?] {q['count']}개)\n"
+            f"문맥:\n```\n{q['context']}\n```\n"
+            f"대상 줄:\n```\n{q['line']}\n```"
+        )
+
+    prompt = (
+        "블록체인/암호화폐 분석 보고서에서 OCR 실패로 [?]가 된 부분을 복원해주세요.\n\n"
+        "규칙:\n"
+        "- 수학 변수/기호: ρ, β, T_finality, N, f*\n"
+        "- 토큰 심볼: ELSA, ENJ ($기호 없이)\n"
+        "- 숫자: 0.026, 10⁻⁸\n"
+        "- 수식: S = Σ(s_i)\n"
+        "- 불확실하면 [?] 유지\n\n"
+        + '\n\n'.join(sections) + '\n\n'
+        "응답 형식 (정확히 따를 것):\n"
+        "위치1-1: 값\n"
+        "위치1-2: 값\n"
+        "위치2-1: 값\n"
+        "...\n"
+        "예: 위치1-1: ρ\n위치1-2: T_finality\n위치2-1: 0.026"
+    )
+
+    answer = gemini_call(api_keys, key_idx, prompt)
+    if not answer:
+        return {}, False
+
+    # Parse: "위치1-1: ρ" → {(0, 0): 'ρ'}
+    replacements = {}
+    for resp_line in answer.split('\n'):
+        resp_line = resp_line.strip()
+        m = re.match(r'위치\s*(\d+)\s*-\s*(\d+)\s*:\s*(.+)', resp_line)
+        if m:
+            pos_idx = int(m.group(1)) - 1  # 0-based
+            q_idx = int(m.group(2)) - 1
+            val = m.group(3).strip().strip('`').strip('"').strip("'")
+            if val and val != '[?]':
+                replacements[(pos_idx, q_idx)] = val
+
+    if not replacements:
+        return {}, False
+
+    # Apply to Korean file
+    changed = False
+    result_map = {}  # line_idx → list of (q_idx, val)
+    for (pos_idx, q_idx), val in replacements.items():
+        if pos_idx < len(q_lines):
+            li = q_lines[pos_idx]['line_idx']
+            if li not in result_map:
+                result_map[li] = []
+            result_map[li].append((q_idx, val))
+
+    for li, fixes in result_map.items():
+        line = lines[li]
+        # Replace nth [?] from last to first
+        for q_idx, val in sorted(fixes, reverse=True):
+            pos = -1
+            for _ in range(q_idx + 1):
+                pos = line.find('[?]', pos + 1)
+                if pos == -1:
+                    break
+            if pos >= 0:
+                line = line[:pos] + val + line[pos + 3:]
+                changed = True
+        lines[li] = line
+
+    if changed:
+        ko_path.write_text('\n'.join(lines), encoding='utf-8')
+
+    # Build simple [?] → val mapping for propagation
+    flat_map = {}
+    for (pos_idx, q_idx), val in replacements.items():
+        flat_map[f'p{pos_idx}q{q_idx}'] = val
+
+    return replacements, changed
+
+
+def propagate_to_translations(ko_name, replacements, q_lines_info):
+    """Apply Korean [?] → text mapping to translated files by line matching."""
+    if not replacements:
         return
 
-    # For each file, find [?] in the text and try to resolve with Gemini + context
-    resolved_count = 0
-    still_failed = 0
+    for lang in TRANS_LANGS:
+        t_name = ko_name.replace('_ko.md', f'_{lang}.md')
+        t_path = OUTPUT_DIR / t_name
+        if not t_path.exists():
+            continue
 
-    for i, (fname, failed_images) in enumerate(failures.items(), 1):
-        print(f"[{i}/{total_files}] {fname} ({len(failed_images)} failures)")
+        content = t_path.read_text(encoding='utf-8')
+        if '[?]' not in content:
+            continue
 
-        # Read all language versions
-        base_name = fname
-        for lang in LANGS:
-            lang_fname = base_name.replace('_ko.md', f'_{lang}.md')
-            lang_path = OUTPUT_DIR / lang_fname
-            if not lang_path.exists():
-                continue
+        # Simple approach: replace [?] sequentially with the same order as Korean
+        vals = []
+        for pos_idx in sorted(set(p for p, _ in replacements)):
+            for q_idx in sorted(q for p, q in replacements if p == pos_idx):
+                vals.append(replacements[(pos_idx, q_idx)])
 
-            content = lang_path.read_text(encoding='utf-8')
-            if '[?]' not in content:
-                continue
+        result = content
+        replaced = 0
+        for val in vals:
+            if '[?]' in result:
+                result = result.replace('[?]', val, 1)
+                replaced += 1
 
-            # For each [?], extract surrounding context and ask Gemini
-            # Since base64 is gone, we use context-only Gemini to infer
-            lines = content.split('\n')
-            changed = False
-            for li, line in enumerate(lines):
-                if '[?]' not in line:
-                    continue
+        if replaced > 0:
+            t_path.write_text(result, encoding='utf-8')
+            print(f"    {lang}: {replaced} replaced")
 
-                # Get surrounding context (3 lines before/after)
-                ctx_start = max(0, li - 3)
-                ctx_end = min(len(lines), li + 4)
-                context = '\n'.join(lines[ctx_start:ctx_end])
 
-                # Count [?] in this line
-                q_count = line.count('[?]')
-                if q_count == 0:
-                    continue
+def main():
+    api_keys = get_api_keys()
+    if not api_keys:
+        print("ERROR: Set GEMINI_API_KEY"); sys.exit(1)
+    print(f"Using {len(api_keys)} API key(s)\n")
 
-                prompt = (
-                    "아래는 블록체인/암호화폐 분석 보고서의 일부입니다. "
-                    "'[?]' 표시는 원래 수식 이미지가 있었으나 OCR 변환에 실패한 부분입니다. "
-                    "문맥을 분석하여 각 [?] 위치에 들어갈 가능성이 높은 수학 기호, 변수명, "
-                    "그리스 문자, 또는 수식을 추론해주세요.\n\n"
-                    "규칙:\n"
-                    "- 수학 변수/기호면 그대로 (예: ρ, β, T_finality, N, f*)\n"
-                    "- 토큰 심볼이면 $기호 없이 (예: ELSA, ENJ)\n"
-                    "- 숫자면 그대로 (예: 0.026, 10⁻⁸)\n"
-                    "- 수식이면 텍스트 표기 (예: S = Σ(s_i))\n"
-                    "- 확실하지 않으면 '[?]'을 유지\n\n"
-                    f"보고서 문맥:\n```\n{context}\n```\n\n"
-                    f"이 줄에서 {q_count}개의 [?]가 있습니다:\n```\n{line}\n```\n\n"
-                    "각 [?]에 대해 한 줄씩 '위치번호: 대체텍스트' 형식으로 응답해주세요. "
-                    "예: '1: ρ\\n2: T_finality'"
-                )
+    # Find Korean files with [?]
+    ko_files = sorted(OUTPUT_DIR.glob('*_ko.md'))
+    affected = [(f, f.read_text().count('[?]')) for f in ko_files if '[?]' in f.read_text()]
 
-                try:
-                    response = client.models.generate_content(
-                        model='gemini-2.5-flash',
-                        contents=[types.Content(parts=[types.Part.from_text(text=prompt)])],
-                        config=types.GenerateContentConfig(
-                            temperature=0.0,
-                            max_output_tokens=200,
-                        ),
-                    )
-                    answer = response.text.strip()
+    total_qs = sum(c for _, c in affected)
+    print(f"Found {total_qs} [?] across {len(affected)} Korean files\n")
 
-                    # Parse response: "1: ρ\n2: T_finality"
-                    replacements = []
-                    for resp_line in answer.split('\n'):
-                        resp_line = resp_line.strip()
-                        if ':' in resp_line:
-                            parts = resp_line.split(':', 1)
-                            try:
-                                idx = int(parts[0].strip())
-                                val = parts[1].strip().strip('`').strip()
-                                if val and val != '[?]':
-                                    replacements.append((idx, val))
-                            except (ValueError, IndexError):
-                                continue
+    key_idx = [0]
+    total_resolved = 0
 
-                    # Apply replacements (replace nth [?] occurrence)
-                    if replacements:
-                        new_line = line
-                        # Replace from last to first to preserve positions
-                        for idx, val in sorted(replacements, reverse=True):
-                            # Find the idx-th occurrence of [?]
-                            pos = -1
-                            for _ in range(idx):
-                                pos = new_line.find('[?]', pos + 1)
-                                if pos == -1:
-                                    break
-                            if pos >= 0:
-                                new_line = new_line[:pos] + val + new_line[pos + 3:]
-                                resolved_count += 1
+    for i, (ko_path, q_count) in enumerate(affected, 1):
+        name = ko_path.name
+        print(f"[{i}/{len(affected)}] {name} ({q_count} [?])")
 
-                        if new_line != line:
-                            lines[li] = new_line
-                            changed = True
-                            print(f"    {lang} L{li+1}: {len(replacements)} resolved")
-                            for idx, val in replacements:
-                                print(f"      #{idx}: '{val}'")
+        replacements, changed = process_korean_file(ko_path, api_keys, key_idx)
+        resolved = len(replacements)
+        total_resolved += resolved
 
-                    time.sleep(1.5)  # Rate limit
-                except Exception as e:
-                    print(f"    [WARN] Gemini error: {type(e).__name__}: {e}")
-                    still_failed += q_count
-                    time.sleep(2)
+        if replacements:
+            for (pos, qi), val in sorted(replacements.items()):
+                print(f"    위치{pos+1}-{qi+1}: {val}")
 
-            if changed:
-                lang_path.write_text('\n'.join(lines), encoding='utf-8')
+            # Propagate
+            propagate_to_translations(name, replacements, None)
 
+        # Rate limit between files
+        key_idx[0] += 1
+        time.sleep(5)
         print()
 
-    print(f"\n{'='*60}")
-    print(f"SUMMARY: {resolved_count} [?] resolved, {still_failed} still failed")
-    print(f"Run report QA to verify results.")
+    # Final count
+    remaining = sum(1 for f in ko_files for _ in re.finditer(r'\[\?\]', f.read_text()))
+    print(f"{'='*50}")
+    print(f"DONE: {total_resolved} resolved, {remaining} [?] remaining")
 
 
 if __name__ == '__main__':
-    reprocess_with_gemini()
+    main()

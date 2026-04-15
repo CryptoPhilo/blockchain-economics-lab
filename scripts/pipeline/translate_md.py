@@ -218,7 +218,13 @@ def _translate_claude(text: str, target_lang: str, context: str = '') -> str:
             f"You are a professional translator specializing in blockchain and cryptocurrency. "
             f"Translate the following text to {lang_name}. "
             f"Preserve all markdown formatting, technical terms, ticker symbols, and numbers. "
-            f"Do NOT translate: token symbols (BTC, ETH), protocol names, URLs, code. "
+            f"Do NOT translate the following — keep them EXACTLY as-is:\n"
+            f"  - Token/coin symbols: BTC, ETH, SOL, ELSA, USDC, ENJ, LEO, MYX, etc.\n"
+            f"  - Protocol and project names: Uniswap, Solana, Enjin, HeyElsa, etc.\n"
+            f"  - Mathematical symbols and variables: μ, σ, ρ, f*, CR, NC, T_finality, etc.\n"
+            f"  - Formulas and equations: V ∝ R/S, f* = (p·b - q) / b, etc.\n"
+            f"  - URLs, code blocks, and inline code\n"
+            f"  - [?] placeholders (if any remain, keep as [?])\n"
             f"Use standard blockchain terminology for {lang_name}. "
             f"Return ONLY the translated text, no explanations."
         )
@@ -258,7 +264,9 @@ def _translate_batch_claude(texts: List[str], target_lang: str) -> List[str]:
             f"You are a professional blockchain/crypto translator. "
             f"Translate each numbered line below to {lang_name}. "
             f"Keep the [[[N]]] markers. Preserve markdown formatting, "
-            f"ticker symbols, URLs, numbers, code blocks. "
+            f"ticker symbols (BTC, ETH, ELSA, USDC, ENJ, LEO, MYX, SOL, etc.), "
+            f"mathematical symbols (μ, σ, ρ, f*, CR, NC, etc.), formulas, "
+            f"URLs, numbers, code blocks. Do NOT translate token names or math notation. "
             f"Return ONLY the translations with markers."
         )
 

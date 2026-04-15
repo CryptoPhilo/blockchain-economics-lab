@@ -40,10 +40,10 @@ const riskConfig: Record<string, { accent: string; badge: string; glow: string; 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SlideCard({ report, locale }: { report: any; locale: string }) {
+  // tracked_projects is now a single object via !inner join (not an array)
   const tp = Array.isArray(report.tracked_projects)
     ? report.tracked_projects[0]
-    : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (report.tracked_projects as any)
+    : (report.tracked_projects as Record<string, unknown> | null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cardData = report.card_data as Record<string, any> | null
   const level = (report.risk_level || cardData?.risk_level || 'elevated').toLowerCase()
@@ -51,25 +51,52 @@ function SlideCard({ report, locale }: { report: any; locale: string }) {
   const riskScore = report.card_risk_score ?? cardData?.risk_score ?? 0
   const isKo = locale === 'ko'
 
-  // Multilingual: pick keywords by locale
-  const keywords: string[] = isKo
-    ? (report.card_keywords ?? cardData?.keywords_ko ?? cardData?.keywords ?? [])
-    : (cardData?.keywords_en ?? report.card_keywords ?? [])
+  // Multilingual: pick keywords by locale (7 languages)
+  const keywordsByLang = cardData?.keywords_by_lang as Record<string, string[]> | undefined
+  const keywords: string[] =
+    keywordsByLang?.[locale] ??
+    (isKo
+      ? (report.card_keywords ?? cardData?.keywords ?? [])
+      : (cardData?.keywords_en ?? report.card_keywords ?? []))
 
-  // Multilingual: pick summary by locale
-  const summary = isKo
-    ? (report.card_summary_ko || report.card_summary_en || cardData?.summary || '포렌식 분석 진행 중...')
-    : (report.card_summary_en || cardData?.summary || 'Forensic analysis in progress...')
+  // Multilingual: pick summary by locale (7 languages)
+  const summaryByLang = cardData?.summary_by_lang as Record<string, string> | undefined
+  const defaultSummary: Record<string, string> = {
+    ko: '포렌식 분석 진행 중...', en: 'Forensic analysis in progress...',
+    ja: 'フォレンジック分析進行中...', zh: '取证分析进行中...',
+    fr: 'Analyse forensique en cours...', es: 'Análisis forense en curso...',
+    de: 'Forensische Analyse läuft...',
+  }
+  const summary =
+    summaryByLang?.[locale] ??
+    ((isKo ? (report.card_summary_ko || report.card_summary_en || '') : (report.card_summary_en || '')) ||
+    (defaultSummary[locale] || defaultSummary.en))
 
   const change24h = cardData?.price_change_24h ?? cardData?.change_24h ?? 0
   const slug = tp?.slug ?? ''
 
-  const viewLabel = isKo ? '전체 보고서 보기 →' : 'View Full Report →'
-  const getLabel = isKo ? '전체 보고서 보기 →' : 'Get Full Report →'
-  const riskLabel = isKo ? '위험 점수' : 'Risk Score'
-  const riskLevelLabel = isKo
-    ? `${level === 'critical' ? '심각' : level === 'high' ? '높음' : '경계'} 위험`
-    : `${level.charAt(0).toUpperCase() + level.slice(1)} Risk`
+  const viewLabels: Record<string, string> = {
+    ko: '전체 보고서 보기 →', en: 'View Full Report →',
+    ja: '完全レポートを見る →', zh: '查看完整报告 →',
+    fr: 'Voir le rapport complet →', es: 'Ver informe completo →',
+    de: 'Vollständigen Bericht ansehen →',
+  }
+  const riskLabels: Record<string, string> = {
+    ko: '위험 점수', en: 'Risk Score',
+    ja: 'リスクスコア', zh: '风险评分',
+    fr: 'Score de risque', es: 'Puntuación de riesgo',
+    de: 'Risikobewertung',
+  }
+  const riskLevelNames: Record<string, Record<string, string>> = {
+    critical: { ko: '심각 위험', en: 'Critical Risk', ja: '重大リスク', zh: '严重风险', fr: 'Risque critique', es: 'Riesgo crítico', de: 'Kritisches Risiko' },
+    high:     { ko: '높음 위험', en: 'High Risk', ja: '高リスク', zh: '高风险', fr: 'Risque élevé', es: 'Riesgo alto', de: 'Hohes Risiko' },
+    elevated: { ko: '경계 위험', en: 'Elevated Risk', ja: '警戒リスク', zh: '警戒风险', fr: 'Risque modéré', es: 'Riesgo moderado', de: 'Erhöhtes Risiko' },
+    moderate: { ko: '보통 위험', en: 'Moderate Risk', ja: '中程度リスク', zh: '中等风险', fr: 'Risque modéré', es: 'Riesgo moderado', de: 'Mäßiges Risiko' },
+  }
+  const viewLabel = viewLabels[locale] || viewLabels.en
+  const getLabel = viewLabel
+  const riskLabel = riskLabels[locale] || riskLabels.en
+  const riskLevelLabel = riskLevelNames[level]?.[locale] || riskLevelNames[level]?.en || `${level} Risk`
 
   // Always use CSS-based card (GDrive thumbnail URLs are unreliable)
   return (

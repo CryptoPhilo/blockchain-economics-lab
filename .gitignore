@@ -21,3 +21,14 @@ scripts/pipeline/.gdrive_service_account.json
 # Claude / Cowork session data
 .claude/
 .env.d/
+
+# OS files
+.DS_Store
+*/.DS_Store
+
+# Pipeline secrets
+scripts/pipeline/.env
+
+# Font files (large binaries)
+fonts/
+scripts/pipeline/fonts/

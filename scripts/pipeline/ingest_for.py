@@ -96,9 +96,32 @@ def _ocr_with_tesseract(b64_data: str) -> str:
         return ''
 
 
+def _get_gemini_api_keys() -> list[str]:
+    """Collect all available Gemini API keys for rotation."""
+    keys = []
+    # Primary key
+    k1 = os.environ.get('GEMINI_API_KEY') or os.environ.get('GOOGLE_AI_API_KEY', '')
+    if k1:
+        keys.append(k1)
+    # Secondary key(s)
+    for suffix in ['_2', '_3', '_4', '_5']:
+        k = os.environ.get(f'GEMINI_API_KEY{suffix}', '')
+        if k:
+            keys.append(k)
+    return keys
+
+# Module-level state for key rotation
+_gemini_key_index = 0
+
+
 def _ocr_with_gemini(b64_data: str, img_name: str, context_hint: str = '') -> str:
-    """Fallback: use Gemini 2.5 Flash vision to read equation image."""
+    """Fallback: use Gemini 2.5 Flash vision to read equation image.
+
+    Supports multiple API keys with rotation on 429 rate limit errors.
+    """
+    global _gemini_key_index
     import base64 as _b64
+    import time as _time
     try:
         from google import genai
         from google.genai import types
@@ -106,48 +129,61 @@ def _ocr_with_gemini(b64_data: str, img_name: str, context_hint: str = '') -> st
         print("    [WARN] google-genai not installed — skipping Gemini OCR")
         return ''
 
-    api_key = os.environ.get('GEMINI_API_KEY') or os.environ.get('GOOGLE_AI_API_KEY', '')
-    if not api_key:
+    api_keys = _get_gemini_api_keys()
+    if not api_keys:
         print("    [WARN] GEMINI_API_KEY not set — skipping Gemini OCR")
         return ''
 
-    try:
-        client = genai.Client(api_key=api_key)
-        img_bytes = _b64.b64decode(b64_data)
+    img_bytes = _b64.b64decode(b64_data)
+    prompt = (
+        "이 이미지는 블록체인/암호화폐 보고서에서 추출한 수식 또는 숫자/기호입니다. "
+        "이미지에 표시된 텍스트를 정확히 읽어주세요. "
+        "그리스 문자(ρ, β, α 등), 수학 기호, 숫자, 통화 기호($), 퍼센트(%) 등이 포함될 수 있습니다. "
+        "수식이면 읽기 쉬운 텍스트로 변환해주세요 (LaTeX 아님). "
+        "예: 'ρ', '0.026', 'T_finality', '≈ $2.5–$4.0' 등. "
+        "이미지에 보이는 텍스트만 출력하세요. 설명이나 부가 텍스트 없이 결과만."
+    )
+    if context_hint:
+        prompt += f"\n\n문맥 힌트: ...{context_hint}..."
 
-        prompt = (
-            "이 이미지는 블록체인/암호화폐 보고서에서 추출한 수식 또는 숫자/기호입니다. "
-            "이미지에 표시된 텍스트를 정확히 읽어주세요. "
-            "그리스 문자(ρ, β, α 등), 수학 기호, 숫자, 통화 기호($), 퍼센트(%) 등이 포함될 수 있습니다. "
-            "수식이면 읽기 쉬운 텍스트로 변환해주세요 (LaTeX 아님). "
-            "예: 'ρ', '0.026', 'T_finality', '≈ $2.5–$4.0' 등. "
-            "이미지에 보이는 텍스트만 출력하세요. 설명이나 부가 텍스트 없이 결과만."
-        )
-        if context_hint:
-            prompt += f"\n\n문맥 힌트: ...{context_hint}..."
-
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=[
-                types.Content(parts=[
-                    types.Part.from_text(text=prompt),
-                    types.Part.from_bytes(data=img_bytes, mime_type='image/png'),
-                ]),
-            ],
-            config=types.GenerateContentConfig(
-                temperature=0.0,
-                max_output_tokens=100,
-            ),
-        )
-        text = response.text.strip().strip('`').strip()
-        # Remove wrapping quotes if any
-        if len(text) > 2 and text[0] in '"\'`' and text[-1] in '"\'`':
-            text = text[1:-1].strip()
-        if text:
-            print(f"    Gemini → '{text}'")
-            return text
-    except Exception as e:
-        print(f"    [WARN] Gemini OCR failed for {img_name}: {type(e).__name__}: {e}")
+    max_retries = len(api_keys) * 2  # Try each key up to 2 times
+    for attempt in range(max_retries):
+        key = api_keys[_gemini_key_index % len(api_keys)]
+        try:
+            client = genai.Client(api_key=key)
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=[
+                    types.Content(parts=[
+                        types.Part.from_text(text=prompt),
+                        types.Part.from_bytes(data=img_bytes, mime_type='image/png'),
+                    ]),
+                ],
+                config=types.GenerateContentConfig(
+                    temperature=0.0,
+                    max_output_tokens=100,
+                ),
+            )
+            text = (response.text or '').strip().strip('`').strip()
+            # Remove wrapping quotes if any
+            if len(text) > 2 and text[0] in '"\'`' and text[-1] in '"\'`':
+                text = text[1:-1].strip()
+            if text:
+                print(f"    Gemini[key{_gemini_key_index % len(api_keys)}] → '{text}'")
+                return text
+            return ''  # Empty response, no retry needed
+        except Exception as e:
+            err_str = str(e)
+            if '429' in err_str or 'RESOURCE_EXHAUSTED' in err_str:
+                # Rate limited — rotate to next key
+                _gemini_key_index += 1
+                if attempt < max_retries - 1:
+                    wait = 13 if len(api_keys) > 1 else 30
+                    print(f"    [429] Key rotation → key{_gemini_key_index % len(api_keys)}, wait {wait}s...")
+                    _time.sleep(wait)
+                    continue
+            print(f"    [WARN] Gemini OCR failed for {img_name}: {type(e).__name__}")
+            return ''
     return ''
 
 
@@ -203,7 +239,7 @@ def _resolve_equation_images(md_text: str) -> tuple[str, int]:
                 replacements[img_name] = text
                 gemini_ok += 1
             import time
-            time.sleep(1)  # Rate limit: Gemini free tier = 10 RPM
+            time.sleep(13)  # Rate limit: Gemini free tier = 5 RPM per key
 
     # Replace inline references
     result = md_text
@@ -645,7 +681,7 @@ def process_for_report(file_info: dict, dry_run: bool = False) -> dict:
                 'card_summary_en': cd.get('summary_en'),
                 'card_risk_score': cd.get('risk_score'),
                 'card_thumbnail_url': thumb_url,
-                'card_data': cd,
+                'card_data': cd,  # contains summary_by_lang + keywords_by_lang for all 7 langs
                 'card_qa_status': 'pending',  # QA 승인 대기
             }
 
