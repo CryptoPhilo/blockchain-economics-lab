@@ -60,9 +60,101 @@ from gdrive_storage import GDriveStorage
 # When exported to markdown, these become ![][imageN] references with
 # base64 data at the end of the file. This function OCRs them back to text.
 
+def _ocr_with_tesseract(b64_data: str) -> str:
+    """Try pytesseract OCR on a base64 PNG. Returns text or empty string."""
+    import base64 as _b64
+    import io as _io
+    try:
+        import pytesseract
+        from PIL import Image
+    except ImportError:
+        return ''
+    try:
+        img_bytes = _b64.b64decode(b64_data)
+        img = Image.open(_io.BytesIO(img_bytes)).convert('RGBA')
+        bg = Image.new('RGBA', img.size, (255, 255, 255, 255))
+        bg.paste(img, mask=img.split()[3])
+        gray = bg.convert('L')
+        w, h = gray.size
+        upscaled = gray.resize((w * 6, h * 6), Image.LANCZOS)
+        bw = upscaled.point(lambda x: 0 if x < 128 else 255)
+        padded = Image.new('L', (bw.width + 40, bw.height + 40), 255)
+        padded.paste(bw, (20, 20))
+        text = pytesseract.image_to_string(
+            padded,
+            config='--psm 7 -c tessedit_char_whitelist=0123456789.,%+-~$αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ',
+        ).strip()
+        # Reject obviously bad OCR: single punctuation, garbled long strings
+        if not text:
+            return ''
+        if len(text) == 1 and text in '.,-%~':
+            return ''
+        if len(text) > 20 and not any(c == ' ' for c in text):
+            return ''  # Garbled run-on string
+        return text
+    except Exception:
+        return ''
+
+
+def _ocr_with_gemini(b64_data: str, img_name: str, context_hint: str = '') -> str:
+    """Fallback: use Gemini 2.5 Flash vision to read equation image."""
+    import base64 as _b64
+    try:
+        from google import genai
+        from google.genai import types
+    except ImportError:
+        print("    [WARN] google-genai not installed — skipping Gemini OCR")
+        return ''
+
+    api_key = os.environ.get('GEMINI_API_KEY') or os.environ.get('GOOGLE_AI_API_KEY', '')
+    if not api_key:
+        print("    [WARN] GEMINI_API_KEY not set — skipping Gemini OCR")
+        return ''
+
+    try:
+        client = genai.Client(api_key=api_key)
+        img_bytes = _b64.b64decode(b64_data)
+
+        prompt = (
+            "이 이미지는 블록체인/암호화폐 보고서에서 추출한 수식 또는 숫자/기호입니다. "
+            "이미지에 표시된 텍스트를 정확히 읽어주세요. "
+            "그리스 문자(ρ, β, α 등), 수학 기호, 숫자, 통화 기호($), 퍼센트(%) 등이 포함될 수 있습니다. "
+            "수식이면 읽기 쉬운 텍스트로 변환해주세요 (LaTeX 아님). "
+            "예: 'ρ', '0.026', 'T_finality', '≈ $2.5–$4.0' 등. "
+            "이미지에 보이는 텍스트만 출력하세요. 설명이나 부가 텍스트 없이 결과만."
+        )
+        if context_hint:
+            prompt += f"\n\n문맥 힌트: ...{context_hint}..."
+
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=[
+                types.Content(parts=[
+                    types.Part.from_text(text=prompt),
+                    types.Part.from_bytes(data=img_bytes, mime_type='image/png'),
+                ]),
+            ],
+            config=types.GenerateContentConfig(
+                temperature=0.0,
+                max_output_tokens=100,
+            ),
+        )
+        text = response.text.strip().strip('`').strip()
+        # Remove wrapping quotes if any
+        if len(text) > 2 and text[0] in '"\'`' and text[-1] in '"\'`':
+            text = text[1:-1].strip()
+        if text:
+            print(f"    Gemini → '{text}'")
+            return text
+    except Exception as e:
+        print(f"    [WARN] Gemini OCR failed for {img_name}: {type(e).__name__}: {e}")
+    return ''
+
+
 def _resolve_equation_images(md_text: str) -> tuple[str, int]:
     """Replace ![][imageN] base64 equation images with OCR'd text.
 
+    Strategy: pytesseract first → Gemini 2.5 Flash fallback for failures.
     Returns (cleaned_text, replacement_count).
     """
     import base64
@@ -80,40 +172,38 @@ def _resolve_equation_images(md_text: str) -> tuple[str, int]:
     if not img_defs:
         return md_text, 0
 
-    # Lazy-import heavy deps (only needed when equations exist)
-    try:
-        import pytesseract
-        from PIL import Image
-    except ImportError:
-        print("  [WARN] pytesseract/Pillow not installed — skipping equation OCR")
-        return md_text, 0
+    # Build context hints: find surrounding text for each image reference
+    context_hints: dict[str, str] = {}
+    for img_name in img_defs:
+        ref_pat = re.compile(r'.{0,60}' + re.escape(f'![][{img_name}]') + r'.{0,60}')
+        m = ref_pat.search(md_text)
+        if m:
+            context_hints[img_name] = m.group(0)
 
+    # Phase 1: pytesseract
     replacements: dict[str, str] = {}
+    tess_ok = 0
     for img_name, b64_data in img_defs.items():
-        try:
-            img_bytes = base64.b64decode(b64_data)
-            img = Image.open(io.BytesIO(img_bytes)).convert('RGBA')
-            # White background to handle transparency
-            bg = Image.new('RGBA', img.size, (255, 255, 255, 255))
-            bg.paste(img, mask=img.split()[3])
-            gray = bg.convert('L')
-            # Upscale 6× for better OCR accuracy on tiny equation images
-            w, h = gray.size
-            upscaled = gray.resize((w * 6, h * 6), Image.LANCZOS)
-            bw = upscaled.point(lambda x: 0 if x < 128 else 255)
-            # Add padding
-            padded = Image.new('L', (bw.width + 40, bw.height + 40), 255)
-            padded.paste(bw, (20, 20))
-            text = pytesseract.image_to_string(
-                padded,
-                config='--psm 7 -c tessedit_char_whitelist=0123456789.,%+-~$αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ',
-            ).strip()
+        text = _ocr_with_tesseract(b64_data)
+        if text:
+            replacements[img_name] = text
+            tess_ok += 1
+        else:
+            replacements[img_name] = '[?]'
+
+    # Phase 2: Gemini 2.5 Flash for failures
+    gemini_needed = [k for k, v in replacements.items() if v == '[?]']
+    gemini_ok = 0
+    if gemini_needed:
+        print(f"  pytesseract: {tess_ok}/{len(img_defs)} OK, {len(gemini_needed)} → Gemini fallback")
+        for img_name in gemini_needed:
+            hint = context_hints.get(img_name, '')
+            text = _ocr_with_gemini(img_defs[img_name], img_name, hint)
             if text:
                 replacements[img_name] = text
-            else:
-                replacements[img_name] = '[?]'
-        except Exception:
-            replacements[img_name] = '[?]'
+                gemini_ok += 1
+            import time
+            time.sleep(1)  # Rate limit: Gemini free tier = 10 RPM
 
     # Replace inline references
     result = md_text
@@ -130,7 +220,7 @@ def _resolve_equation_images(md_text: str) -> tuple[str, int]:
 
     ok = sum(1 for v in replacements.values() if v != '[?]')
     fail = sum(1 for v in replacements.values() if v == '[?]')
-    print(f"  ✓ 수식 이미지 OCR: {ok} resolved, {fail} unresolved out of {len(img_defs)} images ({count} refs)")
+    print(f"  ✓ 수식 이미지 OCR: {ok} resolved ({tess_ok} tesseract + {gemini_ok} gemini), {fail} unresolved out of {len(img_defs)} images ({count} refs)")
     return result, count
 
 # ═══════════════════════════════════════════

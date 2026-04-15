@@ -319,67 +319,16 @@ def scan_new_md_files(drive, folder_id: str, tracker: dict) -> list:
 def _resolve_equation_images_gdoc(md_text: str) -> tuple:
     """Replace ![][imageN] base64 equation images with OCR'd text.
 
-    Google Docs renders LaTeX ($0.026$) as inline PNG equation images.
-    This function OCRs them back to plain text numbers.
+    Delegates to the shared implementation in ingest_for.py
+    (pytesseract first → Gemini 2.5 Flash fallback).
     Returns (cleaned_text, replacement_count).
     """
-    import base64
-    import io
-
-    def_pattern = re.compile(
-        r'^\[image(\d+)\]:\s*<data:image/png;base64,([^>]+)>\s*$',
-        re.MULTILINE,
-    )
-    img_defs = {}
-    for m in def_pattern.finditer(md_text):
-        img_defs[f'image{m.group(1)}'] = m.group(2)
-
-    if not img_defs:
-        return md_text, 0
-
     try:
-        import pytesseract
-        from PIL import Image
+        from ingest_for import _resolve_equation_images
+        return _resolve_equation_images(md_text)
     except ImportError:
-        print("  [WARN] pytesseract/Pillow not installed — skipping equation OCR")
+        print("  [WARN] Cannot import _resolve_equation_images — skipping equation OCR")
         return md_text, 0
-
-    replacements = {}
-    for img_name, b64_data in img_defs.items():
-        try:
-            img_bytes = base64.b64decode(b64_data)
-            img = Image.open(io.BytesIO(img_bytes)).convert('RGBA')
-            bg = Image.new('RGBA', img.size, (255, 255, 255, 255))
-            bg.paste(img, mask=img.split()[3])
-            gray = bg.convert('L')
-            w, h = gray.size
-            upscaled = gray.resize((w * 6, h * 6), Image.LANCZOS)
-            bw = upscaled.point(lambda x: 0 if x < 128 else 255)
-            padded = Image.new('L', (bw.width + 40, bw.height + 40), 255)
-            padded.paste(bw, (20, 20))
-            text = pytesseract.image_to_string(
-                padded,
-                config='--psm 7 -c tessedit_char_whitelist=0123456789.,%+-~$αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ',
-            ).strip()
-            replacements[img_name] = text if text else '[?]'
-        except Exception:
-            replacements[img_name] = '[?]'
-
-    result = md_text
-    count = 0
-    for img_name, text in replacements.items():
-        pat = re.compile(re.escape(f'![][{img_name}]'))
-        matches = len(pat.findall(result))
-        result = pat.sub(text, result)
-        count += matches
-
-    result = def_pattern.sub('', result)
-    result = re.sub(r'\n{3,}', '\n\n', result)
-
-    ok = sum(1 for v in replacements.values() if v != '[?]')
-    fail = sum(1 for v in replacements.values() if v == '[?]')
-    print(f"  ✓ 수식 이미지 OCR: {ok} resolved, {fail} unresolved out of {len(img_defs)} images ({count} refs)")
-    return result, count
 
 
 def download_md_file(drive, file_id: str) -> str:
