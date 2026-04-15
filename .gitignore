@@ -15,8 +15,11 @@ data/
 __pycache__/
 *.pyc
 
-# Service account credentials
+# Service account credentials and auth tokens
 scripts/pipeline/.gdrive_service_account.json
+scripts/pipeline/.gdrive_token.json
+*.pem
+*_service_account*.json
 
 # Claude / Cowork session data
 .claude/

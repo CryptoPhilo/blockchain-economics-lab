@@ -76,17 +76,10 @@ except ImportError:
 
 _SCRIPT_DIR = Path(__file__).resolve().parent
 
-GDRIVE_ROOT_FOLDER_ID = os.environ.get(
-    'GDRIVE_ROOT_FOLDER_ID', '1E87EcasPlrGuet0t6e1CA9kLFO0sTdFq'
-)
-GDRIVE_SERVICE_ACCOUNT_FILE = os.environ.get(
-    'GDRIVE_SERVICE_ACCOUNT_FILE',
-    str(_SCRIPT_DIR / '.gdrive_service_account.json')  # fallback to local file
-)
+GDRIVE_ROOT_FOLDER_ID = os.environ.get('GDRIVE_ROOT_FOLDER_ID', '')
+GDRIVE_SERVICE_ACCOUNT_FILE = os.environ.get('GDRIVE_SERVICE_ACCOUNT_FILE', '')
 GDRIVE_OAUTH_CREDENTIALS = os.environ.get('GDRIVE_OAUTH_CREDENTIALS', '')
-GDRIVE_DELEGATE_EMAIL = os.environ.get(
-    'GDRIVE_DELEGATE_EMAIL', 'zhang@coinlab.co.kr'
-)
+GDRIVE_DELEGATE_EMAIL = os.environ.get('GDRIVE_DELEGATE_EMAIL', '')
 GDRIVE_TOKEN_FILE = os.environ.get(
     'GDRIVE_TOKEN_FILE',
     str(_SCRIPT_DIR / '.gdrive_token.json')
