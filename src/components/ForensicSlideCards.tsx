@@ -71,29 +71,7 @@ function SlideCard({ report, locale }: { report: any; locale: string }) {
     ? `${level === 'critical' ? '심각' : level === 'high' ? '높음' : '경계'} 위험`
     : `${level.charAt(0).toUpperCase() + level.slice(1)} Risk`
 
-  // If a real thumbnail URL exists, show the actual image
-  if (report.card_thumbnail_url) {
-    return (
-      <Link
-        href={`/${locale}/reports/forensic/${slug}`}
-        className="group block relative overflow-hidden rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-[1.02] flex-shrink-0 w-[340px] md:w-[400px]"
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={report.card_thumbnail_url}
-          alt={`${tp?.name ?? 'Project'} Forensic Report`}
-          className="w-full aspect-[16/9] object-cover"
-        />
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center">
-          <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 px-6 py-3 bg-red-600/90 text-white font-semibold rounded-lg backdrop-blur-sm">
-            {viewLabel}
-          </span>
-        </div>
-      </Link>
-    )
-  }
-
-  // CSS-based slide cover preview
+  // Always use CSS-based card (GDrive thumbnail URLs are unreliable)
   return (
     <Link
       href={`/${locale}/reports/forensic/${slug}`}

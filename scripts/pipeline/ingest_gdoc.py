@@ -316,6 +316,72 @@ def scan_new_md_files(drive, folder_id: str, tracker: dict) -> list:
     return new_docs
 
 
+def _resolve_equation_images_gdoc(md_text: str) -> tuple:
+    """Replace ![][imageN] base64 equation images with OCR'd text.
+
+    Google Docs renders LaTeX ($0.026$) as inline PNG equation images.
+    This function OCRs them back to plain text numbers.
+    Returns (cleaned_text, replacement_count).
+    """
+    import base64
+    import io
+
+    def_pattern = re.compile(
+        r'^\[image(\d+)\]:\s*<data:image/png;base64,([^>]+)>\s*$',
+        re.MULTILINE,
+    )
+    img_defs = {}
+    for m in def_pattern.finditer(md_text):
+        img_defs[f'image{m.group(1)}'] = m.group(2)
+
+    if not img_defs:
+        return md_text, 0
+
+    try:
+        import pytesseract
+        from PIL import Image
+    except ImportError:
+        print("  [WARN] pytesseract/Pillow not installed — skipping equation OCR")
+        return md_text, 0
+
+    replacements = {}
+    for img_name, b64_data in img_defs.items():
+        try:
+            img_bytes = base64.b64decode(b64_data)
+            img = Image.open(io.BytesIO(img_bytes)).convert('RGBA')
+            bg = Image.new('RGBA', img.size, (255, 255, 255, 255))
+            bg.paste(img, mask=img.split()[3])
+            gray = bg.convert('L')
+            w, h = gray.size
+            upscaled = gray.resize((w * 6, h * 6), Image.LANCZOS)
+            bw = upscaled.point(lambda x: 0 if x < 128 else 255)
+            padded = Image.new('L', (bw.width + 40, bw.height + 40), 255)
+            padded.paste(bw, (20, 20))
+            text = pytesseract.image_to_string(
+                padded,
+                config='--psm 7 -c tessedit_char_whitelist=0123456789.,%+-~$αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ',
+            ).strip()
+            replacements[img_name] = text if text else '[?]'
+        except Exception:
+            replacements[img_name] = '[?]'
+
+    result = md_text
+    count = 0
+    for img_name, text in replacements.items():
+        pat = re.compile(re.escape(f'![][{img_name}]'))
+        matches = len(pat.findall(result))
+        result = pat.sub(text, result)
+        count += matches
+
+    result = def_pattern.sub('', result)
+    result = re.sub(r'\n{3,}', '\n\n', result)
+
+    ok = sum(1 for v in replacements.values() if v != '[?]')
+    fail = sum(1 for v in replacements.values() if v == '[?]')
+    print(f"  ✓ 수식 이미지 OCR: {ok} resolved, {fail} unresolved out of {len(img_defs)} images ({count} refs)")
+    return result, count
+
+
 def download_md_file(drive, file_id: str) -> str:
     """Download a .md file's content from GDrive."""
     content = drive.files().get_media(fileId=file_id).execute()
@@ -974,6 +1040,14 @@ def process_single_md(drive, gd, doc: dict, report_type: str,
     ko_md_raw = download_md_file(drive, doc['id'])
     print(f"  다운로드 완료: {len(ko_md_raw):,} chars")
 
+    # ── Step 0b: Resolve equation images (LaTeX → text via OCR) ──
+    if '![][image' in ko_md_raw:
+        print("\n[0b] 수식 이미지 OCR 처리...")
+        try:
+            ko_md_raw, eq_count = _resolve_equation_images_gdoc(ko_md_raw)
+        except Exception as e:
+            print(f"  [WARN] 수식 OCR 실패 (계속 진행): {e}")
+
     # ── Step 1: 종목 확정 ──
     print("\n[1/7] 대상 종목 확정...")
     project_info = identify_project(slug, ko_md_raw)
@@ -1102,6 +1176,13 @@ def process_single_md(drive, gd, doc: dict, report_type: str,
     except Exception as e:
         print(f"  Supabase 등록 실패: {e}")
 
+    # MAT: Persist maturity score with QA validation
+    if rtype == 'maturity':
+        try:
+            _persist_maturity_score_gdoc(slug, ko_text)
+        except Exception as e:
+            print(f"  MAT score persistence 실패: {e}")
+
     return {
         'slug': slug,
         'type': rtype,
@@ -1112,6 +1193,90 @@ def process_single_md(drive, gd, doc: dict, report_type: str,
         'gdrive_urls': gdrive_urls,
         'fact_check': fc_result,
     }
+
+
+# ═══════════════════════════════════════════════════════
+# MAT Score Persistence with QA
+# ═══════════════════════════════════════════════════════
+
+def _persist_maturity_score_gdoc(slug: str, ko_text: str):
+    """
+    Extract maturity score from Korean markdown and persist to tracked_projects.
+    Includes QA validation to prevent bad data.
+    """
+    import re as _re, json as _json
+
+    print(f"\n  [MAT Score] 점수 추출 및 DB 기록...")
+
+    score = _extract_mat_score(ko_text)
+    if score is None:
+        print("  [SKIP] 점수 추출 실패 — 합계 달성률 패턴 미발견")
+        return
+
+    # ── QA-1: Range check ──
+    if not (0 < score <= 100):
+        print(f"  ✗ QA ERROR: 점수 {score}이(가) 유효 범위(0-100)를 벗어남")
+        return
+
+    stage = _classify_stage(score)
+
+    # ── Extract axis data from evaluation table ──
+    axes = []
+    lines = ko_text.split('\n')
+    in_eval_table = False
+    for line in lines:
+        if '|' in line and any(kw in line for kw in ['가중치', '비중']) and any(kw in line for kw in ['달성률', '달성도', '달성']):
+            in_eval_table = True
+            continue
+        if in_eval_table and '|' in line and ':----' in line:
+            continue
+        if in_eval_table and '|' in line:
+            # Check for total row → stop
+            if any(kw in line for kw in ['합계', '종합', '최종']):
+                in_eval_table = False
+                continue
+            cells = [c.strip().strip('*') for c in line.split('|')]
+            cells = [c for c in cells if c]
+            if len(cells) >= 3:
+                name = cells[0]
+                # Extract weight and achievement from remaining cells
+                nums = _re.findall(r'(\d+\.?\d+)', '|'.join(cells[1:3]))
+                if len(nums) >= 2:
+                    weight = float(nums[0])
+                    achievement = float(nums[1])
+                    # QA: validate ranges
+                    if 0 <= weight <= 100 and 0 <= achievement <= 100:
+                        axes.append({'name': name, 'weight': round(weight, 1), 'achievement': round(achievement, 1)})
+        elif in_eval_table and '|' not in line:
+            in_eval_table = False
+
+    # ── QA-2: Cross-check score from axes ──
+    if axes:
+        total_w = sum(a['weight'] for a in axes)
+        if total_w > 0:
+            recalc = sum(a['weight'] * a['achievement'] / total_w for a in axes)
+            diff = abs(round(recalc, 2) - score)
+            if diff > 5.0:
+                print(f"  ⚠ QA WARN: 재계산 점수({recalc:.1f})와 보고서 점수({score})의 차이가 {diff:.1f}점")
+
+    print(f"  ✓ QA 통과 — score={score}, stage={stage}, axes={len(axes)}")
+
+    # ── Write to DB ──
+    supabase_url = os.environ.get('SUPABASE_URL') or os.environ.get('NEXT_PUBLIC_SUPABASE_URL')
+    supabase_key = os.environ.get('SUPABASE_SERVICE_KEY') or os.environ.get('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+    if not supabase_url or not supabase_key:
+        print("  [SKIP] Supabase 인증정보 없음")
+        return
+
+    from supabase import create_client
+    sb = create_client(supabase_url, supabase_key)
+
+    update_data = {'maturity_score': score, 'maturity_stage': stage}
+    if axes:
+        update_data['maturity_axes'] = _json.dumps(axes, ensure_ascii=False)
+
+    sb.table('tracked_projects').update(update_data).eq('slug', slug).execute()
+    print(f"  ✓ tracked_projects 업데이트: maturity_score={score} ({stage}), axes={len(axes)}")
 
 
 # ═══════════════════════════════════════════════════════

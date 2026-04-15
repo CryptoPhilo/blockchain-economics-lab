@@ -68,6 +68,7 @@
     "title": "Mi Panel de Control",
     "myLibrary": "Mi Biblioteca",
     "mySubscriptions": "Mis Suscripciones",
+    "myReferrals": "Mis Referidos",
     "orderHistory": "Historial de Pedidos",
     "downloadReport": "Descargar",
     "viewReport": "Ver",
@@ -209,7 +210,10 @@
     "deepDive": "Vista previa en profundidad",
     "forensicAlert": "Alertas forenses",
     "confirmed": "¡Suscripción confirmada!",
-    "checkEmail": "Revise su correo para confirmar"
+    "checkEmail": "Revise su correo para confirmar",
+    "sending": "Suscribiéndose…",
+    "alreadySubscribed": "¡Ya estás suscrito/a!",
+    "error": "Algo salió mal. Inténtalo de nuevo."
   },
   "disclaimer": {
     "title": "Aviso legal",

@@ -68,6 +68,7 @@
     "title": "マイダッシュボード",
     "myLibrary": "マイライブラリ",
     "mySubscriptions": "マイサブスクリプション",
+    "myReferrals": "マイ紹介",
     "orderHistory": "注文履歴",
     "downloadReport": "ダウンロード",
     "viewReport": "表示",
@@ -209,7 +210,10 @@
     "deepDive": "ディープダイブプレビュー",
     "forensicAlert": "フォレンジックアラート",
     "confirmed": "購読が確認されました！",
-    "checkEmail": "確認メールをご確認ください"
+    "checkEmail": "確認メールをご確認ください",
+    "sending": "登録中…",
+    "alreadySubscribed": "すでに登録済みです！",
+    "error": "エラーが発生しました。もう一度お試しください。"
   },
   "disclaimer": {
     "title": "免責事項",

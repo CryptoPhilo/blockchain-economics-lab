@@ -64,30 +64,88 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
 }
 
 /**
- * Send subscription confirmation email (Double Opt-in)
+ * OPS-011-T03: Multi-language double opt-in confirmation email
+ * Supports: en, ko, fr, es, de, ja, zh
  */
+
+interface ConfirmationI18n {
+  subject: string
+  heading: string
+  body: string
+  cta: string
+  ignore: string
+}
+
+const confirmationStrings: Record<string, ConfirmationI18n> = {
+  en: {
+    subject: '[BCE Lab] Confirm your newsletter subscription',
+    heading: 'Confirm Your Subscription',
+    body: 'Click the button below to start receiving our Weekly Market Pulse and Deep Dive Preview.',
+    cta: 'Confirm Subscription',
+    ignore: "If you didn't request this email, you can safely ignore it.",
+  },
+  ko: {
+    subject: '[BCE Lab] 뉴스레터 구독을 확인해주세요',
+    heading: '구독을 확인해주세요',
+    body: '아래 버튼을 클릭하면 매주 Weekly Market Pulse와 Deep Dive Preview를 받으시게 됩니다.',
+    cta: '구독 확인하기',
+    ignore: '이 이메일을 요청하지 않으셨다면 무시하셔도 됩니다.',
+  },
+  fr: {
+    subject: '[BCE Lab] Confirmez votre abonnement à la newsletter',
+    heading: 'Confirmez votre abonnement',
+    body: 'Cliquez sur le bouton ci-dessous pour recevoir notre Market Pulse hebdomadaire et nos analyses approfondies.',
+    cta: "Confirmer l'abonnement",
+    ignore: "Si vous n'avez pas demandé cet e-mail, vous pouvez l'ignorer.",
+  },
+  es: {
+    subject: '[BCE Lab] Confirma tu suscripción al boletín',
+    heading: 'Confirma tu suscripción',
+    body: 'Haz clic en el botón de abajo para empezar a recibir nuestro Market Pulse semanal y análisis en profundidad.',
+    cta: 'Confirmar suscripción',
+    ignore: 'Si no solicitaste este correo, puedes ignorarlo.',
+  },
+  de: {
+    subject: '[BCE Lab] Bestätigen Sie Ihr Newsletter-Abonnement',
+    heading: 'Bestätigen Sie Ihr Abonnement',
+    body: 'Klicken Sie auf den Button unten, um unseren wöchentlichen Market Pulse und Deep Dive Preview zu erhalten.',
+    cta: 'Abonnement bestätigen',
+    ignore: 'Wenn Sie diese E-Mail nicht angefordert haben, können Sie sie ignorieren.',
+  },
+  ja: {
+    subject: '[BCE Lab] ニュースレター購読を確認してください',
+    heading: '購読を確認してください',
+    body: '下のボタンをクリックすると、毎週のMarket PulseとDeep Dive Previewの配信が開始されます。',
+    cta: '購読を確認する',
+    ignore: 'このメールに心当たりがない場合は、無視していただいて構いません。',
+  },
+  zh: {
+    subject: '[BCE Lab] 请确认您的新闻通讯订阅',
+    heading: '确认您的订阅',
+    body: '点击下方按钮，开始接收我们每周的市场脉搏和深度分析预览。',
+    cta: '确认订阅',
+    ignore: '如果您没有请求此邮件，可以放心忽略。',
+  },
+}
+
 export async function sendConfirmationEmail(
   email: string,
   token: string,
   locale: string = 'en'
 ): Promise<SendEmailResult> {
   const confirmUrl = `${APP_URL}/api/subscribe?token=${token}`
-  const isKo = locale === 'ko'
-
-  const subject = isKo
-    ? '[BCE Lab] 뉴스레터 구독을 확인해주세요'
-    : '[BCE Lab] Confirm your newsletter subscription'
+  const i18n = confirmationStrings[locale] || confirmationStrings.en
 
   const html = `
 <!DOCTYPE html>
-<html>
+<html lang="${locale}">
 <head><meta charset="utf-8"></head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0f; color: #e5e7eb; padding: 40px 20px;">
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', 'Noto Sans CJK JP', 'Noto Sans CJK SC', 'Noto Sans CJK KR', sans-serif; background: #0a0a0f; color: #e5e7eb; padding: 40px 20px;">
   <div style="max-width: 560px; margin: 0 auto;">
     <div style="text-align: center; margin-bottom: 32px;">
       <div style="display: inline-block; width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #6366f1, #9333ea); text-align: center; line-height: 48px; color: white; font-weight: bold; font-size: 20px;">B</div>
       <h1 style="color: white; font-size: 24px; margin: 16px 0 8px;">
-        ${isKo ? '360° Project Intelligence' : '360° Project Intelligence'}
+        360° Project Intelligence
       </h1>
       <p style="color: #9ca3af; font-size: 14px; margin: 0;">
         Blockchain Economics Lab
@@ -96,23 +154,19 @@ export async function sendConfirmationEmail(
 
     <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 32px; text-align: center;">
       <h2 style="color: white; font-size: 20px; margin: 0 0 16px;">
-        ${isKo ? '구독을 확인해주세요' : 'Confirm Your Subscription'}
+        ${i18n.heading}
       </h2>
       <p style="color: #9ca3af; font-size: 14px; line-height: 1.6; margin: 0 0 24px;">
-        ${isKo
-          ? '아래 버튼을 클릭하면 매주 Weekly Market Pulse와 Deep Dive Preview를 받으시게 됩니다.'
-          : 'Click the button below to start receiving our Weekly Market Pulse and Deep Dive Preview.'}
+        ${i18n.body}
       </p>
       <a href="${confirmUrl}" style="display: inline-block; padding: 14px 32px; background: #6366f1; color: white; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 16px;">
-        ${isKo ? '구독 확인하기' : 'Confirm Subscription'}
+        ${i18n.cta}
       </a>
     </div>
 
     <div style="margin-top: 24px; padding: 16px; text-align: center;">
       <p style="color: #6b7280; font-size: 12px; margin: 0;">
-        ${isKo
-          ? '이 이메일을 요청하지 않으셨다면 무시하셔도 됩니다.'
-          : "If you didn't request this email, you can safely ignore it."}
+        ${i18n.ignore}
       </p>
     </div>
 
@@ -128,7 +182,7 @@ export async function sendConfirmationEmail(
 
   return sendEmail({
     to: email,
-    subject,
+    subject: i18n.subject,
     html,
     tags: [
       { name: 'type', value: 'confirmation' },

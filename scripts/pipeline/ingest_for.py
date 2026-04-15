@@ -52,6 +52,87 @@ from qa_verify import verify_pdf, QASeverity
 from qa_verify_md import verify_markdown
 from gdrive_storage import GDriveStorage
 
+
+# ═══════════════════════════════════════════
+# Equation Image → Text OCR Resolver
+# ═══════════════════════════════════════════
+# Google Docs renders LaTeX-style math ($0.026$) as inline PNG images.
+# When exported to markdown, these become ![][imageN] references with
+# base64 data at the end of the file. This function OCRs them back to text.
+
+def _resolve_equation_images(md_text: str) -> tuple[str, int]:
+    """Replace ![][imageN] base64 equation images with OCR'd text.
+
+    Returns (cleaned_text, replacement_count).
+    """
+    import base64
+    import io
+
+    # Find all image definitions: [imageN]: <data:image/png;base64,...>
+    def_pattern = re.compile(
+        r'^\[image(\d+)\]:\s*<data:image/png;base64,([^>]+)>\s*$',
+        re.MULTILINE,
+    )
+    img_defs = {}
+    for m in def_pattern.finditer(md_text):
+        img_defs[f'image{m.group(1)}'] = m.group(2)
+
+    if not img_defs:
+        return md_text, 0
+
+    # Lazy-import heavy deps (only needed when equations exist)
+    try:
+        import pytesseract
+        from PIL import Image
+    except ImportError:
+        print("  [WARN] pytesseract/Pillow not installed — skipping equation OCR")
+        return md_text, 0
+
+    replacements: dict[str, str] = {}
+    for img_name, b64_data in img_defs.items():
+        try:
+            img_bytes = base64.b64decode(b64_data)
+            img = Image.open(io.BytesIO(img_bytes)).convert('RGBA')
+            # White background to handle transparency
+            bg = Image.new('RGBA', img.size, (255, 255, 255, 255))
+            bg.paste(img, mask=img.split()[3])
+            gray = bg.convert('L')
+            # Upscale 6× for better OCR accuracy on tiny equation images
+            w, h = gray.size
+            upscaled = gray.resize((w * 6, h * 6), Image.LANCZOS)
+            bw = upscaled.point(lambda x: 0 if x < 128 else 255)
+            # Add padding
+            padded = Image.new('L', (bw.width + 40, bw.height + 40), 255)
+            padded.paste(bw, (20, 20))
+            text = pytesseract.image_to_string(
+                padded,
+                config='--psm 7 -c tessedit_char_whitelist=0123456789.,%+-~$αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ',
+            ).strip()
+            if text:
+                replacements[img_name] = text
+            else:
+                replacements[img_name] = '[?]'
+        except Exception:
+            replacements[img_name] = '[?]'
+
+    # Replace inline references
+    result = md_text
+    count = 0
+    for img_name, text in replacements.items():
+        pat = re.compile(re.escape(f'![][{img_name}]'))
+        matches = len(pat.findall(result))
+        result = pat.sub(text, result)
+        count += matches
+
+    # Remove image definition lines
+    result = def_pattern.sub('', result)
+    result = re.sub(r'\n{3,}', '\n\n', result)
+
+    ok = sum(1 for v in replacements.values() if v != '[?]')
+    fail = sum(1 for v in replacements.values() if v == '[?]')
+    print(f"  ✓ 수식 이미지 OCR: {ok} resolved, {fail} unresolved out of {len(img_defs)} images ({count} refs)")
+    return result, count
+
 # ═══════════════════════════════════════════
 # GDrive Draft Scanner
 # ═══════════════════════════════════════════
@@ -69,12 +150,23 @@ def _get_drive_service():
 
 
 def _find_folder_id(service, parent_id: str, name: str) -> str | None:
-    """Find a subfolder by name under parent."""
+    """Find a subfolder by name under parent (case-insensitive)."""
+    # First try exact match
     q = (f"'{parent_id}' in parents and name='{name}' "
          f"and mimeType='application/vnd.google-apps.folder' and trashed=false")
     r = service.files().list(q=q, fields='files(id,name)', pageSize=10).execute()
     files = r.get('files', [])
-    return files[0]['id'] if files else None
+    if files:
+        return files[0]['id']
+    # Fallback: list all subfolders and match case-insensitively
+    q2 = (f"'{parent_id}' in parents "
+          f"and mimeType='application/vnd.google-apps.folder' and trashed=false")
+    r2 = service.files().list(q=q2, fields='files(id,name)', pageSize=50).execute()
+    for f in r2.get('files', []):
+        if f['name'].lower() == name.lower():
+            print(f"  [INFO] Folder case mismatch: expected '{name}', found '{f['name']}'")
+            return f['id']
+    return None
 
 
 _PROCESSED_LOCAL = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output', '_for_processed.json')
@@ -93,6 +185,39 @@ def _save_processed(service=None, folder_id: str = None, data: dict = None):
     os.makedirs(os.path.dirname(_PROCESSED_LOCAL), exist_ok=True)
     with open(_PROCESSED_LOCAL, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+STALE_PROCESSING_MINUTES = 30   # 'processing' entries older than this → retriable
+MAX_RETRIES = 3                 # max retry count before marking permanently failed
+
+
+def _is_stale_processing(entry: dict) -> bool:
+    """Check if a 'processing' entry is stuck (older than threshold)."""
+    started = entry.get('started_at')
+    if not started:
+        return True
+    try:
+        started_dt = datetime.fromisoformat(started.replace('Z', '+00:00'))
+        elapsed = (datetime.now(timezone.utc) - started_dt).total_seconds() / 60
+        return elapsed > STALE_PROCESSING_MINUTES
+    except Exception:
+        return True
+
+
+def _should_retry(entry: dict) -> bool:
+    """Determine if a failed/stale entry should be retried."""
+    status = entry.get('status', '')
+    retries = entry.get('retry_count', 0)
+
+    if retries >= MAX_RETRIES:
+        return False
+
+    # Retry: failed_timeout, download_error, upload_done_db_error, stale processing
+    if status in ('failed_timeout', 'download_error', 'upload_done_db_error'):
+        return True
+    if status == 'processing' and _is_stale_processing(entry):
+        return True
+    return False
 
 
 def scan_for_drafts(filter_slug: str = None) -> list[dict]:
@@ -120,27 +245,60 @@ def scan_for_drafts(filter_slug: str = None) -> list[dict]:
     # Load processed state
     processed = _load_processed(service, for_id)
 
-    # List .md files
-    q = f"'{for_id}' in parents and mimeType='text/markdown' and trashed=false"
-    results = service.files().list(
-        q=q, fields='files(id,name,size,modifiedTime)', pageSize=100,
+    # ── Query 1: text/markdown mimeType ──
+    q1 = f"'{for_id}' in parents and mimeType='text/markdown' and trashed=false"
+    r1 = service.files().list(
+        q=q1, fields='files(id,name,size,modifiedTime,mimeType)', pageSize=100,
         orderBy='modifiedTime desc').execute()
-    files = results.get('files', [])
-
-    # Also try text/plain for .md files
-    q2 = f"'{for_id}' in parents and name contains '.md' and trashed=false"
-    results2 = service.files().list(
-        q=q2, fields='files(id,name,size,modifiedTime)', pageSize=100).execute()
+    files = r1.get('files', [])
     seen_ids = {f['id'] for f in files}
-    for f in results2.get('files', []):
+
+    # ── Query 2: name contains '.md' (catches text/plain, etc.) ──
+    q2 = f"'{for_id}' in parents and name contains '.md' and trashed=false"
+    r2 = service.files().list(
+        q=q2, fields='files(id,name,size,modifiedTime,mimeType)', pageSize=100).execute()
+    for f in r2.get('files', []):
         if f['id'] not in seen_ids:
             files.append(f)
+            seen_ids.add(f['id'])
+
+    # ── Query 3: Google Docs (board may upload .md via web → auto-converted) ──
+    q3 = (f"'{for_id}' in parents "
+          f"and mimeType='application/vnd.google-apps.document' and trashed=false")
+    r3 = service.files().list(
+        q=q3, fields='files(id,name,size,modifiedTime,mimeType)', pageSize=100).execute()
+    for f in r3.get('files', []):
+        if f['id'] not in seen_ids:
+            # Google Docs won't have .md extension — add a synthetic one for slug extraction
+            if not f['name'].endswith('.md'):
+                f['_gdoc'] = True
+                f['name'] = f['name'] + '.md'
+            files.append(f)
+            seen_ids.add(f['id'])
+
+    print(f"  [SCAN] Found {len(files)} total files in drafts/FOR/")
+    for f in files:
+        mt = f.get('mimeType', 'unknown')
+        gdoc = ' (Google Doc)' if f.get('_gdoc') else ''
+        print(f"    • {f['name']} [{mt}]{gdoc} id={f['id'][:8]}...")
 
     new_files = []
     for f in files:
         fid = f['id']
-        if fid in processed and processed[fid].get('status') in ('published', 'processing'):
+        entry = processed.get(fid)
+
+        # Skip only successfully published files
+        if entry and entry.get('status') == 'published':
             continue
+        # Skip 'processing' entries that are NOT stale
+        if entry and entry.get('status') == 'processing' and not _is_stale_processing(entry):
+            continue
+        # Skip permanently failed (max retries exceeded)
+        if entry and not _should_retry(entry) and entry.get('status') not in (None, 'dry_run'):
+            if entry.get('retry_count', 0) >= MAX_RETRIES:
+                print(f"    [SKIP] {f['name']} — max retries ({MAX_RETRIES}) reached")
+                continue
+
         name = f['name']
         if not name.endswith('.md'):
             continue
@@ -148,11 +306,18 @@ def scan_for_drafts(filter_slug: str = None) -> list[dict]:
         # Extract slug from filename: {slug}_for_v{N}.md or just {slug}.md
         slug_match = re.match(r'^(.+?)(?:_for)?(?:_v\d+)?\.md$', name, re.IGNORECASE)
         if not slug_match:
+            print(f"    [SKIP] {name} — filename doesn't match slug pattern")
             continue
         slug = slug_match.group(1).lower().replace(' ', '-').replace('_', '-')
 
         if filter_slug and slug != filter_slug:
             continue
+
+        is_retry = entry is not None and entry.get('status') not in (None, 'dry_run')
+        if is_retry:
+            old_status = entry.get('status')
+            retry_n = entry.get('retry_count', 0) + 1
+            print(f"    [RETRY] {name} (was: {old_status}, attempt #{retry_n})")
 
         new_files.append({
             'file_id': fid,
@@ -160,15 +325,24 @@ def scan_for_drafts(filter_slug: str = None) -> list[dict]:
             'slug': slug,
             'size': int(f.get('size', 0)),
             'modified': f.get('modifiedTime'),
+            '_gdoc': f.get('_gdoc', False),
+            '_retry_count': entry.get('retry_count', 0) if entry else 0,
         })
 
     return new_files
 
 
-def download_md(file_id: str, output_path: str):
-    """Download a .md file from GDrive."""
+def download_md(file_id: str, output_path: str, is_gdoc: bool = False):
+    """Download a .md file from GDrive. Handles both raw files and Google Docs."""
     service = _get_drive_service()
-    content = service.files().get_media(fileId=file_id).execute()
+    if is_gdoc:
+        # Google Docs must be exported — use text/plain for markdown-like content
+        content = service.files().export(
+            fileId=file_id, mimeType='text/plain').execute()
+        if isinstance(content, str):
+            content = content.encode('utf-8')
+    else:
+        content = service.files().get_media(fileId=file_id).execute()
     Path(output_path).write_bytes(content)
     return output_path
 
@@ -194,9 +368,10 @@ def process_for_report(file_info: dict, dry_run: bool = False) -> dict:
 
     # 1. Download
     ko_path = os.path.join(OUTPUT_DIR, f'{slug}_{rtype}_v{version}_ko.md')
-    print(f"[1/6] 다운로드...")
+    is_gdoc = file_info.get('_gdoc', False)
+    print(f"[1/6] 다운로드{' (Google Doc export)' if is_gdoc else ''}...")
     try:
-        download_md(fid, ko_path)
+        download_md(fid, ko_path, is_gdoc=is_gdoc)
         print(f"  ✓ {ko_path} ({Path(ko_path).stat().st_size:,} bytes)")
     except Exception as e:
         result['status'] = 'download_error'
@@ -204,25 +379,49 @@ def process_for_report(file_info: dict, dry_run: bool = False) -> dict:
         print(f"  ✗ 다운로드 실패: {e}")
         return result
 
+    # 1b. Resolve equation images (LaTeX → text via OCR)
+    try:
+        raw_md = Path(ko_path).read_text(encoding='utf-8')
+        if '![][image' in raw_md:
+            print("[1b/6] 수식 이미지 OCR 처리...")
+            cleaned_md, eq_count = _resolve_equation_images(raw_md)
+            if eq_count > 0:
+                Path(ko_path).write_text(cleaned_md, encoding='utf-8')
+                result['equation_images_resolved'] = eq_count
+        else:
+            print("[1b/6] 수식 이미지 없음 — 건너뜀")
+    except Exception as e:
+        print(f"  [WARN] 수식 OCR 실패 (계속 진행): {e}")
+
     if dry_run:
         result['status'] = 'dry_run'
         print("  [DRY RUN] 다운로드만 완료")
         return result
 
-    # 2. Translate (ko → 6 languages)
-    print(f"[2/6] 번역 (ko → en, ja, zh, fr, es, de)...")
+    # 2. Translate (ko → 6 languages) — parallel for speed
+    target_langs = ['en', 'ja', 'zh', 'fr', 'es', 'de']
+    print(f"[2/6] 번역 (ko → {', '.join(target_langs)}) — parallel mode...")
     translated = {'ko': ko_path}
-    for lang in ['en', 'ja', 'zh', 'fr', 'es', 'de']:
-        try:
-            out_path, meta = translate_md_file(
-                ko_path, target_lang=lang, output_dir=OUTPUT_DIR, backend='google')
-            translated[lang] = out_path
-            words = meta.get('word_count_target', '?')
-            print(f"  ✓ {lang}: {words} words")
-            time.sleep(0.5)
-        except Exception as e:
-            print(f"  ✗ {lang}: {e}")
-            # Continue with other languages
+
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    def _translate_one(lang):
+        out_path, meta = translate_md_file(
+            ko_path, target_lang=lang, output_dir=OUTPUT_DIR, backend='google')
+        return lang, out_path, meta
+
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        futures = {executor.submit(_translate_one, lang): lang for lang in target_langs}
+        for future in as_completed(futures):
+            lang = futures[future]
+            try:
+                lang, out_path, meta = future.result()
+                translated[lang] = out_path
+                words = meta.get('word_count_target', '?')
+                print(f"  ✓ {lang}: {words} words")
+            except Exception as e:
+                print(f"  ✗ {lang}: {e}")
+                # Continue with other languages
 
     result['translated_langs'] = list(translated.keys())
 
@@ -337,8 +536,9 @@ def process_for_report(file_info: dict, dry_run: bool = False) -> dict:
         print(f"[6/7] 썸네일 GDrive 업로드...")
         try:
             tf = gd.upload_file(card_result['thumbnail_path'], folder_id=folder_id)
-            thumb_url = (tf or {}).get('webViewLink') or \
-                f'https://drive.google.com/file/d/{(tf or {}).get("id")}/view'
+            # GDrive view URLs are HTML pages, not image URLs — don't use as thumbnail
+            # The CSS-based card in ForensicSlideCards renders from card_data instead
+            thumb_url = None
             print(f"  ✓ {thumb_url[:60]}...")
         except Exception as e:
             print(f"  ⚠ Thumbnail upload failed: {e}")
@@ -529,10 +729,16 @@ def main():
     processed = _load_processed(service, for_id)
 
     for f in new_files:
+        prev_entry = processed.get(f['file_id'], {})
+        retry_count = f.get('_retry_count', prev_entry.get('retry_count', 0))
+        if prev_entry.get('status') in ('processing', 'failed_timeout', 'download_error', 'upload_done_db_error'):
+            retry_count += 1
+
         processed[f['file_id']] = {
             'status': 'processing',
             'slug': f['slug'],
             'started_at': datetime.now(timezone.utc).isoformat(),
+            'retry_count': retry_count,
         }
         _save_processed(service, for_id, processed)
 
@@ -550,7 +756,9 @@ def main():
     print(f"{'='*60}")
 
     # Save local summary
-    summary_path = f'/sessions/amazing-cool-davinci/ingest_for_{datetime.now().strftime("%Y%m%d_%H%M")}.json'
+    summary_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
+    os.makedirs(summary_dir, exist_ok=True)
+    summary_path = os.path.join(summary_dir, f'ingest_for_{datetime.now().strftime("%Y%m%d_%H%M")}.json')
     with open(summary_path, 'w') as fp:
         json.dump({'results': results, 'timestamp': datetime.now(timezone.utc).isoformat()},
                   fp, ensure_ascii=False, indent=2)

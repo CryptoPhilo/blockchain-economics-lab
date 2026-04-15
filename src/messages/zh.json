@@ -68,6 +68,7 @@
     "title": "我的仪表板",
     "myLibrary": "我的库",
     "mySubscriptions": "我的订阅",
+    "myReferrals": "我的推荐",
     "orderHistory": "订单历史",
     "downloadReport": "下载",
     "viewReport": "查看",
@@ -209,7 +210,10 @@
     "deepDive": "深度分析预览",
     "forensicAlert": "取证警报",
     "confirmed": "订阅已确认！",
-    "checkEmail": "请检查您的邮箱进行确认"
+    "checkEmail": "请检查您的邮箱进行确认",
+    "sending": "订阅中…",
+    "alreadySubscribed": "您已经订阅了！",
+    "error": "出现错误，请重试。"
   },
   "disclaimer": {
     "title": "免责声明",

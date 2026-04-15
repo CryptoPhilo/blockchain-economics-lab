@@ -68,6 +68,7 @@
     "title": "내 대시보드",
     "myLibrary": "내 라이브러리",
     "mySubscriptions": "내 구독",
+    "myReferrals": "내 추천",
     "orderHistory": "주문 이력",
     "downloadReport": "다운로드",
     "viewReport": "보기",
@@ -133,7 +134,10 @@
     "deepDive": "심층 분석 프리뷰",
     "forensicAlert": "포렌식 경보",
     "confirmed": "구독이 확인되었습니다!",
-    "checkEmail": "이메일을 확인하여 구독을 완료하세요"
+    "checkEmail": "이메일을 확인하여 구독을 완료하세요",
+    "sending": "구독 중…",
+    "alreadySubscribed": "이미 구독 중입니다!",
+    "error": "오류가 발생했습니다. 다시 시도해주세요."
   },
   "score": {
     "title": "프로젝트 점수 조회",

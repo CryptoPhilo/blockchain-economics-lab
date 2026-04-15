@@ -68,6 +68,7 @@
     "title": "My Dashboard",
     "myLibrary": "My Library",
     "mySubscriptions": "My Subscriptions",
+    "myReferrals": "My Referrals",
     "orderHistory": "Order History",
     "downloadReport": "Download",
     "viewReport": "View",
@@ -133,7 +134,10 @@
     "deepDive": "Deep Dive Preview",
     "forensicAlert": "Forensic Alerts",
     "confirmed": "Subscription Confirmed!",
-    "checkEmail": "Check your email to confirm"
+    "checkEmail": "Check your email to confirm",
+    "sending": "Subscribing…",
+    "alreadySubscribed": "You're already subscribed!",
+    "error": "Something went wrong. Please try again."
   },
   "score": {
     "title": "Project Score Lookup",

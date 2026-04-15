@@ -3,6 +3,9 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getLocalizedField, formatPrice, type Locale } from '@/lib/types'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import DashboardOnboarding from '@/components/DashboardOnboarding'
+import ReferralTab from '@/components/ReferralTab'
+import { randomBytes } from 'crypto'
 
 export default async function DashboardPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
@@ -11,6 +14,57 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect(`/${locale}/auth`)
+
+  // Fetch profile for onboarding check
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('onboarding_completed, referral_code, referred_by')
+    .eq('id', user.id)
+    .single()
+
+  // Generate referral code if missing
+  let referralCode = profile?.referral_code || ''
+  if (!referralCode) {
+    referralCode = 'BCE-' + randomBytes(3).toString('hex').toUpperCase()
+    await supabase
+      .from('profiles')
+      .update({ referral_code: referralCode })
+      .eq('id', user.id)
+  }
+
+  // OPS-011-T13: Auto-claim referral code from signup metadata
+  const signupRefCode = user.user_metadata?.referral_code
+  if (signupRefCode && !profile?.referred_by) {
+    const code = String(signupRefCode).trim().toUpperCase()
+    const { data: referrer } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('referral_code', code)
+      .single()
+    if (referrer && referrer.id !== user.id) {
+      const { data: existing } = await supabase
+        .from('member_referrals')
+        .select('id')
+        .eq('referred_id', user.id)
+        .maybeSingle()
+      if (!existing) {
+        await supabase.from('member_referrals').insert({
+          referrer_id: referrer.id,
+          referred_id: user.id,
+          referral_code: code,
+          status: 'converted',
+          reward_type: 'discount',
+          reward_value: 20,
+        })
+        await supabase
+          .from('profiles')
+          .update({ referred_by: referrer.id })
+          .eq('id', user.id)
+      }
+    }
+  }
+
+  const needsOnboarding = profile && !profile.onboarding_completed
 
   // Fetch user's library
   const { data: library } = await supabase
@@ -36,6 +90,11 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
+      {/* OPS-011-T08: Onboarding modal for new members */}
+      {needsOnboarding && (
+        <DashboardOnboarding userId={user.id} referralCode={referralCode} locale={locale} />
+      )}
+
       <h1 className="text-3xl font-bold mb-10">{t('title')}</h1>
 
       {/* Active Subscriptions */}
@@ -100,6 +159,12 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
             </Link>
           </div>
         )}
+      </section>
+
+      {/* Referral Program — OPS-011-T13 */}
+      <section className="mb-12">
+        <h2 className="text-xl font-semibold mb-4">{t('myReferrals')}</h2>
+        <ReferralTab locale={locale} referralCode={referralCode} />
       </section>
 
       {/* Order History */}

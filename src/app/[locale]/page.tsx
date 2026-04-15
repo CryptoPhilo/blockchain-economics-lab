@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getLocalizedField, type Locale } from '@/lib/types'
 import ProductCard from '@/components/ProductCard'
 import DisclaimerBanner from '@/components/DisclaimerBanner'
+import SubscribeForm from '@/components/SubscribeForm'
 import ForensicSlideCards from '@/components/ForensicSlideCards'
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
@@ -15,13 +16,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let categories: any[] = []
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let trackedProjects: any[] = []
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let forensicReports: any[] = []
 
   try {
     const supabase = await createServerSupabaseClient()
-    const [productsRes, categoriesRes, projectsRes, forensicRes] = await Promise.all([
+    const [productsRes, categoriesRes, forensicRes] = await Promise.all([
       supabase
         .from('products')
         .select('*, category:categories(*)')
@@ -34,109 +33,23 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         .select('*')
         .order('sort_order'),
       supabase
-        .from('tracked_projects')
-        .select('id, name, slug, symbol, maturity_score, threat_level, chain, category')
-        .in('status', ['active', 'monitoring_only'])
-        .order('maturity_score', { ascending: false, nullsFirst: false })
-        .limit(9),
-      supabase
         .from('project_reports')
-        .select(`
-          id, project_id, risk_level,
-          card_data, card_summary_en, card_summary_ko,
-          card_keywords, card_risk_score, card_thumbnail_url,
-          tracked_projects!inner(id, name, slug, symbol)
-        `)
+        .select('*, tracked_projects(*)')
         .eq('report_type', 'forensic')
-        .in('status', ['published', 'coming_soon'])
-        .in('card_qa_status', ['approved', 'pending'])
+        .eq('status', 'published')
         .not('card_data', 'is', null)
         .order('published_at', { ascending: false })
-        .limit(3),
+        .limit(8),
     ])
     featuredProducts = productsRes.data || []
     categories = categoriesRes.data || []
-    trackedProjects = projectsRes.data || []
-
-    forensicReports = (forensicRes.data || []).filter(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (r: any) => r.tracked_projects !== null && r.card_data !== null
-    )
+    forensicReports = forensicRes.data || []
   } catch (e) {
     console.error('Failed to fetch data:', e)
   }
 
   return (
     <div>
-      {/* ★ Forensic Report Slide Thumbnails — TOP of page (sync render, no Suspense) */}
-      {forensicReports.length > 0 && (
-        <ForensicSlideCards reports={forensicReports} locale={locale} />
-      )}
-
-      {/* Tracked Projects Scores */}
-      {trackedProjects.length > 0 && (
-        <section className="max-w-6xl mx-auto px-6 py-20">
-          <div className="flex justify-between items-center mb-10">
-            <div>
-              <h2 className="text-3xl font-bold text-white">{t('home.maturityScoreTitle')}</h2>
-              <p className="text-gray-500 mt-2">
-                {t('home.maturityScoreSubtitle')}
-              </p>
-            </div>
-            <Link href={`/${locale}/score`} className="text-indigo-400 hover:text-indigo-300 transition-colors">
-              {t('home.viewAll')} →
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {trackedProjects.map((p) => {
-              const score = p.maturity_score || 0
-              const scoreColor = score >= 80 ? 'text-green-400' : score >= 60 ? 'text-yellow-400' : score >= 40 ? 'text-orange-400' : 'text-red-400'
-              const threatEmoji = p.threat_level === 'critical' ? '⚫' : p.threat_level === 'warning' ? '🔴' : p.threat_level === 'caution' ? '🟠' : p.threat_level === 'watch' ? '🟡' : '🟢'
-
-              return (
-                <Link
-                  key={p.id}
-                  href={`/${locale}/score?project=${p.slug}`}
-                  className="p-5 rounded-xl bg-white/5 border border-white/5 hover:border-indigo-500/20 hover:bg-white/10 transition-all group"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold text-white group-hover:text-indigo-400 transition-colors">
-                        {p.name}
-                      </h3>
-                      <p className="text-xs text-gray-500 mt-1">{p.symbol} · {p.chain}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className={`text-2xl font-bold ${scoreColor}`}>{score.toFixed(1)}</div>
-                      <div className="text-xs mt-1">{threatEmoji}</div>
-                    </div>
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
-          <div className="flex justify-center mt-8">
-            <Link
-              href={`/${locale}/projects`}
-              className="px-6 py-3 bg-white/5 hover:bg-white/10 text-indigo-400 hover:text-indigo-300 font-medium rounded-xl border border-white/10 hover:border-indigo-500/30 transition-all"
-            >
-              {t('home.viewAllProjects')} →
-            </Link>
-          </div>
-        </section>
-      )}
-
-      {/* View All Reports CTA */}
-      <section className="max-w-6xl mx-auto px-6 pb-4">
-        <div className="flex justify-center">
-          <Link
-            href={`/${locale}/reports`}
-            className="px-6 py-3 bg-white/5 hover:bg-white/10 text-indigo-400 hover:text-indigo-300 font-medium rounded-xl border border-white/10 hover:border-indigo-500/30 transition-all"
-          >
-            {t('home.browseAllReports')} →
-          </Link>
-        </div>
-      </section>
 
       {/* About — 360° Project Intelligence (moved below content) */}
       <section className="relative overflow-hidden bg-gradient-to-br from-gray-950 via-indigo-950 to-gray-950 py-20 px-6">
@@ -148,20 +61,16 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <p className="text-lg text-gray-400 max-w-3xl mx-auto mb-8">
             {t('home.heroSubtitle')}
           </p>
-          <div className="flex gap-4 justify-center flex-wrap mb-12">
-            <Link
-              href={`/${locale}/score`}
-              className="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40"
-            >
-              {t('home.lookupScores')}
-            </Link>
-            <Link
-              href={`/${locale}/subscribe`}
-              className="px-8 py-3.5 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-xl border border-white/10 transition-all"
-            >
-              {t('home.freeNewsletter')}
-            </Link>
-          </div>
+          <SubscribeForm
+            locale={locale}
+            source="homepage"
+            className="mb-12"
+            translations={{
+              placeholder: t('subscribe.emailPlaceholder'),
+              cta: t('home.freeNewsletter'),
+              success: t('subscribe.checkEmail'),
+            }}
+          />
 
           {/* 3 Report Types */}
           <div className="relative max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -205,6 +114,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </div>
         </div>
       </section>
+
+      {/* Forensic Slide Cards */}
+      <ForensicSlideCards reports={forensicReports} locale={locale} />
 
       {/* Categories */}
       <section className="max-w-6xl mx-auto px-6 py-20">
@@ -254,14 +166,15 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <p className="text-gray-400 mb-6">
             {t('home.newsletterSubtitle')}
           </p>
-          <div className="flex justify-center gap-4 flex-wrap">
-            <Link
-              href={`/${locale}/subscribe`}
-              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-indigo-500/25"
-            >
-              {t('home.subscribeFree')} →
-            </Link>
-          </div>
+          <SubscribeForm
+            locale={locale}
+            source="newsletter"
+            translations={{
+              placeholder: t('subscribe.emailPlaceholder'),
+              cta: t('home.subscribeFree'),
+              success: t('subscribe.checkEmail'),
+            }}
+          />
           <div className="flex justify-center gap-8 mt-6 text-sm text-gray-500">
             <span>📊 {t('home.weeklyPulse')}</span>
             <span>🔍 {t('home.deepDive')}</span>

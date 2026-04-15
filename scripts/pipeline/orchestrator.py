@@ -291,6 +291,167 @@ def run_stage3(
     return upload_results
 
 
+def _persist_maturity_score(
+    project_slug: str,
+    metadata: Dict[str, Any],
+    md_path: str,
+) -> None:
+    """
+    Stage 4: Persist maturity score to tracked_projects after MAT report generation.
+    Includes QA validation to prevent bad data from entering the database.
+    """
+    if not HAS_COLLECTORS:
+        print("\n  [Stage 4] Supabase not available — score not persisted")
+        return
+
+    print(f"\n{'='*60}")
+    print(f"  STAGE 4: Maturity Score Persistence + QA")
+    print(f"{'='*60}")
+
+    # ── Extract score from metadata ──
+    score = metadata.get('total_maturity_score')
+    stage = metadata.get('maturity_stage')
+    axes_raw = metadata.get('strategic_objectives') or metadata.get('axes') or []
+
+    # ── Fallback: extract from markdown text ──
+    if not score and md_path and os.path.exists(md_path):
+        import re as _re
+        text = Path(md_path).read_text(encoding='utf-8')
+        for pat in [
+            r'합계 달성률.*?(\d+\.?\d+)%',
+            r'종합 진행률.*?(\d+\.?\d+)%',
+            r'최종 합계.*?(\d+\.?\d+)%',
+            r'\*\*(\d+\.?\d+)%\*\*로\s*(?:평가|산출)',
+        ]:
+            m = _re.search(pat, text)
+            if m:
+                candidate = float(m.group(1))
+                if 0 < candidate < 100:  # Skip 100% weight matches
+                    score = candidate
+                    break
+
+    if not score:
+        print("  [SKIP] No maturity score found in metadata or markdown")
+        return
+
+    # ── QA Validation ──
+    qa_errors = []
+    qa_warnings = []
+
+    # QA-1: Score range check
+    if not (0 <= score <= 100):
+        qa_errors.append(f"Score {score} out of valid range [0, 100]")
+
+    # QA-2: Stage consistency check
+    if stage:
+        expected_stages = {
+            (0, 25): 'nascent',
+            (25, 50): 'growing',
+            (50, 75): 'mature',
+            (75, 100.01): 'established',
+        }
+        expected = None
+        for (lo, hi), s in expected_stages.items():
+            if lo <= score < hi:
+                expected = s
+                break
+        # Allow flexible stage names (growth ≈ growing, bootstrap ≈ nascent, etc.)
+        stage_aliases = {
+            'growth': 'growing', 'bootstrap': 'nascent',
+            'maturity': 'mature', 'mature': 'mature',
+        }
+        normalized = stage_aliases.get(stage.lower(), stage.lower())
+        if expected and normalized != expected:
+            qa_warnings.append(
+                f"Stage '{stage}' may not match score {score} "
+                f"(expected '{expected}', got '{normalized}')"
+            )
+    else:
+        # Auto-assign stage from score
+        if score < 25:
+            stage = 'nascent'
+        elif score < 50:
+            stage = 'growing'
+        elif score < 75:
+            stage = 'mature'
+        else:
+            stage = 'established'
+
+    # QA-3: Axes data validation
+    valid_axes = []
+    if axes_raw:
+        for ax in axes_raw:
+            name = ax.get('name', '')
+            weight = ax.get('weight', 0)
+            achievement = ax.get('achievement', 0)
+
+            if not name:
+                qa_warnings.append(f"Axis with empty name skipped")
+                continue
+            if not (0 <= weight <= 100):
+                qa_warnings.append(f"Axis '{name}' weight {weight} invalid — clamped")
+                weight = max(0, min(100, weight))
+            if not (0 <= achievement <= 100):
+                qa_warnings.append(f"Axis '{name}' achievement {achievement} invalid — clamped")
+                achievement = max(0, min(100, achievement))
+
+            valid_axes.append({
+                'name': name,
+                'weight': round(weight, 1),
+                'achievement': round(achievement, 1),
+            })
+
+    # QA-4: Cross-check — recalculate total from axes and compare
+    if valid_axes:
+        total_weight = sum(a['weight'] for a in valid_axes)
+        if total_weight > 0:
+            recalc = sum(a['weight'] * a['achievement'] / total_weight for a in valid_axes)
+            recalc = round(recalc, 2)
+            diff = abs(recalc - score)
+            if diff > 5.0:
+                qa_warnings.append(
+                    f"Recalculated score ({recalc}) differs from reported ({score}) by {diff:.1f}pts"
+                )
+            elif diff > 0.5:
+                qa_warnings.append(
+                    f"Minor score discrepancy: recalc={recalc} vs reported={score} (diff={diff:.2f})"
+                )
+
+    # ── QA Report ──
+    if qa_errors:
+        for e in qa_errors:
+            print(f"  ✗ QA ERROR: {e}")
+        print("  [ABORT] Score NOT written to DB due to QA errors")
+        return
+
+    for w in qa_warnings:
+        print(f"  ⚠ QA WARN: {w}")
+
+    print(f"  ✓ QA passed — score={score}, stage={stage}, axes={len(valid_axes)}")
+
+    # ── Write to DB ──
+    try:
+        wh = get_warehouse()
+        if not wh.connected:
+            print("  [SKIP] Warehouse not connected")
+            return
+
+        import json as _json
+        update_data = {
+            'maturity_score': score,
+            'maturity_stage': stage,
+        }
+        if valid_axes:
+            update_data['maturity_axes'] = _json.dumps(valid_axes, ensure_ascii=False)
+
+        wh.sb.table('tracked_projects').update(update_data).eq('slug', project_slug).execute()
+        print(f"  ✓ tracked_projects.maturity_score = {score} ({stage})")
+        if valid_axes:
+            print(f"  ✓ tracked_projects.maturity_axes = {len(valid_axes)} axes")
+    except Exception as e:
+        print(f"  ✗ DB write error: {e}")
+
+
 def _register_gdrive_url(
     project_slug: str,
     report_type: str,
@@ -420,6 +581,10 @@ def run_pipeline(
         report_type, project_slug, version, languages,
         md_path, pdf_paths, skip=skip_upload,
     )
+
+    # Stage 4: Persist maturity score to tracked_projects (MAT reports only)
+    if report_type in ('mat', 'maturity') and metadata:
+        _persist_maturity_score(project_slug, metadata, md_path)
 
     return md_path, metadata, pdf_paths, upload_results
 

@@ -68,6 +68,7 @@
     "title": "Mon Tableau de Bord",
     "myLibrary": "Ma Bibliothèque",
     "mySubscriptions": "Mes Abonnements",
+    "myReferrals": "Mes Parrainages",
     "orderHistory": "Historique des Commandes",
     "downloadReport": "Télécharger",
     "viewReport": "Afficher",
@@ -209,7 +210,10 @@
     "deepDive": "Aperçu approfondi",
     "forensicAlert": "Alertes forensiques",
     "confirmed": "Abonnement confirmé !",
-    "checkEmail": "Vérifiez votre e-mail pour confirmer"
+    "checkEmail": "Vérifiez votre e-mail pour confirmer",
+    "sending": "Inscription en cours…",
+    "alreadySubscribed": "Vous êtes déjà inscrit(e) !",
+    "error": "Une erreur est survenue. Veuillez réessayer."
   },
   "disclaimer": {
     "title": "Avertissement",

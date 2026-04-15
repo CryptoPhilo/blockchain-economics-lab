@@ -1,10 +1,11 @@
 import { getTranslations } from 'next-intl/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import Link from 'next/link'
+import GatedDownloadButton from '@/components/GatedDownloadButton'
 
 interface Props {
   params: Promise<{ locale: string }>
-  searchParams: Promise<{ type?: string; project?: string; page?: string; q?: string }>
+  searchParams: Promise<{ type?: string; page?: string; q?: string }>
 }
 
 const PAGE_SIZE = 20
@@ -44,24 +45,10 @@ function formatDate(dateStr: string | null): string {
 
 export default async function ReportsPage({ params, searchParams }: Props) {
   const { locale } = await params
-  const { type: filterType, project: filterProject, page: pageStr, q: searchQuery } = await searchParams
+  const { type: filterType, page: pageStr, q: searchQuery } = await searchParams
   const supabase = await createServerSupabaseClient()
   const t = await getTranslations('reports')
   const currentPage = Math.max(1, parseInt(pageStr || '1', 10))
-
-  // Fetch all projects for the dropdown (lightweight query)
-  const { data: allProjects } = await supabase
-    .from('tracked_projects')
-    .select('id, name, slug, symbol, category')
-    .in('status', ['active', 'monitoring_only'])
-    .order('name')
-
-  // Resolve project filter to project_id for DB-level filtering
-  let filterProjectId: string | null = null
-  if (filterProject && filterProject !== 'all' && allProjects) {
-    const found = allProjects.find((p) => p.slug === filterProject)
-    if (found) filterProjectId = found.id
-  }
 
   // Build optimized Supabase query with DB-level filters
   // Include both 'published' and 'coming_soon' reports (OPS-007)
@@ -80,12 +67,6 @@ export default async function ReportsPage({ params, searchParams }: Props) {
   if (filterType && filterType !== 'all') {
     countQuery = countQuery.eq('report_type', filterType)
     dataQuery = dataQuery.eq('report_type', filterType)
-  }
-
-  // Apply project filter at DB level
-  if (filterProjectId) {
-    countQuery = countQuery.eq('project_id', filterProjectId)
-    dataQuery = dataQuery.eq('project_id', filterProjectId)
   }
 
   // Apply search filter (title search)
@@ -121,29 +102,17 @@ export default async function ReportsPage({ params, searchParams }: Props) {
   const totalReports = typeCounts?.length || 0
 
   // Build filter URL helper
-  function filterUrl(params: { type?: string; project?: string; page?: number; q?: string }) {
+  function filterUrl(params: { type?: string; page?: number; q?: string }) {
     const sp = new URLSearchParams()
     const t = params.type !== undefined ? params.type : (filterType || 'all')
-    const p = params.project !== undefined ? params.project : (filterProject || 'all')
-    const pg = params.page !== undefined ? params.page : (params.type !== undefined || params.project !== undefined || params.q !== undefined ? 1 : currentPage)
+    const pg = params.page !== undefined ? params.page : (params.type !== undefined || params.q !== undefined ? 1 : currentPage)
     const query = params.q !== undefined ? params.q : (searchQuery || '')
     if (t && t !== 'all') sp.set('type', t)
-    if (p && p !== 'all') sp.set('project', p)
     if (pg > 1) sp.set('page', String(pg))
     if (query) sp.set('q', query)
     const qs = sp.toString()
     return `/${locale}/reports${qs ? `?${qs}` : ''}`
   }
-
-  const projects = allProjects || []
-
-  // Group projects by category for the dropdown
-  const categoryGroups = new Map<string, typeof projects>()
-  projects.forEach((p) => {
-    const cat = p.category || 'Other'
-    if (!categoryGroups.has(cat)) categoryGroups.set(cat, [])
-    categoryGroups.get(cat)!.push(p)
-  })
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
@@ -168,7 +137,6 @@ export default async function ReportsPage({ params, searchParams }: Props) {
             />
           </div>
           {filterType && filterType !== 'all' && <input type="hidden" name="type" value={filterType} />}
-          {filterProject && filterProject !== 'all' && <input type="hidden" name="project" value={filterProject} />}
           <button
             type="submit"
             className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl transition-colors"
@@ -214,44 +182,15 @@ export default async function ReportsPage({ params, searchParams }: Props) {
               </Link>
             )
           })}
-
-          <span className="w-px h-6 bg-white/10 mx-1" />
-
-          {/* Project dropdown (replaces 50+ pill buttons) */}
-          <div className="relative">
-            <select
-              defaultValue={filterProject || 'all'}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              onChange={`window.location.href='${filterUrl({ project: '__PROJ__' })}'.replace('__PROJ__', this.value)` as any}
-              className="appearance-none pl-4 pr-10 py-2 rounded-full text-sm font-medium bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 cursor-pointer focus:outline-none focus:border-indigo-500/50"
-            >
-              <option value="all">{t('allProjects')} ({projects.length})</option>
-              {Array.from(categoryGroups.entries()).map(([cat, projs]) => (
-                <optgroup key={cat} label={`── ${cat} ──`}>
-                  {projs.map((p) => (
-                    <option key={p.slug} value={p.slug}>
-                      {p.symbol} — {p.name}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">▾</span>
-          </div>
         </div>
 
         {/* Active filters summary */}
-        {(searchQuery || (filterProject && filterProject !== 'all') || (filterType && filterType !== 'all')) && (
+        {(searchQuery || (filterType && filterType !== 'all')) && (
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <span>{locale === 'ko' ? '필터:' : 'Filters:'}</span>
             {filterType && filterType !== 'all' && (
               <span className="px-2 py-0.5 rounded bg-white/5 text-gray-400">
                 {TYPE_CONFIG[filterType as keyof typeof TYPE_CONFIG]?.label || filterType}
-              </span>
-            )}
-            {filterProject && filterProject !== 'all' && (
-              <span className="px-2 py-0.5 rounded bg-white/5 text-gray-400">
-                {projects.find((p) => p.slug === filterProject)?.symbol || filterProject}
               </span>
             )}
             {searchQuery && (
@@ -324,14 +263,12 @@ export default async function ReportsPage({ params, searchParams }: Props) {
                       🔜 Coming Soon
                     </span>
                   ) : gdriveUrls[locale] || gdriveUrls['en'] ? (
-                    <a
-                      href={gdriveUrls[locale] || gdriveUrls['en']}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 text-sm font-medium rounded-lg transition-colors shrink-0 border border-indigo-500/20"
-                    >
-                      📥 {t('downloadPdf')}
-                    </a>
+                    <GatedDownloadButton
+                      reportId={report.id}
+                      downloadUrl={gdriveUrls[locale] || gdriveUrls['en']}
+                      locale={locale}
+                      label={t('downloadPdf')}
+                    />
                   ) : project ? (
                     <Link
                       href={`/${locale}/projects/${project.slug}`}
@@ -437,10 +374,6 @@ export default async function ReportsPage({ params, searchParams }: Props) {
         <div className="text-center">
           <div className="text-2xl font-bold text-white">{totalReports}</div>
           <div>{t('title')}</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-white">{projects.length}</div>
-          <div>{t('allProjects')}</div>
         </div>
         <div className="text-center">
           <div className="text-2xl font-bold text-white">7</div>

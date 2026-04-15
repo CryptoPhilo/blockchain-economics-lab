@@ -68,6 +68,7 @@
     "title": "Mein Dashboard",
     "myLibrary": "Meine Bibliothek",
     "mySubscriptions": "Meine Abonnements",
+    "myReferrals": "Meine Empfehlungen",
     "orderHistory": "Bestellverlauf",
     "downloadReport": "Herunterladen",
     "viewReport": "Anzeigen",
@@ -209,7 +210,10 @@
     "deepDive": "Tiefenanalyse-Vorschau",
     "forensicAlert": "Forensische Warnungen",
     "confirmed": "Abonnement bestätigt!",
-    "checkEmail": "Überprüfen Sie Ihre E-Mail zur Bestätigung"
+    "checkEmail": "Überprüfen Sie Ihre E-Mail zur Bestätigung",
+    "sending": "Abonnieren…",
+    "alreadySubscribed": "Sie sind bereits abonniert!",
+    "error": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
   },
   "disclaimer": {
     "title": "Haftungsausschluss",

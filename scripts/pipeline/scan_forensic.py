@@ -480,7 +480,8 @@ def main():
         'triggers': triggered[:50],  # Cap at 50 for storage
     }
 
-    output_path = args.output or f'/sessions/amazing-cool-davinci/scan_forensic_{datetime.now().strftime("%Y%m%d_%H%M")}.json'
+    _default_out = Path(__file__).resolve().parent / 'scan_results' / f'scan_forensic_{datetime.now().strftime("%Y%m%d_%H%M")}.json'
+    output_path = args.output or str(_default_out)
     with open(output_path, 'w') as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
     print(f"\n결과 저장: {output_path}")
