@@ -1,9 +1,8 @@
-name: Agent Heartbeat
+name: Agent Heartbeat (Disabled)
+# Disabled: agent scheduling is now handled by Paperclip, not GitHub Actions.
+# Re-enable when SUPABASE_SERVICE_KEY secret is configured in repo settings.
 
 on:
-  schedule:
-    # CEO daily at 00:00 UTC (09:00 KST)
-    - cron: '0 0 * * *'
   workflow_dispatch:
     inputs:
       agent:

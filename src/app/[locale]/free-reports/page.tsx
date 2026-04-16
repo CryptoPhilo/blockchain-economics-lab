@@ -1,4 +1,3 @@
-import { getTranslations } from 'next-intl/server'
 import LeadMagnetGate from '@/components/LeadMagnetGate'
 
 /**
@@ -49,7 +48,6 @@ const FREE_SAMPLES = [
 
 export default async function FreeReportsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
-  const t = await getTranslations()
   const isKo = locale === 'ko'
 
   return (
