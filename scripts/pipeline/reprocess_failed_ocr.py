@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 """
+DEPRECATED: OCR processing has been removed from the FOR pipeline (BCE-125).
+Equation images are now stripped without OCR. This script is kept for reference
+only — it was used to reprocess [?] OCR failures from earlier pipeline runs.
+
+Original description:
 Reprocess [?] OCR failures using Gemini 2.0 Flash (fast, free tier).
 
 Strategy:

@@ -54,209 +54,40 @@ from gdrive_storage import GDriveStorage
 
 
 # ═══════════════════════════════════════════
-# Equation Image → Text OCR Resolver
+# Equation Image Stripper
 # ═══════════════════════════════════════════
 # Google Docs renders LaTeX-style math ($0.026$) as inline PNG images.
 # When exported to markdown, these become ![][imageN] references with
-# base64 data at the end of the file. This function OCRs them back to text.
+# base64 data at the end of the file. We strip them (no OCR).
 
-def _ocr_with_tesseract(b64_data: str) -> str:
-    """Try pytesseract OCR on a base64 PNG. Returns text or empty string."""
-    import base64 as _b64
-    import io as _io
-    try:
-        import pytesseract
-        from PIL import Image
-    except ImportError:
-        return ''
-    try:
-        img_bytes = _b64.b64decode(b64_data)
-        img = Image.open(_io.BytesIO(img_bytes)).convert('RGBA')
-        bg = Image.new('RGBA', img.size, (255, 255, 255, 255))
-        bg.paste(img, mask=img.split()[3])
-        gray = bg.convert('L')
-        w, h = gray.size
-        upscaled = gray.resize((w * 6, h * 6), Image.LANCZOS)
-        bw = upscaled.point(lambda x: 0 if x < 128 else 255)
-        padded = Image.new('L', (bw.width + 40, bw.height + 40), 255)
-        padded.paste(bw, (20, 20))
-        text = pytesseract.image_to_string(
-            padded,
-            config='--psm 7 -c tessedit_char_whitelist=0123456789.,%+-~$αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ',
-        ).strip()
-        # Reject obviously bad OCR: single punctuation, garbled long strings
-        if not text:
-            return ''
-        if len(text) == 1 and text in '.,-%~':
-            return ''
-        if len(text) > 20 and not any(c == ' ' for c in text):
-            return ''  # Garbled run-on string
-        return text
-    except Exception:
-        return ''
+def _strip_equation_images(md_text: str) -> tuple[str, int]:
+    """Remove base64 equation image definitions and their inline references.
 
-
-def _get_gemini_api_keys() -> list[str]:
-    """Collect all available Gemini API keys for rotation."""
-    keys = []
-    # Primary key
-    k1 = os.environ.get('GEMINI_API_KEY') or os.environ.get('GOOGLE_AI_API_KEY', '')
-    if k1:
-        keys.append(k1)
-    # Secondary key(s)
-    for suffix in ['_2', '_3', '_4', '_5']:
-        k = os.environ.get(f'GEMINI_API_KEY{suffix}', '')
-        if k:
-            keys.append(k)
-    return keys
-
-# Module-level state for key rotation
-_gemini_key_index = 0
-
-
-def _ocr_with_gemini(b64_data: str, img_name: str, context_hint: str = '') -> str:
-    """Fallback: use Gemini 2.5 Flash vision to read equation image.
-
-    Supports multiple API keys with rotation on 429 rate limit errors.
+    Returns (cleaned_text, stripped_count).
     """
-    global _gemini_key_index
-    import base64 as _b64
-    import time as _time
-    try:
-        from google import genai
-        from google.genai import types
-    except ImportError:
-        print("    [WARN] google-genai not installed — skipping Gemini OCR")
-        return ''
-
-    api_keys = _get_gemini_api_keys()
-    if not api_keys:
-        print("    [WARN] GEMINI_API_KEY not set — skipping Gemini OCR")
-        return ''
-
-    img_bytes = _b64.b64decode(b64_data)
-    prompt = (
-        "이 이미지는 블록체인/암호화폐 보고서에서 추출한 수식 또는 숫자/기호입니다. "
-        "이미지에 표시된 텍스트를 정확히 읽어주세요. "
-        "그리스 문자(ρ, β, α 등), 수학 기호, 숫자, 통화 기호($), 퍼센트(%) 등이 포함될 수 있습니다. "
-        "수식이면 읽기 쉬운 텍스트로 변환해주세요 (LaTeX 아님). "
-        "예: 'ρ', '0.026', 'T_finality', '≈ $2.5–$4.0' 등. "
-        "이미지에 보이는 텍스트만 출력하세요. 설명이나 부가 텍스트 없이 결과만."
-    )
-    if context_hint:
-        prompt += f"\n\n문맥 힌트: ...{context_hint}..."
-
-    max_retries = len(api_keys) * 2  # Try each key up to 2 times
-    for attempt in range(max_retries):
-        key = api_keys[_gemini_key_index % len(api_keys)]
-        try:
-            client = genai.Client(api_key=key)
-            response = client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=[
-                    types.Content(parts=[
-                        types.Part.from_text(text=prompt),
-                        types.Part.from_bytes(data=img_bytes, mime_type='image/png'),
-                    ]),
-                ],
-                config=types.GenerateContentConfig(
-                    temperature=0.0,
-                    max_output_tokens=100,
-                ),
-            )
-            text = (response.text or '').strip().strip('`').strip()
-            # Remove wrapping quotes if any
-            if len(text) > 2 and text[0] in '"\'`' and text[-1] in '"\'`':
-                text = text[1:-1].strip()
-            if text:
-                print(f"    Gemini[key{_gemini_key_index % len(api_keys)}] → '{text}'")
-                return text
-            return ''  # Empty response, no retry needed
-        except Exception as e:
-            err_str = str(e)
-            if '429' in err_str or 'RESOURCE_EXHAUSTED' in err_str:
-                # Rate limited — rotate to next key
-                _gemini_key_index += 1
-                if attempt < max_retries - 1:
-                    wait = 13 if len(api_keys) > 1 else 30
-                    print(f"    [429] Key rotation → key{_gemini_key_index % len(api_keys)}, wait {wait}s...")
-                    _time.sleep(wait)
-                    continue
-            print(f"    [WARN] Gemini OCR failed for {img_name}: {type(e).__name__}")
-            return ''
-    return ''
-
-
-def _resolve_equation_images(md_text: str) -> tuple[str, int]:
-    """Replace ![][imageN] base64 equation images with OCR'd text.
-
-    Strategy: pytesseract first → Gemini 2.5 Flash fallback for failures.
-    Returns (cleaned_text, replacement_count).
-    """
-    import base64
-    import io
-
-    # Find all image definitions: [imageN]: <data:image/png;base64,...>
     def_pattern = re.compile(
-        r'^\[image(\d+)\]:\s*<data:image/png;base64,([^>]+)>\s*$',
+        r'^\[image(\d+)\]:\s*<data:image/png;base64,[^>]+>\s*$',
         re.MULTILINE,
     )
-    img_defs = {}
-    for m in def_pattern.finditer(md_text):
-        img_defs[f'image{m.group(1)}'] = m.group(2)
+    img_names = {f'image{m.group(1)}' for m in def_pattern.finditer(md_text)}
 
-    if not img_defs:
+    if not img_names:
         return md_text, 0
 
-    # Build context hints: find surrounding text for each image reference
-    context_hints: dict[str, str] = {}
-    for img_name in img_defs:
-        ref_pat = re.compile(r'.{0,60}' + re.escape(f'![][{img_name}]') + r'.{0,60}')
-        m = ref_pat.search(md_text)
-        if m:
-            context_hints[img_name] = m.group(0)
-
-    # Phase 1: pytesseract
-    replacements: dict[str, str] = {}
-    tess_ok = 0
-    for img_name, b64_data in img_defs.items():
-        text = _ocr_with_tesseract(b64_data)
-        if text:
-            replacements[img_name] = text
-            tess_ok += 1
-        else:
-            replacements[img_name] = '[?]'
-
-    # Phase 2: Gemini 2.5 Flash for failures
-    gemini_needed = [k for k, v in replacements.items() if v == '[?]']
-    gemini_ok = 0
-    if gemini_needed:
-        print(f"  pytesseract: {tess_ok}/{len(img_defs)} OK, {len(gemini_needed)} → Gemini fallback")
-        for img_name in gemini_needed:
-            hint = context_hints.get(img_name, '')
-            text = _ocr_with_gemini(img_defs[img_name], img_name, hint)
-            if text:
-                replacements[img_name] = text
-                gemini_ok += 1
-            import time
-            time.sleep(13)  # Rate limit: Gemini free tier = 5 RPM per key
-
-    # Replace inline references
     result = md_text
     count = 0
-    for img_name, text in replacements.items():
+
+    for img_name in img_names:
         pat = re.compile(re.escape(f'![][{img_name}]'))
         matches = len(pat.findall(result))
-        result = pat.sub(text, result)
+        result = pat.sub('', result)
         count += matches
 
-    # Remove image definition lines
     result = def_pattern.sub('', result)
     result = re.sub(r'\n{3,}', '\n\n', result)
 
-    ok = sum(1 for v in replacements.values() if v != '[?]')
-    fail = sum(1 for v in replacements.values() if v == '[?]')
-    print(f"  ✓ 수식 이미지 OCR: {ok} resolved ({tess_ok} tesseract + {gemini_ok} gemini), {fail} unresolved out of {len(img_defs)} images ({count} refs)")
+    if count:
+        print(f'  ✓ 수식 이미지 {count}개 참조 제거 (OCR 없이 strip)')
     return result, count
 
 # ═══════════════════════════════════════════
@@ -505,19 +336,32 @@ def process_for_report(file_info: dict, dry_run: bool = False) -> dict:
         print(f"  ✗ 다운로드 실패: {e}")
         return result
 
-    # 1b. Resolve equation images (LaTeX → text via OCR)
+    # 1b. Strip equation images (remove base64 PNG references without OCR)
     try:
         raw_md = Path(ko_path).read_text(encoding='utf-8')
         if '![][image' in raw_md:
-            print("[1b/6] 수식 이미지 OCR 처리...")
-            cleaned_md, eq_count = _resolve_equation_images(raw_md)
+            print("[1b/6] 수식 이미지 제거 (strip)...")
+            cleaned_md, eq_count = _strip_equation_images(raw_md)
             if eq_count > 0:
                 Path(ko_path).write_text(cleaned_md, encoding='utf-8')
-                result['equation_images_resolved'] = eq_count
+                result['equation_images_stripped'] = eq_count
         else:
             print("[1b/6] 수식 이미지 없음 — 건너뜀")
     except Exception as e:
-        print(f"  [WARN] 수식 OCR 실패 (계속 진행): {e}")
+        print(f"  [WARN] 수식 이미지 제거 실패 (계속 진행): {e}")
+
+    # 1c. Pre-translation markdown QA
+    try:
+        md_qa = verify_markdown(ko_path, lang='ko')
+        md_fails = [c for c in md_qa.checks if c.severity == QASeverity.FAIL]
+        if md_fails:
+            fail_names = [c.name for c in md_fails]
+            print(f"  ⚠ Markdown QA FAIL: {fail_names}")
+            result['md_qa_fail'] = fail_names
+        else:
+            print(f"  ✓ Markdown QA passed")
+    except Exception as e:
+        print(f"  [WARN] Markdown QA error (계속 진행): {e}")
 
     if dry_run:
         result['status'] = 'dry_run'
@@ -781,6 +625,26 @@ def _publish_supabase(slug: str, report_type: str, version: int, gdrive_urls: di
 
     translation_status = {lang: 'published' for lang in gdrive_urls.keys()}
     now = datetime.now(timezone.utc).isoformat()
+
+    # Check if already published (avoid duplicate insert on retry)
+    already_published = sb.table('project_reports').select('id') \
+        .eq('project_id', project_id) \
+        .eq('report_type', db_report_type) \
+        .eq('status', 'published') \
+        .eq('version', version) \
+        .execute()
+
+    if already_published.data:
+        report_id = already_published.data[0]['id']
+        update_data = {
+            'gdrive_urls_by_lang': gdrive_urls,
+            'translation_status': translation_status,
+        }
+        if card_db:
+            update_data.update(card_db)
+        sb.table('project_reports').update(update_data).eq('id', report_id).execute()
+        print(f"  이미 published 상태 — 메타데이터 업데이트: {report_id}")
+        return
 
     # Try to update existing coming_soon report
     existing = sb.table('project_reports').select('id') \
