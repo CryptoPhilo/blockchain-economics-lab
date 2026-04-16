@@ -9,6 +9,19 @@ interface Props {
   params: Promise<{ locale: string; slug: string }>
 }
 
+const REPORT_TYPE_CONFIG = {
+  econ: { color: 'bg-blue-500/20 text-blue-400 border-blue-500/30', label: 'ECON', icon: '📊', tooltip: 'Economic Analysis' },
+  maturity: { color: 'bg-green-500/20 text-green-400 border-green-500/30', label: 'MAT', icon: '📈', tooltip: 'Maturity Analysis' },
+  forensic: { color: 'bg-red-500/20 text-red-400 border-red-500/30', label: 'FOR', icon: '🔍', tooltip: 'Forensic Analysis' },
+} as const
+
+function formatDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return '—'
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric',
+  })
+}
+
 export default async function ProductDetailPage({ params }: Props) {
   const { locale, slug } = await params
   const supabase = await createServerSupabaseClient()
@@ -37,6 +50,9 @@ export default async function ProductDetailPage({ params }: Props) {
 
   const title = getLocalizedField(product, 'title', locale as Locale)
   const description = getLocalizedField(product, 'description', locale as Locale)
+  const reportType = product.report_type as keyof typeof REPORT_TYPE_CONFIG | null
+  const reportTypeConfig = reportType ? REPORT_TYPE_CONFIG[reportType] : null
+  const version = product.report_version as number | null
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-12">
@@ -57,12 +73,44 @@ export default async function ProductDetailPage({ params }: Props) {
                product.type === 'subscription' ? t('products.subscriptions') :
                t('products.bundles')}
             </span>
+            {reportTypeConfig && (
+              <span
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase ${reportTypeConfig.color}`}
+                title={reportTypeConfig.tooltip}
+              >
+                {reportTypeConfig.icon} {reportTypeConfig.label}
+              </span>
+            )}
             {product.category && (
               <span className="text-sm text-gray-500">{product.category.icon} {getLocalizedField(product.category, 'name', locale as Locale)}</span>
             )}
           </div>
 
-          <h1 className="text-3xl font-bold mb-4">{title}</h1>
+          <h1 className="text-3xl font-bold mb-2">{title}</h1>
+
+          {/* Publication date and version info */}
+          <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-4">
+            {product.published_at && (
+              <span>{locale === 'ko' ? '발행일' : 'Published'}: {formatDate(product.published_at)}</span>
+            )}
+            {version && (
+              <>
+                <span className="text-gray-700">·</span>
+                <span className="inline-flex items-center gap-1.5">
+                  v{version}
+                  {version > 1 && (
+                    <span className="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 text-[11px] font-medium">
+                      {locale === 'ko' ? '업데이트됨' : 'Updated'}
+                    </span>
+                  )}
+                </span>
+              </>
+            )}
+            {!product.published_at && product.created_at && (
+              <span>{locale === 'ko' ? '등록일' : 'Listed'}: {formatDate(product.created_at)}</span>
+            )}
+          </div>
+
           <p className="text-gray-400 text-lg leading-relaxed mb-8">{description}</p>
 
           {product.tags?.length > 0 && (

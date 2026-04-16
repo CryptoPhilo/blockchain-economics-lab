@@ -50,6 +50,8 @@ export interface Product {
   tags: string[]
   featured: boolean
   author_agent_id?: string
+  report_type?: 'econ' | 'maturity' | 'forensic'
+  report_version?: number
   published_at?: string
   created_at: string
 }
