@@ -316,20 +316,6 @@ def scan_new_md_files(drive, folder_id: str, tracker: dict) -> list:
     return new_docs
 
 
-def _resolve_equation_images_gdoc(md_text: str) -> tuple:
-    """Replace ![][imageN] base64 equation images with OCR'd text.
-
-    Delegates to the shared implementation in ingest_for.py
-    (pytesseract first → Gemini 2.5 Flash fallback).
-    Returns (cleaned_text, replacement_count).
-    """
-    try:
-        from ingest_for import _resolve_equation_images
-        return _resolve_equation_images(md_text)
-    except ImportError:
-        print("  [WARN] Cannot import _resolve_equation_images — skipping equation OCR")
-        return md_text, 0
-
 
 def download_md_file(drive, file_id: str) -> str:
     """Download a .md file's content from GDrive."""
@@ -989,13 +975,16 @@ def process_single_md(drive, gd, doc: dict, report_type: str,
     ko_md_raw = download_md_file(drive, doc['id'])
     print(f"  다운로드 완료: {len(ko_md_raw):,} chars")
 
-    # ── Step 0b: Resolve equation images (LaTeX → text via OCR) ──
+    # ── Step 0b: Strip equation images (no OCR — just remove base64 refs) ──
     if '![][image' in ko_md_raw:
-        print("\n[0b] 수식 이미지 OCR 처리...")
+        print("\n[0b] 수식 이미지 제거 (strip)...")
         try:
-            ko_md_raw, eq_count = _resolve_equation_images_gdoc(ko_md_raw)
+            from ingest_for import _strip_equation_images
+            ko_md_raw, eq_count = _strip_equation_images(ko_md_raw)
+            if eq_count > 0:
+                print(f"  제거 완료: {eq_count}개 수식 이미지")
         except Exception as e:
-            print(f"  [WARN] 수식 OCR 실패 (계속 진행): {e}")
+            print(f"  [WARN] 수식 이미지 제거 실패 (계속 진행): {e}")
 
     # ── Step 1: 종목 확정 ──
     print("\n[1/7] 대상 종목 확정...")
@@ -1024,6 +1013,22 @@ def process_single_md(drive, gd, doc: dict, report_type: str,
     ko_path = OUTPUT_DIR / f"{slug}_{rtype}_v{version}_ko.md"
     ko_path.write_text(ko_md, encoding='utf-8')
     print(f"  저장: {ko_path}")
+
+    # ── Step 3.5: Pre-translation markdown QA (catch unresolved OCR markers) ──
+    try:
+        from qa_verify_md import verify_markdown as _verify_md
+        from qa_verify import QASeverity as _QASev
+        _md_qa = _verify_md(str(ko_path), lang='ko')
+        _md_fails = [c for c in _md_qa.checks if c.severity == _QASev.FAIL]
+        if _md_fails:
+            _fail_names = [c.name for c in _md_fails]
+            print(f"  ⚠ Markdown QA FAIL: {_fail_names}")
+            if any('unresolved_ocr' in c.name for c in _md_fails):
+                print(f"  ⚠ [?] markers detected in markdown")
+        else:
+            print(f"  ✓ Markdown QA passed")
+    except Exception as e:
+        print(f"  [WARN] Markdown QA check error (계속 진행): {e}")
 
     # ── Step 4: 사실 검증 ──
     if skip_factcheck:

@@ -228,10 +228,6 @@ TRANSPARENCY_SCAN_ROTATION_DAYS = 5
 COINGECKO_BATCH_SIZE = 250  # max 250 per /coins/markets call
 COINGECKO_RATE_LIMIT_SLEEP = 2.5  # seconds between requests
 
-# Gemini 2.5 Flash (equation image OCR fallback — free tier)
-# Set GEMINI_API_KEY environment variable (Google AI Studio)
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '') or os.environ.get('GOOGLE_AI_API_KEY', '')
-
 # CoinMarketCap (secondary — free Basic tier)
 # Set CMC_API_KEY environment variable or leave empty to skip
 CMC_API_KEY = os.environ.get('CMC_API_KEY', '')
