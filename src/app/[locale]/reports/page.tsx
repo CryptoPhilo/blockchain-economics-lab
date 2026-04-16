@@ -220,6 +220,11 @@ export default async function ReportsPage({ params, searchParams }: Props) {
 
             const translationStatus = report.translation_status || {}
             const gdriveUrls = report.gdrive_urls_by_lang || {}
+            const resolveUrl = (val: unknown): string | undefined => {
+              if (typeof val === 'string') return val
+              if (val && typeof val === 'object' && 'url' in val) return (val as { url: string }).url
+              return undefined
+            }
             const availableLangs = [...new Set([
               ...Object.keys(gdriveUrls),
               ...Object.entries(translationStatus)
@@ -262,10 +267,10 @@ export default async function ReportsPage({ params, searchParams }: Props) {
                     <span className="px-4 py-2 bg-amber-500/10 text-amber-400 text-sm font-medium rounded-lg border border-amber-500/20 cursor-default shrink-0">
                       🔜 Coming Soon
                     </span>
-                  ) : gdriveUrls[locale] || gdriveUrls['en'] ? (
+                  ) : resolveUrl(gdriveUrls[locale]) || resolveUrl(gdriveUrls['en']) ? (
                     <GatedDownloadButton
                       reportId={report.id}
-                      downloadUrl={gdriveUrls[locale] || gdriveUrls['en']}
+                      downloadUrl={(resolveUrl(gdriveUrls[locale]) || resolveUrl(gdriveUrls['en']))!}
                       locale={locale}
                       label={t('downloadPdf')}
                     />
@@ -284,7 +289,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
                   <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/5">
                     <span className="text-xs text-gray-600 mr-1">{t('languages')}:</span>
                     {availableLangs.map((lang) => {
-                      const url = gdriveUrls[lang]
+                      const url = resolveUrl(gdriveUrls[lang])
                       const badge = (
                         <span
                           key={lang}

@@ -77,8 +77,13 @@ export default async function ForensicReportPage({ params }: Props) {
     : t('riskElevated')
 
   // Resolve the best available PDF URL for the current locale
-  const urlsByLang = report.gdrive_urls_by_lang as Record<string, string> | null
-  const localizedUrl = urlsByLang?.[locale] || urlsByLang?.['en'] || null
+  const urlsByLang = report.gdrive_urls_by_lang as Record<string, unknown> | null
+  const resolveUrl = (val: unknown): string | undefined => {
+    if (typeof val === 'string') return val
+    if (val && typeof val === 'object' && 'url' in val) return (val as { url: string }).url
+    return undefined
+  }
+  const localizedUrl = (urlsByLang && (resolveUrl(urlsByLang[locale]) || resolveUrl(urlsByLang['en']))) || null
   const primaryUrl = report.file_url || report.gdrive_url || localizedUrl
   const hasReport = !!primaryUrl
 
@@ -207,10 +212,11 @@ export default async function ForensicReportPage({ params }: Props) {
                   </span>
                   {Object.entries(urlsByLang)
                     .filter(([lang]) => lang !== locale)
-                    .map(([lang, url]) => (
+                    .filter(([, val]) => resolveUrl(val))
+                    .map(([lang, val]) => (
                       <a
                         key={lang}
-                        href={url as string}
+                        href={resolveUrl(val)!}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="px-3 py-1 text-xs font-medium bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-lg border border-white/10 transition-colors uppercase"
