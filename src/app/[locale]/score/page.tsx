@@ -1,14 +1,16 @@
 import { getTranslations } from 'next-intl/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { fetchCoinGeckoPrices } from '@/lib/coingecko'
 import ScoreTableGate from '@/components/ScoreTableGate'
 import SubscribeForm from '@/components/SubscribeForm'
 
 /**
- * OPS-011-T05: Maturity Score Rankings Page
+ * CMC-Style Market Cap Ranking Page + Report Badges
  *
- * Shows the BCE Maturity Score™ leaderboard.
- * Top 20 projects are publicly visible; the rest are behind an email gate.
- * Data source: project_reports table (latest maturity reports).
+ * Shows a CoinMarketCap-style leaderboard ranked by market cap.
+ * Each row includes price, 24h change, market cap, BCE Score, and report badges.
+ * Data: tracked_projects (DB) + CoinGecko API (real-time price/market data).
+ * Top N rows are publicly visible; remaining behind email gate.
  */
 
 export default async function ScorePage({ params }: { params: Promise<{ locale: string }> }) {
@@ -16,55 +18,66 @@ export default async function ScorePage({ params }: { params: Promise<{ locale: 
   const t = await getTranslations()
   const supabase = await createServerSupabaseClient()
 
-  // Fetch all published maturity reports, ordered by score
-  // Each project may have multiple versions — we want the latest per project
-  const { data: reports } = await supabase
-    .from('project_reports')
+  // Fetch all active tracked projects
+  const { data: projects } = await supabase
+    .from('tracked_projects')
     .select(`
-      id,
-      project_id,
-      version,
-      published_at,
-      project:tracked_projects(id, name, slug, symbol, category, maturity_score)
+      id, name, slug, symbol, category,
+      market_cap_usd, coingecko_id, maturity_score,
+      last_econ_report_at, last_maturity_report_at, last_forensic_report_at
     `)
-    .eq('report_type', 'maturity')
-    .eq('status', 'published')
-    .order('published_at', { ascending: false })
+    .in('status', ['active', 'monitoring_only'])
+    .order('market_cap_usd', { ascending: false, nullsFirst: false })
 
-  // Deduplicate: keep only the latest report per project
-  const seenProjects = new Set<string>()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const latestReports: any[] = []
-  for (const r of reports || []) {
-    if (r.project_id && !seenProjects.has(r.project_id)) {
-      seenProjects.add(r.project_id)
-      latestReports.push(r)
-    }
-  }
+  const allProjects = projects || []
 
-  // Build ranked rows by maturity_score
-  const rows = latestReports
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .filter((r: any) => r.project?.maturity_score != null)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .sort((a: any, b: any) => (b.project?.maturity_score || 0) - (a.project?.maturity_score || 0))
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .map((r: any, i: number) => ({
-      rank: i + 1,
-      name: r.project.name,
-      symbol: r.project.symbol,
-      score: r.project.maturity_score,
-      category: r.project.category || '',
-    }))
+  // Fetch real-time price data from CoinGecko
+  const coingeckoIds = allProjects
+    .map((p) => p.coingecko_id)
+    .filter((id): id is string => !!id)
+
+  const priceData = await fetchCoinGeckoPrices([...new Set(coingeckoIds)])
+
+  // Build ranked rows by market cap (CoinGecko market cap preferred, DB fallback)
+  const rows = allProjects
+    .map((p) => {
+      const cgData = p.coingecko_id ? priceData[p.coingecko_id] : undefined
+      const marketCap = cgData?.usd_market_cap || p.market_cap_usd || 0
+
+      const reportTypes: string[] = []
+      if (p.last_econ_report_at) reportTypes.push('econ')
+      if (p.last_maturity_report_at) reportTypes.push('maturity')
+      if (p.last_forensic_report_at) reportTypes.push('forensic')
+
+      return {
+        name: p.name,
+        symbol: p.symbol,
+        slug: p.slug,
+        price: cgData?.usd ?? null,
+        change24h: cgData?.usd_24h_change ?? null,
+        marketCap,
+        score: p.maturity_score ?? null,
+        category: p.category || '',
+        reportTypes,
+      }
+    })
+    .sort((a, b) => b.marketCap - a.marketCap)
+    .map((row, i) => ({ ...row, rank: i + 1 }))
 
   const isKo = locale === 'ko'
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12">
+    <div className="max-w-6xl mx-auto px-6 py-12">
       {/* Header */}
       <div className="mb-10 text-center">
-        <h1 className="text-4xl font-bold mb-3">{t('score.title')}</h1>
-        <p className="text-gray-400 max-w-xl mx-auto">{t('score.subtitle')}</p>
+        <h1 className="text-4xl font-bold mb-3">
+          {isKo ? '시가총액 랭킹' : 'Market Cap Rankings'}
+        </h1>
+        <p className="text-gray-400 max-w-xl mx-auto">
+          {isKo
+            ? '크립토 프로젝트 시가총액 순위와 BCE 분석 보고서를 확인하세요'
+            : 'Crypto project rankings by market cap with BCE analysis reports'}
+        </p>
       </div>
 
       {/* Methodology summary */}
@@ -88,16 +101,16 @@ export default async function ScorePage({ params }: { params: Promise<{ locale: 
         </div>
       </div>
 
-      {/* Score table with email gate */}
+      {/* Market cap ranking table with email gate */}
       {rows.length > 0 ? (
         <ScoreTableGate rows={rows} freeLimit={20} locale={locale} />
       ) : (
         <div className="text-center py-20">
           <p className="text-gray-500 text-lg">
-            {isKo ? '아직 등급 데이터가 없습니다.' : 'No maturity scores available yet.'}
+            {isKo ? '아직 프로젝트 데이터가 없습니다.' : 'No project data available yet.'}
           </p>
           <p className="text-gray-600 text-sm mt-2">
-            {isKo ? '첫 번째 보고서가 발행되면 여기에 표시됩니다.' : 'Scores will appear here once reports are published.'}
+            {isKo ? '프로젝트가 등록되면 여기에 표시됩니다.' : 'Rankings will appear here once projects are tracked.'}
           </p>
         </div>
       )}
@@ -105,12 +118,12 @@ export default async function ScorePage({ params }: { params: Promise<{ locale: 
       {/* Newsletter CTA */}
       <div className="mt-16 p-8 rounded-2xl bg-gradient-to-r from-indigo-500/5 to-purple-500/5 border border-indigo-500/15 text-center">
         <h3 className="text-xl font-bold mb-2">
-          {isKo ? '점수 변동 알림 받기' : 'Get Score Update Alerts'}
+          {isKo ? '시장 업데이트 알림 받기' : 'Get Market Update Alerts'}
         </h3>
         <p className="text-gray-400 text-sm mb-4">
           {isKo
-            ? '프로젝트 점수가 변동될 때 알림을 받아보세요'
-            : 'Be the first to know when project scores change'}
+            ? '새로운 보고서와 시장 변동 알림을 받아보세요'
+            : 'Be the first to know about new reports and market movements'}
         </p>
         <SubscribeForm
           locale={locale}
@@ -128,6 +141,12 @@ export default async function ScorePage({ params }: { params: Promise<{ locale: 
         <div className="text-center">
           <div className="text-2xl font-bold text-white">{rows.length}</div>
           <div>{isKo ? '프로젝트' : 'Projects'}</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-white">
+            {rows.filter((r) => r.reportTypes.length > 0).length}
+          </div>
+          <div>{isKo ? '분석 보고서' : 'Reports'}</div>
         </div>
         <div className="text-center">
           <div className="text-2xl font-bold text-white">7</div>

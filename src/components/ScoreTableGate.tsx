@@ -3,29 +3,53 @@
 import { useState, useTransition } from 'react'
 
 /**
- * OPS-011-T05: Score Table Email Gate
+ * CMC-Style Market Cap Ranking Table with Email Gate
  *
- * Renders a maturity score rankings table. The top N rows are visible;
- * remaining rows are blurred behind an email gate.
- *
- * Once the user submits their email, all rows are revealed.
+ * Displays a CoinMarketCap-style ranking table with:
+ * - Rank, Name/Symbol, Price, 24h Change, Market Cap, BCE Score, Report Badges
+ * - Sorted by market cap
+ * - Top N rows visible, rest behind email gate
+ * - Responsive: hides some columns on mobile
  */
 
 interface ScoreRow {
   rank: number
   name: string
   symbol: string
-  score: number
-  category?: string
+  slug: string
+  price: number | null
+  change24h: number | null
+  marketCap: number
+  score: number | null
+  category: string
+  reportTypes: string[]
 }
 
 interface ScoreTableGateProps {
   rows: ScoreRow[]
-  freeLimit?: number  // default 20
+  freeLimit?: number
   locale: string
 }
 
 type GateStatus = 'locked' | 'submitting' | 'unlocked' | 'error'
+
+function formatPrice(value: number): string {
+  if (value >= 1) {
+    return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  }
+  if (value >= 0.01) {
+    return `$${value.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`
+  }
+  return `$${value.toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 })}`
+}
+
+function formatMarketCap(value: number): string {
+  if (value >= 1e12) return `$${(value / 1e12).toFixed(2)}T`
+  if (value >= 1e9) return `$${(value / 1e9).toFixed(2)}B`
+  if (value >= 1e6) return `$${(value / 1e6).toFixed(2)}M`
+  if (value >= 1e3) return `$${(value / 1e3).toFixed(0)}K`
+  return `$${value.toFixed(0)}`
+}
 
 function getScoreColor(score: number): string {
   if (score >= 80) return 'text-green-400'
@@ -98,24 +122,79 @@ export default function ScoreTableGate({
         className={`border-b border-white/5 ${blurred ? 'select-none' : 'hover:bg-white/[0.02]'}`}
         style={blurred ? { filter: 'blur(5px)', pointerEvents: 'none' } : undefined}
       >
-        <td className="py-3 px-4 text-center text-gray-500 text-sm font-mono">{row.rank}</td>
-        <td className="py-3 px-4">
-          <span className="font-semibold text-white">{row.name}</span>
-          <span className="text-gray-500 text-sm ml-2">{row.symbol}</span>
+        {/* Rank */}
+        <td className="py-3 px-3 text-center text-gray-500 text-sm font-mono w-12">
+          {row.rank}
         </td>
-        {row.category && (
-          <td className="py-3 px-4 text-sm text-gray-500 hidden md:table-cell">{row.category}</td>
-        )}
-        <td className="py-3 px-4 text-right">
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-bold ${getScoreColor(row.score)} ${getScoreBg(row.score)}`}>
-            {row.score.toFixed(1)}
-          </span>
+
+        {/* Name + Symbol */}
+        <td className="py-3 px-3">
+          <div className="flex items-center gap-2">
+            <div>
+              <span className="font-semibold text-white text-sm">{row.name}</span>
+              <span className="text-gray-500 text-xs ml-1.5">{row.symbol}</span>
+            </div>
+          </div>
+        </td>
+
+        {/* Price */}
+        <td className="py-3 px-3 text-right text-sm text-white font-mono hidden sm:table-cell">
+          {row.price != null ? formatPrice(row.price) : '-'}
+        </td>
+
+        {/* 24h Change */}
+        <td className="py-3 px-3 text-right text-sm font-mono hidden sm:table-cell">
+          {row.change24h != null ? (
+            <span className={row.change24h >= 0 ? 'text-green-400' : 'text-red-400'}>
+              {row.change24h >= 0 ? '+' : ''}{row.change24h.toFixed(2)}%
+            </span>
+          ) : (
+            <span className="text-gray-600">-</span>
+          )}
+        </td>
+
+        {/* Market Cap */}
+        <td className="py-3 px-3 text-right text-sm text-white font-mono">
+          {row.marketCap > 0 ? formatMarketCap(row.marketCap) : '-'}
+        </td>
+
+        {/* BCE Score */}
+        <td className="py-3 px-3 text-right hidden md:table-cell">
+          {row.score != null ? (
+            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${getScoreColor(row.score)} ${getScoreBg(row.score)}`}>
+              {row.score.toFixed(1)}
+            </span>
+          ) : (
+            <span className="text-gray-600 text-xs">-</span>
+          )}
+        </td>
+
+        {/* Report Badges */}
+        <td className="py-3 px-3 hidden lg:table-cell">
+          <div className="flex gap-1 justify-end">
+            {row.reportTypes.includes('econ') && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 font-medium">
+                ECON
+              </span>
+            )}
+            {row.reportTypes.includes('maturity') && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/15 text-green-400 font-medium">
+                MAT
+              </span>
+            )}
+            {row.reportTypes.includes('forensic') && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/15 text-red-400 font-medium">
+                FOR
+              </span>
+            )}
+            {row.reportTypes.length === 0 && (
+              <span className="text-gray-600 text-[10px]">-</span>
+            )}
+          </div>
         </td>
       </tr>
     )
   }
-
-  const hasCategory = rows.some((r) => r.category)
 
   return (
     <div>
@@ -124,17 +203,26 @@ export default function ScoreTableGate({
         <table className="w-full">
           <thead>
             <tr className="bg-white/[0.03] border-b border-white/10">
-              <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase w-16">#</th>
-              <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase">
-                {isKo ? '프로젝트' : 'Project'}
+              <th className="py-3 px-3 text-center text-xs font-medium text-gray-500 uppercase w-12">
+                #
               </th>
-              {hasCategory && (
-                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
-                  {isKo ? '카테고리' : 'Category'}
-                </th>
-              )}
-              <th className="py-3 px-4 text-right text-xs font-medium text-gray-500 uppercase w-28">
+              <th className="py-3 px-3 text-left text-xs font-medium text-gray-500 uppercase">
+                {isKo ? '종목' : 'Name'}
+              </th>
+              <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">
+                {isKo ? '가격' : 'Price'}
+              </th>
+              <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">
+                24h
+              </th>
+              <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase">
+                {isKo ? '시가총액' : 'Market Cap'}
+              </th>
+              <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
                 BCE Score
+              </th>
+              <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">
+                {isKo ? '보고서' : 'Reports'}
               </th>
             </tr>
           </thead>
@@ -149,7 +237,7 @@ export default function ScoreTableGate({
         <div className="relative mt-0">
           {isLocked ? (
             <>
-              {/* Show a few blurred rows as teaser */}
+              {/* Blurred teaser rows */}
               <div className="overflow-hidden rounded-b-xl border-x border-b border-white/5">
                 <table className="w-full">
                   <tbody>
@@ -162,12 +250,12 @@ export default function ScoreTableGate({
               <div className="mt-4 p-6 rounded-xl bg-gradient-to-r from-indigo-500/5 to-purple-500/5 border border-indigo-500/15 text-center">
                 <h4 className="text-white font-semibold mb-1">
                   {isKo
-                    ? `+${gatedRows.length}개 프로젝트 점수 보기`
-                    : `View ${gatedRows.length} more project scores`}
+                    ? `+${gatedRows.length}개 프로젝트 랭킹 보기`
+                    : `View ${gatedRows.length} more project rankings`}
                 </h4>
                 <p className="text-gray-400 text-sm mb-4">
                   {isKo
-                    ? '이메일을 입력하면 전체 등급표를 무료로 볼 수 있습니다'
+                    ? '이메일을 입력하면 전체 랭킹을 무료로 볼 수 있습니다'
                     : 'Enter your email to unlock the full ranking table for free'}
                 </p>
                 <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
