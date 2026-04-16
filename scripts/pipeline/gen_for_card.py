@@ -628,7 +628,38 @@ def generate_for_card(
                     keywords_by_lang[tl] = [kw_dict.get(k, k) for k in keywords]
                 print(f"  Summary {tl.upper()}: {summary_by_lang[tl][:60]}...")
 
-    # 4. Build card_data
+    # 4. Build card_data — QA gate: price_change_24h must not be 0 for forensic reports
+    raw_price_change = trigger_data.get('price_change_24h', 0)
+    if raw_price_change is None or float(raw_price_change) == 0:
+        print(f"  ⚠ QA WARNING: price_change_24h is {raw_price_change} — "
+              "this likely means trigger data was not properly passed. "
+              "Attempting to resolve from forensic_triggers table...")
+        # Attempt resolution from Supabase if available
+        _resolved = False
+        try:
+            import os as _os
+            _url = _os.environ.get('SUPABASE_URL') or _os.environ.get('NEXT_PUBLIC_SUPABASE_URL')
+            _key = _os.environ.get('SUPABASE_SERVICE_KEY') or _os.environ.get('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+            if _url and _key:
+                from supabase import create_client as _sc
+                _sb = _sc(_url, _key)
+                _ft = _sb.table('forensic_triggers').select('price_change_24h, relative_deviation') \
+                    .eq('slug', slug).order('created_at', desc=True).limit(1).execute()
+                if _ft.data and _ft.data[0].get('price_change_24h'):
+                    raw_price_change = float(_ft.data[0]['price_change_24h'])
+                    trigger_data['relative_deviation'] = float(_ft.data[0].get('relative_deviation', 0))
+                    print(f"  ✓ QA RESOLVED: price_change_24h = {raw_price_change:+.1f}% from forensic_triggers")
+                    _resolved = True
+        except Exception as e:
+            print(f"  ✗ QA resolution failed: {str(e)[:100]}")
+
+        if not _resolved:
+            raise ValueError(
+                f"QA BLOCKED: price_change_24h is 0 for {symbol} ({slug}). "
+                "Cannot generate card without valid price data. "
+                "Pass trigger_data with 'price_change_24h' or ensure forensic_triggers has data."
+            )
+
     card_data = {
         'slug': slug,
         'project_name': project_name,
@@ -641,7 +672,7 @@ def generate_for_card(
         'summary_by_lang': summary_by_lang,
         'risk_score': risk_score,
         'risk_level': risk_level,
-        'price_change_24h': trigger_data.get('price_change_24h', 0),
+        'price_change_24h': float(raw_price_change),
         'relative_deviation': trigger_data.get('relative_deviation', 0),
         'market_avg_change_24h': trigger_data.get('market_avg_change_24h', 0),
         'direction': trigger_data.get('direction', 'up'),

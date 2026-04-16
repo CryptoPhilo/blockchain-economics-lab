@@ -301,14 +301,69 @@ _GOOGLE_LANG_MAP = {
     'fr': 'fr', 'es': 'es', 'de': 'de',
 }
 
+# Token symbols and math notation to preserve during Google Translate
+# These get replaced with placeholders before translation and restored after
+_PRESERVE_TOKENS = [
+    # Long multi-char tokens first (order matters for replacement)
+    'T_finality', 'δ_prop', 't_signal', 'E[r_v]', 'C_vote', 'S_min', 'C_op',
+    'V ∝ R/S', 'f* = (p·b - q) / b', 'CR = 담보 자산 가치 / 발행 부채',
+    # Greek letters
+    'μ', 'σ', 'ρ', 'α', 'β', 'γ', 'δ', 'ε', 'λ', 'π', 'Σ',
+    # Common token symbols (uppercase, 2-6 chars)
+    'ELSA', 'USDC', 'USDT', 'WBTC', 'WETH', 'stETH',
+    'SOL', 'ETH', 'BTC', 'ENJ', 'LEO', 'MYX', 'XPL', 'DEGEN',
+    'AVAX', 'MATIC', 'LINK', 'UNI', 'AAVE', 'CRO', 'DOT', 'ADA',
+    'ATOM', 'NEAR', 'APT', 'SUI', 'ARB', 'OP', 'FTM', 'HBAR',
+    'XRP', 'XLM', 'ALGO', 'ICP', 'FIL', 'LDO', 'MKR', 'SNX',
+    'COMP', 'YFI', 'SUSHI', 'TRUMP', 'NIGHT', 'SKYAI', 'RAVE',
+    'STABLE', 'USDG', 'PYUSD', 'XAUt', 'PAXG',
+    # Math notation
+    'f*', 'w_i', 'NC', 'CR', 's_i',
+]
+
+
+def _protect_tokens(text: str) -> tuple:
+    """Replace token symbols with numbered placeholders before translation."""
+    protected = text
+    mapping = {}
+    counter = 0
+    for token in _PRESERVE_TOKENS:
+        if token in protected:
+            placeholder = f'⟦TK{counter}⟧'
+            protected = protected.replace(token, placeholder)
+            mapping[placeholder] = token
+            counter += 1
+    return protected, mapping
+
+
+def _restore_tokens(text: str, mapping: dict) -> str:
+    """Restore token symbols from placeholders after translation."""
+    restored = text
+    for placeholder, token in mapping.items():
+        # Google Translate sometimes adds spaces around placeholders
+        # or changes bracket characters
+        import re as _re
+        # Try exact match first
+        if placeholder in restored:
+            restored = restored.replace(placeholder, token)
+        else:
+            # Fuzzy: spaces around brackets, different bracket chars
+            esc = _re.escape(placeholder).replace('⟦', '[⟦\\[]').replace('⟧', '[⟧\\]]')
+            restored = _re.sub(r'\s*' + esc + r'\s*', token, restored)
+    return restored
+
 
 def _translate_google(text: str, target_lang: str, _ctx: str = '') -> str:
     """
     Google Translate backend via deep-translator library.
     Free, no API key required, high quality.
     Includes retry with exponential backoff for rate-limiting.
+    Token symbols and math notation are protected via placeholder substitution.
+    Uses signal-based timeout (15s) to prevent indefinite hangs.
     """
     import time as _time
+    import signal as _signal
+
     if not text or not text.strip():
         return text
     # Skip very short or code-like text
@@ -323,15 +378,48 @@ def _translate_google(text: str, target_lang: str, _ctx: str = '') -> str:
         logger.warning(f"Google translate skip: text too long ({len(stripped)} chars)")
         return text
 
+    # Protect token symbols before translation
+    protected, token_map = _protect_tokens(stripped)
+
+    def _timeout_handler(signum, frame):
+        raise TimeoutError("Google Translate request timed out (15s)")
+
+    import threading as _threading
+    _is_main_thread = _threading.current_thread() is _threading.main_thread()
+
     MAX_RETRIES = 3
     for attempt in range(MAX_RETRIES):
         try:
             from deep_translator import GoogleTranslator
             gl = _GOOGLE_LANG_MAP.get(target_lang, target_lang)
-            result = GoogleTranslator(source='auto', target=gl).translate(stripped)
+            if _is_main_thread:
+                # Set 15s alarm to prevent indefinite hang
+                old_handler = _signal.signal(_signal.SIGALRM, _timeout_handler)
+                _signal.alarm(15)
+                try:
+                    result = GoogleTranslator(source='auto', target=gl).translate(protected)
+                finally:
+                    _signal.alarm(0)  # cancel alarm
+                    _signal.signal(_signal.SIGALRM, old_handler)
+            else:
+                # Thread-safe timeout using concurrent.futures
+                from concurrent.futures import ThreadPoolExecutor as _TPool, TimeoutError as _FTErr
+                with _TPool(max_workers=1) as _tp:
+                    _fut = _tp.submit(GoogleTranslator(source='auto', target=gl).translate, protected)
+                    result = _fut.result(timeout=15)
             # Small throttle to avoid rate limiting
             _time.sleep(0.3)
-            return result if result else text
+            if result:
+                return _restore_tokens(result, token_map)
+            return text
+        except TimeoutError:
+            if attempt < MAX_RETRIES - 1:
+                wait = (attempt + 1) * 5  # 5s, 10s
+                logger.warning(f"Google translate timeout retry {attempt+1}, waiting {wait}s")
+                _time.sleep(wait)
+            else:
+                logger.warning(f"Google translate timeout (final), returning original")
+                return text
         except Exception as e:
             if attempt < MAX_RETRIES - 1:
                 wait = (attempt + 1) * 3  # 3s, 6s
