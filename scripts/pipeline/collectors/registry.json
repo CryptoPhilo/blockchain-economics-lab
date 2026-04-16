@@ -29,66 +29,70 @@
     "category": "developer",
     "status": "integrated"
   },
-  "DefiLlama Yields": {
-    "module": "collector_defillama_yields",
-    "category": "defi",
-    "status": "validated",
-    "target_reports": [
-      "econ"
-    ]
-  },
-  "DeFiLlama Stablecoins": {
-    "module": "collector_defillama_stablecoins",
-    "category": "defi",
-    "status": "validated",
-    "target_reports": [
-      "econ",
-      "mat"
-    ]
-  },
-  "Blockchain.com Stats": {
-    "module": "collector_blockchain_com_stats",
-    "category": "onchain",
-    "status": "validated",
-    "target_reports": [
-      "econ",
-      "for"
-    ]
-  },
-  "CryptoCompare": {
-    "module": "collector_cryptocompare",
-    "category": "market_data",
-    "status": "validated",
-    "target_reports": [
-      "econ",
-      "for"
-    ]
-  },
   "CoinGlass Derivatives": {
     "module": "collector_coinglass_derivatives",
     "category": "derivatives",
     "status": "integrated",
-    "target_reports": [
-      "for",
-      "econ"
-    ]
+    "target_reports": ["for", "econ"]
   },
   "Snapshot.org Governance": {
     "module": "collector_snapshot_governance",
     "category": "governance",
     "status": "integrated",
-    "target_reports": [
-      "econ",
-      "mat"
-    ]
+    "target_reports": ["econ", "mat"]
   },
   "Santiment Social": {
     "module": "collector_santiment_social",
     "category": "social",
     "status": "integrated",
-    "target_reports": [
-      "econ",
-      "mat"
-    ]
+    "target_reports": ["econ", "mat"]
+  },
+  "DefiLlama Yields": {
+    "module": "collector_defillama_yields",
+    "category": "defi",
+    "status": "integrated",
+    "target_reports": ["econ"],
+    "integrated_at": "2026-04-16",
+    "quality_score": 87
+  },
+  "DeFiLlama Stablecoins": {
+    "module": "collector_defillama_stablecoins",
+    "category": "defi",
+    "status": "integrated",
+    "target_reports": ["econ", "mat"],
+    "integrated_at": "2026-04-16",
+    "quality_score": 94
+  },
+  "Blockchain.com Stats": {
+    "module": "collector_blockchain_com_stats",
+    "category": "onchain",
+    "status": "integrated",
+    "target_reports": ["econ", "for"],
+    "integrated_at": "2026-04-16",
+    "quality_score": 93
+  },
+  "CryptoCompare": {
+    "module": "collector_cryptocompare",
+    "category": "market_data",
+    "status": "integrated",
+    "target_reports": ["econ", "for"],
+    "integrated_at": "2026-04-16",
+    "quality_score": 93
+  },
+  "Augmento Sentiment": {
+    "module": "collector_augmento_sentiment",
+    "category": "social",
+    "status": "integrated",
+    "target_reports": ["econ", "mat"],
+    "integrated_at": "2026-04-16",
+    "quality_score": 81
+  },
+  "Binance Futures": {
+    "module": "collector_binance_futures",
+    "category": "derivatives",
+    "status": "integrated",
+    "target_reports": ["for", "econ"],
+    "integrated_at": "2026-04-16",
+    "quality_score": 79
   }
 }
