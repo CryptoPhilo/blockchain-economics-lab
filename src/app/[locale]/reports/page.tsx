@@ -56,11 +56,13 @@ export default async function ReportsPage({ params, searchParams }: Props) {
     .from('project_reports')
     .select('id', { count: 'exact', head: true })
     .in('status', ['published', 'coming_soon'])
+    .eq('report_type', 'forensic')
 
   let dataQuery = supabase
     .from('project_reports')
     .select('*, project:tracked_projects(id, name, slug, symbol, chain, category)')
     .in('status', ['published', 'coming_soon'])
+    .eq('report_type', 'forensic')
     .order('published_at', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })
 

@@ -87,7 +87,7 @@ export default async function ScorePage({ params }: { params: Promise<{ locale: 
 
       {/* Market cap ranking table with email gate */}
       {rows.length > 0 ? (
-        <ScoreTableGate rows={rows} freeLimit={20} locale={locale} />
+        <ScoreTableGate rows={rows} freeLimit={10000} locale={locale} />
       ) : (
         <div className="text-center py-20">
           <p className="text-gray-500 text-lg">
