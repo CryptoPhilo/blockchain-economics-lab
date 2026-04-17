@@ -23,6 +23,11 @@ interface ScoreRow {
   score: number | null
   category: string
   reportTypes: string[]
+  reportDates: {
+    econ: string | null
+    maturity: string | null
+    forensic: string | null
+  }
 }
 
 interface ScoreTableGateProps {
@@ -63,6 +68,14 @@ function getScoreBg(score: number): string {
   if (score >= 60) return 'bg-yellow-500/10'
   if (score >= 40) return 'bg-orange-500/10'
   return 'bg-red-500/10'
+}
+
+function isReportNew(reportDate: string | null): boolean {
+  if (!reportDate) return false
+  const sevenDaysAgo = new Date()
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+  const reportDateObj = new Date(reportDate)
+  return reportDateObj > sevenDaysAgo
 }
 
 export default function ScoreTableGate({
@@ -170,26 +183,61 @@ export default function ScoreTableGate({
         </td>
 
         {/* Report Badges */}
-        <td className="py-3 px-3 hidden lg:table-cell">
+        <td className="py-3 px-3">
           <div className="flex gap-1 justify-end">
-            {row.reportTypes.includes('econ') && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 font-medium">
+            {/* ECON Badge */}
+            <div className="relative">
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                  row.reportTypes.includes('econ')
+                    ? 'bg-blue-500/15 text-blue-400 cursor-pointer hover:bg-blue-500/25'
+                    : 'bg-gray-500/10 text-gray-600 cursor-not-allowed'
+                }`}
+              >
                 ECON
               </span>
-            )}
-            {row.reportTypes.includes('maturity') && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/15 text-green-400 font-medium">
+              {row.reportTypes.includes('econ') && isReportNew(row.reportDates.econ) && (
+                <span className="absolute -top-1 -right-1 text-[8px] px-1 py-0.5 rounded bg-red-500 text-white font-bold">
+                  New
+                </span>
+              )}
+            </div>
+
+            {/* MAT Badge */}
+            <div className="relative">
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                  row.reportTypes.includes('maturity')
+                    ? 'bg-green-500/15 text-green-400 cursor-pointer hover:bg-green-500/25'
+                    : 'bg-gray-500/10 text-gray-600 cursor-not-allowed'
+                }`}
+              >
                 MAT
               </span>
-            )}
-            {row.reportTypes.includes('forensic') && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/15 text-red-400 font-medium">
+              {row.reportTypes.includes('maturity') && isReportNew(row.reportDates.maturity) && (
+                <span className="absolute -top-1 -right-1 text-[8px] px-1 py-0.5 rounded bg-red-500 text-white font-bold">
+                  New
+                </span>
+              )}
+            </div>
+
+            {/* FOR Badge */}
+            <div className="relative">
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                  row.reportTypes.includes('forensic')
+                    ? 'bg-red-500/15 text-red-400 cursor-pointer hover:bg-red-500/25'
+                    : 'bg-gray-500/10 text-gray-600 cursor-not-allowed'
+                }`}
+              >
                 FOR
               </span>
-            )}
-            {row.reportTypes.length === 0 && (
-              <span className="text-gray-600 text-[10px]">-</span>
-            )}
+              {row.reportTypes.includes('forensic') && isReportNew(row.reportDates.forensic) && (
+                <span className="absolute -top-1 -right-1 text-[8px] px-1 py-0.5 rounded bg-red-500 text-white font-bold">
+                  New
+                </span>
+              )}
+            </div>
           </div>
         </td>
       </tr>
@@ -221,7 +269,7 @@ export default function ScoreTableGate({
               <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
                 BCE Score
               </th>
-              <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">
+              <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase">
                 {isKo ? '보고서' : 'Reports'}
               </th>
             </tr>
