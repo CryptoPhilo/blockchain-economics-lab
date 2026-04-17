@@ -62,6 +62,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
     .select('*, project:tracked_projects(id, name, slug, symbol, chain, category)')
     .in('status', ['published', 'coming_soon'])
     .order('published_at', { ascending: false, nullsFirst: false })
+    .order('created_at', { ascending: false })
 
   // Apply type filter at DB level
   if (filterType && filterType !== 'all') {

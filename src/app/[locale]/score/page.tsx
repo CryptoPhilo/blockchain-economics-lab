@@ -59,6 +59,11 @@ export default async function ScorePage({ params }: { params: Promise<{ locale: 
         score: p.maturity_score ?? null,
         category: p.category || '',
         reportTypes,
+        reportDates: {
+          econ: p.last_econ_report_at,
+          maturity: p.last_maturity_report_at,
+          forensic: p.last_forensic_report_at,
+        },
       }
     })
     .sort((a, b) => b.marketCap - a.marketCap)
@@ -71,34 +76,13 @@ export default async function ScorePage({ params }: { params: Promise<{ locale: 
       {/* Header */}
       <div className="mb-10 text-center">
         <h1 className="text-4xl font-bold mb-3">
-          {isKo ? '시가총액 랭킹' : 'Market Cap Rankings'}
+          {isKo ? '리포트' : 'Report'}
         </h1>
         <p className="text-gray-400 max-w-xl mx-auto">
           {isKo
             ? '크립토 프로젝트 시가총액 순위와 BCE 분석 보고서를 확인하세요'
             : 'Crypto project rankings by market cap with BCE analysis reports'}
         </p>
-      </div>
-
-      {/* Methodology summary */}
-      <div className="mb-8 p-5 rounded-xl bg-white/[0.03] border border-white/5">
-        <h3 className="font-semibold text-white mb-2">{t('score.methodology')}</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-400">
-          {[
-            { label: 'Technology', weight: '20%' },
-            { label: 'Business', weight: '20%' },
-            { label: 'Tokenomics', weight: '15%' },
-            { label: 'Narrative', weight: '15%' },
-            { label: 'Governance', weight: '10%' },
-            { label: 'Community', weight: '10%' },
-            { label: 'Compliance', weight: '10%' },
-          ].map((axis) => (
-            <div key={axis.label} className="flex justify-between px-2 py-1 rounded bg-white/5">
-              <span>{axis.label}</span>
-              <span className="text-indigo-400 font-mono">{axis.weight}</span>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* Market cap ranking table with email gate */}
