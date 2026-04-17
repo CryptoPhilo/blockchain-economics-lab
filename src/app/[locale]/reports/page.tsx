@@ -238,7 +238,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
             return (
               <div
                 key={report.id}
-                className="flex flex-col gap-4 p-6 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-white/10 transition-colors"
+                className="flex flex-col gap-4 p-6 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-white/10 transition-colors scroll-mt-20"
               >
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <div className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase shrink-0 ${config.color}`}>
