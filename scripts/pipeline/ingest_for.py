@@ -427,24 +427,47 @@ def process_for_report(file_info: dict, dry_run: bool = False) -> dict:
     # 4. QA verification
     print(f"[4/6] QA 검증...")
     qa_pass = {}
+    qa_strict = os.environ.get('QA_STRICT', '0') == '1'
+
     for lang, pdf_path in pdf_paths.items():
         try:
             meta = {'project_slug': slug, 'slug': slug, 'version': version, 'lang': lang}
             qa = verify_pdf(pdf_path, lang=lang, report_type='for', metadata=meta)
-            fails = [c.name for c in qa.checks if c.severity == QASeverity.FAIL]
-            warns = [c.name for c in qa.checks if c.severity == QASeverity.WARN]
+            fails = [c for c in qa.checks if c.severity == QASeverity.FAIL]
+            warns = [c for c in qa.checks if c.severity == QASeverity.WARN]
+
             if fails:
-                print(f"  ⚠ {lang}: QA issues — {fails}")
+                print(f"  ❌ {lang}: QA FAIL — {'; '.join(f'{c.name}({c.detail})' for c in fails[:4])}")
+                if qa_strict:
+                    raise RuntimeError(f"QA FAIL blocked upload: {lang} — {'; '.join(c.name for c in fails)}")
+                else:
+                    print(f"  ⚠ {lang}: QA FAIL but QA_STRICT=0, skipping upload for this language")
+                    continue  # Skip upload for this language
+
             if warns:
-                print(f"    WARN: {warns}")
-            # Upload regardless of QA (warn-level only blocks publishing)
+                print(f"  ⚠ {lang}: QA WARN — {'; '.join(c.name for c in warns[:4])}")
+
             qa_pass[lang] = pdf_path
             print(f"  ✓ {lang}: {qa.page_count} pages (QA: {qa.severity.value})")
+
+        except RuntimeError:
+            # Re-raise QA blocking errors
+            raise
         except Exception as e:
             print(f"  ✗ {lang} QA error: {e}")
-            qa_pass[lang] = pdf_path  # Upload anyway if QA crashes
+            if qa_strict:
+                raise
+            # Do NOT upload on QA crash unless QA_STRICT=0
+            print(f"  ⚠ {lang}: QA crashed but QA_STRICT=0, skipping upload")
 
     result['qa_pass_count'] = len(qa_pass)
+    result['qa_summary'] = {
+        'total': len(pdf_paths),
+        'passed': len(qa_pass),
+        'failed': len(pdf_paths) - len(qa_pass),
+        'strict_mode': qa_strict,
+    }
+    print(f"\n[QA Summary] {len(qa_pass)}/{len(pdf_paths)} passed, QA_STRICT={qa_strict}")
 
     # 4.5 Card metadata + thumbnail generation (OPS-008)
     print(f"[4.5/7] 카드 메타데이터 + 썸네일 생성...")

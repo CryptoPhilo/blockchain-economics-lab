@@ -79,6 +79,7 @@ jobs:
         working-directory: scripts/pipeline
         env:
           GDRIVE_SERVICE_ACCOUNT_FILE: ${{ github.workspace }}/scripts/pipeline/.gdrive_service_account.json
+          QA_STRICT: "1"
         run: |
           if [ "${{ github.event.inputs.dry_run }}" == "true" ]; then
             echo "🧪 Running in DRY RUN mode"
