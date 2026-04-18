@@ -95,6 +95,7 @@ FORENSIC_TRIGGERS = {
     'volume_ratio_7d_avg': 3.0,           # 거래량 ≥ 7일 평균의 3배
     'whale_movement_supply_pct': 1.0,     # 고래 이동 ≥ 유통 공급의 1%
     'exchange_netflow_supply_pct': 0.5,   # 거래소 순유입 ≥ 유통 공급의 0.5%
+    'report_validity_days': 7,            # FOR 보고서 유효 기간 (일) - BCE-481
 }
 
 # 시장 평균 산출 기준

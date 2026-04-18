@@ -18,7 +18,7 @@ import json
 import os
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 import requests as http_requests
@@ -228,6 +228,45 @@ def register_coming_soon(triggers: list[dict], dry_run: bool = False) -> list[di
 
         if existing_for.data:
             print(f"  {slug}: already has coming_soon FOR report — skip")
+            continue
+
+        # BCE-481: Check for recent published FOR report within validity period
+        validity_days = FORENSIC_TRIGGERS.get('report_validity_days', 7)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=validity_days)
+
+        recent_published = sb.table('project_reports').select('id, published_at') \
+            .eq('project_id', project_id) \
+            .eq('report_type', 'forensic') \
+            .eq('status', 'published') \
+            .gte('published_at', cutoff.isoformat()) \
+            .execute()
+
+        if recent_published.data:
+            print(f"  {slug}: published FOR report within {validity_days}d — cooldown")
+            # Record trigger with cooldown status (no new report)
+            trigger_data = {
+                'project_id': project_id,
+                'slug': slug,
+                'symbol': t['symbol'],
+                'scan_timestamp': scan_ts,
+                'price_usd': t['price_usd'],
+                'price_change_24h': t['price_change_24h'],
+                'market_avg_change_24h': t['market_avg_change_24h'],
+                'relative_deviation': t['relative_deviation'],
+                'volume_24h': t['volume_24h'],
+                'market_cap': t['market_cap'],
+                'triggered': True,
+                'risk_level': 'high' if t['relative_deviation'] >= 20 else 'elevated',
+                'trigger_reasons': json.dumps([
+                    f"relative_deviation_24h: {t['relative_deviation']}% "
+                    f"({'↑' if t['direction'] == 'up' else '↓'} vs market avg {t['market_avg_change_24h']:.1f}%)"
+                ]),
+                'status': 'cooldown',
+            }
+            try:
+                sb.table('forensic_triggers').insert(trigger_data).execute()
+            except Exception as e:
+                print(f"  forensic_trigger (cooldown) 등록 실패 {slug}: {e}")
             continue
 
         # 1. Insert forensic_trigger
