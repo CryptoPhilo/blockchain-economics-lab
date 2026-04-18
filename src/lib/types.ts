@@ -111,7 +111,7 @@ export interface UserLibraryItem {
 
 export type ProjectStatus = 'discovered' | 'under_review' | 'active' | 'monitoring_only' | 'suspended' | 'archived'
 export type ReportType = 'econ' | 'maturity' | 'forensic'
-export type ReportStatus = 'assigned' | 'in_progress' | 'in_review' | 'approved' | 'published' | 'cancelled'
+export type ReportStatus = 'assigned' | 'in_progress' | 'in_review' | 'approved' | 'published' | 'coming_soon' | 'cancelled'
 export type ProjectSubTier = 'single' | 'triple' | 'five' | 'all'
 
 export interface TrackedProject {

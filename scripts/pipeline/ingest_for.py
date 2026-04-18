@@ -495,8 +495,12 @@ def process_for_report(file_info: dict, dry_run: bool = False) -> dict:
     for lang, pdf_path in qa_pass.items():
         try:
             f = gd.upload_file(pdf_path, folder_id=folder_id)
+            file_id = (f or {}).get('id')
+            if not file_id:
+                print(f"  ✗ {lang}: upload returned no file ID — skipping")
+                continue
             url = (f or {}).get('webViewLink') or \
-                f'https://drive.google.com/file/d/{(f or {}).get("id")}/view'
+                f'https://drive.google.com/file/d/{file_id}/view'
             gdrive_urls[lang] = url
             print(f"  ✓ {lang}: {url[:60]}...")
         except Exception as e:
@@ -513,7 +517,7 @@ def process_for_report(file_info: dict, dry_run: bool = False) -> dict:
             # GDrive view URLs are HTML pages, not image URLs — don't use as thumbnail
             # The CSS-based card in ForensicSlideCards renders from card_data instead
             thumb_url = None
-            print(f"  ✓ {thumb_url[:60]}...")
+            print(f"  ✓ Thumbnail uploaded (not used as URL)")
         except Exception as e:
             print(f"  ⚠ Thumbnail upload failed: {e}")
 
