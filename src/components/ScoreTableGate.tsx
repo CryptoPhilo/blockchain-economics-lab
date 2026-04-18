@@ -197,7 +197,7 @@ export default function ScoreTableGate({
                 ECON
               </span>
               {row.reportTypes.includes('econ') && isReportNew(row.reportDates.econ) && (
-                <span className="absolute -top-1 -right-1 text-[8px] px-1 py-0.5 rounded text-red-500 font-bold">
+                <span className="absolute -top-1 -right-1 text-[8px] px-1 py-0.5 rounded bg-black/80 border border-red-500 text-red-500 font-bold shadow-lg">
                   New
                 </span>
               )}
@@ -215,7 +215,7 @@ export default function ScoreTableGate({
                 MAT
               </span>
               {row.reportTypes.includes('maturity') && isReportNew(row.reportDates.maturity) && (
-                <span className="absolute -top-1 -right-1 text-[8px] px-1 py-0.5 rounded text-red-500 font-bold">
+                <span className="absolute -top-1 -right-1 text-[8px] px-1 py-0.5 rounded bg-black/80 border border-red-500 text-red-500 font-bold shadow-lg">
                   New
                 </span>
               )}
@@ -233,7 +233,7 @@ export default function ScoreTableGate({
                 FOR
               </span>
               {row.reportTypes.includes('forensic') && isReportNew(row.reportDates.forensic) && (
-                <span className="absolute -top-1 -right-1 text-[8px] px-1 py-0.5 rounded text-red-500 font-bold">
+                <span className="absolute -top-1 -right-1 text-[8px] px-1 py-0.5 rounded bg-black/80 border border-red-500 text-red-500 font-bold shadow-lg">
                   New
                 </span>
               )}
