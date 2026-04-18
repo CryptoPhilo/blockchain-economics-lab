@@ -8,18 +8,30 @@ interface Props {
   searchParams: Promise<{ page?: string; q?: string }>
 }
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 100 // BCE-379: 200 total / 2 pages = 100 per page
 
 const LANG_NAMES: Record<string, string> = {
   en: 'English', ko: '한국어', ja: '日本語', zh: '中文',
   fr: 'Français', es: 'Español', de: 'Deutsch',
 }
 
-// Forensic report config
-const FORENSIC_CONFIG = {
-  color: 'bg-red-500/20 text-red-400 border-red-500/30',
-  label: 'FOR',
-  icon: '🔍'
+// Report type configs
+const REPORT_CONFIGS = {
+  forensic: {
+    color: 'bg-red-500/20 text-red-400 border-red-500/30',
+    label: 'FOR',
+    icon: '🔍'
+  },
+  econ: {
+    color: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+    label: 'ECON',
+    icon: '📊'
+  },
+  maturity: {
+    color: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+    label: 'MAT',
+    icon: '📈'
+  }
 } as const
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -67,28 +79,18 @@ export default async function ReportsPage({ params, searchParams }: Props) {
   const t = await getTranslations('reports')
   const currentPage = Math.max(1, parseInt(pageStr || '1', 10))
 
-  // Calculate timestamp for 72 hours ago
-  const seventyTwoHoursAgo = new Date()
-  seventyTwoHoursAgo.setHours(seventyTwoHoursAgo.getHours() - 72)
-
   // Build optimized Supabase query with DB-level filters
+  // BCE-379: Show all reports ranked by market cap (top 200, 100 per page)
   // Include both 'published' and 'coming_soon' reports (OPS-007)
-  // FILTER: Only show FOR reports created within last 72 hours (BCE-356)
-  // Note: Use created_at instead of published_at because coming_soon reports have null published_at
   let countQuery = supabase
     .from('project_reports')
     .select('id', { count: 'exact', head: true })
     .in('status', ['published', 'coming_soon'])
-    .eq('report_type', 'forensic')
-    .gte('created_at', seventyTwoHoursAgo.toISOString())
 
   let dataQuery = supabase
     .from('project_reports')
-    .select('*, project:tracked_projects(id, name, slug, symbol, chain, category)')
+    .select('*, project:tracked_projects(id, name, slug, symbol, chain, category, market_cap_usd)')
     .in('status', ['published', 'coming_soon'])
-    .eq('report_type', 'forensic')
-    .gte('created_at', seventyTwoHoursAgo.toISOString())
-    .order('created_at', { ascending: false })
 
   // Apply search filter (title search)
   if (searchQuery && searchQuery.trim()) {
@@ -97,18 +99,27 @@ export default async function ReportsPage({ params, searchParams }: Props) {
     dataQuery = dataQuery.ilike('title_en', q)
   }
 
-  // Pagination
-  const from = (currentPage - 1) * PAGE_SIZE
-  const to = from + PAGE_SIZE - 1
-  dataQuery = dataQuery.range(from, to)
-
-  // Execute both queries in parallel
-  const [{ count: totalCount }, { data: reports }] = await Promise.all([
+  // Execute queries in parallel
+  const [{ count: totalCount }, { data: allReports }] = await Promise.all([
     countQuery,
     dataQuery,
   ])
 
-  const totalPages = Math.ceil((totalCount || 0) / PAGE_SIZE)
+  // Sort by project market cap (descending) for top 200 ranking
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sortedReports = (allReports || []).sort((a: any, b: any) => {
+    const capA = a.project?.market_cap_usd || 0
+    const capB = b.project?.market_cap_usd || 0
+    return Number(capB) - Number(capA)
+  })
+
+  // Limit to top 200 projects by market cap, then paginate
+  const top200Reports = sortedReports.slice(0, 200)
+  const from = (currentPage - 1) * PAGE_SIZE
+  const to = from + PAGE_SIZE
+  const reports = top200Reports.slice(from, to)
+
+  const totalPages = Math.ceil(Math.min(top200Reports.length, 200) / PAGE_SIZE)
 
   // Build filter URL helper (simplified - no type filter)
   function filterUrl(params: { page?: number; q?: string }) {
@@ -126,19 +137,19 @@ export default async function ReportsPage({ params, searchParams }: Props) {
       {/* Header */}
       <div className="mb-10">
         <h1 className="text-4xl font-bold mb-2">
-          🚨 {locale === 'ko' ? '급변동 종목' : 'Rapid Change Alerts'}
+          📊 {locale === 'ko' ? '시가총액 상위 200개 프로젝트' : 'Top 200 Projects by Market Cap'}
         </h1>
         <p className="text-gray-400 mb-3">
           {locale === 'ko'
-            ? '72시간 내에 발행된 포렌식(FOR) 보고서 - 긴급 시장 변화를 놓치지 마세요'
-            : 'Forensic (FOR) reports published within 72 hours - Don\'t miss critical market changes'}
+            ? '시가총액 기준 상위 200개 프로젝트의 ECON, MAT, FOR 리포트'
+            : 'ECON, MAT, and FOR reports for the top 200 projects by market capitalization'}
         </p>
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-          <span className="animate-pulse">🔴</span>
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm">
+          <span>📈</span>
           <span>
             {locale === 'ko'
-              ? `실시간 업데이트 • ${totalCount || 0}건의 최신 보고서`
-              : `Live Updates • ${totalCount || 0} Latest Reports`}
+              ? `전체 ${top200Reports.length}개 프로젝트 • 페이지당 100개`
+              : `${top200Reports.length} Total Projects • 100 per page`}
           </span>
         </div>
       </div>
@@ -194,10 +205,12 @@ export default async function ReportsPage({ params, searchParams }: Props) {
       {reports && reports.length > 0 ? (
         <div className="grid gap-4">
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {reports.map((report: any) => {
+          {reports.map((report: any, index: number) => {
             const project = report.project
-            const config = FORENSIC_CONFIG
+            const reportType = report.report_type as 'forensic' | 'econ' | 'maturity'
+            const config = REPORT_CONFIGS[reportType] || REPORT_CONFIGS.econ
             const title = getLocalizedTitle(report, locale)
+            const marketCapRank = from + index + 1 // Calculate rank based on position
 
             const translationStatus = report.translation_status || {}
             const gdriveUrls = report.gdrive_urls_by_lang || {}
@@ -216,21 +229,27 @@ export default async function ReportsPage({ params, searchParams }: Props) {
             // Use created_at for relative time since published_at may be null for coming_soon reports
             const reportTime = report.published_at || report.created_at
             const relativeTime = reportTime ? formatRelativeTime(reportTime, locale) : null
+            const isRecent = reportTime && (new Date().getTime() - new Date(reportTime).getTime()) < 7 * 24 * 60 * 60 * 1000
 
             return (
               <div
                 key={report.id}
-                className="relative flex flex-col gap-4 p-6 rounded-2xl bg-gradient-to-br from-red-500/5 via-white/[0.03] to-white/[0.03] border border-red-500/20 hover:border-red-500/40 transition-all hover:shadow-lg hover:shadow-red-500/10 scroll-mt-20"
+                className="relative flex flex-col gap-4 p-6 rounded-2xl bg-gradient-to-br from-white/[0.03] via-white/[0.02] to-white/[0.02] border border-white/10 hover:border-white/20 transition-all hover:shadow-lg scroll-mt-20"
               >
-                {/* Fresh indicator */}
-                {relativeTime && (
-                  <div className="absolute top-4 right-4 px-2 py-1 rounded-full bg-red-500/20 text-red-400 text-xs font-semibold">
-                    ⚡ {relativeTime}
+                {/* Market Cap Rank + New Badge */}
+                <div className="absolute top-4 right-4 flex items-center gap-2">
+                  {isRecent && relativeTime && (
+                    <div className="px-2 py-1 rounded-full bg-green-500/20 text-green-400 text-xs font-semibold border border-green-500/30">
+                      ✨ {locale === 'ko' ? '최신' : 'NEW'}
+                    </div>
+                  )}
+                  <div className="px-3 py-1 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-400 text-xs font-bold border border-yellow-500/30">
+                    #{marketCapRank}
                   </div>
-                )}
+                </div>
 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  <div className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase shrink-0 ${config.color} ring-1 ring-red-500/30`}>
+                  <div className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase shrink-0 ${config.color} ring-1`}>
                     {config.icon} {config.label}
                   </div>
                   <div className="flex-1 min-w-0 pr-20 sm:pr-0">
@@ -311,19 +330,19 @@ export default async function ReportsPage({ params, searchParams }: Props) {
         </div>
       ) : (
         <div className="text-center py-20 rounded-2xl bg-white/[0.03] border border-white/5">
-          <div className="text-6xl mb-4">✅</div>
+          <div className="text-6xl mb-4">📊</div>
           <p className="text-gray-400 text-lg mb-2">
             {locale === 'ko'
-              ? '현재 72시간 내 발행된 FOR 보고서가 없습니다'
-              : 'No FOR reports published within the last 72 hours'}
+              ? '검색 결과가 없습니다'
+              : 'No reports found'}
           </p>
           <p className="text-gray-600 text-sm">
             {locale === 'ko'
-              ? '시장이 안정적입니다. 새 보고서가 발행되면 여기에 표시됩니다.'
-              : 'The market is stable. New reports will appear here when published.'}
+              ? '다른 검색어로 시도해보세요'
+              : 'Try different search terms'}
           </p>
           {searchQuery && (
-            <Link href={`/${locale}/reports`} className="text-red-400 hover:text-red-300 mt-4 inline-block">
+            <Link href={`/${locale}/reports`} className="text-blue-400 hover:text-blue-300 mt-4 inline-block">
               {locale === 'ko' ? '필터 초기화' : 'Clear filters'} →
             </Link>
           )}
@@ -381,18 +400,18 @@ export default async function ReportsPage({ params, searchParams }: Props) {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div>
             <h3 className="text-lg font-semibold text-white mb-2">
-              {locale === 'ko' ? '급변동 종목이란?' : 'What are Rapid Change Alerts?'}
+              {locale === 'ko' ? '리포트 유형' : 'Report Types'}
             </h3>
-            <p className="text-sm text-gray-500 max-w-2xl">
-              {locale === 'ko'
-                ? 'FOR(포렌식) 보고서는 시장에서 급격한 변화가 감지된 프로젝트를 심층 분석합니다. 72시간 이내 생성된 보고서는 현재 진행 중인 중요한 시장 이벤트를 나타냅니다.'
-                : 'FOR (Forensic) reports provide deep analysis of projects with detected rapid market changes. Reports created within 72 hours indicate ongoing critical market events.'}
-            </p>
+            <div className="text-sm text-gray-500 max-w-2xl space-y-2">
+              <p><span className="text-blue-400 font-semibold">📊 ECON</span> - {locale === 'ko' ? '경제 분석 리포트' : 'Economic Analysis Reports'}</p>
+              <p><span className="text-purple-400 font-semibold">📈 MAT</span> - {locale === 'ko' ? '성숙도 분석 리포트' : 'Maturity Analysis Reports'}</p>
+              <p><span className="text-red-400 font-semibold">🔍 FOR</span> - {locale === 'ko' ? '포렌식 분석 리포트 (급변동 종목)' : 'Forensic Analysis Reports (Rapid Changes)'}</p>
+            </div>
           </div>
-          <div className="text-center px-6 py-4 rounded-xl bg-red-500/10 border border-red-500/20">
-            <div className="text-3xl font-bold text-red-400 mb-1">{totalCount || 0}</div>
+          <div className="text-center px-6 py-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
+            <div className="text-3xl font-bold text-blue-400 mb-1">{top200Reports.length}</div>
             <div className="text-xs text-gray-500 uppercase">
-              {locale === 'ko' ? '최근 72시간' : 'Last 72 Hours'}
+              {locale === 'ko' ? '상위 프로젝트' : 'Top Projects'}
             </div>
           </div>
         </div>
