@@ -123,6 +123,8 @@ def classify_body_lines(body: str) -> List[Tuple[str, str]]:
       'table_row' — | cell | cell | (translate cell contents)
       'code_fence'— ``` or ~~~ (preserve)
       'code_line' — inside code block (preserve)
+      'math_fence'— $$ delimiter line (preserve)
+      'math_line' — inside $$...$$ block (preserve)
       'link_line' — [text](url) pure link (translate text, preserve url)
       'empty'     — blank line (preserve)
       'text'      — normal text (translate)
@@ -133,9 +135,20 @@ def classify_body_lines(body: str) -> List[Tuple[str, str]]:
     lines = body.split('\n')
     classified = []
     in_code_block = False
+    in_math_block = False
 
     for line in lines:
         stripped = line.strip()
+
+        # Math block ($$) toggle — must check before code fence
+        if stripped == '$$' and not in_code_block:
+            in_math_block = not in_math_block
+            classified.append(('math_fence', line))
+            continue
+
+        if in_math_block:
+            classified.append(('math_line', line))
+            continue
 
         # Code fence toggle
         if stripped.startswith('```') or stripped.startswith('~~~'):
@@ -323,10 +336,21 @@ _PRESERVE_TOKENS = [
 
 
 def _protect_tokens(text: str) -> tuple:
-    """Replace token symbols with numbered placeholders before translation."""
+    """Replace token symbols and inline math with numbered placeholders before translation."""
     protected = text
     mapping = {}
     counter = 0
+
+    # Protect inline $...$ and $$...$$ math expressions first
+    def _protect_math(m):
+        nonlocal counter
+        placeholder = f'⟦TK{counter}⟧'
+        mapping[placeholder] = m.group(0)
+        counter += 1
+        return placeholder
+    protected = re.sub(r'\$\$[\s\S]*?\$\$', _protect_math, protected)
+    protected = re.sub(r'\$[^\n$]+?\$', _protect_math, protected)
+
     for token in _PRESERVE_TOKENS:
         if token in protected:
             placeholder = f'⟦TK{counter}⟧'
@@ -626,7 +650,7 @@ def translate_body(body: str, target_lang: str, translate_fn, batch: bool = True
 def _translate_line(line_type: str, line: str, target_lang: str, translate_fn) -> str:
     """Translate a single classified line."""
 
-    if line_type in ('code_fence', 'code_line', 'table_sep', 'empty', 'html'):
+    if line_type in ('code_fence', 'code_line', 'math_fence', 'math_line', 'table_sep', 'empty', 'html'):
         return line  # preserve as-is
 
     if line_type == 'header':
@@ -720,7 +744,7 @@ def _translate_body_batch(classified: List[Tuple[str, str]], target_lang: str) -
         if i in trans_map:
             # Reconstruct with original formatting
             result_lines.append(_reconstruct_line(line_type, line, trans_map[i]))
-        elif line_type in ('code_fence', 'code_line', 'table_sep', 'empty', 'html'):
+        elif line_type in ('code_fence', 'code_line', 'math_fence', 'math_line', 'table_sep', 'empty', 'html'):
             result_lines.append(line)
         elif line_type == 'table_row':
             # Per-cell Claude translation with pipe-sanitization.

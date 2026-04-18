@@ -155,11 +155,49 @@ def _apply_semantic_colors(text):
     return text
 
 
+def _latex_to_text(latex: str) -> str:
+    """Convert LaTeX math expression to readable plain text for PDF."""
+    s = latex.strip().strip('$').strip()
+    replacements = [
+        ('\\Delta', '\u0394'), ('\\Sigma', '\u03A3'), ('\\Pi', '\u03A0'),
+        ('\\alpha', '\u03B1'), ('\\beta', '\u03B2'), ('\\gamma', '\u03B3'),
+        ('\\delta', '\u03B4'), ('\\epsilon', '\u03B5'), ('\\lambda', '\u03BB'),
+        ('\\mu', '\u03BC'), ('\\sigma', '\u03C3'), ('\\pi', '\u03C0'),
+        ('\\theta', '\u03B8'), ('\\omega', '\u03C9'), ('\\phi', '\u03C6'),
+        ('\\times', '\u00D7'), ('\\cdot', '\u00B7'), ('\\pm', '\u00B1'),
+        ('\\leq', '\u2264'), ('\\geq', '\u2265'), ('\\neq', '\u2260'),
+        ('\\approx', '\u2248'), ('\\infty', '\u221E'),
+        ('\\sum', '\u03A3'), ('\\prod', '\u03A0'),
+        ('\\rightarrow', '\u2192'), ('\\leftarrow', '\u2190'),
+        ('\\sqrt', '\u221A'),
+    ]
+    for pat, repl in replacements:
+        s = s.replace(pat, repl)
+    s = re.sub(r'\\text\{([^}]*)\}', r'\1', s)
+    s = re.sub(r'\\(?:mathrm|mathit|mathbf)\{([^}]*)\}', r'\1', s)
+    s = re.sub(r'\\frac\{([^}]*)\}\{([^}]*)\}', r'(\1 / \2)', s)
+    s = re.sub(r'\\(?:left|right|Big|big)[{}()|]?', '', s)
+    s = re.sub(r'\\sqrt\{([^}]*)\}', '\u221A(\\1)', s)
+    s = re.sub(r'\\[a-zA-Z]+', '', s)
+    s = re.sub(r'[{}]', '', s)
+    s = re.sub(r'\\', '', s)
+    return s.strip()
+
+
 def _md_to_rl(text, lang='en'):
     """Convert markdown inline formatting to ReportLab XML tags.
     Handles Google Docs export patterns like \\*\\*bold\\*\\* and regular **bold**.
     """
-    # Step 0: Strip triple-backtick code fences (keep content as plain text)
+    # Step 0a: Extract $$...$$ math blocks before any backslash processing
+    math_placeholders = {}
+    def _replace_math(m):
+        key = f'\x00MATH{len(math_placeholders)}\x00'
+        math_placeholders[key] = f'<i>{_latex_to_text(m.group(0))}</i>'
+        return key
+    text = re.sub(r'\$\$[\s\S]*?\$\$', _replace_math, text)
+    text = re.sub(r'\$[^\n$]+?\$', _replace_math, text)
+
+    # Step 0b: Strip triple-backtick code fences (keep content as plain text)
     text = re.sub(r'```[a-zA-Z0-9_-]*\n?', '', text)
     text = re.sub(r'``\s*([\s\S]*?)\s*``', r'\1', text)
 
@@ -220,6 +258,10 @@ def _md_to_rl(text, lang='en'):
 
     # Step 8: Apply semantic colors to specific bold labels
     text = _apply_semantic_colors(text)
+
+    # Step 9: Restore math placeholders
+    for key, rendered in math_placeholders.items():
+        text = text.replace(key, rendered)
 
     return text
 

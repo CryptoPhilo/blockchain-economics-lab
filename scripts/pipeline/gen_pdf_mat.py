@@ -121,7 +121,17 @@ def _md_to_rl(text, lang='en'):
     (keeping content as plain text), wraps CJK runs in font tags for
     universal glyph coverage.
     """
-    # 0. Strip triple-backtick code fences (keep content)
+    # 0a. Extract $$...$$ and $...$ math blocks before backslash processing
+    from gen_pdf_econ import _latex_to_text
+    math_placeholders = {}
+    def _replace_math(m):
+        key = f'\x00MATH{len(math_placeholders)}\x00'
+        math_placeholders[key] = f'<i>{_latex_to_text(m.group(0))}</i>'
+        return key
+    text = re.sub(r'\$\$[\s\S]*?\$\$', _replace_math, text)
+    text = re.sub(r'\$[^\n$]+?\$', _replace_math, text)
+
+    # 0b. Strip triple-backtick code fences (keep content)
     text = re.sub(r'```[a-zA-Z0-9_-]*\n?', '', text)
     # Also handle double-backtick spans: keep content without font swap
     text = re.sub(r'``\s*([\s\S]*?)\s*``', r'\1', text)
@@ -179,6 +189,11 @@ def _md_to_rl(text, lang='en'):
     # 8. Remove empty tags
     text = re.sub(r'<i>\s*</i>', '', text)
     text = re.sub(r'<b>\s*</b>', '', text)
+
+    # 9. Restore math placeholders
+    for key, rendered in math_placeholders.items():
+        text = text.replace(key, rendered)
+
     return text
 
 
