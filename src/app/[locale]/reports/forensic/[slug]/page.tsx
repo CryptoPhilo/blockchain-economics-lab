@@ -204,11 +204,13 @@ export default async function ForensicReportPage({ params }: Props) {
 
           {hasReport ? (
             <div className="flex flex-col gap-4">
-              <p className="text-gray-400 text-sm mb-2">
-                {locale === 'ko'
-                  ? '전문 보고서를 받으시려면 이메일을 입력해 주세요'
-                  : 'Enter your email to receive the full report'}
-              </p>
+              <div className="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl mb-2">
+                <p className="text-indigo-300 text-center text-sm">
+                  {locale === 'ko'
+                    ? '💡 이 미리보기가 유용하셨나요? 전문 PDF 보고서를 무료로 받아보세요.'
+                    : '💡 Found this preview helpful? Get the full PDF report for free.'}
+                </p>
+              </div>
               <GatedDownloadButton
                 reportId={report.id}
                 downloadUrl={primaryUrl}
