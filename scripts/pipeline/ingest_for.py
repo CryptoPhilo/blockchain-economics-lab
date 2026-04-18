@@ -27,6 +27,7 @@ import os
 import re
 import sys
 import time
+import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -266,8 +267,11 @@ def scan_for_drafts(filter_slug: str = None) -> list[dict]:
             print(f"    [SKIP] {name} — filename doesn't match slug pattern")
             continue
         slug = slug_match.group(1).lower().replace(' ', '-').replace('_', '-')
+        # macOS GDrive API returns NFD-normalized filenames; normalize to NFC
+        # to ensure consistent slug comparison across platforms
+        slug = unicodedata.normalize('NFC', slug)
 
-        if filter_slug and slug != filter_slug:
+        if filter_slug and unicodedata.normalize('NFC', filter_slug) != slug:
             continue
 
         is_retry = entry is not None and entry.get('status') not in (None, 'dry_run')
@@ -563,6 +567,8 @@ def _resolve_project_slug(sb, raw_slug: str) -> tuple:
     Tries: exact slug match → symbol match → name substring match.
     Returns (project_id, canonical_slug) or (None, None).
     """
+    # Normalize to NFC — GDrive filenames may be NFD on macOS
+    raw_slug = unicodedata.normalize('NFC', raw_slug)
     # 1. Direct slug match
     proj = sb.table('tracked_projects').select('id, slug').eq('slug', raw_slug).execute()
     if proj.data:

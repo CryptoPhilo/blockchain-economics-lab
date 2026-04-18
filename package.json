@@ -14,6 +14,7 @@
     "@stripe/stripe-js": "^9.1.0",
     "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.102.1",
+    "dotenv": "^17.4.2",
     "ethers": "^6.16.0",
     "lucide-react": "^1.7.0",
     "next": "16.2.2",

@@ -123,6 +123,14 @@ KNOWN_PROJECTS = {
     'tether-gold': '테더 골드', 'cronos': '크로노스',
     'memecore': 'MemeCore',
     'pi-network': '파이 네트워크', 'okx': 'OKX',
+    # ── 2026-04-16 추가: econ pipeline 신규 프로젝트 ──
+    'dexe': 'DeXe', 'filecoin': '파일코인', 'morpho': 'Morpho',
+    'gatechain': '게이트체인', 'cosmos': '코스모스', 'kaspa': '카스파',
+    'render-token': '렌더', 'quant-network': 'QNT', 'kcc': 'KCC',
+    'ethereum-classic': '이더리움클래식', 'rlusd': 'RLUSD',
+    'bitget-token': '비트겟', 'pepe': '페페', 'usdd': 'USDD',
+    'astar': 'Aster', 'ravedao': 'RaveDAO',
+    'unstoppable-domains': 'UD',
 }
 
 # 한글명 → slug 역매핑 (파일명에서 한글 종목명 추출에 사용)
@@ -150,6 +158,11 @@ KNOWN_NAMES_KO.update({
     '맨틀 네트워크': 'mantle', '맨틀': 'mantle',
     '테더 골드': 'tether-gold', '크로노스': 'cronos',
     '파이 네트워크': 'pi-network', '파이네트워크': 'pi-network',
+    # ── 2026-04-16 추가 ──
+    '게이트체인': 'gatechain', '코스모스': 'cosmos', '카스파': 'kaspa',
+    '렌더': 'render-token', '파일코인': 'filecoin',
+    '이더리움클래식': 'ethereum-classic', '비트겟': 'bitget-token',
+    '페페': 'pepe',
 })
 
 # 영문명 역매핑 (본문/파일명에서 영문으로 언급하는 경우)
@@ -212,6 +225,22 @@ KNOWN_NAMES_EN = {
     'memecore': 'memecore',
     'pi network': 'pi-network', 'pi': 'pi-network',
     'okx': 'okx', 'okb': 'okx', 'okex': 'okx',
+    # ── 2026-04-16 추가 ──
+    'dexe': 'dexe', 'filecoin': 'filecoin', 'fil': 'filecoin',
+    'morpho': 'morpho', 'gatechain': 'gatechain', 'gate': 'gatechain', 'gt': 'gatechain',
+    'cosmos': 'cosmos', 'atom': 'cosmos',
+    'kaspa': 'kaspa', 'kas': 'kaspa',
+    'render': 'render-token', 'rndr': 'render-token',
+    'quant': 'quant-network', 'qnt': 'quant-network',
+    'kcc': 'kcc', 'kucoin': 'kcc',
+    'ethereum classic': 'ethereum-classic', 'etc': 'ethereum-classic',
+    'rlusd': 'rlusd', 'ripple usd': 'rlusd',
+    'bitget': 'bitget-token', 'bgb': 'bitget-token',
+    'pepe': 'pepe',
+    'usdd': 'usdd',
+    'aster': 'astar', 'astar': 'astar', 'astr': 'astar',
+    'ravedao': 'ravedao', 'rave': 'ravedao',
+    'unstoppable domains': 'unstoppable-domains', 'ud': 'unstoppable-domains',
 }
 
 
@@ -343,7 +372,7 @@ def parse_md_filename(name: str) -> dict:
     m = re.match(r'^(.+?)_(econ|mat|for)_v(\d+)$', clean, re.IGNORECASE)
     if m:
         return {
-            'slug': m.group(1).lower().replace(' ', '-'),
+            'slug': unicodedata.normalize('NFC', m.group(1).lower().replace(' ', '-')),
             'report_type': m.group(2).lower(),
             'version': int(m.group(3)),
             'raw_name': name,
@@ -353,7 +382,7 @@ def parse_md_filename(name: str) -> dict:
     m2 = re.match(r'^(.+?)_(econ|mat|for)$', clean, re.IGNORECASE)
     if m2:
         return {
-            'slug': m2.group(1).lower().replace(' ', '-'),
+            'slug': unicodedata.normalize('NFC', m2.group(1).lower().replace(' ', '-')),
             'report_type': m2.group(2).lower(),
             'version': 1,
             'raw_name': name,
@@ -385,7 +414,7 @@ def parse_md_filename(name: str) -> dict:
     # ── Fallback: use first meaningful part as slug ──
     parts = clean.split('_')
     return {
-        'slug': parts[0].lower().replace(' ', '-'),
+        'slug': unicodedata.normalize('NFC', parts[0].lower().replace(' ', '-')),
         'report_type': 'econ',
         'version': 1,
         'raw_name': name,
@@ -441,8 +470,15 @@ def identify_project(slug: str, md_text: str) -> dict:
     """
     Identify the target project from filename slug + content analysis.
     Returns dict with 'slug', 'name_ko', 'name_en', 'confidence'.
+
+    Priority:
+      1. Exact slug match in KNOWN_PROJECTS → high confidence
+      2. Clean English slug from filename (not a Korean fallback) → medium confidence
+         (trusted over content analysis which tends to pick 'ethereum' for all reports)
+      3. Content-based keyword counting → only for ambiguous/Korean fallback slugs
+      4. Fallback: slug as-is → low confidence
     """
-    # 1) Direct slug match
+    # 1) Direct slug match in KNOWN_PROJECTS
     if slug in KNOWN_PROJECTS:
         name_ko = KNOWN_PROJECTS[slug]
         name_en = slug.replace('-', ' ').title()
@@ -453,11 +489,27 @@ def identify_project(slug: str, md_text: str) -> dict:
             'confidence': 'high',
         }
 
-    # 2) Content-based detection: count keyword mentions
+    # 2) If slug is a clean English identifier from filename parsing, trust it.
+    #    Content-based detection is unreliable — common tokens like "ethereum"
+    #    appear in nearly every crypto report and dominate keyword counts.
+    _is_clean_english_slug = (
+        slug
+        and len(slug) <= 40
+        and re.match(r'^[a-z0-9][a-z0-9\-]*$', slug)
+    )
+    if _is_clean_english_slug:
+        name_en = slug.replace('-', ' ').title()
+        return {
+            'slug': slug,
+            'name_ko': name_en,
+            'name_en': name_en,
+            'confidence': 'medium',
+        }
+
+    # 3) Content-based detection (for Korean/ambiguous slugs only)
     text_lower = md_text.lower()
     scores = {}
     for keyword, proj_slug in KNOWN_NAMES_EN.items():
-        # Count mentions (word boundary matching)
         count = len(re.findall(rf'\b{re.escape(keyword)}\b', text_lower))
         if count > 0:
             scores[proj_slug] = scores.get(proj_slug, 0) + count
@@ -466,7 +518,7 @@ def identify_project(slug: str, md_text: str) -> dict:
     for proj_slug, name_ko in KNOWN_PROJECTS.items():
         count = md_text.count(name_ko)
         if count > 0:
-            scores[proj_slug] = scores.get(proj_slug, 0) + count * 2  # Korean names weighted 2x
+            scores[proj_slug] = scores.get(proj_slug, 0) + count * 2
 
     if scores:
         best = max(scores, key=scores.get)
@@ -480,7 +532,7 @@ def identify_project(slug: str, md_text: str) -> dict:
             'confidence': confidence,
         }
 
-    # 3) Fallback: use slug as-is
+    # 4) Fallback: use slug as-is
     return {
         'slug': slug,
         'name_ko': slug.replace('-', ' ').title(),
