@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { fetchCoinGeckoPrices } from '@/lib/coingecko'
+import { fetchCMCPrices } from '@/lib/coinmarketcap'
 import ScoreTableGate from '@/components/ScoreTableGate'
 import SubscribeForm from '@/components/SubscribeForm'
 
@@ -18,12 +19,12 @@ export default async function ScorePage({ params }: { params: Promise<{ locale: 
   const t = await getTranslations()
   const supabase = await createServerSupabaseClient()
 
-  // Fetch all active tracked projects
+  // Fetch all active tracked projects (including cmc_id for fallback)
   const { data: projects } = await supabase
     .from('tracked_projects')
     .select(`
       id, name, slug, symbol, category,
-      market_cap_usd, coingecko_id, maturity_score,
+      market_cap_usd, coingecko_id, cmc_id, maturity_score,
       last_econ_report_at, last_maturity_report_at, last_forensic_report_at
     `)
     .in('status', ['active', 'monitoring_only'])
@@ -31,18 +32,38 @@ export default async function ScorePage({ params }: { params: Promise<{ locale: 
 
   const allProjects = projects || []
 
-  // Fetch real-time price data from CoinGecko
+  // Waterfall approach: CoinGecko → CoinMarketCap → DB cache
+
+  // Step 1: Fetch CoinGecko data for all projects with coingecko_id
   const coingeckoIds = allProjects
     .map((p) => p.coingecko_id)
     .filter((id): id is string => !!id)
 
-  const priceData = await fetchCoinGeckoPrices([...new Set(coingeckoIds)])
+  const cgPriceData = await fetchCoinGeckoPrices([...new Set(coingeckoIds)])
 
-  // Build ranked rows by market cap (CoinGecko market cap preferred, DB fallback)
+  // Step 2: Identify projects without CoinGecko data and fetch from CMC
+  const projectsNeedingCMC = allProjects.filter(
+    (p) => p.cmc_id && (!p.coingecko_id || !cgPriceData[p.coingecko_id])
+  )
+
+  const cmcIds = projectsNeedingCMC
+    .map((p) => p.cmc_id)
+    .filter((id): id is string => !!id)
+
+  const cmcPriceData = await fetchCMCPrices([...new Set(cmcIds)])
+
+  // Step 3: Merge price data (CoinGecko takes precedence)
+  const priceData = { ...cgPriceData }
+
+  // Build ranked rows by market cap (waterfall: CoinGecko → CMC → DB)
   const rows = allProjects
     .map((p) => {
+      // Try CoinGecko first, then CMC, then DB
       const cgData = p.coingecko_id ? priceData[p.coingecko_id] : undefined
-      const marketCap = cgData?.usd_market_cap || p.market_cap_usd || 0
+      const cmcData = p.cmc_id ? cmcPriceData[p.cmc_id] : undefined
+      const liveData = cgData || cmcData
+
+      const marketCap = liveData?.usd_market_cap || p.market_cap_usd || 0
 
       const reportTypes: string[] = []
       if (p.last_econ_report_at) reportTypes.push('econ')
@@ -53,8 +74,8 @@ export default async function ScorePage({ params }: { params: Promise<{ locale: 
         name: p.name,
         symbol: p.symbol,
         slug: p.slug,
-        price: cgData?.usd ?? null,
-        change24h: cgData?.usd_24h_change ?? null,
+        price: liveData?.usd ?? null,
+        change24h: liveData?.usd_24h_change ?? null,
         marketCap,
         score: p.maturity_score ?? null,
         category: p.category || '',
