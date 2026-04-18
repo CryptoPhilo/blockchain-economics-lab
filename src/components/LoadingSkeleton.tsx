@@ -82,4 +82,21 @@ export function CardSkeleton({ count = 1 }: { count?: number }) {
   )
 }
 
+export function ListSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <div className="space-y-3">
+      {Array.from({ length: count }, (_, i) => (
+        <div key={i} className="p-4 rounded-xl bg-white/5 border border-white/5 flex items-center gap-4">
+          <div className="h-10 w-10 bg-white/5 rounded-lg shrink-0" />
+          <div className="flex-1 space-y-2">
+            <div className="h-4 w-48 bg-white/5 rounded" />
+            <div className="h-3 w-32 bg-white/5 rounded" />
+          </div>
+          <div className="h-8 w-20 bg-white/5 rounded-lg" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default LoadingSkeleton

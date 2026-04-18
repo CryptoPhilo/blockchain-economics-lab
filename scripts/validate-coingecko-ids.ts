@@ -48,7 +48,7 @@ interface ValidationResult {
   status: 'found' | 'not_found' | 'invalid' | 'already_valid' | 'error'
   candidateId?: string
   validatedId?: string
-  priceData?: any
+  priceData?: Record<string, unknown>
   error?: string
 }
 
@@ -76,7 +76,7 @@ async function searchCoinGecko(name: string, symbol: string): Promise<string | n
     }
 
     // Try exact symbol match first
-    const exactMatch = data.coins.find((coin: any) =>
+    const exactMatch = data.coins.find((coin: { id: string; symbol: string; name: string }) =>
       coin.symbol.toLowerCase() === symbol.toLowerCase()
     )
 
@@ -85,7 +85,7 @@ async function searchCoinGecko(name: string, symbol: string): Promise<string | n
     }
 
     // Try exact name match
-    const exactNameMatch = data.coins.find((coin: any) =>
+    const exactNameMatch = data.coins.find((coin: { id: string; symbol: string; name: string }) =>
       coin.name.toLowerCase() === name.toLowerCase()
     )
 
