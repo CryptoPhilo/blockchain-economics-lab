@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
+import GatedDownloadButton from '@/components/GatedDownloadButton'
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>
@@ -167,6 +168,15 @@ export default async function ForensicReportPage({ params }: Props) {
 
       {/* Content */}
       <div className="max-w-5xl mx-auto px-6 py-12">
+        {/* CTA banner */}
+        <div className="mb-6 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+          <p className="text-indigo-300 text-center">
+            💡 {locale === 'ko'
+              ? '이 미리보기가 유용하셨나요? 전문 PDF 보고서(30+ 페이지)를 무료로 받아보세요.'
+              : 'Found this preview helpful? Get the full PDF report (30+ pages) for free.'}
+          </p>
+        </div>
+
         {/* Keywords */}
         {keywords.length > 0 && (
           <div className="mb-10">
@@ -194,17 +204,19 @@ export default async function ForensicReportPage({ params }: Props) {
 
           {hasReport ? (
             <div className="flex flex-col gap-4">
-              {/* Primary download: locale-specific or fallback */}
-              <a
-                href={primaryUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-xl transition-colors w-fit"
-              >
-                📄 {t('viewReport')}
-              </a>
+              <p className="text-gray-400 text-sm mb-2">
+                {locale === 'ko'
+                  ? '전문 보고서를 받으시려면 이메일을 입력해 주세요'
+                  : 'Enter your email to receive the full report'}
+              </p>
+              <GatedDownloadButton
+                reportId={report.id}
+                downloadUrl={primaryUrl}
+                locale={locale}
+                label={locale === 'ko' ? '전문 PDF 받기' : 'Get Full PDF'}
+              />
 
-              {/* Other language versions */}
+              {/* Other language versions (shown after unlock via sessionStorage) */}
               {urlsByLang && Object.keys(urlsByLang).length > 1 && (
                 <div className="flex flex-wrap gap-2 mt-1">
                   <span className="text-sm text-gray-500 self-center mr-1">

@@ -1,7 +1,6 @@
 import { getTranslations } from 'next-intl/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import Link from 'next/link'
-import GatedDownloadButton from '@/components/GatedDownloadButton'
 
 interface Props {
   params: Promise<{ locale: string }>
@@ -241,19 +240,12 @@ export default async function ReportsPage({ params, searchParams }: Props) {
                     <span className="px-4 py-2 bg-amber-500/10 text-amber-400 text-sm font-medium rounded-lg border border-amber-500/20 cursor-default shrink-0">
                       🔜 Coming Soon
                     </span>
-                  ) : resolveUrl(gdriveUrls[locale]) || resolveUrl(gdriveUrls['en']) ? (
-                    <GatedDownloadButton
-                      reportId={report.id}
-                      downloadUrl={(resolveUrl(gdriveUrls[locale]) || resolveUrl(gdriveUrls['en']))!}
-                      locale={locale}
-                      label={t('downloadPdf')}
-                    />
                   ) : project ? (
                     <Link
-                      href={`/${locale}/projects/${project.slug}`}
-                      className="px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white text-sm font-medium rounded-lg transition-colors shrink-0"
+                      href={`/${locale}/reports/forensic/${project.slug}`}
+                      className="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 text-sm font-medium rounded-lg transition-colors shrink-0 border border-red-500/30"
                     >
-                      {t('viewProject')} →
+                      {locale === 'ko' ? '보고서 상세' : 'Report Details'} →
                     </Link>
                   ) : null}
                 </div>
