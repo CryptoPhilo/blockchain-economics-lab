@@ -42,10 +42,9 @@ if _env.exists():
             k, v = line.split('=', 1)
             os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
 
-os.environ.setdefault(
-    'GDRIVE_SERVICE_ACCOUNT_JSON',
-    str(Path(__file__).resolve().parent / '.gdrive_service_account.json'),
-)
+_sa_path = str(Path(__file__).resolve().parent / '.gdrive_service_account.json')
+os.environ.setdefault('GDRIVE_SERVICE_ACCOUNT_JSON', _sa_path)
+os.environ.setdefault('GDRIVE_SERVICE_ACCOUNT_FILE', _sa_path)
 
 from config import LANGUAGES, OUTPUT_DIR, report_filename
 from translate_md import translate_md_file
