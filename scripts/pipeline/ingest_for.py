@@ -455,20 +455,33 @@ def process_for_report(file_info: dict, dry_run: bool = False) -> dict:
         # Build trigger_data from file_info or Supabase
         trigger_info = file_info.get('trigger_data', {})
         if not trigger_info:
-            # Try to get from Supabase
             try:
                 _sb = _get_supabase_client()
                 if _sb:
-                    from gen_for_card import _resolve_project_slug  # noqa: F811
-                    _pid, _cslug = _resolve_project_slug(_sb, slug)
-                    if _pid:
+                    # Strategy 1: query forensic_triggers directly by slug
+                    _symbol = file_info.get('symbol', slug.split('-')[0]).upper()
+                    for _q_field, _q_val in [('slug', slug), ('symbol', _symbol)]:
                         _ft = _sb.table('forensic_triggers').select('*') \
-                            .eq('project_id', _pid).order('created_at', desc=True) \
+                            .eq(_q_field, _q_val).order('created_at', desc=True) \
                             .limit(1).execute()
                         if _ft.data:
                             trigger_info = _ft.data[0]
-            except Exception:
-                pass
+                            print(f"  ✓ trigger_data resolved via {_q_field}={_q_val}")
+                            break
+                    # Strategy 2: fallback to project_id lookup
+                    if not trigger_info:
+                        _pid, _cslug = _resolve_project_slug(_sb, slug)
+                        if _pid:
+                            _ft = _sb.table('forensic_triggers').select('*') \
+                                .eq('project_id', _pid).order('created_at', desc=True) \
+                                .limit(1).execute()
+                            if _ft.data:
+                                trigger_info = _ft.data[0]
+                                print(f"  ✓ trigger_data resolved via project_id")
+                    if not trigger_info:
+                        print(f"  ⚠ No trigger_data found for slug={slug}, symbol={_symbol}")
+            except Exception as e:
+                print(f"  ⚠ trigger_data lookup failed: {e}")
 
         en_md = translated.get('en')
         card_result = generate_for_card(
