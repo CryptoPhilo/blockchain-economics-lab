@@ -112,7 +112,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           if [ -f "scripts/pipeline/output/_for_processed.json" ]; then
-            git add scripts/pipeline/output/_for_processed.json
+            git add -f scripts/pipeline/output/_for_processed.json
 
             if git diff --staged --quiet; then
               echo "No changes to processed files tracker"
