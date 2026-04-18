@@ -132,36 +132,36 @@ export default function ScoreTableGate({
     return (
       <tr
         key={row.rank}
-        className={`border-b border-white/5 ${blurred ? 'select-none' : 'hover:bg-white/[0.02]'}`}
+        className={`border-b border-white/5 ${blurred ? 'select-none' : 'hover:bg-white/[0.05] transition-colors duration-150 cursor-pointer'}`}
         style={blurred ? { filter: 'blur(5px)', pointerEvents: 'none' } : undefined}
       >
         {/* Rank */}
-        <td className="py-3 px-2 text-center text-gray-500 text-sm font-mono w-12">
+        <td className="py-4 px-3 text-center text-gray-500 text-sm font-mono w-12">
           {row.rank}
         </td>
 
         {/* Name + Symbol */}
-        <td className="py-3 px-2 pr-1">
-          <div className="flex items-center gap-2">
+        <td className="py-4 pl-4 pr-3">
+          <div className="flex items-center gap-3">
             <div>
-              <span className="font-semibold text-white text-sm">{row.name}</span>
-              <span className="text-gray-500 text-xs ml-1.5">{row.symbol}</span>
+              <div className="font-bold text-white text-base mb-0.5">{row.name}</div>
+              <div className="text-gray-500 text-xs font-medium uppercase">{row.symbol}</div>
             </div>
           </div>
         </td>
 
         {/* Market Cap */}
-        <td className="py-3 px-2 text-right text-sm text-white font-mono">
+        <td className="py-4 px-3 text-right text-sm text-white font-mono">
           {row.marketCap > 0 ? formatMarketCap(row.marketCap) : '-'}
         </td>
 
         {/* Price */}
-        <td className="py-3 px-2 text-right text-sm text-white font-mono hidden sm:table-cell">
+        <td className="py-4 px-3 text-right text-sm text-white font-mono hidden sm:table-cell">
           {row.price != null ? formatPrice(row.price) : '-'}
         </td>
 
         {/* 24h Change */}
-        <td className="py-3 px-2 text-right text-sm font-mono hidden sm:table-cell">
+        <td className="py-4 px-3 text-right text-sm font-mono hidden sm:table-cell">
           {row.change24h != null ? (
             <span className={row.change24h >= 0 ? 'text-green-400' : 'text-red-400'}>
               {row.change24h >= 0 ? '+' : ''}{row.change24h.toFixed(2)}%
@@ -172,7 +172,7 @@ export default function ScoreTableGate({
         </td>
 
         {/* BCE Score */}
-        <td className="py-3 px-2 text-right hidden md:table-cell">
+        <td className="py-4 px-3 text-right hidden md:table-cell">
           {row.score != null ? (
             <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${getScoreColor(row.score)} ${getScoreBg(row.score)}`}>
               {row.score.toFixed(1)}
@@ -183,19 +183,23 @@ export default function ScoreTableGate({
         </td>
 
         {/* Report Badges */}
-        <td className="py-3 px-2">
+        <td className="py-4 px-3">
           <div className="flex gap-1 justify-end">
             {/* ECON Badge */}
             <div className="relative">
-              <span
-                className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
-                  row.reportTypes.includes('econ')
-                    ? 'bg-blue-500/15 text-blue-400 cursor-pointer hover:bg-blue-500/25'
-                    : 'bg-gray-500/10 text-gray-600 cursor-not-allowed'
-                }`}
-              >
-                ECON
-              </span>
+              {row.reportTypes.includes('econ') ? (
+                <a
+                  href={`/${locale}/reports/${row.slug}/econ`}
+                  className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-blue-500/15 text-blue-400 hover:bg-blue-500/30 transition-colors"
+                  title={isKo ? 'ECON 보고서 보기' : 'View ECON Report'}
+                >
+                  ECON
+                </a>
+              ) : (
+                <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-gray-500/10 text-gray-600 cursor-not-allowed">
+                  ECON
+                </span>
+              )}
               {row.reportTypes.includes('econ') && isReportNew(row.reportDates.econ) && (
                 <span className="absolute -top-1 -right-1 text-[8px] px-1 py-0.5 rounded bg-black/80 border border-red-500 text-red-500 font-bold shadow-lg">
                   New
@@ -205,15 +209,19 @@ export default function ScoreTableGate({
 
             {/* MAT Badge */}
             <div className="relative">
-              <span
-                className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
-                  row.reportTypes.includes('maturity')
-                    ? 'bg-green-500/15 text-green-400 cursor-pointer hover:bg-green-500/25'
-                    : 'bg-gray-500/10 text-gray-600 cursor-not-allowed'
-                }`}
-              >
-                MAT
-              </span>
+              {row.reportTypes.includes('maturity') ? (
+                <a
+                  href={`/${locale}/reports/${row.slug}/maturity`}
+                  className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-green-500/15 text-green-400 hover:bg-green-500/30 transition-colors"
+                  title={isKo ? 'MAT 보고서 보기' : 'View MAT Report'}
+                >
+                  MAT
+                </a>
+              ) : (
+                <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-gray-500/10 text-gray-600 cursor-not-allowed">
+                  MAT
+                </span>
+              )}
               {row.reportTypes.includes('maturity') && isReportNew(row.reportDates.maturity) && (
                 <span className="absolute -top-1 -right-1 text-[8px] px-1 py-0.5 rounded bg-black/80 border border-red-500 text-red-500 font-bold shadow-lg">
                   New
@@ -223,15 +231,19 @@ export default function ScoreTableGate({
 
             {/* FOR Badge */}
             <div className="relative">
-              <span
-                className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
-                  row.reportTypes.includes('forensic')
-                    ? 'bg-red-500/15 text-red-400 cursor-pointer hover:bg-red-500/25'
-                    : 'bg-gray-500/10 text-gray-600 cursor-not-allowed'
-                }`}
-              >
-                FOR
-              </span>
+              {row.reportTypes.includes('forensic') ? (
+                <a
+                  href={`/${locale}/reports/${row.slug}/forensic`}
+                  className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-red-500/15 text-red-400 hover:bg-red-500/30 transition-colors"
+                  title={isKo ? 'FOR 보고서 보기' : 'View FOR Report'}
+                >
+                  FOR
+                </a>
+              ) : (
+                <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-gray-500/10 text-gray-600 cursor-not-allowed">
+                  FOR
+                </span>
+              )}
               {row.reportTypes.includes('forensic') && isReportNew(row.reportDates.forensic) && (
                 <span className="absolute -top-1 -right-1 text-[8px] px-1 py-0.5 rounded bg-black/80 border border-red-500 text-red-500 font-bold shadow-lg">
                   New
@@ -250,26 +262,26 @@ export default function ScoreTableGate({
       <div className="overflow-x-auto rounded-xl border border-white/5">
         <table className="w-full">
           <thead>
-            <tr className="bg-white/[0.03] border-b border-white/10">
-              <th className="py-3 px-2 text-center text-xs font-medium text-gray-500 uppercase w-12">
+            <tr className="bg-white/[0.08] border-b border-white/20 sticky top-0 z-10">
+              <th className="py-3 px-3 text-center text-xs font-medium text-gray-500 uppercase w-12">
                 #
               </th>
-              <th className="py-3 px-2 pr-1 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="py-3 pl-4 pr-3 text-left text-xs font-medium text-gray-500 uppercase">
                 {isKo ? '종목' : 'Name'}
               </th>
-              <th className="py-3 px-2 text-right text-xs font-medium text-gray-500 uppercase">
+              <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase">
                 {isKo ? '시가총액' : 'Market Cap'}
               </th>
-              <th className="py-3 px-2 text-right text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">
+              <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">
                 {isKo ? '가격' : 'Price'}
               </th>
-              <th className="py-3 px-2 text-right text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">
+              <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">
                 24h
               </th>
-              <th className="py-3 px-2 text-right text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
+              <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
                 BCE Score
               </th>
-              <th className="py-3 px-2 text-right text-xs font-medium text-gray-500 uppercase">
+              <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase">
                 {isKo ? '보고서' : 'Reports'}
               </th>
             </tr>
