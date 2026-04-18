@@ -1185,7 +1185,7 @@ def process_single_md(drive, gd, doc: dict, report_type: str,
     # MAT: Persist maturity score with QA validation
     if rtype == 'maturity':
         try:
-            _persist_maturity_score_gdoc(slug, ko_text)
+            _persist_maturity_score_gdoc(slug, ko_md)
         except Exception as e:
             print(f"  MAT score persistence 실패: {e}")
 
