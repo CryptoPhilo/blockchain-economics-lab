@@ -643,9 +643,14 @@ def generate_for_card(
             if _url and _key:
                 from supabase import create_client as _sc
                 _sb = _sc(_url, _key)
-                _ft = _sb.table('forensic_triggers').select('price_change_24h, relative_deviation') \
-                    .eq('slug', slug).order('created_at', desc=True).limit(1).execute()
-                if _ft.data and _ft.data[0].get('price_change_24h'):
+                _ft = None
+                for _qf, _qv in [('slug', slug), ('symbol', symbol)]:
+                    _ft = _sb.table('forensic_triggers').select('price_change_24h, relative_deviation') \
+                        .eq(_qf, _qv).order('created_at', desc=True).limit(1).execute()
+                    if _ft.data and _ft.data[0].get('price_change_24h'):
+                        print(f"  ✓ QA: forensic_triggers matched via {_qf}={_qv}")
+                        break
+                if _ft and _ft.data and _ft.data[0].get('price_change_24h'):
                     raw_price_change = float(_ft.data[0]['price_change_24h'])
                     trigger_data['relative_deviation'] = float(_ft.data[0].get('relative_deviation', 0))
                     print(f"  ✓ QA RESOLVED: price_change_24h = {raw_price_change:+.1f}% from forensic_triggers")

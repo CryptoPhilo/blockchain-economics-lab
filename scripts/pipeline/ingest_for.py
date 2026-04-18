@@ -458,26 +458,42 @@ def process_for_report(file_info: dict, dry_run: bool = False) -> dict:
             try:
                 _sb = _get_supabase_client()
                 if _sb:
-                    # Strategy 1: query forensic_triggers directly by slug
                     _symbol = file_info.get('symbol', slug.split('-')[0]).upper()
-                    for _q_field, _q_val in [('slug', slug), ('symbol', _symbol)]:
-                        _ft = _sb.table('forensic_triggers').select('*') \
-                            .eq(_q_field, _q_val).order('created_at', desc=True) \
-                            .limit(1).execute()
-                        if _ft.data:
-                            trigger_info = _ft.data[0]
-                            print(f"  ✓ trigger_data resolved via {_q_field}={_q_val}")
-                            break
-                    # Strategy 2: fallback to project_id lookup
+                    _pid, _cslug = _resolve_project_slug(_sb, slug)
+
+                    # Strategy 0: read trigger_data from existing coming_soon record
+                    if _pid:
+                        _cs = _sb.table('project_reports').select('trigger_data') \
+                            .eq('project_id', _pid).eq('report_type', 'forensic') \
+                            .eq('status', 'coming_soon').limit(1).execute()
+                        if _cs.data and _cs.data[0].get('trigger_data'):
+                            td = _cs.data[0]['trigger_data']
+                            if isinstance(td, str):
+                                import json as _json
+                                td = _json.loads(td)
+                            trigger_info = td
+                            print(f"  ✓ trigger_data resolved via coming_soon record")
+
+                    # Strategy 1: query forensic_triggers by slug or symbol
                     if not trigger_info:
-                        _pid, _cslug = _resolve_project_slug(_sb, slug)
-                        if _pid:
+                        for _q_field, _q_val in [('slug', slug), ('symbol', _symbol)]:
                             _ft = _sb.table('forensic_triggers').select('*') \
-                                .eq('project_id', _pid).order('created_at', desc=True) \
+                                .eq(_q_field, _q_val).order('created_at', desc=True) \
                                 .limit(1).execute()
                             if _ft.data:
                                 trigger_info = _ft.data[0]
-                                print(f"  ✓ trigger_data resolved via project_id")
+                                print(f"  ✓ trigger_data resolved via {_q_field}={_q_val}")
+                                break
+
+                    # Strategy 2: fallback to project_id lookup
+                    if not trigger_info and _pid:
+                        _ft = _sb.table('forensic_triggers').select('*') \
+                            .eq('project_id', _pid).order('created_at', desc=True) \
+                            .limit(1).execute()
+                        if _ft.data:
+                            trigger_info = _ft.data[0]
+                            print(f"  ✓ trigger_data resolved via project_id")
+
                     if not trigger_info:
                         print(f"  ⚠ No trigger_data found for slug={slug}, symbol={_symbol}")
             except Exception as e:
