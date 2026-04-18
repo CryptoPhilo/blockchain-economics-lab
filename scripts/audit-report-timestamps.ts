@@ -76,6 +76,7 @@ async function auditReportTimestamps() {
   const projectMap = new Map(projects?.map(p => [p.id, p]) || [])
 
   // 4. Group reports by project and type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const reportsByProject = new Map<string, Map<string, any[]>>()
 
   reports?.forEach(report => {

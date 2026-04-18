@@ -72,6 +72,7 @@ async function syncReportTimestamps(dryRun: boolean = false) {
   const projectMap = new Map(projects?.map(p => [p.id, p]) || [])
 
   // 3. Group reports by project and type, keeping only the latest per type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const latestReportsByProject = new Map<string, Map<string, any>>()
 
   reports?.forEach(report => {

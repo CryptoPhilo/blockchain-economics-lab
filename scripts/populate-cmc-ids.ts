@@ -198,6 +198,7 @@ async function main() {
   }
 
   // Save results to file for manual review
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const fs = require('fs')
   const reportPath = 'cmc_mapping_report.json'
   fs.writeFileSync(reportPath, JSON.stringify(results, null, 2))
