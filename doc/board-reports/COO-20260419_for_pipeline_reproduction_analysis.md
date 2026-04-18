@@ -1,3 +1,15 @@
+---
+report_id: COO-20260419
+date: 2026-04-19
+type: board_report
+author: COO
+classification: INTERNAL - CONFIDENTIAL
+title: "FOR 파이프라인 재생산 현황 조사 보고"
+references:
+  - BCE-468
+  - BCE-467
+---
+
 # COO-20260419: FOR 파이프라인 재생산 현황 조사 보고
 
 **Report ID:** COO-20260419  
