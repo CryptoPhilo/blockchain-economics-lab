@@ -53,6 +53,7 @@ export async function fetchCMCPrices(ids: string[]): Promise<CMCPriceMap> {
     // CMC response structure: { data: { "1": {...}, "1027": {...} }, status: {...} }
     // We need to map by slug, not by ID
     if (data.data) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       for (const [, coinData] of Object.entries(data.data as Record<string, any>)) {
         const slug = coinData.slug
         const quote = coinData.quote?.USD
@@ -112,6 +113,7 @@ export async function searchCMC(query: string): Promise<Array<{
     const data = await res.json()
 
     if (data.data && Array.isArray(data.data)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return data.data.map((item: any) => ({
         id: item.id,
         name: item.name,
