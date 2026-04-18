@@ -136,12 +136,12 @@ export default function ScoreTableGate({
         style={blurred ? { filter: 'blur(5px)', pointerEvents: 'none' } : undefined}
       >
         {/* Rank */}
-        <td className="py-3 px-3 text-center text-gray-500 text-sm font-mono w-12">
+        <td className="py-3 px-2 text-center text-gray-500 text-sm font-mono w-12">
           {row.rank}
         </td>
 
         {/* Name + Symbol */}
-        <td className="py-3 px-3">
+        <td className="py-3 px-2 pr-1">
           <div className="flex items-center gap-2">
             <div>
               <span className="font-semibold text-white text-sm">{row.name}</span>
@@ -150,13 +150,18 @@ export default function ScoreTableGate({
           </div>
         </td>
 
+        {/* Market Cap */}
+        <td className="py-3 px-2 text-right text-sm text-white font-mono">
+          {row.marketCap > 0 ? formatMarketCap(row.marketCap) : '-'}
+        </td>
+
         {/* Price */}
-        <td className="py-3 px-3 text-right text-sm text-white font-mono hidden sm:table-cell">
+        <td className="py-3 px-2 text-right text-sm text-white font-mono hidden sm:table-cell">
           {row.price != null ? formatPrice(row.price) : '-'}
         </td>
 
         {/* 24h Change */}
-        <td className="py-3 px-3 text-right text-sm font-mono hidden sm:table-cell">
+        <td className="py-3 px-2 text-right text-sm font-mono hidden sm:table-cell">
           {row.change24h != null ? (
             <span className={row.change24h >= 0 ? 'text-green-400' : 'text-red-400'}>
               {row.change24h >= 0 ? '+' : ''}{row.change24h.toFixed(2)}%
@@ -166,13 +171,8 @@ export default function ScoreTableGate({
           )}
         </td>
 
-        {/* Market Cap */}
-        <td className="py-3 px-3 text-right text-sm text-white font-mono">
-          {row.marketCap > 0 ? formatMarketCap(row.marketCap) : '-'}
-        </td>
-
         {/* BCE Score */}
-        <td className="py-3 px-3 text-right hidden md:table-cell">
+        <td className="py-3 px-2 text-right hidden md:table-cell">
           {row.score != null ? (
             <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${getScoreColor(row.score)} ${getScoreBg(row.score)}`}>
               {row.score.toFixed(1)}
@@ -183,7 +183,7 @@ export default function ScoreTableGate({
         </td>
 
         {/* Report Badges */}
-        <td className="py-3 px-3">
+        <td className="py-3 px-2">
           <div className="flex gap-1 justify-end">
             {/* ECON Badge */}
             <div className="relative">
@@ -251,25 +251,25 @@ export default function ScoreTableGate({
         <table className="w-full">
           <thead>
             <tr className="bg-white/[0.03] border-b border-white/10">
-              <th className="py-3 px-3 text-center text-xs font-medium text-gray-500 uppercase w-12">
+              <th className="py-3 px-2 text-center text-xs font-medium text-gray-500 uppercase w-12">
                 #
               </th>
-              <th className="py-3 px-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="py-3 px-2 pr-1 text-left text-xs font-medium text-gray-500 uppercase">
                 {isKo ? '종목' : 'Name'}
               </th>
-              <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">
-                {isKo ? '가격' : 'Price'}
-              </th>
-              <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">
-                24h
-              </th>
-              <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase">
+              <th className="py-3 px-2 text-right text-xs font-medium text-gray-500 uppercase">
                 {isKo ? '시가총액' : 'Market Cap'}
               </th>
-              <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
+              <th className="py-3 px-2 text-right text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">
+                {isKo ? '가격' : 'Price'}
+              </th>
+              <th className="py-3 px-2 text-right text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">
+                24h
+              </th>
+              <th className="py-3 px-2 text-right text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
                 BCE Score
               </th>
-              <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase">
+              <th className="py-3 px-2 text-right text-xs font-medium text-gray-500 uppercase">
                 {isKo ? '보고서' : 'Reports'}
               </th>
             </tr>
