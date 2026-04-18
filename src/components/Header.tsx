@@ -27,6 +27,7 @@ export default function Header() {
 
   const navItems = [
     { href: `/${locale}/reports`, label: t('reports') },
+    { href: `/${locale}/alerts`, label: locale === 'ko' ? '급변동 종목' : 'Alerts' },
     { href: `/${locale}/score`, label: t('score') },
     { href: `/${locale}/products`, label: t('products') },
     { href: `/${locale}/subscribe`, label: t('newsletter') },
