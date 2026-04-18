@@ -13,6 +13,27 @@ export interface CMCPrice {
 
 export type CMCPriceMap = Record<string, CMCPrice>
 
+interface CMCQuoteUSD {
+  price: number
+  percent_change_24h: number
+  market_cap: number
+}
+
+interface CMCCoinData {
+  slug: string
+  quote?: {
+    USD: CMCQuoteUSD
+  }
+}
+
+interface CMCMapItem {
+  id: number
+  name: string
+  symbol: string
+  slug: string
+  rank: number | null
+}
+
 /**
  * Fetch prices, 24h change, and market cap for a list of CoinMarketCap slugs.
  * Returns a map of cmc_id (slug) -> price data.
@@ -53,8 +74,7 @@ export async function fetchCMCPrices(ids: string[]): Promise<CMCPriceMap> {
     // CMC response structure: { data: { "1": {...}, "1027": {...} }, status: {...} }
     // We need to map by slug, not by ID
     if (data.data) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      for (const [, coinData] of Object.entries(data.data as Record<string, any>)) {
+      for (const [, coinData] of Object.entries(data.data as Record<string, CMCCoinData>)) {
         const slug = coinData.slug
         const quote = coinData.quote?.USD
 
@@ -113,8 +133,7 @@ export async function searchCMC(query: string): Promise<Array<{
     const data = await res.json()
 
     if (data.data && Array.isArray(data.data)) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return data.data.map((item: any) => ({
+      return data.data.map((item: CMCMapItem) => ({
         id: item.id,
         name: item.name,
         symbol: item.symbol,
