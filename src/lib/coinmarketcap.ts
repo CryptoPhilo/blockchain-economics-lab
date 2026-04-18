@@ -12,6 +12,7 @@ export interface CMCPrice {
 }
 
 export type CMCPriceMap = Record<string, CMCPrice>
+export type CMCPriceByIdMap = Record<number, CMCPrice>
 
 interface CMCQuoteUSD {
   price: number
@@ -91,6 +92,46 @@ export async function fetchCMCPrices(ids: string[]): Promise<CMCPriceMap> {
     return result
   } catch (error) {
     console.error('Error fetching CMC prices:', error)
+    return {}
+  }
+}
+
+export async function fetchCMCPricesByIds(ids: number[]): Promise<CMCPriceByIdMap> {
+  if (ids.length === 0) return {}
+
+  const apiKey = process.env.COINMARKETCAP_API_KEY
+  if (!apiKey) return {}
+
+  try {
+    const url = `https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?id=${ids.join(',')}&convert=USD`
+    const res = await fetch(url, {
+      headers: {
+        'X-CMC_PRO_API_KEY': apiKey,
+        'Accept': 'application/json',
+      },
+      next: { revalidate: 300 },
+    })
+
+    if (!res.ok) return {}
+
+    const data = await res.json()
+    const result: CMCPriceByIdMap = {}
+
+    if (data.data) {
+      for (const [numericId, coinData] of Object.entries(data.data as Record<string, CMCCoinData & { id?: number }>)) {
+        const quote = coinData.quote?.USD
+        if (quote) {
+          result[Number(numericId)] = {
+            usd: quote.price ?? 0,
+            usd_24h_change: quote.percent_change_24h ?? 0,
+            usd_market_cap: quote.market_cap ?? 0,
+          }
+        }
+      }
+    }
+
+    return result
+  } catch {
     return {}
   }
 }

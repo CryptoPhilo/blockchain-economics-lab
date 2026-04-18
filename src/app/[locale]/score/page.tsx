@@ -1,7 +1,7 @@
 import { getTranslations } from 'next-intl/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { fetchCoinGeckoPrices } from '@/lib/coingecko'
-import { fetchCMCPrices } from '@/lib/coinmarketcap'
+import { fetchCMCPricesByIds } from '@/lib/coinmarketcap'
 import ScoreTableGate from '@/components/ScoreTableGate'
 import SubscribeForm from '@/components/SubscribeForm'
 import Link from 'next/link'
@@ -60,9 +60,9 @@ export default async function ScorePage({
 
   const cmcIds = projectsNeedingCMC
     .map((p) => p.cmc_id)
-    .filter((id): id is string => !!id)
+    .filter((id): id is number => typeof id === 'number' && id > 0)
 
-  const cmcPriceData = await fetchCMCPrices([...new Set(cmcIds)])
+  const cmcPriceData = await fetchCMCPricesByIds([...new Set(cmcIds)])
 
   // Step 3: Merge price data (CoinGecko takes precedence)
   const priceData = { ...cgPriceData }
