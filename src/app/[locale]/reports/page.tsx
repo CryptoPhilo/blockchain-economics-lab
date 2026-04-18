@@ -1,36 +1,24 @@
 import { getTranslations } from 'next-intl/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import Link from 'next/link'
+import GatedDownloadButton from '@/components/GatedDownloadButton'
 
 interface Props {
   params: Promise<{ locale: string }>
   searchParams: Promise<{ page?: string; q?: string }>
 }
 
-const PAGE_SIZE = 100 // BCE-379: 200 total / 2 pages = 100 per page
+const PAGE_SIZE = 20
 
 const LANG_NAMES: Record<string, string> = {
   en: 'English', ko: '한국어', ja: '日本語', zh: '中文',
   fr: 'Français', es: 'Español', de: 'Deutsch',
 }
 
-// Report type configs
-const REPORT_CONFIGS = {
-  forensic: {
-    color: 'bg-red-500/20 text-red-400 border-red-500/30',
-    label: 'FOR',
-    icon: '🔍'
-  },
-  econ: {
-    color: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-    label: 'ECON',
-    icon: '📊'
-  },
-  maturity: {
-    color: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-    label: 'MAT',
-    icon: '📈'
-  }
+const FORENSIC_CONFIG = {
+  color: 'bg-red-500/20 text-red-400 border-red-500/30',
+  label: 'FOR',
+  icon: '🔍'
 } as const
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -38,11 +26,8 @@ function getLocalizedTitle(report: any, locale: string): string {
   const key = `title_${locale}`
   if (report[key]) return report[key]
   if (report.title_en) return report.title_en
-  // Fallback: use project name + report type instead of generic "Report v1"
   const project = report.project
-  const typeName = report.report_type === 'forensic' ? (locale === 'ko' ? '포렌식 분석' : 'Forensic Analysis')
-    : report.report_type === 'econ' ? (locale === 'ko' ? '경제 분석' : 'Economic Analysis')
-    : (locale === 'ko' ? '성숙도 분석' : 'Maturity Analysis')
+  const typeName = locale === 'ko' ? '포렌식 분석' : 'Forensic Analysis'
   const name = project?.name || project?.symbol || ''
   return name ? `${name} ${typeName} v${report.version}` : `${typeName} v${report.version}`
 }
@@ -78,49 +63,41 @@ export default async function ReportsPage({ params, searchParams }: Props) {
   const t = await getTranslations('reports')
   const currentPage = Math.max(1, parseInt(pageStr || '1', 10))
 
-  // Build optimized Supabase query with DB-level filters
-  // BCE-379: Show all reports ranked by market cap (top 200, 100 per page)
-  // Include both 'published' and 'coming_soon' reports (OPS-007)
+  const seventyTwoHoursAgo = new Date()
+  seventyTwoHoursAgo.setHours(seventyTwoHoursAgo.getHours() - 72)
+
   let countQuery = supabase
     .from('project_reports')
     .select('id', { count: 'exact', head: true })
     .in('status', ['published', 'coming_soon'])
+    .eq('report_type', 'forensic')
+    .gte('created_at', seventyTwoHoursAgo.toISOString())
 
   let dataQuery = supabase
     .from('project_reports')
-    .select('*, project:tracked_projects(id, name, slug, symbol, chain, category, market_cap_usd)')
+    .select('*, project:tracked_projects(id, name, slug, symbol, chain, category)')
     .in('status', ['published', 'coming_soon'])
+    .eq('report_type', 'forensic')
+    .gte('created_at', seventyTwoHoursAgo.toISOString())
+    .order('created_at', { ascending: false })
 
-  // Apply search filter (title search)
   if (searchQuery && searchQuery.trim()) {
     const q = `%${searchQuery.trim()}%`
     countQuery = countQuery.ilike('title_en', q)
     dataQuery = dataQuery.ilike('title_en', q)
   }
 
-  // Execute queries in parallel
-  const [{ count: totalCount }, { data: allReports }] = await Promise.all([
+  const from = (currentPage - 1) * PAGE_SIZE
+  const to = from + PAGE_SIZE - 1
+  dataQuery = dataQuery.range(from, to)
+
+  const [{ count: totalCount }, { data: reports }] = await Promise.all([
     countQuery,
     dataQuery,
   ])
 
-  // Sort by project market cap (descending) for top 200 ranking
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sortedReports = (allReports || []).sort((a: any, b: any) => {
-    const capA = a.project?.market_cap_usd || 0
-    const capB = b.project?.market_cap_usd || 0
-    return Number(capB) - Number(capA)
-  })
+  const totalPages = Math.ceil((totalCount || 0) / PAGE_SIZE)
 
-  // Limit to top 200 projects by market cap, then paginate
-  const top200Reports = sortedReports.slice(0, 200)
-  const from = (currentPage - 1) * PAGE_SIZE
-  const to = from + PAGE_SIZE
-  const reports = top200Reports.slice(from, to)
-
-  const totalPages = Math.ceil(Math.min(top200Reports.length, 200) / PAGE_SIZE)
-
-  // Build filter URL helper (simplified - no type filter)
   function filterUrl(params: { page?: number; q?: string }) {
     const sp = new URLSearchParams()
     const pg = params.page !== undefined ? params.page : (params.q !== undefined ? 1 : currentPage)
@@ -136,26 +113,25 @@ export default async function ReportsPage({ params, searchParams }: Props) {
       {/* Header */}
       <div className="mb-10">
         <h1 className="text-4xl font-bold mb-2">
-          📊 {locale === 'ko' ? '시가총액 상위 200개 프로젝트' : 'Top 200 Projects by Market Cap'}
+          🚨 {locale === 'ko' ? '급변동 종목' : 'Rapid Change Alerts'}
         </h1>
         <p className="text-gray-400 mb-3">
           {locale === 'ko'
-            ? '시가총액 기준 상위 200개 프로젝트의 ECON, MAT, FOR 리포트'
-            : 'ECON, MAT, and FOR reports for the top 200 projects by market capitalization'}
+            ? '72시간 내에 발행된 포렌식(FOR) 보고서 - 긴급 시장 변화를 놓치지 마세요'
+            : 'Forensic (FOR) reports published within 72 hours - Don\'t miss critical market changes'}
         </p>
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm">
-          <span>📈</span>
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+          <span className="animate-pulse">🔴</span>
           <span>
             {locale === 'ko'
-              ? `전체 ${top200Reports.length}개 프로젝트 • 페이지당 100개`
-              : `${top200Reports.length} Total Projects • 100 per page`}
+              ? `실시간 업데이트 • ${totalCount || 0}건의 최신 보고서`
+              : `Live Updates • ${totalCount || 0} Latest Reports`}
           </span>
         </div>
       </div>
 
       {/* Search Bar */}
       <div className="space-y-4 mb-8">
-        {/* Search */}
         <form action={`/${locale}/reports`} method="GET" className="flex gap-3">
           <div className="relative flex-1">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">🔍</span>
@@ -164,12 +140,12 @@ export default async function ReportsPage({ params, searchParams }: Props) {
               name="q"
               defaultValue={searchQuery || ''}
               placeholder={locale === 'ko' ? '프로젝트명, 심볼로 검색...' : 'Search by project name or symbol...'}
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-blue-500/20 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30"
+              className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-red-500/20 text-white placeholder-gray-500 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/30"
             />
           </div>
           <button
             type="submit"
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl transition-colors"
+            className="px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-medium rounded-xl transition-colors"
           >
             {locale === 'ko' ? '검색' : 'Search'}
           </button>
@@ -183,7 +159,6 @@ export default async function ReportsPage({ params, searchParams }: Props) {
           )}
         </form>
 
-        {/* Active search summary */}
         {searchQuery && (
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <span>{locale === 'ko' ? '검색 결과:' : 'Search:'}</span>
@@ -204,12 +179,10 @@ export default async function ReportsPage({ params, searchParams }: Props) {
       {reports && reports.length > 0 ? (
         <div className="grid gap-4">
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {reports.map((report: any, index: number) => {
+          {reports.map((report: any) => {
             const project = report.project
-            const reportType = report.report_type as 'forensic' | 'econ' | 'maturity'
-            const config = REPORT_CONFIGS[reportType] || REPORT_CONFIGS.econ
+            const config = FORENSIC_CONFIG
             const title = getLocalizedTitle(report, locale)
-            const marketCapRank = from + index + 1 // Calculate rank based on position
 
             const translationStatus = report.translation_status || {}
             const gdriveUrls = report.gdrive_urls_by_lang || {}
@@ -225,30 +198,22 @@ export default async function ReportsPage({ params, searchParams }: Props) {
                 .map(([k]) => k)
             ])].sort()
 
-            // Use created_at for relative time since published_at may be null for coming_soon reports
             const reportTime = report.published_at || report.created_at
             const relativeTime = reportTime ? formatRelativeTime(reportTime, locale) : null
-            const isRecent = reportTime && (new Date().getTime() - new Date(reportTime).getTime()) < 7 * 24 * 60 * 60 * 1000
 
             return (
               <div
                 key={report.id}
-                className="relative flex flex-col gap-4 p-6 rounded-2xl bg-gradient-to-br from-white/[0.03] via-white/[0.02] to-white/[0.02] border border-white/10 hover:border-white/20 transition-all hover:shadow-lg scroll-mt-20"
+                className="relative flex flex-col gap-4 p-6 rounded-2xl bg-gradient-to-br from-red-500/5 via-white/[0.03] to-white/[0.03] border border-red-500/20 hover:border-red-500/40 transition-all hover:shadow-lg hover:shadow-red-500/10 scroll-mt-20"
               >
-                {/* Market Cap Rank + New Badge */}
-                <div className="absolute top-4 right-4 flex items-center gap-2">
-                  {isRecent && relativeTime && (
-                    <div className="px-2 py-1 rounded-full bg-green-500/20 text-green-400 text-xs font-semibold border border-green-500/30">
-                      ✨ {locale === 'ko' ? '최신' : 'NEW'}
-                    </div>
-                  )}
-                  <div className="px-3 py-1 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-400 text-xs font-bold border border-yellow-500/30">
-                    #{marketCapRank}
+                {relativeTime && (
+                  <div className="absolute top-4 right-4 px-2 py-1 rounded-full bg-red-500/20 text-red-400 text-xs font-semibold">
+                    ⚡ {relativeTime}
                   </div>
-                </div>
+                )}
 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  <div className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase shrink-0 ${config.color} ring-1`}>
+                  <div className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase shrink-0 ${config.color} ring-1 ring-red-500/30`}>
                     {config.icon} {config.label}
                   </div>
                   <div className="flex-1 min-w-0 pr-20 sm:pr-0">
@@ -272,20 +237,17 @@ export default async function ReportsPage({ params, searchParams }: Props) {
                     </div>
                   </div>
 
-                  {/* Direct download or Coming Soon badge */}
                   {report.status === 'coming_soon' ? (
                     <span className="px-4 py-2 bg-amber-500/10 text-amber-400 text-sm font-medium rounded-lg border border-amber-500/20 cursor-default shrink-0">
                       🔜 Coming Soon
                     </span>
                   ) : resolveUrl(gdriveUrls[locale]) || resolveUrl(gdriveUrls['en']) ? (
-                    <a
-                      href={(resolveUrl(gdriveUrls[locale]) || resolveUrl(gdriveUrls['en']))!}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 text-sm font-medium rounded-lg transition-colors shrink-0 border border-indigo-500/20"
-                    >
-                      📥 {t('downloadPdf')}
-                    </a>
+                    <GatedDownloadButton
+                      reportId={report.id}
+                      downloadUrl={(resolveUrl(gdriveUrls[locale]) || resolveUrl(gdriveUrls['en']))!}
+                      locale={locale}
+                      label={t('downloadPdf')}
+                    />
                   ) : project ? (
                     <Link
                       href={`/${locale}/projects/${project.slug}`}
@@ -296,7 +258,6 @@ export default async function ReportsPage({ params, searchParams }: Props) {
                   ) : null}
                 </div>
 
-                {/* Language badges */}
                 {availableLangs.length > 1 && (
                   <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/5">
                     <span className="text-xs text-gray-600 mr-1">{t('languages')}:</span>
@@ -331,19 +292,19 @@ export default async function ReportsPage({ params, searchParams }: Props) {
         </div>
       ) : (
         <div className="text-center py-20 rounded-2xl bg-white/[0.03] border border-white/5">
-          <div className="text-6xl mb-4">📊</div>
+          <div className="text-6xl mb-4">✅</div>
           <p className="text-gray-400 text-lg mb-2">
             {locale === 'ko'
-              ? '검색 결과가 없습니다'
-              : 'No reports found'}
+              ? '현재 72시간 내 발행된 FOR 보고서가 없습니다'
+              : 'No FOR reports published within the last 72 hours'}
           </p>
           <p className="text-gray-600 text-sm">
             {locale === 'ko'
-              ? '다른 검색어로 시도해보세요'
-              : 'Try different search terms'}
+              ? '시장이 안정적입니다. 새 보고서가 발행되면 여기에 표시됩니다.'
+              : 'The market is stable. New reports will appear here when published.'}
           </p>
           {searchQuery && (
-            <Link href={`/${locale}/reports`} className="text-blue-400 hover:text-blue-300 mt-4 inline-block">
+            <Link href={`/${locale}/reports`} className="text-red-400 hover:text-red-300 mt-4 inline-block">
               {locale === 'ko' ? '필터 초기화' : 'Clear filters'} →
             </Link>
           )}
@@ -401,18 +362,18 @@ export default async function ReportsPage({ params, searchParams }: Props) {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div>
             <h3 className="text-lg font-semibold text-white mb-2">
-              {locale === 'ko' ? '리포트 유형' : 'Report Types'}
+              {locale === 'ko' ? '급변동 종목이란?' : 'What are Rapid Change Alerts?'}
             </h3>
-            <div className="text-sm text-gray-500 max-w-2xl space-y-2">
-              <p><span className="text-blue-400 font-semibold">📊 ECON</span> - {locale === 'ko' ? '경제 분석 리포트' : 'Economic Analysis Reports'}</p>
-              <p><span className="text-purple-400 font-semibold">📈 MAT</span> - {locale === 'ko' ? '성숙도 분석 리포트' : 'Maturity Analysis Reports'}</p>
-              <p><span className="text-red-400 font-semibold">🔍 FOR</span> - {locale === 'ko' ? '포렌식 분석 리포트 (급변동 종목)' : 'Forensic Analysis Reports (Rapid Changes)'}</p>
-            </div>
+            <p className="text-sm text-gray-500 max-w-2xl">
+              {locale === 'ko'
+                ? 'FOR(포렌식) 보고서는 시장에서 급격한 변화가 감지된 프로젝트를 심층 분석합니다. 72시간 이내 생성된 보고서는 현재 진행 중인 중요한 시장 이벤트를 나타냅니다.'
+                : 'FOR (Forensic) reports provide deep analysis of projects with detected rapid market changes. Reports created within 72 hours indicate ongoing critical market events.'}
+            </p>
           </div>
-          <div className="text-center px-6 py-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
-            <div className="text-3xl font-bold text-blue-400 mb-1">{top200Reports.length}</div>
+          <div className="text-center px-6 py-4 rounded-xl bg-red-500/10 border border-red-500/20">
+            <div className="text-3xl font-bold text-red-400 mb-1">{totalCount || 0}</div>
             <div className="text-xs text-gray-500 uppercase">
-              {locale === 'ko' ? '상위 프로젝트' : 'Top Projects'}
+              {locale === 'ko' ? '최근 72시간' : 'Last 72 Hours'}
             </div>
           </div>
         </div>
