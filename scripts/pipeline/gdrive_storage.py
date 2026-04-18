@@ -77,7 +77,7 @@ except ImportError:
 _SCRIPT_DIR = Path(__file__).resolve().parent
 
 GDRIVE_ROOT_FOLDER_ID = os.environ.get('GDRIVE_ROOT_FOLDER_ID', '')
-GDRIVE_SERVICE_ACCOUNT_FILE = os.environ.get('GDRIVE_SERVICE_ACCOUNT_FILE') or os.environ.get('GDRIVE_SERVICE_ACCOUNT_JSON', '')
+GDRIVE_SERVICE_ACCOUNT_FILE = os.environ.get('GDRIVE_SERVICE_ACCOUNT_FILE', '')
 GDRIVE_OAUTH_CREDENTIALS = os.environ.get('GDRIVE_OAUTH_CREDENTIALS', '')
 GDRIVE_DELEGATE_EMAIL = os.environ.get('GDRIVE_DELEGATE_EMAIL', '')
 GDRIVE_TOKEN_FILE = os.environ.get(

@@ -42,9 +42,10 @@ if _env.exists():
             k, v = line.split('=', 1)
             os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
 
-_sa_path = str(Path(__file__).resolve().parent / '.gdrive_service_account.json')
-os.environ.setdefault('GDRIVE_SERVICE_ACCOUNT_JSON', _sa_path)
-os.environ.setdefault('GDRIVE_SERVICE_ACCOUNT_FILE', _sa_path)
+os.environ.setdefault(
+    'GDRIVE_SERVICE_ACCOUNT_FILE',
+    str(Path(__file__).resolve().parent / '.gdrive_service_account.json'),
+)
 
 from config import LANGUAGES, OUTPUT_DIR, report_filename
 from translate_md import translate_md_file
@@ -97,7 +98,7 @@ def _strip_equation_images(md_text: str) -> tuple[str, int]:
 def _get_drive_service():
     from google.oauth2 import service_account
     from googleapiclient.discovery import build
-    sa_file = os.environ.get('GDRIVE_SERVICE_ACCOUNT_JSON')
+    sa_file = os.environ.get('GDRIVE_SERVICE_ACCOUNT_FILE')
     creds = service_account.Credentials.from_service_account_file(
         sa_file, scopes=['https://www.googleapis.com/auth/drive'])
     delegate = os.environ.get('GDRIVE_DELEGATE_EMAIL', 'zhang@coinlab.co.kr')
