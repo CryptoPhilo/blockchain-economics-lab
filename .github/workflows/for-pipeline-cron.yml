@@ -1,0 +1,147 @@
+name: FOR Pipeline - Automated Processing
+
+on:
+  schedule:
+    # Run every 30 minutes
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: 'Process specific project slug only (optional)'
+        required: false
+        type: string
+      dry_run:
+        description: 'Dry run mode (download only, no processing)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  process-for-reports:
+    name: 🔍 Process FOR Reports
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          cd scripts/pipeline
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            # Install common dependencies if requirements.txt doesn't exist
+            pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
+            pip install anthropic supabase requests python-dotenv
+            pip install pypdf2 reportlab pillow markdown beautifulsoup4
+          fi
+
+      - name: Create .env.local from secrets
+        run: |
+          cat > .env.local << EOF
+          # Supabase
+          NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
+
+          # Google Drive
+          GDRIVE_ROOT_FOLDER_ID=${{ secrets.GDRIVE_ROOT_FOLDER_ID }}
+          GDRIVE_DELEGATE_EMAIL=${{ secrets.GDRIVE_DELEGATE_EMAIL }}
+
+          # Pipeline
+          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+          ETHERSCAN_API_KEY=${{ secrets.ETHERSCAN_API_KEY }}
+
+          # Market Data
+          COINMARKETCAP_API_KEY=${{ secrets.COINMARKETCAP_API_KEY }}
+
+          # Email
+          RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+          EMAIL_FROM=BCE Lab <research@bcelab.xyz>
+
+          # App
+          NEXT_PUBLIC_APP_URL=https://bcelab.xyz
+          EOF
+
+      - name: Create Google Drive service account credentials
+        run: |
+          echo '${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}' > scripts/pipeline/.gdrive_service_account.json
+
+      - name: Run FOR pipeline
+        working-directory: scripts/pipeline
+        run: |
+          if [ "${{ github.event.inputs.dry_run }}" == "true" ]; then
+            echo "🧪 Running in DRY RUN mode"
+            python3 ingest_for.py --dry-run ${{ github.event.inputs.slug && format('--slug {0}', github.event.inputs.slug) || '' }}
+          else
+            if [ -n "${{ github.event.inputs.slug }}" ]; then
+              echo "🎯 Processing specific slug: ${{ github.event.inputs.slug }}"
+              python3 ingest_for.py --slug ${{ github.event.inputs.slug }}
+            else
+              echo "🔄 Scanning for all new FOR reports"
+              python3 ingest_for.py
+            fi
+          fi
+
+      - name: Upload pipeline logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: for-pipeline-logs-${{ github.run_number }}
+          path: |
+            scripts/pipeline/output/*.json
+            scripts/pipeline/output/*.log
+            logs/for_pipeline/*.md
+          retention-days: 30
+
+      - name: Commit processed files tracker
+        if: success() && github.event.inputs.dry_run != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if [ -f "scripts/pipeline/output/_for_processed.json" ]; then
+            git add scripts/pipeline/output/_for_processed.json
+
+            if git diff --staged --quiet; then
+              echo "No changes to processed files tracker"
+            else
+              git commit -m "chore: update FOR processed files tracker [skip ci]"
+              git push
+            fi
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## FOR Pipeline Run Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Run ID**: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+
+          if [ -n "${{ github.event.inputs.slug }}" ]; then
+            echo "- **Slug Filter**: ${{ github.event.inputs.slug }}" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ github.event.inputs.dry_run }}" == "true" ]; then
+            echo "- **Mode**: Dry Run (download only)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Find most recent log file
+          LATEST_LOG=$(ls -t logs/for_pipeline/for_pipeline_run_*.md 2>/dev/null | head -1)
+          if [ -n "$LATEST_LOG" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Latest Log Preview" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            head -20 "$LATEST_LOG" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi

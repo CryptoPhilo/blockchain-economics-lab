@@ -116,6 +116,30 @@ See `.env.example` for all variables. Key categories:
 - **Pipeline**: Anthropic API + Etherscan API
 - **Secrets**: Newsletter & cron API secrets (32+ bytes)
 
+## Automated Pipelines
+
+### FOR Pipeline Automation (BCE-364)
+
+The FOR pipeline runs automatically via **GitHub Actions** (every 30 minutes):
+
+- **Workflow**: `.github/workflows/for-pipeline-cron.yml`
+- **Schedule**: `*/30 * * * *` (every 30 minutes)
+- **Manual Trigger**: Available via GitHub Actions UI
+- **Logs**: Stored as GitHub Actions artifacts (30-day retention)
+
+**Key Features**:
+- Scans `drafts/FOR/` folder in Google Drive
+- Downloads new .md reports
+- Translates to 7 languages
+- Generates PDFs with QA verification
+- Uploads to Google Drive
+- Publishes to Supabase database
+
+**Setup Guide**: See `doc/FOR_PIPELINE_GITHUB_ACTIONS_SETUP.md`  
+**Secrets Checklist**: See `.github/SECRETS_SETUP_CHECKLIST.md`
+
+**Migration Note**: This replaces the previous Paperclip routine scheduling method (BCE-364).
+
 ## Getting Started
 
 1. Copy `.env.example` to `.env.local` and fill in credentials
