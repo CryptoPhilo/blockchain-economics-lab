@@ -139,7 +139,7 @@ export default async function ScorePage({
 
       {/* Market cap ranking table with email gate */}
       {rows.length > 0 ? (
-        <ScoreTableGate rows={rows} freeLimit={50} locale={locale} />
+        <ScoreTableGate rows={rows} freeLimit={200} locale={locale} />
       ) : (
         <div className="text-center py-20">
           <p className="text-gray-500 text-lg">
