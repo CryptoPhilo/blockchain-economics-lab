@@ -5,7 +5,7 @@ import GatedDownloadButton from '@/components/GatedDownloadButton'
 
 interface Props {
   params: Promise<{ locale: string }>
-  searchParams: Promise<{ type?: string; page?: string; q?: string }>
+  searchParams: Promise<{ page?: string; q?: string }>
 }
 
 const PAGE_SIZE = 20
@@ -15,11 +15,11 @@ const LANG_NAMES: Record<string, string> = {
   fr: 'Français', es: 'Español', de: 'Deutsch',
 }
 
- 
-const TYPE_CONFIG = {
-  econ: { color: 'bg-blue-500/20 text-blue-400 border-blue-500/30', label: 'ECON', icon: '📊' },
-  maturity: { color: 'bg-green-500/20 text-green-400 border-green-500/30', label: 'MAT', icon: '📈' },
-  forensic: { color: 'bg-red-500/20 text-red-400 border-red-500/30', label: 'FOR', icon: '🔍' },
+// Forensic report config
+const FORENSIC_CONFIG = {
+  color: 'bg-red-500/20 text-red-400 border-red-500/30',
+  label: 'FOR',
+  icon: '🔍'
 } as const
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -43,34 +43,52 @@ function formatDate(dateStr: string | null): string {
   })
 }
 
+function formatRelativeTime(dateStr: string, locale: string): string {
+  const now = new Date()
+  const date = new Date(dateStr)
+  const diffMs = now.getTime() - date.getTime()
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+  const diffMinutes = Math.floor(diffMs / (1000 * 60))
+
+  if (diffMinutes < 60) {
+    return locale === 'ko' ? `${diffMinutes}분 전` : `${diffMinutes}m ago`
+  }
+  if (diffHours < 24) {
+    return locale === 'ko' ? `${diffHours}시간 전` : `${diffHours}h ago`
+  }
+  const diffDays = Math.floor(diffHours / 24)
+  return locale === 'ko' ? `${diffDays}일 전` : `${diffDays}d ago`
+}
+
 export default async function ReportsPage({ params, searchParams }: Props) {
   const { locale } = await params
-  const { type: filterType, page: pageStr, q: searchQuery } = await searchParams
+  const { page: pageStr, q: searchQuery } = await searchParams
   const supabase = await createServerSupabaseClient()
   const t = await getTranslations('reports')
   const currentPage = Math.max(1, parseInt(pageStr || '1', 10))
 
+  // Calculate timestamp for 72 hours ago
+  const seventyTwoHoursAgo = new Date()
+  seventyTwoHoursAgo.setHours(seventyTwoHoursAgo.getHours() - 72)
+
   // Build optimized Supabase query with DB-level filters
   // Include both 'published' and 'coming_soon' reports (OPS-007)
+  // FILTER: Only show FOR reports created within last 72 hours (BCE-356)
+  // Note: Use created_at instead of published_at because coming_soon reports have null published_at
   let countQuery = supabase
     .from('project_reports')
     .select('id', { count: 'exact', head: true })
     .in('status', ['published', 'coming_soon'])
     .eq('report_type', 'forensic')
+    .gte('created_at', seventyTwoHoursAgo.toISOString())
 
   let dataQuery = supabase
     .from('project_reports')
     .select('*, project:tracked_projects(id, name, slug, symbol, chain, category)')
     .in('status', ['published', 'coming_soon'])
     .eq('report_type', 'forensic')
-    .order('published_at', { ascending: false, nullsFirst: false })
+    .gte('created_at', seventyTwoHoursAgo.toISOString())
     .order('created_at', { ascending: false })
-
-  // Apply type filter at DB level
-  if (filterType && filterType !== 'all') {
-    countQuery = countQuery.eq('report_type', filterType)
-    dataQuery = dataQuery.eq('report_type', filterType)
-  }
 
   // Apply search filter (title search)
   if (searchQuery && searchQuery.trim()) {
@@ -92,25 +110,11 @@ export default async function ReportsPage({ params, searchParams }: Props) {
 
   const totalPages = Math.ceil((totalCount || 0) / PAGE_SIZE)
 
-  // Get type counts for filter badges (separate lightweight query)
-  const { data: typeCounts } = await supabase
-    .from('project_reports')
-    .select('report_type')
-    .eq('status', 'published')
-
-  const typeCountMap: Record<string, number> = {}
-  typeCounts?.forEach((r) => {
-    typeCountMap[r.report_type] = (typeCountMap[r.report_type] || 0) + 1
-  })
-  const totalReports = typeCounts?.length || 0
-
-  // Build filter URL helper
-  function filterUrl(params: { type?: string; page?: number; q?: string }) {
+  // Build filter URL helper (simplified - no type filter)
+  function filterUrl(params: { page?: number; q?: string }) {
     const sp = new URLSearchParams()
-    const t = params.type !== undefined ? params.type : (filterType || 'all')
-    const pg = params.page !== undefined ? params.page : (params.type !== undefined || params.q !== undefined ? 1 : currentPage)
+    const pg = params.page !== undefined ? params.page : (params.q !== undefined ? 1 : currentPage)
     const query = params.q !== undefined ? params.q : (searchQuery || '')
-    if (t && t !== 'all') sp.set('type', t)
     if (pg > 1) sp.set('page', String(pg))
     if (query) sp.set('q', query)
     const qs = sp.toString()
@@ -121,11 +125,25 @@ export default async function ReportsPage({ params, searchParams }: Props) {
     <div className="max-w-6xl mx-auto px-6 py-12">
       {/* Header */}
       <div className="mb-10">
-        <h1 className="text-4xl font-bold mb-2">{t('title')}</h1>
-        <p className="text-gray-400">{t('subtitle')}</p>
+        <h1 className="text-4xl font-bold mb-2">
+          🚨 {locale === 'ko' ? '급변동 종목' : 'Rapid Change Alerts'}
+        </h1>
+        <p className="text-gray-400 mb-3">
+          {locale === 'ko'
+            ? '72시간 내에 발행된 포렌식(FOR) 보고서 - 긴급 시장 변화를 놓치지 마세요'
+            : 'Forensic (FOR) reports published within 72 hours - Don\'t miss critical market changes'}
+        </p>
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+          <span className="animate-pulse">🔴</span>
+          <span>
+            {locale === 'ko'
+              ? `실시간 업데이트 • ${totalCount || 0}건의 최신 보고서`
+              : `Live Updates • ${totalCount || 0} Latest Reports`}
+          </span>
+        </div>
       </div>
 
-      {/* Search + Filters Bar */}
+      {/* Search Bar */}
       <div className="space-y-4 mb-8">
         {/* Search */}
         <form action={`/${locale}/reports`} method="GET" className="flex gap-3">
@@ -136,13 +154,12 @@ export default async function ReportsPage({ params, searchParams }: Props) {
               name="q"
               defaultValue={searchQuery || ''}
               placeholder={locale === 'ko' ? '프로젝트명, 심볼로 검색...' : 'Search by project name or symbol...'}
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30"
+              className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-red-500/20 text-white placeholder-gray-500 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/30"
             />
           </div>
-          {filterType && filterType !== 'all' && <input type="hidden" name="type" value={filterType} />}
           <button
             type="submit"
-            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl transition-colors"
+            className="px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-medium rounded-xl transition-colors"
           >
             {locale === 'ko' ? '검색' : 'Search'}
           </button>
@@ -156,53 +173,15 @@ export default async function ReportsPage({ params, searchParams }: Props) {
           )}
         </form>
 
-        {/* Type filters + Project dropdown */}
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Type filter pills */}
-          <Link
-            href={filterUrl({ type: 'all' })}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              !filterType || filterType === 'all'
-                ? 'bg-indigo-500 text-white'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
-            }`}
-          >
-            {t('allTypes')} ({totalReports})
-          </Link>
-          {(Object.keys(TYPE_CONFIG) as Array<keyof typeof TYPE_CONFIG>).map((type) => {
-            const config = TYPE_CONFIG[type]
-            const count = typeCountMap[type] || 0
-            if (count === 0) return null
-            return (
-              <Link
-                key={type}
-                href={filterUrl({ type })}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  filterType === type ? config.color + ' ring-1 ring-current' : 'bg-white/5 text-gray-400 hover:bg-white/10'
-                }`}
-              >
-                {config.icon} {config.label} ({count})
-              </Link>
-            )
-          })}
-        </div>
-
-        {/* Active filters summary */}
-        {(searchQuery || (filterType && filterType !== 'all')) && (
+        {/* Active search summary */}
+        {searchQuery && (
           <div className="flex items-center gap-2 text-sm text-gray-500">
-            <span>{locale === 'ko' ? '필터:' : 'Filters:'}</span>
-            {filterType && filterType !== 'all' && (
-              <span className="px-2 py-0.5 rounded bg-white/5 text-gray-400">
-                {TYPE_CONFIG[filterType as keyof typeof TYPE_CONFIG]?.label || filterType}
-              </span>
-            )}
-            {searchQuery && (
-              <span className="px-2 py-0.5 rounded bg-white/5 text-gray-400">
-                &quot;{searchQuery}&quot;
-              </span>
-            )}
-            <Link href={`/${locale}/reports`} className="text-indigo-400 hover:text-indigo-300 ml-2">
-              {locale === 'ko' ? '초기화' : 'Clear all'}
+            <span>{locale === 'ko' ? '검색 결과:' : 'Search:'}</span>
+            <span className="px-2 py-0.5 rounded bg-white/5 text-gray-400">
+              &quot;{searchQuery}&quot;
+            </span>
+            <Link href={`/${locale}/reports`} className="text-red-400 hover:text-red-300 ml-2">
+              {locale === 'ko' ? '초기화' : 'Clear'}
             </Link>
             <span className="ml-auto text-gray-600">
               {totalCount || 0} {locale === 'ko' ? '건' : 'results'}
@@ -217,8 +196,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           {reports.map((report: any) => {
             const project = report.project
-            const typeKey = report.report_type as keyof typeof TYPE_CONFIG
-            const config = TYPE_CONFIG[typeKey] || TYPE_CONFIG.econ
+            const config = FORENSIC_CONFIG
             const title = getLocalizedTitle(report, locale)
 
             const translationStatus = report.translation_status || {}
@@ -235,22 +213,33 @@ export default async function ReportsPage({ params, searchParams }: Props) {
                 .map(([k]) => k)
             ])].sort()
 
+            // Use created_at for relative time since published_at may be null for coming_soon reports
+            const reportTime = report.published_at || report.created_at
+            const relativeTime = reportTime ? formatRelativeTime(reportTime, locale) : null
+
             return (
               <div
                 key={report.id}
-                className="flex flex-col gap-4 p-6 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-white/10 transition-colors scroll-mt-20"
+                className="relative flex flex-col gap-4 p-6 rounded-2xl bg-gradient-to-br from-red-500/5 via-white/[0.03] to-white/[0.03] border border-red-500/20 hover:border-red-500/40 transition-all hover:shadow-lg hover:shadow-red-500/10 scroll-mt-20"
               >
+                {/* Fresh indicator */}
+                {relativeTime && (
+                  <div className="absolute top-4 right-4 px-2 py-1 rounded-full bg-red-500/20 text-red-400 text-xs font-semibold">
+                    ⚡ {relativeTime}
+                  </div>
+                )}
+
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  <div className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase shrink-0 ${config.color}`}>
+                  <div className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase shrink-0 ${config.color} ring-1 ring-red-500/30`}>
                     {config.icon} {config.label}
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 pr-20 sm:pr-0">
                     <h3 className="text-lg font-semibold text-white mb-1">{title}</h3>
                     <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
                       {project && (
                         <Link
                           href={`/${locale}/projects/${project.slug}`}
-                          className="hover:text-indigo-400 transition-colors"
+                          className="hover:text-red-400 transition-colors font-medium"
                         >
                           {project.name} ({project.symbol})
                         </Link>
@@ -298,7 +287,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
                           key={lang}
                           className={`px-2 py-0.5 rounded text-[11px] font-medium uppercase ${
                             lang === locale
-                              ? 'bg-indigo-500/20 text-indigo-400 ring-1 ring-indigo-500/30'
+                              ? 'bg-red-500/20 text-red-400 ring-1 ring-red-500/30'
                               : 'bg-white/5 text-gray-500 hover:bg-white/10'
                           }`}
                         >
@@ -321,10 +310,20 @@ export default async function ReportsPage({ params, searchParams }: Props) {
           })}
         </div>
       ) : (
-        <div className="text-center py-20">
-          <p className="text-gray-500 text-lg">{t('noReportsFound')}</p>
+        <div className="text-center py-20 rounded-2xl bg-white/[0.03] border border-white/5">
+          <div className="text-6xl mb-4">✅</div>
+          <p className="text-gray-400 text-lg mb-2">
+            {locale === 'ko'
+              ? '현재 72시간 내 발행된 FOR 보고서가 없습니다'
+              : 'No FOR reports published within the last 72 hours'}
+          </p>
+          <p className="text-gray-600 text-sm">
+            {locale === 'ko'
+              ? '시장이 안정적입니다. 새 보고서가 발행되면 여기에 표시됩니다.'
+              : 'The market is stable. New reports will appear here when published.'}
+          </p>
           {searchQuery && (
-            <Link href={`/${locale}/reports`} className="text-indigo-400 hover:text-indigo-300 mt-4 inline-block">
+            <Link href={`/${locale}/reports`} className="text-red-400 hover:text-red-300 mt-4 inline-block">
               {locale === 'ko' ? '필터 초기화' : 'Clear filters'} →
             </Link>
           )}
@@ -377,15 +376,25 @@ export default async function ReportsPage({ params, searchParams }: Props) {
         </nav>
       )}
 
-      {/* Stats footer */}
-      <div className="mt-12 pt-8 border-t border-white/5 flex flex-wrap items-center justify-center gap-8 text-sm text-gray-600">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-white">{totalReports}</div>
-          <div>{t('title')}</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-white">7</div>
-          <div>{t('languages')}</div>
+      {/* Info footer */}
+      <div className="mt-12 pt-8 border-t border-white/5">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div>
+            <h3 className="text-lg font-semibold text-white mb-2">
+              {locale === 'ko' ? '급변동 종목이란?' : 'What are Rapid Change Alerts?'}
+            </h3>
+            <p className="text-sm text-gray-500 max-w-2xl">
+              {locale === 'ko'
+                ? 'FOR(포렌식) 보고서는 시장에서 급격한 변화가 감지된 프로젝트를 심층 분석합니다. 72시간 이내 생성된 보고서는 현재 진행 중인 중요한 시장 이벤트를 나타냅니다.'
+                : 'FOR (Forensic) reports provide deep analysis of projects with detected rapid market changes. Reports created within 72 hours indicate ongoing critical market events.'}
+            </p>
+          </div>
+          <div className="text-center px-6 py-4 rounded-xl bg-red-500/10 border border-red-500/20">
+            <div className="text-3xl font-bold text-red-400 mb-1">{totalCount || 0}</div>
+            <div className="text-xs text-gray-500 uppercase">
+              {locale === 'ko' ? '최근 72시간' : 'Last 72 Hours'}
+            </div>
+          </div>
         </div>
       </div>
     </div>
