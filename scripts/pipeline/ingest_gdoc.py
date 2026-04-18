@@ -261,6 +261,43 @@ def get_drive_service():
 
 
 # ═══════════════════════════════════════════════════════
+# Equation Image Stripper (from ingest_for.py)
+# ═══════════════════════════════════════════════════════
+
+def _strip_equation_images(md_text: str) -> tuple[str, int]:
+    """Remove base64 equation image definitions and their inline references.
+
+    Google Docs renders LaTeX-style math ($0.026$) as inline PNG images.
+    When exported to markdown, these become ![][imageN] references with
+    base64 data at the end of the file. We strip them (no OCR).
+
+    Returns (cleaned_text, stripped_count).
+    """
+    def_pattern = re.compile(
+        r'^\[image(\d+)\]:\s*<data:image/png;base64,[^>]+>\s*$',
+        re.MULTILINE,
+    )
+    img_names = {f'image{m.group(1)}' for m in def_pattern.finditer(md_text)}
+
+    if not img_names:
+        return md_text, 0
+
+    result = md_text
+    count = 0
+
+    for img_name in img_names:
+        pat = re.compile(re.escape(f'![][{img_name}]'))
+        matches = len(pat.findall(result))
+        result = pat.sub('', result)
+        count += matches
+
+    result = def_pattern.sub('', result)
+    result = re.sub(r'\n{3,}', '\n\n', result)
+
+    return result, count
+
+
+# ═══════════════════════════════════════════════════════
 # Folder Management
 # ═══════════════════════════════════════════════════════
 
@@ -326,29 +363,58 @@ def save_processed_tracker(drive, folder_id: str, tracker: dict):
 # ═══════════════════════════════════════════════════════
 
 def scan_new_md_files(drive, folder_id: str, tracker: dict) -> list:
-    """Find .md files in folder that haven't been processed yet."""
-    q = (f"'{folder_id}' in parents "
-         f"and (name contains '.md') "
-         f"and trashed=false")
-    results = drive.files().list(
-        q=q,
-        fields='files(id,name,modifiedTime,size)',
+    """Find .md files and Google Docs in folder that haven't been processed yet."""
+    # Query 1: .md files (text/markdown, text/plain, etc.)
+    q_md = (f"'{folder_id}' in parents "
+            f"and (name contains '.md') "
+            f"and trashed=false")
+    results_md = drive.files().list(
+        q=q_md,
+        fields='files(id,name,modifiedTime,size,mimeType)',
         orderBy='modifiedTime desc',
     ).execute()
-    docs = results.get('files', [])
-    # Filter: only unprocessed, and must end with .md
+    docs = results_md.get('files', [])
+    seen_ids = {d['id'] for d in docs}
+
+    # Query 2: Google Docs (may be uploaded via web without .md extension)
+    q_gdocs = (f"'{folder_id}' in parents "
+               f"and mimeType='application/vnd.google-apps.document' "
+               f"and trashed=false")
+    results_gdocs = drive.files().list(
+        q=q_gdocs,
+        fields='files(id,name,modifiedTime,size,mimeType)',
+        orderBy='modifiedTime desc',
+    ).execute()
+    gdocs = results_gdocs.get('files', [])
+
+    # Add Google Docs to the list (mark them as _gdoc for later handling)
+    for doc in gdocs:
+        if doc['id'] not in seen_ids:
+            doc['_gdoc'] = True
+            # Add synthetic .md extension if missing for slug parsing
+            if not doc['name'].endswith('.md'):
+                doc['name'] = doc['name'] + '.md'
+            docs.append(doc)
+            seen_ids.add(doc['id'])
+
+    # Filter: only unprocessed files
     new_docs = [
         d for d in docs
         if d['id'] not in tracker.get('processed', {})
-        and d['name'].lower().endswith('.md')
     ]
     return new_docs
 
 
 
-def download_md_file(drive, file_id: str) -> str:
-    """Download a .md file's content from GDrive."""
-    content = drive.files().get_media(fileId=file_id).execute()
+def download_md_file(drive, file_id: str, is_gdoc: bool = False) -> str:
+    """Download a .md file's content from GDrive. Handles both raw files and Google Docs."""
+    if is_gdoc:
+        # Google Docs must be exported — use text/plain for markdown-like content
+        content = drive.files().export(fileId=file_id, mimeType='text/plain').execute()
+        if isinstance(content, str):
+            content = content.encode('utf-8')
+    else:
+        content = drive.files().get_media(fileId=file_id).execute()
     return content.decode('utf-8')
 
 
@@ -1023,15 +1089,15 @@ def process_single_md(drive, gd, doc: dict, report_type: str,
     print(f"{'='*60}")
 
     # ── Step 0: Download .md from GDrive ──
-    print("\n[0/7] GDrive에서 .md 파일 다운로드...")
-    ko_md_raw = download_md_file(drive, doc['id'])
+    is_gdoc = doc.get('_gdoc', False)
+    print(f"\n[0/7] GDrive에서 파일 다운로드{' (Google Doc export)' if is_gdoc else ''}...")
+    ko_md_raw = download_md_file(drive, doc['id'], is_gdoc=is_gdoc)
     print(f"  다운로드 완료: {len(ko_md_raw):,} chars")
 
     # ── Step 0b: Strip equation images (no OCR — just remove base64 refs) ──
     if '![][image' in ko_md_raw:
         print("\n[0b] 수식 이미지 제거 (strip)...")
         try:
-            from ingest_for import _strip_equation_images
             ko_md_raw, eq_count = _strip_equation_images(ko_md_raw)
             if eq_count > 0:
                 print(f"  제거 완료: {eq_count}개 수식 이미지")

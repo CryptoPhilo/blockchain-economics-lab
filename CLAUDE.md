@@ -9,6 +9,19 @@
 - **Backend**: Supabase (PostgreSQL) + Python orchestrator for report generation
 - **Reporting**: Multi-format (ECON, MAT, FOR) with PDF generation and distribution
 
+## 한국어 우선 정책
+
+사내 모든 에이전트 간 소통, 보드 보고서, 이슈 코멘트, 상태 업데이트는 **한국어**로 작성한다.
+
+| 항목 | 언어 | 비고 |
+|------|------|------|
+| Paperclip 이슈 코멘트 | 한국어 | 모든 에이전트 |
+| 보드 보고서 (exec-report) | 한국어 | CEO-###, RES-### 등 |
+| 에이전트 간 위임/지시 | 한국어 | 하위 에이전트 포함 |
+| git commit message | 영어 | 기술 관례 |
+| 코드 변수명/주석 | 영어 | 코드 가독성 |
+| API 문서 | 영어 | 외부 호환 |
+
 ## Key Directories
 
 - `src/` - Frontend application (Next.js pages, components, API routes)
@@ -25,6 +38,27 @@ Three main report formats with type codes:
 - **ECON** (RPT-ECON) - Economic analysis reports
 - **MAT** (RPT-MAT) - Market analysis reports
 - **FOR** (RPT-FOR) - Forecast reports
+
+### ECON Prompt Version
+
+**Current Version**: v4.2 (Production) ✅
+
+- **Prompt File**: `econ_v4.2_production_prompt.md`
+- **Status**: Production Ready (2026-04-18)
+- **Validation**: 3/3 pilot tests passed (Cosmos, Bitcoin, Ethereum)
+- **Key Features**:
+  - URL-only input (PROJECT_NAME auto-extraction)
+  - Mandatory Section 7 참고문헌 (48+ URLs required)
+  - Inline citation format: `[1]`, `[2]` (superscripts prohibited)
+  - Project-type guides (Layer 1/2, DeFi, dApp)
+  - URL validation (404 check)
+
+**Evaluation Reports**:
+- [CRO-002: Cosmos v4.1](/doc/board-reports/CRO-002_econ_v4.1_prompt_evaluation.md)
+- [CRO-003: Aave v4.1](/doc/board-reports/CRO-003_econ_v4.1_aave_evaluation.md)
+- [CRO-004: Bitcoin & Ethereum v4.1.1](/doc/board-reports/CRO-004_econ_v4.1.1_bitcoin_ethereum_evaluation.md)
+
+**Legacy Prompts**: Moved to `_legacy/prompts/` (v3.1, v4.0, v4.1, v4.1.1)
 
 ## 5-Stage Pipeline
 
@@ -117,6 +151,27 @@ See `.env.example` for all variables. Key categories:
 - **Secrets**: Newsletter & cron API secrets (32+ bytes)
 
 ## Automated Pipelines
+
+### Pipeline Daily Reporting (BCE-461)
+
+The pipeline operations daily reporting system tracks and reports on pipeline execution status:
+
+- **Script**: `scripts/pipeline/daily_pipeline_report.py`
+- **Schedule**: Daily at 00:00 UTC (09:00 KST) via GitHub Actions
+- **Output**: `doc/board-reports/COO-{YYYYMMDD}_pipeline_operations_daily.md`
+- **Documentation**: `doc/PIPELINE_DAILY_REPORTING.md`
+
+**Reports include**:
+- Success/failure counts and success rate
+- Failures categorized by type (timeout, QA, translation, PDF, upload, DB)
+- Retry history and status
+- Stale processing detection
+- Actionable recommendations
+
+**Manual execution**:
+```bash
+python3 scripts/pipeline/daily_pipeline_report.py --days 1
+```
 
 ### FOR Pipeline Automation (BCE-364)
 

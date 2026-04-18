@@ -35,3 +35,22 @@ scripts/pipeline/.env
 # Font files (large binaries)
 fonts/
 scripts/pipeline/fonts/
+
+# Pipeline logs
+logs/
+
+# Local SQLite database
+bce.db
+
+# Temporary validation/mapping reports
+COINGECKO_VALIDATION_REPORT.md
+cmc_mapping_report.json
+validation_report.md
+validation_run.log
+unlisted_tokens.txt
+
+# Temporary GDrive link files
+gdrive_links_*.json
+
+# PDF samples (binary)
+doc/samples/*.pdf
