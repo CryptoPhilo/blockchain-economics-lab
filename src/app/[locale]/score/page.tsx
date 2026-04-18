@@ -4,20 +4,32 @@ import { fetchCoinGeckoPrices } from '@/lib/coingecko'
 import { fetchCMCPrices } from '@/lib/coinmarketcap'
 import ScoreTableGate from '@/components/ScoreTableGate'
 import SubscribeForm from '@/components/SubscribeForm'
+import Link from 'next/link'
 
 /**
- * CMC-Style Market Cap Ranking Page + Report Badges
+ * CMC-Style Market Cap Ranking Page + Report Badges (BCE-379)
  *
- * Shows a CoinMarketCap-style leaderboard ranked by market cap.
+ * Shows top 200 projects by market cap across 2 pages (100 per page).
  * Each row includes price, 24h change, market cap, BCE Score, and report badges.
  * Data: tracked_projects (DB) + CoinGecko API (real-time price/market data).
- * Top N rows are publicly visible; remaining behind email gate.
  */
 
-export default async function ScorePage({ params }: { params: Promise<{ locale: string }> }) {
+const ITEMS_PER_PAGE = 100
+const MAX_RANK = 200
+
+export default async function ScorePage({
+  params,
+  searchParams
+}: {
+  params: Promise<{ locale: string }>
+  searchParams: Promise<{ page?: string }>
+}) {
   const { locale } = await params
+  const { page: pageStr } = await searchParams
   const t = await getTranslations()
   const supabase = await createServerSupabaseClient()
+
+  const currentPage = Math.max(1, Math.min(2, parseInt(pageStr || '1', 10)))
 
   // Fetch all active tracked projects (including cmc_id for fallback)
   const { data: projects } = await supabase
@@ -56,7 +68,8 @@ export default async function ScorePage({ params }: { params: Promise<{ locale: 
   const priceData = { ...cgPriceData }
 
   // Build ranked rows by market cap (waterfall: CoinGecko → CMC → DB)
-  const rows = allProjects
+  // BCE-379: Limit to top 200 projects across 2 pages
+  const allRows = allProjects
     .map((p) => {
       // Try CoinGecko first, then CMC, then DB
       const cgData = p.coingecko_id ? priceData[p.coingecko_id] : undefined
@@ -88,7 +101,14 @@ export default async function ScorePage({ params }: { params: Promise<{ locale: 
       }
     })
     .sort((a, b) => b.marketCap - a.marketCap)
+    .slice(0, MAX_RANK) // Top 200 only
     .map((row, i) => ({ ...row, rank: i + 1 }))
+
+  // Paginate: 100 per page
+  const startIdx = (currentPage - 1) * ITEMS_PER_PAGE
+  const endIdx = startIdx + ITEMS_PER_PAGE
+  const rows = allRows.slice(startIdx, endIdx)
+  const totalPages = Math.ceil(Math.min(allRows.length, MAX_RANK) / ITEMS_PER_PAGE)
 
   const isKo = locale === 'ko'
 
@@ -106,9 +126,20 @@ export default async function ScorePage({ params }: { params: Promise<{ locale: 
         </p>
       </div>
 
+      {/* Page indicator */}
+      {totalPages > 1 && (
+        <div className="mb-4 text-center">
+          <span className="text-sm text-gray-400">
+            {isKo
+              ? `${startIdx + 1}-${Math.min(endIdx, allRows.length)}위 (전체 ${allRows.length}개 프로젝트)`
+              : `Rank ${startIdx + 1}-${Math.min(endIdx, allRows.length)} of ${allRows.length} projects`}
+          </span>
+        </div>
+      )}
+
       {/* Market cap ranking table with email gate */}
       {rows.length > 0 ? (
-        <ScoreTableGate rows={rows} freeLimit={10000} locale={locale} />
+        <ScoreTableGate rows={rows} freeLimit={50} locale={locale} />
       ) : (
         <div className="text-center py-20">
           <p className="text-gray-500 text-lg">
@@ -118,6 +149,43 @@ export default async function ScorePage({ params }: { params: Promise<{ locale: 
             {isKo ? '프로젝트가 등록되면 여기에 표시됩니다.' : 'Rankings will appear here once projects are tracked.'}
           </p>
         </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <nav className="flex items-center justify-center gap-4 mt-8">
+          {currentPage > 1 && (
+            <Link
+              href={`/${locale}/score?page=${currentPage - 1}`}
+              className="px-6 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white text-sm font-medium transition-colors"
+            >
+              ← {isKo ? '이전 (1-100위)' : 'Previous (1-100)'}
+            </Link>
+          )}
+          <div className="flex gap-2">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <Link
+                key={page}
+                href={`/${locale}/score?page=${page}`}
+                className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                  page === currentPage
+                    ? 'bg-indigo-500 text-white'
+                    : 'bg-white/5 hover:bg-white/10 text-gray-400'
+                }`}
+              >
+                {page}
+              </Link>
+            ))}
+          </div>
+          {currentPage < totalPages && (
+            <Link
+              href={`/${locale}/score?page=${currentPage + 1}`}
+              className="px-6 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white text-sm font-medium transition-colors"
+            >
+              {isKo ? '다음 (101-200위)' : 'Next (101-200)'} →
+            </Link>
+          )}
+        </nav>
       )}
 
       {/* Newsletter CTA */}
@@ -144,18 +212,18 @@ export default async function ScorePage({ params }: { params: Promise<{ locale: 
       {/* Stats */}
       <div className="mt-10 pt-6 border-t border-white/5 flex justify-center gap-8 text-sm text-gray-600">
         <div className="text-center">
-          <div className="text-2xl font-bold text-white">{rows.length}</div>
-          <div>{isKo ? '프로젝트' : 'Projects'}</div>
+          <div className="text-2xl font-bold text-white">{allRows.length}</div>
+          <div>{isKo ? '상위 프로젝트' : 'Top Projects'}</div>
         </div>
         <div className="text-center">
           <div className="text-2xl font-bold text-white">
-            {rows.filter((r) => r.reportTypes.length > 0).length}
+            {allRows.filter((r) => r.reportTypes.length > 0).length}
           </div>
           <div>{isKo ? '분석 보고서' : 'Reports'}</div>
         </div>
         <div className="text-center">
-          <div className="text-2xl font-bold text-white">7</div>
-          <div>{isKo ? '평가 축' : 'Axes'}</div>
+          <div className="text-2xl font-bold text-white">{totalPages}</div>
+          <div>{isKo ? '페이지' : 'Pages'}</div>
         </div>
       </div>
     </div>
