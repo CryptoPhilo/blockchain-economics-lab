@@ -56,10 +56,6 @@ jobs:
           GDRIVE_ROOT_FOLDER_ID=${{ secrets.GDRIVE_ROOT_FOLDER_ID }}
           GDRIVE_DELEGATE_EMAIL=${{ secrets.GDRIVE_DELEGATE_EMAIL }}
 
-          # Pipeline
-          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
-          ETHERSCAN_API_KEY=${{ secrets.ETHERSCAN_API_KEY }}
-
           # Market Data
           COINMARKETCAP_API_KEY=${{ secrets.COINMARKETCAP_API_KEY }}
 
