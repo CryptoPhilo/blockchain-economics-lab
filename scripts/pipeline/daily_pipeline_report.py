@@ -47,6 +47,8 @@ FAILURE_CATEGORIES = {
     'failed_timeout': 'Processing Timeout',
     'download_error': 'GDrive Download Error',
     'upload_done_db_error': 'Supabase Publishing Error',
+    'processing_error': 'Pipeline Runtime Error',
+    'content_failed_terminal': 'Terminal Content Failure',
     'qa_failed_critical': 'QA Critical Failure',
     'qa_failed_major': 'QA Major Failure',
     'translation_error': 'Translation Error',

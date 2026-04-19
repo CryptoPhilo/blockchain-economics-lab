@@ -53,6 +53,10 @@ from qa_verify import verify_pdf, QASeverity
 from qa_verify_md import verify_markdown
 from gdrive_storage import GDriveStorage
 
+TERMINAL_CONTENT_STATUS = 'content_failed_terminal'
+RETRIABLE_PROCESSING_STATUS = 'processing_error'
+TERMINAL_STATUSES = {TERMINAL_CONTENT_STATUS}
+
 
 # ═══════════════════════════════════════════
 # Equation Image Stripper
@@ -149,6 +153,10 @@ STALE_PROCESSING_MINUTES = 30   # 'processing' entries older than this → retri
 MAX_RETRIES = 3                 # max retry count before marking permanently failed
 
 
+class TerminalContentError(RuntimeError):
+    """Raised when the input content is invalid and should not be retried."""
+
+
 def _is_stale_processing(entry: dict) -> bool:
     """Check if a 'processing' entry is stuck (older than threshold)."""
     started = entry.get('started_at')
@@ -170,12 +178,30 @@ def _should_retry(entry: dict) -> bool:
     if retries >= MAX_RETRIES:
         return False
 
-    # Retry: failed_timeout, download_error, upload_done_db_error, stale processing
-    if status in ('failed_timeout', 'download_error', 'upload_done_db_error'):
+    # Retry: transient download/publish/runtime failures and stale processing.
+    if status in ('failed_timeout', 'download_error', 'upload_done_db_error', RETRIABLE_PROCESSING_STATUS):
         return True
     if status == 'processing' and _is_stale_processing(entry):
         return True
     return False
+
+
+def _terminal_failure_result(file_info: dict, error: Exception) -> dict:
+    return {
+        'slug': file_info['slug'],
+        'file_id': file_info['file_id'],
+        'status': TERMINAL_CONTENT_STATUS,
+        'error': str(error)[:200],
+    }
+
+
+def _retriable_failure_result(file_info: dict, error: Exception) -> dict:
+    return {
+        'slug': file_info['slug'],
+        'file_id': file_info['file_id'],
+        'status': RETRIABLE_PROCESSING_STATUS,
+        'error': str(error)[:200],
+    }
 
 
 def scan_for_drafts(filter_slug: str = None) -> list[dict]:
@@ -253,6 +279,9 @@ def scan_for_drafts(filter_slug: str = None) -> list[dict]:
             continue
         # Skip permanently failed (max retries exceeded)
         if entry and not _should_retry(entry) and entry.get('status') not in (None, 'dry_run'):
+            if entry.get('status') in TERMINAL_STATUSES:
+                print(f"    [SKIP] {f['name']} — terminal failure ({entry.get('status')})")
+                continue
             if entry.get('retry_count', 0) >= MAX_RETRIES:
                 print(f"    [SKIP] {f['name']} — max retries ({MAX_RETRIES}) reached")
                 continue
@@ -439,7 +468,9 @@ def process_for_report(file_info: dict, dry_run: bool = False) -> dict:
             if fails:
                 print(f"  ❌ {lang}: QA FAIL — {'; '.join(f'{c.name}({c.detail})' for c in fails[:4])}")
                 if qa_strict:
-                    raise RuntimeError(f"QA FAIL blocked upload: {lang} — {'; '.join(c.name for c in fails)}")
+                    raise TerminalContentError(
+                        f"QA FAIL blocked upload: {lang} — {'; '.join(c.name for c in fails)}"
+                    )
                 else:
                     print(f"  ⚠ {lang}: QA FAIL but QA_STRICT=0, skipping upload for this language")
                     continue  # Skip upload for this language
@@ -450,8 +481,8 @@ def process_for_report(file_info: dict, dry_run: bool = False) -> dict:
             qa_pass[lang] = pdf_path
             print(f"  ✓ {lang}: {qa.page_count} pages (QA: {qa.severity.value})")
 
-        except RuntimeError:
-            # Re-raise QA blocking errors
+        except TerminalContentError:
+            # Re-raise terminal QA errors so the file tracker can mark them non-retriable.
             raise
         except Exception as e:
             print(f"  ✗ {lang} QA error: {e}")
@@ -783,7 +814,13 @@ def main():
     for f in new_files:
         prev_entry = processed.get(f['file_id'], {})
         retry_count = f.get('_retry_count', prev_entry.get('retry_count', 0))
-        if prev_entry.get('status') in ('processing', 'failed_timeout', 'download_error', 'upload_done_db_error'):
+        if prev_entry.get('status') in (
+            'processing',
+            'failed_timeout',
+            'download_error',
+            'upload_done_db_error',
+            RETRIABLE_PROCESSING_STATUS,
+        ):
             retry_count += 1
 
         processed[f['file_id']] = {
@@ -794,17 +831,30 @@ def main():
         }
         _save_processed(service, for_id, processed)
 
-        result = process_for_report(f, dry_run=args.dry_run)
+        try:
+            result = process_for_report(f, dry_run=args.dry_run)
+        except TerminalContentError as e:
+            result = _terminal_failure_result(f, e)
+            print(f"  [TERMINAL] {f['name']} — {e}")
+        except Exception as e:
+            result = _retriable_failure_result(f, e)
+            print(f"  [ERROR] {f['name']} — continuing after retriable failure: {e}")
         results.append(result)
 
         processed[f['file_id']]['status'] = result['status']
+        processed[f['file_id']]['error'] = result.get('error')
         processed[f['file_id']]['finished_at'] = datetime.now(timezone.utc).isoformat()
+        processed[f['file_id']]['updated_at'] = processed[f['file_id']]['finished_at']
         _save_processed(service, for_id, processed)
 
     # Summary
     published = sum(1 for r in results if r['status'] == 'published')
+    terminal_failures = sum(1 for r in results if r['status'] == TERMINAL_CONTENT_STATUS)
+    retriable_failures = sum(1 for r in results if r['status'] == RETRIABLE_PROCESSING_STATUS)
     print(f"\n{'='*60}")
     print(f"DONE: {published}/{len(results)} published")
+    if terminal_failures or retriable_failures:
+        print(f"FAILED: terminal={terminal_failures}, retriable={retriable_failures}")
     print(f"{'='*60}")
 
     # Save local summary
