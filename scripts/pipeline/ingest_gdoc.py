@@ -298,6 +298,84 @@ def _strip_equation_images(md_text: str) -> tuple[str, int]:
 
 
 # ═══════════════════════════════════════════════════════
+# Citation & Reference Post-Processor (BCE-603)
+# ═══════════════════════════════════════════════════════
+
+def _normalize_citations(md_text: str) -> tuple[str, int]:
+    """Convert bare footnote-style citations to bracket format.
+
+    Deep Research outputs citations as bare numbers appended to text,
+    e.g. "한다.1" or "있다.13". This converts them to "[1]" / "[13]".
+
+    Targets Korean sentence endings followed by bare numbers:
+    - 한다.1 → 한다.[1]
+    - 있다.13 → 있다.[13]
+    - 된다).9 → 된다).[9]
+
+    Avoids false positives: version numbers (v3.1), percentages (25%),
+    years (2026), table data, etc.
+
+    Returns (cleaned_text, conversion_count).
+    """
+    # Match bare numbers after Korean text endings (다, 음, 임, 됨, etc.)
+    # or after closing punctuation that follows Korean text
+    pattern = re.compile(
+        r'(?<=[가-힣])(\.)(\d{1,3})(?=\s|$|\n|[,\;\:])'
+        r'|'
+        r'(?<=[가-힣]\))(\.)(\d{1,3})(?=\s|$|\n|[,\;\:])',
+        re.MULTILINE,
+    )
+
+    seen_nums: set[str] = set()
+    for m in pattern.finditer(md_text):
+        num = m.group(2) or m.group(4)
+        if num:
+            seen_nums.add(num)
+
+    if len(seen_nums) < 3:
+        return md_text, 0
+
+    max_num = max(int(n) for n in seen_nums)
+    if max_num > 200:
+        return md_text, 0
+
+    count = 0
+
+    def _replace(m: re.Match) -> str:
+        nonlocal count
+        dot = m.group(1) or m.group(3)
+        num = m.group(2) or m.group(4)
+        count += 1
+        return f'{dot}[{num}]'
+
+    result = pattern.sub(_replace, md_text)
+    return result, count
+
+
+def _ensure_references_heading(md_text: str) -> str:
+    """Ensure a '참고문헌' heading exists if bracket citations are present.
+
+    If citations like [1], [2] exist but no references section is found,
+    append a placeholder heading so downstream QA can flag it.
+    """
+    if not re.search(r'\[\d{1,3}\]', md_text):
+        return md_text
+
+    ref_patterns = [
+        r'^#{1,3}\s*참고\s*문헌',
+        r'^#{1,3}\s*References',
+        r'^#{1,3}\s*출처',
+        r'^#{1,3}\s*참조',
+    ]
+    for pat in ref_patterns:
+        if re.search(pat, md_text, re.MULTILINE | re.IGNORECASE):
+            return md_text
+
+    md_text = md_text.rstrip() + '\n\n---\n\n## 참고문헌\n\n> ⚠️ 참고문헌 목록이 원본에 누락되어 있습니다. 수동 검토가 필요합니다.\n'
+    return md_text
+
+
+# ═══════════════════════════════════════════════════════
 # Folder Management
 # ═══════════════════════════════════════════════════════
 
@@ -1103,6 +1181,20 @@ def process_single_md(drive, gd, doc: dict, report_type: str,
                 print(f"  제거 완료: {eq_count}개 수식 이미지")
         except Exception as e:
             print(f"  [WARN] 수식 이미지 제거 실패 (계속 진행): {e}")
+
+    # ── Step 0c: Normalize citations (bare footnote → bracket) ──
+    print("\n[0c] 인용 형식 정규화...")
+    try:
+        ko_md_raw, cite_count = _normalize_citations(ko_md_raw)
+        if cite_count > 0:
+            print(f"  변환 완료: {cite_count}개 footnote → [N] 형식")
+        else:
+            print("  변환 대상 없음 (이미 정상 형식)")
+    except Exception as e:
+        print(f"  [WARN] 인용 형식 정규화 실패 (계속 진행): {e}")
+
+    # ── Step 0d: Ensure references section exists ──
+    ko_md_raw = _ensure_references_heading(ko_md_raw)
 
     # ── Step 1: 종목 확정 ──
     print("\n[1/7] 대상 종목 확정...")
