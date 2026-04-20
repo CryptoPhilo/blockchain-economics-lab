@@ -1,0 +1,209 @@
+{
+  "1atadUTnFrghxyzjtE58JRa-Uf5hGfVz5": {
+    "status": "content_failed_terminal",
+    "slug": "ar-포렌식-분석-보고서",
+    "started_at": "2026-04-20T08:13:06.562239+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — lang.ko_hangul",
+    "finished_at": "2026-04-20T08:14:39.818869+00:00",
+    "updated_at": "2026-04-20T08:14:39.818869+00:00"
+  },
+  "1QDrrK-Zc6Ct9QoT0Cmq4AA0Y3HR3s-ll": {
+    "status": "content_failed_terminal",
+    "slug": "humanity-프로토콜-포렌식-분석-보고서",
+    "started_at": "2026-04-20T08:14:39.819141+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — artefact.fallback_boxes; lang.ko_hangul",
+    "finished_at": "2026-04-20T08:16:29.574477+00:00",
+    "updated_at": "2026-04-20T08:16:29.574477+00:00"
+  },
+  "1S7RrJWfxghOVLgK3Y9E4lQdP8_gI_vUF": {
+    "status": "content_failed_terminal",
+    "slug": "chz-포렌식-분석-보고서",
+    "started_at": "2026-04-20T08:16:29.574760+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — artefact.fallback_boxes; lang.ko_hangul",
+    "finished_at": "2026-04-20T08:18:30.890994+00:00",
+    "updated_at": "2026-04-20T08:18:30.890994+00:00"
+  },
+  "1sQ7IbSL5SvJmR46aXENd3dtnAUVTRBLR": {
+    "status": "content_failed_terminal",
+    "slug": "just-포렌식-분석-보고서",
+    "started_at": "2026-04-20T08:18:30.891293+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — artefact.fallback_boxes; lang.ko_hangul",
+    "finished_at": "2026-04-20T08:20:26.298175+00:00",
+    "updated_at": "2026-04-20T08:20:26.298175+00:00"
+  },
+  "1v7rL05Gm3wFOSHFzheskSLluP7Ab-nbJ": {
+    "status": "content_failed_terminal",
+    "slug": "dexe-포렌식-분석-보고서",
+    "started_at": "2026-04-20T08:20:26.298498+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — artefact.fallback_boxes; lang.ko_hangul",
+    "finished_at": "2026-04-20T08:22:31.802303+00:00",
+    "updated_at": "2026-04-20T08:22:31.802303+00:00"
+  },
+  "1EZiufw3e0lmRL89QSRj1yXsQTB2dvund": {
+    "status": "content_failed_terminal",
+    "slug": "ldo-포렌식-분석-보고서",
+    "started_at": "2026-04-20T08:22:31.802643+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — artefact.fallback_boxes; lang.ko_hangul",
+    "finished_at": "2026-04-20T08:24:00.316502+00:00",
+    "updated_at": "2026-04-20T08:24:00.316502+00:00"
+  },
+  "1Xni5FscbXHKNzgvFlcoQjyg0MTKa82u0": {
+    "status": "content_failed_terminal",
+    "slug": "币安人生-포렌식-분석-보고서",
+    "started_at": "2026-04-20T08:24:00.316837+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — artefact.fallback_boxes; lang.ko_hangul",
+    "finished_at": "2026-04-20T08:26:16.602896+00:00",
+    "updated_at": "2026-04-20T08:26:16.602896+00:00"
+  },
+  "1UyIPKKPvQanearM0MAEZv0yNwgwakmBj": {
+    "status": "content_failed_terminal",
+    "slug": "edge-포렌식-분석-보고서",
+    "started_at": "2026-04-20T08:26:16.603235+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — artefact.fallback_boxes; lang.ko_hangul",
+    "finished_at": "2026-04-20T08:28:20.885005+00:00",
+    "updated_at": "2026-04-20T08:28:20.885005+00:00"
+  },
+  "1jvwyAg4tlRRUD70m5xwNq78Z702tnGgK": {
+    "status": "content_failed_terminal",
+    "slug": "river-포렌식-분석-보고서",
+    "started_at": "2026-04-20T08:28:20.885357+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — artefact.fallback_boxes; lang.ko_hangul",
+    "finished_at": "2026-04-20T08:30:30.520505+00:00",
+    "updated_at": "2026-04-20T08:30:30.520505+00:00"
+  },
+  "1egvROfzbT5n89kutUhhedHrRWcqbHpPm": {
+    "status": "content_failed_terminal",
+    "slug": "siren-포렌식-분석-보고서",
+    "started_at": "2026-04-20T08:30:30.520842+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — artefact.fallback_boxes; lang.ko_hangul",
+    "finished_at": "2026-04-20T08:31:43.287319+00:00",
+    "updated_at": "2026-04-20T08:31:43.287319+00:00"
+  },
+  "1aH5rCFYeOFJGZRGS7z-mzqme1TqiuOsG": {
+    "status": "content_failed_terminal",
+    "slug": "myx-포렌식-분석-보고서",
+    "started_at": "2026-04-20T08:31:43.287688+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — artefact.fallback_boxes; lang.ko_hangul",
+    "finished_at": "2026-04-20T08:33:37.055054+00:00",
+    "updated_at": "2026-04-20T08:33:37.055054+00:00"
+  },
+  "1YzN6WzlZmv3h8A2PrRmcNbvJx9NHHMO1": {
+    "status": "content_failed_terminal",
+    "slug": "xpl-포렌식-분석-보고서",
+    "started_at": "2026-04-20T08:33:37.055433+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — artefact.fallback_boxes; lang.ko_hangul",
+    "finished_at": "2026-04-20T08:35:25.558478+00:00",
+    "updated_at": "2026-04-20T08:35:25.558478+00:00"
+  },
+  "1HmKePowjEW52_wU_MszgtSRCLmHPrk0t": {
+    "status": "content_failed_terminal",
+    "slug": "skyai-포렌식-분석-보고서",
+    "started_at": "2026-04-20T08:35:25.558832+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — artefact.fallback_boxes; lang.ko_hangul",
+    "finished_at": "2026-04-20T08:37:28.674553+00:00",
+    "updated_at": "2026-04-20T08:37:28.674553+00:00"
+  },
+  "1Svuboz4XmC4ACqEXxgqTSZAYVaCYDeHC": {
+    "status": "content_failed_terminal",
+    "slug": "buildon-포렌식-분석-보고서",
+    "started_at": "2026-04-20T08:37:28.674922+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — artefact.fallback_boxes; lang.ko_hangul",
+    "finished_at": "2026-04-20T08:39:34.453473+00:00",
+    "updated_at": "2026-04-20T08:39:34.453473+00:00"
+  },
+  "10M8ejwKbb0q_xJAuKhqOffwQfECYavXl": {
+    "status": "content_failed_terminal",
+    "slug": "midnight-시장-무결성-보고서",
+    "started_at": "2026-04-20T08:39:34.453858+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — artefact.fallback_boxes; lang.ko_hangul",
+    "finished_at": "2026-04-20T08:41:10.647275+00:00",
+    "updated_at": "2026-04-20T08:41:10.647275+00:00"
+  },
+  "1nBx1VMCbh2ztAn-Ui2FhcFSjgptWCQEj": {
+    "status": "content_failed_terminal",
+    "slug": "enjin-포렌식-분석-보고서",
+    "started_at": "2026-04-20T08:41:10.647690+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — artefact.fallback_boxes; lang.ko_hangul",
+    "finished_at": "2026-04-20T08:43:27.743106+00:00",
+    "updated_at": "2026-04-20T08:43:27.743106+00:00"
+  },
+  "1GevRuT0CsPFKLG-lNpu5rHb8j7UBBtxd": {
+    "status": "content_failed_terminal",
+    "slug": "stable-포렌식-분석-보고서",
+    "started_at": "2026-04-20T08:43:27.743459+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — artefact.fallback_boxes; lang.ko_hangul",
+    "finished_at": "2026-04-20T08:44:51.289561+00:00",
+    "updated_at": "2026-04-20T08:44:51.289561+00:00"
+  },
+  "1JXq7qr-oW6UrmdJLbYcZ_QimKkXHsNTP": {
+    "status": "content_failed_terminal",
+    "slug": "rave-포렌식-분석-보고서-20260414",
+    "started_at": "2026-04-20T08:44:51.289976+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — artefact.fallback_boxes; lang.ko_hangul",
+    "finished_at": "2026-04-20T08:45:58.131392+00:00",
+    "updated_at": "2026-04-20T08:45:58.131392+00:00"
+  },
+  "1cMod3t30mhpj90DGRHTsxeQsubEUVtuAARvXYYTTgQ8": {
+    "status": "content_failed_terminal",
+    "slug": "sonic-포렌식-분석-보고서",
+    "started_at": "2026-04-20T08:45:58.131791+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — structure.pages; lang.ko_hangul",
+    "finished_at": "2026-04-20T08:49:39.560565+00:00",
+    "updated_at": "2026-04-20T08:49:39.560565+00:00"
+  },
+  "1POzltA7MpuGqXTVzN3qnxI5VYsWacuoSE0Xk3hixx8Q": {
+    "status": "content_failed_terminal",
+    "slug": "spx-포렌식-분석-보고서",
+    "started_at": "2026-04-20T08:49:39.560982+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — structure.pages; lang.ko_hangul",
+    "finished_at": "2026-04-20T08:54:10.218559+00:00",
+    "updated_at": "2026-04-20T08:54:10.218559+00:00"
+  },
+  "1hwuMoCct0q214a_GzaS3dMP1OkPG6TZQvO9LVIqJ8uY": {
+    "status": "content_failed_terminal",
+    "slug": "aave-포렌식-분석-보고서",
+    "started_at": "2026-04-20T08:54:10.219011+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — structure.pages; lang.ko_hangul",
+    "finished_at": "2026-04-20T08:58:26.615306+00:00",
+    "updated_at": "2026-04-20T08:58:26.615306+00:00"
+  },
+  "14cL4r5d27l4TxETW-I0K6XI1MI-6ww-ELNKjE-6U89U": {
+    "status": "content_failed_terminal",
+    "slug": "zro-포렌식-분석-보고서",
+    "started_at": "2026-04-20T08:58:26.615788+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — structure.pages; lang.ko_hangul",
+    "finished_at": "2026-04-20T09:02:30.009030+00:00",
+    "updated_at": "2026-04-20T09:02:30.009030+00:00"
+  },
+  "1Og0Ngt7fwxc_IsxooLDD8HHEq1CEtr5r9lkCOak8FAI": {
+    "status": "content_failed_terminal",
+    "slug": "req-포렌식-분석-보고서",
+    "started_at": "2026-04-20T09:02:30.009568+00:00",
+    "retry_count": 0,
+    "error": "QA FAIL blocked upload: ko — structure.pages; lang.ko_hangul",
+    "finished_at": "2026-04-20T09:08:00.011009+00:00",
+    "updated_at": "2026-04-20T09:08:00.011009+00:00"
+  }
+}
