@@ -47,76 +47,10 @@ jobs:
             pip install pypdf2 reportlab pillow markdown beautifulsoup4
           fi
 
-      - name: Install CJK fonts for PDF generation
+      - name: Verify CJK fonts
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq fonts-noto-cjk
-          mkdir -p fonts
-          echo "System Noto fonts:"
-          find /usr/share/fonts -name "*NotoSans*CJK*" -o -name "*NotoSansCJK*" 2>/dev/null | head -20
-          python3 << 'PYEOF'
-          import os, glob
-
-          os.makedirs('fonts', exist_ok=True)
-
-          # Find TTC files
-          ttc_files = glob.glob('/usr/share/fonts/**/NotoSansCJK*.ttc', recursive=True)
-          ttc_files += glob.glob('/usr/share/fonts/**/NotoSans*CJK*.ttc', recursive=True)
-          print(f"Found TTC files: {ttc_files}")
-
-          if not ttc_files:
-              # Try OTF files instead
-              otf_files = glob.glob('/usr/share/fonts/**/NotoSansCJK*.otf', recursive=True)
-              print(f"Found OTF files: {otf_files}")
-
-          from fontTools.ttLib import TTCollection, TTFont
-
-          # Script markers in PostScript names (case-insensitive)
-          script_map = {
-              'kr': {'Regular': 'NotoSansKR-Regular.ttf', 'Bold': 'NotoSansKR-Bold.ttf'},
-              'jp': {'Regular': 'NotoSansJP-Regular-Static.ttf', 'Bold': 'NotoSansJP-Bold-Static.ttf'},
-              'sc': {'Regular': 'NotoSansSC-Regular-Static.ttf', 'Bold': 'NotoSansSC-Bold-Static.ttf'},
-          }
-
-          for ttc_path in sorted(set(ttc_files)):
-              basename = os.path.basename(ttc_path)
-              # Determine weight from filename
-              if 'Bold' in basename:
-                  weight = 'Bold'
-              elif 'Regular' in basename:
-                  weight = 'Regular'
-              else:
-                  continue
-
-              print(f"\nProcessing {basename} (weight={weight}):")
-              tc = TTCollection(ttc_path)
-              for i, font in enumerate(tc):
-                  psname = font['name'].getDebugName(6) or ''
-                  fullname = font['name'].getDebugName(4) or ''
-                  print(f"  [{i}] psname={psname}  fullname={fullname}")
-
-                  psname_lower = psname.lower()
-                  for script, filemap in script_map.items():
-                      if script in psname_lower and weight in filemap:
-                          out = os.path.join('fonts', filemap[weight])
-                          font.save(out)
-                          sz = os.path.getsize(out)
-                          print(f"  -> Saved {filemap[weight]}: {sz:,} bytes")
-
-          # Also create Medium from Regular for KR (pdf_base.py expects it)
-          kr_reg = 'fonts/NotoSansKR-Regular.ttf'
-          kr_med = 'fonts/NotoSansKR-Medium.ttf'
-          if os.path.exists(kr_reg) and not os.path.exists(kr_med):
-              import shutil
-              shutil.copy2(kr_reg, kr_med)
-              print(f"  -> Copied Regular as Medium fallback")
-
-          print("\nFinal fonts directory:")
-          for f in sorted(os.listdir('fonts')):
-              if f.endswith('.ttf'):
-                  sz = os.path.getsize(os.path.join('fonts', f))
-                  print(f"  {f}: {sz:,} bytes")
-          PYEOF
+          echo "Checking bundled fonts:"
+          ls -lh fonts/*.ttf 2>/dev/null || echo "WARNING: No fonts found in fonts/"
 
       - name: Create .env.local from secrets
         run: |

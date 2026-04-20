@@ -32,9 +32,11 @@ scripts/pipeline/.gdrive_token.json
 # Pipeline secrets
 scripts/pipeline/.env
 
-# Font files (large binaries)
-fonts/
+# Font files (large binaries) — KR fonts tracked for CI pipeline
+# fonts/  — un-ignored: KR TTFs required for FOR pipeline PDF generation
 scripts/pipeline/fonts/
+fonts/*.otf
+fonts/*.woff*
 
 # Pipeline logs
 logs/
