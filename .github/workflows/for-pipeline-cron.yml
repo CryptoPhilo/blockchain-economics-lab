@@ -50,18 +50,36 @@ jobs:
       - name: Download CJK fonts for PDF generation
         run: |
           mkdir -p fonts
-          cd fonts
-          # Korean (required for FOR pipeline QA)
-          curl -sLO "https://github.com/google/fonts/raw/main/ofl/notosanskr/NotoSansKR-Regular.ttf"
-          curl -sLO "https://github.com/google/fonts/raw/main/ofl/notosanskr/NotoSansKR-Bold.ttf"
-          curl -sLO "https://github.com/google/fonts/raw/main/ofl/notosanskr/NotoSansKR-Medium.ttf"
+          # Korean
+          curl -sL "https://fonts.google.com/download?family=Noto+Sans+KR" -o /tmp/noto-kr.zip
+          unzip -o -j /tmp/noto-kr.zip -d /tmp/noto-kr/
+          cp /tmp/noto-kr/NotoSansKR-Regular.ttf fonts/ 2>/dev/null || cp /tmp/noto-kr/static/NotoSansKR-Regular.ttf fonts/ 2>/dev/null || true
+          cp /tmp/noto-kr/NotoSansKR-Bold.ttf fonts/ 2>/dev/null || cp /tmp/noto-kr/static/NotoSansKR-Bold.ttf fonts/ 2>/dev/null || true
+          cp /tmp/noto-kr/NotoSansKR-Medium.ttf fonts/ 2>/dev/null || cp /tmp/noto-kr/static/NotoSansKR-Medium.ttf fonts/ 2>/dev/null || true
           # Japanese
-          curl -sL -o NotoSansJP-Regular-Static.ttf "https://github.com/google/fonts/raw/main/ofl/notosansjp/NotoSansJP-Regular.ttf" || true
-          curl -sL -o NotoSansJP-Bold-Static.ttf "https://github.com/google/fonts/raw/main/ofl/notosansjp/NotoSansJP-Bold.ttf" || true
+          curl -sL "https://fonts.google.com/download?family=Noto+Sans+JP" -o /tmp/noto-jp.zip
+          unzip -o -j /tmp/noto-jp.zip -d /tmp/noto-jp/
+          cp /tmp/noto-jp/NotoSansJP-Regular.ttf fonts/NotoSansJP-Regular-Static.ttf 2>/dev/null || cp /tmp/noto-jp/static/NotoSansJP-Regular.ttf fonts/NotoSansJP-Regular-Static.ttf 2>/dev/null || true
+          cp /tmp/noto-jp/NotoSansJP-Bold.ttf fonts/NotoSansJP-Bold-Static.ttf 2>/dev/null || cp /tmp/noto-jp/static/NotoSansJP-Bold.ttf fonts/NotoSansJP-Bold-Static.ttf 2>/dev/null || true
           # Simplified Chinese
-          curl -sL -o NotoSansSC-Regular-Static.ttf "https://github.com/google/fonts/raw/main/ofl/notosanssc/NotoSansSC-Regular.ttf" || true
-          curl -sL -o NotoSansSC-Bold-Static.ttf "https://github.com/google/fonts/raw/main/ofl/notosanssc/NotoSansSC-Bold.ttf" || true
-          echo "Downloaded fonts:" && ls -lh *.ttf 2>/dev/null
+          curl -sL "https://fonts.google.com/download?family=Noto+Sans+SC" -o /tmp/noto-sc.zip
+          unzip -o -j /tmp/noto-sc.zip -d /tmp/noto-sc/
+          cp /tmp/noto-sc/NotoSansSC-Regular.ttf fonts/NotoSansSC-Regular-Static.ttf 2>/dev/null || cp /tmp/noto-sc/static/NotoSansSC-Regular.ttf fonts/NotoSansSC-Regular-Static.ttf 2>/dev/null || true
+          cp /tmp/noto-sc/NotoSansSC-Bold.ttf fonts/NotoSansSC-Bold-Static.ttf 2>/dev/null || cp /tmp/noto-sc/static/NotoSansSC-Bold.ttf fonts/NotoSansSC-Bold-Static.ttf 2>/dev/null || true
+          echo "Downloaded fonts:" && ls -lh fonts/*.ttf 2>/dev/null
+          # Verify fonts are valid TTF (not HTML error pages)
+          python3 -c "
+          import os
+          for f in os.listdir('fonts'):
+              if f.endswith('.ttf'):
+                  path = os.path.join('fonts', f)
+                  size = os.path.getsize(path)
+                  with open(path, 'rb') as fh:
+                      magic = fh.read(4)
+                  valid = magic in [b'\x00\x01\x00\x00', b'true', b'OTTO']
+                  status = '✓' if valid else '✗'
+                  print(f'  {status} {f}: {size:,} bytes (magic={magic.hex()})')
+          "
 
       - name: Create .env.local from secrets
         run: |
