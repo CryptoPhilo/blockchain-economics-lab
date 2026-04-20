@@ -52,36 +52,71 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq fonts-noto-cjk
           mkdir -p fonts
-          python3 -c "
-          from fontTools.ttLib import TTCollection
-          import os
+          echo "System Noto fonts:"
+          find /usr/share/fonts -name "*NotoSans*CJK*" -o -name "*NotoSansCJK*" 2>/dev/null | head -20
+          python3 << 'PYEOF'
+          import os, glob
 
           os.makedirs('fonts', exist_ok=True)
-          weights = {
-              'Regular': '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
-              'Bold': '/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc',
-              'Medium': '/usr/share/fonts/opentype/noto/NotoSansCJK-Medium.ttc',
+
+          # Find TTC files
+          ttc_files = glob.glob('/usr/share/fonts/**/NotoSansCJK*.ttc', recursive=True)
+          ttc_files += glob.glob('/usr/share/fonts/**/NotoSans*CJK*.ttc', recursive=True)
+          print(f"Found TTC files: {ttc_files}")
+
+          if not ttc_files:
+              # Try OTF files instead
+              otf_files = glob.glob('/usr/share/fonts/**/NotoSansCJK*.otf', recursive=True)
+              print(f"Found OTF files: {otf_files}")
+
+          from fontTools.ttLib import TTCollection, TTFont
+
+          # Script markers in PostScript names (case-insensitive)
+          script_map = {
+              'kr': {'Regular': 'NotoSansKR-Regular.ttf', 'Bold': 'NotoSansKR-Bold.ttf'},
+              'jp': {'Regular': 'NotoSansJP-Regular-Static.ttf', 'Bold': 'NotoSansJP-Bold-Static.ttf'},
+              'sc': {'Regular': 'NotoSansSC-Regular-Static.ttf', 'Bold': 'NotoSansSC-Bold-Static.ttf'},
           }
-          targets = {
-              'KR': {'Regular': 'NotoSansKR-Regular.ttf', 'Bold': 'NotoSansKR-Bold.ttf', 'Medium': 'NotoSansKR-Medium.ttf'},
-              'JP': {'Regular': 'NotoSansJP-Regular-Static.ttf', 'Bold': 'NotoSansJP-Bold-Static.ttf'},
-              'SC': {'Regular': 'NotoSansSC-Regular-Static.ttf', 'Bold': 'NotoSansSC-Bold-Static.ttf'},
-          }
-          for weight, ttc_path in weights.items():
-              if not os.path.exists(ttc_path):
-                  print(f'WARNING: {ttc_path} not found')
+
+          for ttc_path in sorted(set(ttc_files)):
+              basename = os.path.basename(ttc_path)
+              # Determine weight from filename
+              if 'Bold' in basename:
+                  weight = 'Bold'
+              elif 'Regular' in basename:
+                  weight = 'Regular'
+              else:
                   continue
+
+              print(f"\nProcessing {basename} (weight={weight}):")
               tc = TTCollection(ttc_path)
-              for font in tc:
-                  psname = (font['name'].getDebugName(6) or '')
-                  for script, filemap in targets.items():
-                      if script in psname and weight in filemap:
+              for i, font in enumerate(tc):
+                  psname = font['name'].getDebugName(6) or ''
+                  fullname = font['name'].getDebugName(4) or ''
+                  print(f"  [{i}] psname={psname}  fullname={fullname}")
+
+                  psname_lower = psname.lower()
+                  for script, filemap in script_map.items():
+                      if script in psname_lower and weight in filemap:
                           out = os.path.join('fonts', filemap[weight])
                           font.save(out)
                           sz = os.path.getsize(out)
-                          print(f'  ✓ {filemap[weight]}: {sz:,} bytes (from {psname})')
-          "
-          echo "Fonts directory:" && ls -lh fonts/*.ttf 2>/dev/null
+                          print(f"  -> Saved {filemap[weight]}: {sz:,} bytes")
+
+          # Also create Medium from Regular for KR (pdf_base.py expects it)
+          kr_reg = 'fonts/NotoSansKR-Regular.ttf'
+          kr_med = 'fonts/NotoSansKR-Medium.ttf'
+          if os.path.exists(kr_reg) and not os.path.exists(kr_med):
+              import shutil
+              shutil.copy2(kr_reg, kr_med)
+              print(f"  -> Copied Regular as Medium fallback")
+
+          print("\nFinal fonts directory:")
+          for f in sorted(os.listdir('fonts')):
+              if f.endswith('.ttf'):
+                  sz = os.path.getsize(os.path.join('fonts', f))
+                  print(f"  {f}: {sz:,} bytes")
+          PYEOF
 
       - name: Create .env.local from secrets
         run: |
