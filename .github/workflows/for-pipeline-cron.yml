@@ -16,6 +16,9 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: write
+
 jobs:
   process-for-reports:
     name: 🔍 Process FOR Reports
@@ -43,6 +46,22 @@ jobs:
             pip install anthropic supabase requests python-dotenv
             pip install pypdf2 reportlab pillow markdown beautifulsoup4
           fi
+
+      - name: Download CJK fonts for PDF generation
+        run: |
+          mkdir -p fonts
+          cd fonts
+          # Korean (required for FOR pipeline QA)
+          curl -sLO "https://github.com/google/fonts/raw/main/ofl/notosanskr/NotoSansKR-Regular.ttf"
+          curl -sLO "https://github.com/google/fonts/raw/main/ofl/notosanskr/NotoSansKR-Bold.ttf"
+          curl -sLO "https://github.com/google/fonts/raw/main/ofl/notosanskr/NotoSansKR-Medium.ttf"
+          # Japanese
+          curl -sL -o NotoSansJP-Regular-Static.ttf "https://github.com/google/fonts/raw/main/ofl/notosansjp/NotoSansJP-Regular.ttf" || true
+          curl -sL -o NotoSansJP-Bold-Static.ttf "https://github.com/google/fonts/raw/main/ofl/notosansjp/NotoSansJP-Bold.ttf" || true
+          # Simplified Chinese
+          curl -sL -o NotoSansSC-Regular-Static.ttf "https://github.com/google/fonts/raw/main/ofl/notosanssc/NotoSansSC-Regular.ttf" || true
+          curl -sL -o NotoSansSC-Bold-Static.ttf "https://github.com/google/fonts/raw/main/ofl/notosanssc/NotoSansSC-Bold.ttf" || true
+          echo "Downloaded fonts:" && ls -lh *.ttf 2>/dev/null
 
       - name: Create .env.local from secrets
         run: |
