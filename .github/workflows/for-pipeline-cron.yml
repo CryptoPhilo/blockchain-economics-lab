@@ -47,39 +47,41 @@ jobs:
             pip install pypdf2 reportlab pillow markdown beautifulsoup4
           fi
 
-      - name: Download CJK fonts for PDF generation
+      - name: Install CJK fonts for PDF generation
         run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
           mkdir -p fonts
-          # Korean
-          curl -sL "https://fonts.google.com/download?family=Noto+Sans+KR" -o /tmp/noto-kr.zip
-          unzip -o -j /tmp/noto-kr.zip -d /tmp/noto-kr/
-          cp /tmp/noto-kr/NotoSansKR-Regular.ttf fonts/ 2>/dev/null || cp /tmp/noto-kr/static/NotoSansKR-Regular.ttf fonts/ 2>/dev/null || true
-          cp /tmp/noto-kr/NotoSansKR-Bold.ttf fonts/ 2>/dev/null || cp /tmp/noto-kr/static/NotoSansKR-Bold.ttf fonts/ 2>/dev/null || true
-          cp /tmp/noto-kr/NotoSansKR-Medium.ttf fonts/ 2>/dev/null || cp /tmp/noto-kr/static/NotoSansKR-Medium.ttf fonts/ 2>/dev/null || true
-          # Japanese
-          curl -sL "https://fonts.google.com/download?family=Noto+Sans+JP" -o /tmp/noto-jp.zip
-          unzip -o -j /tmp/noto-jp.zip -d /tmp/noto-jp/
-          cp /tmp/noto-jp/NotoSansJP-Regular.ttf fonts/NotoSansJP-Regular-Static.ttf 2>/dev/null || cp /tmp/noto-jp/static/NotoSansJP-Regular.ttf fonts/NotoSansJP-Regular-Static.ttf 2>/dev/null || true
-          cp /tmp/noto-jp/NotoSansJP-Bold.ttf fonts/NotoSansJP-Bold-Static.ttf 2>/dev/null || cp /tmp/noto-jp/static/NotoSansJP-Bold.ttf fonts/NotoSansJP-Bold-Static.ttf 2>/dev/null || true
-          # Simplified Chinese
-          curl -sL "https://fonts.google.com/download?family=Noto+Sans+SC" -o /tmp/noto-sc.zip
-          unzip -o -j /tmp/noto-sc.zip -d /tmp/noto-sc/
-          cp /tmp/noto-sc/NotoSansSC-Regular.ttf fonts/NotoSansSC-Regular-Static.ttf 2>/dev/null || cp /tmp/noto-sc/static/NotoSansSC-Regular.ttf fonts/NotoSansSC-Regular-Static.ttf 2>/dev/null || true
-          cp /tmp/noto-sc/NotoSansSC-Bold.ttf fonts/NotoSansSC-Bold-Static.ttf 2>/dev/null || cp /tmp/noto-sc/static/NotoSansSC-Bold.ttf fonts/NotoSansSC-Bold-Static.ttf 2>/dev/null || true
-          echo "Downloaded fonts:" && ls -lh fonts/*.ttf 2>/dev/null
-          # Verify fonts are valid TTF (not HTML error pages)
           python3 -c "
+          from fontTools.ttLib import TTCollection
           import os
-          for f in os.listdir('fonts'):
-              if f.endswith('.ttf'):
-                  path = os.path.join('fonts', f)
-                  size = os.path.getsize(path)
-                  with open(path, 'rb') as fh:
-                      magic = fh.read(4)
-                  valid = magic in [b'\x00\x01\x00\x00', b'true', b'OTTO']
-                  status = '✓' if valid else '✗'
-                  print(f'  {status} {f}: {size:,} bytes (magic={magic.hex()})')
+
+          os.makedirs('fonts', exist_ok=True)
+          weights = {
+              'Regular': '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
+              'Bold': '/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc',
+              'Medium': '/usr/share/fonts/opentype/noto/NotoSansCJK-Medium.ttc',
+          }
+          targets = {
+              'KR': {'Regular': 'NotoSansKR-Regular.ttf', 'Bold': 'NotoSansKR-Bold.ttf', 'Medium': 'NotoSansKR-Medium.ttf'},
+              'JP': {'Regular': 'NotoSansJP-Regular-Static.ttf', 'Bold': 'NotoSansJP-Bold-Static.ttf'},
+              'SC': {'Regular': 'NotoSansSC-Regular-Static.ttf', 'Bold': 'NotoSansSC-Bold-Static.ttf'},
+          }
+          for weight, ttc_path in weights.items():
+              if not os.path.exists(ttc_path):
+                  print(f'WARNING: {ttc_path} not found')
+                  continue
+              tc = TTCollection(ttc_path)
+              for font in tc:
+                  psname = (font['name'].getDebugName(6) or '')
+                  for script, filemap in targets.items():
+                      if script in psname and weight in filemap:
+                          out = os.path.join('fonts', filemap[weight])
+                          font.save(out)
+                          sz = os.path.getsize(out)
+                          print(f'  ✓ {filemap[weight]}: {sz:,} bytes (from {psname})')
           "
+          echo "Fonts directory:" && ls -lh fonts/*.ttf 2>/dev/null
 
       - name: Create .env.local from secrets
         run: |
