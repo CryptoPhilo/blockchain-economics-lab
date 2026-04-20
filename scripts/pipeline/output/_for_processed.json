@@ -180,30 +180,30 @@
     "updated_at": "2026-04-20T09:58:10.857850+00:00"
   },
   "1hwuMoCct0q214a_GzaS3dMP1OkPG6TZQvO9LVIqJ8uY": {
-    "status": "download_error",
+    "status": "content_failed_terminal",
     "slug": "aave-포렌식-분석-보고서",
-    "started_at": "2026-04-20T09:58:10.858348+00:00",
-    "retry_count": 0,
-    "error": "<HttpError 500 when requesting https://www.googleapis.com/drive/v3/files/1hwuMoCct0q214a_GzaS3dMP1OkPG6TZQvO9LVIqJ8uY/export?mimeType=text%2Fplain returned \"Internal Error\". Details: \"[{'message': 'In",
-    "finished_at": "2026-04-20T09:58:11.810082+00:00",
-    "updated_at": "2026-04-20T09:58:11.810082+00:00"
+    "started_at": "2026-04-20T10:01:16.525531+00:00",
+    "retry_count": 1,
+    "error": "QA FAIL blocked upload: ko — structure.pages; lang.ko_hangul",
+    "finished_at": "2026-04-20T10:03:00.845481+00:00",
+    "updated_at": "2026-04-20T10:03:00.845481+00:00"
   },
   "14cL4r5d27l4TxETW-I0K6XI1MI-6ww-ELNKjE-6U89U": {
-    "status": "download_error",
+    "status": "content_failed_terminal",
     "slug": "zro-포렌식-분석-보고서",
-    "started_at": "2026-04-20T09:58:11.810622+00:00",
-    "retry_count": 0,
-    "error": "<HttpError 500 when requesting https://www.googleapis.com/drive/v3/files/14cL4r5d27l4TxETW-I0K6XI1MI-6ww-ELNKjE-6U89U/export?mimeType=text%2Fplain returned \"Internal Error\". Details: \"[{'message': 'In",
-    "finished_at": "2026-04-20T09:58:12.806154+00:00",
-    "updated_at": "2026-04-20T09:58:12.806154+00:00"
+    "started_at": "2026-04-20T10:03:00.845992+00:00",
+    "retry_count": 1,
+    "error": "QA FAIL blocked upload: ko — structure.pages; lang.ko_hangul",
+    "finished_at": "2026-04-20T10:04:37.738939+00:00",
+    "updated_at": "2026-04-20T10:04:37.738939+00:00"
   },
   "1Og0Ngt7fwxc_IsxooLDD8HHEq1CEtr5r9lkCOak8FAI": {
-    "status": "download_error",
+    "status": "content_failed_terminal",
     "slug": "req-포렌식-분석-보고서",
-    "started_at": "2026-04-20T09:58:12.806683+00:00",
-    "retry_count": 0,
-    "error": "<HttpError 500 when requesting https://www.googleapis.com/drive/v3/files/1Og0Ngt7fwxc_IsxooLDD8HHEq1CEtr5r9lkCOak8FAI/export?mimeType=text%2Fplain returned \"Internal Error\". Details: \"[{'message': 'In",
-    "finished_at": "2026-04-20T09:58:13.875977+00:00",
-    "updated_at": "2026-04-20T09:58:13.875977+00:00"
+    "started_at": "2026-04-20T10:04:37.739415+00:00",
+    "retry_count": 1,
+    "error": "QA FAIL blocked upload: ko — structure.pages; lang.ko_hangul",
+    "finished_at": "2026-04-20T10:06:51.385028+00:00",
+    "updated_at": "2026-04-20T10:06:51.385028+00:00"
   }
 }
