@@ -50,26 +50,142 @@ from chart_engine import get_chart_engine, Palette
 # ═══════════════════════════════════════════
 # MARKDOWN PARSER
 # ═══════════════════════════════════════════
+class MarkdownStructureError(ValueError):
+    pass
+
+
+_H2_SECTION_RE = re.compile(r'^##\s+(?P<title>.+?)\s*$', re.MULTILINE)
+_NUMBERED_SECTION_RE = re.compile(
+    r'^(?P<title>(?:\d+(?:\.\d+){0,2}[.)]?|[IVXLCM]+[.)])\s+.{3,120})$'
+)
+_BOLD_SECTION_RE = re.compile(r'^\*\*(?P<title>[^*\n]{3,120})\*\*$')
+_FOR_SECTION_TITLE_HINTS = (
+    'executive summary', 'summary', '요약', '개요',
+    'macro', '시장 구조', 'market structure',
+    'chart analysis', '기술적 분석', '차트 포렌식',
+    'derivatives', '파생상품', '수급 분석',
+    'on-chain', '온체인',
+    'manipulation', '시장 조작', 'integrity',
+    'conclusion', '결론', '대응 전략',
+    'data reliability', '신뢰도', '한계',
+)
+
+
+def _clean_section_title(title: str) -> str:
+    title = title.strip().lstrip('\ufeff')
+    title = re.sub(r'\*\*(.+?)\*\*', r'\1', title)
+    return title.replace('\\', '').strip()
+
+
+def _is_for_heading_title(title: str) -> bool:
+    normalized = _clean_section_title(title).lower()
+    return any(hint in normalized for hint in _FOR_SECTION_TITLE_HINTS)
+
+
+def _parse_sections_with_detector(md_text, detector, mode):
+    lines = md_text.splitlines()
+    preamble_lines = []
+    sections = []
+    current_title = None
+    current_lines = []
+
+    for idx, raw_line in enumerate(lines):
+        detected = detector(lines, idx)
+        if detected:
+            if current_title is None:
+                preamble_lines = current_lines
+            else:
+                sections.append((current_title, '\n'.join(current_lines).strip()))
+            current_title = _clean_section_title(detected)
+            current_lines = []
+            continue
+        current_lines.append(raw_line)
+
+    if current_title is None:
+        return md_text.strip(), [], mode
+
+    sections.append((current_title, '\n'.join(current_lines).strip()))
+    preamble = '\n'.join(preamble_lines).strip()
+    sections = [(title, content) for title, content in sections if title and content]
+    return preamble, sections, mode
+
+
+def _detect_h2_section(lines, idx):
+    line = lines[idx].lstrip('\ufeff')
+    m = _H2_SECTION_RE.match(line)
+    return m.group('title') if m else None
+
+
+def _detect_numbered_section(lines, idx):
+    line = lines[idx].lstrip('\ufeff').strip()
+    if not line:
+        return None
+    prev_blank = idx == 0 or not lines[idx - 1].strip()
+    next_nonblank = idx + 1 < len(lines) and bool(lines[idx + 1].strip())
+    allow_inline_numbered = bool(re.match(r'^\d+\.\s+', line))
+    if ((not prev_blank and not allow_inline_numbered) or not next_nonblank
+            or '|' in line or ':' in line):
+        return None
+    m = _NUMBERED_SECTION_RE.match(line)
+    if not m or len(line.split()) > 12:
+        return None
+    return m.group('title').strip()
+
+
+def _detect_bold_section(lines, idx):
+    line = lines[idx].lstrip('\ufeff').strip()
+    if not line:
+        return None
+    prev_blank = idx == 0 or not lines[idx - 1].strip()
+    next_nonblank = idx + 1 < len(lines) and bool(lines[idx + 1].strip())
+    if not prev_blank or not next_nonblank:
+        return None
+    m = _BOLD_SECTION_RE.match(line)
+    return m.group('title') if m and len(m.group('title').split()) <= 12 else None
+
+
+def _parse_markdown_sections(md_text):
+    """
+    Parse markdown into sections and report which detector was used.
+    """
+    preamble, sections, mode = _parse_sections_with_detector(md_text, _detect_h2_section, 'markdown_h2')
+    if sections:
+        return preamble, sections, mode
+
+    preamble, sections, mode = _parse_sections_with_detector(md_text, _detect_numbered_section, 'numbered_fallback')
+    if len(sections) >= 2 and any(_is_for_heading_title(title) for title, _ in sections):
+        return preamble, sections, mode
+
+    preamble, sections, mode = _parse_sections_with_detector(md_text, _detect_bold_section, 'bold_fallback')
+    if len(sections) >= 2:
+        return preamble, sections, mode
+
+    return md_text.strip(), [], 'unparsed'
+
+
 def parse_markdown(md_text):
     """
     Parse markdown into sections.
     Returns list of tuples: (section_title, content_text)
     """
-    sections = []
-    # Split on ## headers
-    parts = re.split(r'^## ', md_text, flags=re.MULTILINE)
-
-    # First part (before any ##) is preamble
-    preamble = parts[0].strip()
-
-    # Process remaining sections
-    for part in parts[1:]:
-        lines = part.split('\n')
-        title = lines[0].strip()
-        content = '\n'.join(lines[1:]).strip()
-        sections.append((title, content))
-
+    preamble, sections, _ = _parse_markdown_sections(md_text)
     return preamble, sections
+
+
+def _validate_parsed_sections(md_path: str, md_text: str, sections, parse_mode: str) -> None:
+    content_chars = sum(len(content.strip()) for _, content in sections)
+    numbered_candidates = len(re.findall(r'(?m)^(?:\d+(?:\.\d+){0,2}[.)]?|[IVXLCM]+[.)])\s+.{3,120}$', md_text))
+    bold_candidates = len(re.findall(r'(?m)^\*\*[^*\n]{3,120}\*\*$', md_text))
+    h2_count = len(re.findall(r'(?m)^##\s+', md_text))
+
+    if sections and content_chars >= 300:
+        return
+
+    raise MarkdownStructureError(
+        f'FOR markdown parse failure for {md_path}: '
+        f'mode={parse_mode}, sections={len(sections)}, h2={h2_count}, '
+        f'numbered_candidates={numbered_candidates}, bold_candidates={bold_candidates}'
+    )
 
 
 def extract_tables_from_markdown(text):
@@ -268,7 +384,10 @@ def generate_pdf_for(md_path: str, metadata: dict, lang: str = 'en', output_path
         md_text = f.read()
 
     # Parse markdown
-    preamble, sections = parse_markdown(md_text)
+    preamble, sections, parse_mode = _parse_markdown_sections(md_text)
+    _validate_parsed_sections(md_path, md_text, sections, parse_mode)
+    if parse_mode != 'markdown_h2':
+        print(f"[WARN] FOR markdown fallback parser engaged ({parse_mode}) for {md_path}")
 
     # Setup
     project_name = metadata.get('project_name', 'Project')

@@ -67,6 +67,21 @@ _HANGUL_RE = re.compile(r'[\uAC00-\uD7AF]')
 _HIRAGANA_RE = re.compile(r'[\u3040-\u309F]')
 _KATAKANA_RE = re.compile(r'[\u30A0-\u30FF]')
 _CJK_RE = re.compile(r'[\u4E00-\u9FFF]')
+_ATX_HEADING_RE = re.compile(r'^(#{1,6})\s+(.+?)\s*$')
+_NUMBERED_SECTION_RE = re.compile(
+    r'^(?:\d+(?:\.\d+){0,2}[.)]?|[IVXLCM]+[.)])\s+(.{3,120})$'
+)
+_BOLD_HEADING_RE = re.compile(r'^\*\*([^*\n]{3,120})\*\*$')
+_FOR_SECTION_TITLE_HINTS = (
+    'executive summary', 'summary', '요약', '개요',
+    'macro', '시장 구조', 'market structure',
+    'chart analysis', '기술적 분석', '차트 포렌식',
+    'derivatives', '파생상품', '수급 분석',
+    'on-chain', '온체인',
+    'manipulation', '시장 조작', 'integrity',
+    'conclusion', '결론', '대응 전략',
+    'data reliability', '신뢰도', '한계',
+)
 
 _MD_RESIDUE_PATTERNS = [
     (r'\\\*', r'escaped \\* backslash'),
@@ -121,6 +136,51 @@ def _collect_code_blocks(text: str) -> List[Tuple[str, List[str]]]:
     return blocks
 
 
+def _collect_headings_by_level(text: str) -> Dict[int, List[str]]:
+    headings: Dict[int, List[str]] = {i: [] for i in range(1, 7)}
+    for raw_line in text.splitlines():
+        line = raw_line.lstrip('\ufeff').strip()
+        if not line:
+            continue
+        m = _ATX_HEADING_RE.match(line)
+        if not m:
+            continue
+        headings[len(m.group(1))].append(m.group(2).strip())
+    return headings
+
+
+def _collect_heading_like_lines(text: str) -> Dict[str, List[str]]:
+    numbered: List[str] = []
+    bold: List[str] = []
+    lines = text.splitlines()
+    for idx, raw_line in enumerate(lines):
+        line = raw_line.lstrip('\ufeff').strip()
+        if not line:
+            continue
+        prev_blank = idx == 0 or not lines[idx - 1].strip()
+        next_nonblank = idx + 1 < len(lines) and bool(lines[idx + 1].strip())
+        allow_inline_numbered = bool(re.match(r'^\d+\.\s+', line))
+        if (not prev_blank and not allow_inline_numbered) or not next_nonblank:
+            continue
+        if '|' in line or ':' in line:
+            continue
+
+        m = _NUMBERED_SECTION_RE.match(line)
+        if m and len(line.split()) <= 12:
+            numbered.append(line)
+            continue
+
+        m = _BOLD_HEADING_RE.match(line)
+        if m and len(m.group(1).split()) <= 12:
+            bold.append(m.group(1).strip())
+    return {'numbered': numbered, 'bold': bold}
+
+
+def _is_for_heading_title(title: str) -> bool:
+    normalized = title.lstrip('\ufeff').strip().lower()
+    return any(hint in normalized for hint in _FOR_SECTION_TITLE_HINTS)
+
+
 # ─── Individual checks ───────────────────────────────────────────────────────
 def _check_structure(report: QAReport, text: str) -> None:
     if len(text.strip()) < 100:
@@ -140,6 +200,64 @@ def _check_structure(report: QAReport, text: str) -> None:
     else:
         report.add(QACheck('md.structure.fences', QASeverity.PASS,
                            f'{total // 2} fenced blocks'))
+
+
+def _check_heading_structure(report: QAReport, text: str, report_type: str = 'econ') -> None:
+    headings = _collect_headings_by_level(text)
+    heading_like = _collect_heading_like_lines(text)
+    h2_count = len(headings[2])
+    numbered = heading_like['numbered']
+    bold = heading_like['bold']
+    suspicious = numbered + bold
+
+    # FOR reports can still be recoverable when translators collapse `##` markers
+    # into clean numbered section titles. Treat that as a warning here and rely on
+    # ko-reference parity to hard-fail real translation-structure regressions.
+    if (
+        report_type == 'for'
+        and h2_count == 0
+        and len(numbered) >= 3
+        and not bold
+    ):
+        if not any(_is_for_heading_title(title) for title in numbered):
+            report.add(QACheck(
+                'md.structure.section_markers',
+                QASeverity.PASS,
+                f'numbered list detected without FOR section-heading signals ({len(numbered)} items)',
+                samples=numbered[:5],
+            ))
+            return
+        report.add(QACheck(
+            'md.structure.section_markers',
+            QASeverity.WARN,
+            f'no markdown H2 sections found; detected {len(numbered)} recoverable numbered '
+            f'section lines outside markdown structure',
+            samples=numbered[:5],
+        ))
+        return
+
+    if h2_count == 0 and len(suspicious) >= 3:
+        report.add(QACheck(
+            'md.structure.section_markers',
+            QASeverity.FAIL,
+            f'no markdown H2 sections found; detected {len(suspicious)} heading-like lines '
+            f'outside markdown structure',
+            samples=suspicious[:5],
+        ))
+    elif h2_count < 2 and len(suspicious) >= 3:
+        report.add(QACheck(
+            'md.structure.section_markers',
+            QASeverity.WARN,
+            f'only {h2_count} markdown H2 sections found; detected {len(suspicious)} additional '
+            f'heading-like lines outside markdown structure',
+            samples=suspicious[:5],
+        ))
+    else:
+        report.add(QACheck(
+            'md.structure.section_markers',
+            QASeverity.PASS,
+            f'markdown H2 sections={h2_count}',
+        ))
 
 
 def _check_residues(report: QAReport, text: str) -> None:
@@ -382,6 +500,42 @@ def _check_parity(report: QAReport, text: str, ko_text: str) -> None:
     cmp('images', 0, QASeverity.WARN)
     cmp('table_rows', 2, QASeverity.WARN)
 
+    ko_headings = _collect_headings_by_level(ko_text)
+    lang_headings = _collect_headings_by_level(text)
+    heading_like = _collect_heading_like_lines(text)
+    ko_h2 = len(ko_headings[2])
+    lang_h2 = len(lang_headings[2])
+    suspicious = heading_like['numbered'] + heading_like['bold']
+
+    if ko_h2 >= 3:
+        missing_h2 = ko_h2 - lang_h2
+        if lang_h2 == 0 and suspicious:
+            report.add(QACheck(
+                'md.parity.section_structure',
+                QASeverity.FAIL,
+                f'ko has {ko_h2} H2 sections but translation has none; '
+                f'found {len(suspicious)} heading-like lines that may have collapsed '
+                f'out of markdown structure',
+                samples=suspicious[:5],
+            ))
+        elif missing_h2 > max(1, ko_h2 // 3):
+            severity = QASeverity.FAIL if missing_h2 >= max(2, ko_h2 // 2) else QASeverity.WARN
+            detail = f'ko H2 sections={ko_h2} vs lang H2 sections={lang_h2}'
+            if suspicious:
+                detail += f'; heading-like lines outside markdown={len(suspicious)}'
+            report.add(QACheck(
+                'md.parity.section_structure',
+                severity,
+                detail,
+                samples=suspicious[:5],
+            ))
+        else:
+            report.add(QACheck(
+                'md.parity.section_structure',
+                QASeverity.PASS,
+                f'ko H2 sections={ko_h2} lang H2 sections={lang_h2}',
+            ))
+
 
 # ─── Entry points ───────────────────────────────────────────────────────────
 def verify_markdown(md_path: str | Path, lang: Optional[str] = None,
@@ -401,6 +555,7 @@ def verify_markdown(md_path: str | Path, lang: Optional[str] = None,
 
     text = _read(path)
     _check_structure(report, text)
+    _check_heading_structure(report, text, report_type=report_type)
     _check_residues(report, text)
     _check_broken_ascii_diagram(report, text)
     _check_broken_tables(report, text)
