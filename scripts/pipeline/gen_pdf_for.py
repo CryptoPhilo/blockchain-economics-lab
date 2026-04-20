@@ -40,7 +40,8 @@ from reportlab.platypus import (
 
 from pdf_base import (
     make_styles, section_header, build_table, draw_cover_forensic,
-    make_header_footer, add_disclaimer, create_doc, USABLE_W, C
+    make_header_footer, add_disclaimer, create_doc, USABLE_W, C,
+    wrap_cjk_runs,
 )
 from config import report_filename, COLORS
 from chart_engine import get_chart_engine, Palette
@@ -175,6 +176,7 @@ def markdown_to_paragraphs(text, styles, max_width=None, lang='en'):
         if p.startswith('### '):
             sub_title = p[4:].strip()
             sub_title = _strip_markdown_bold(sub_title)
+            sub_title = wrap_cjk_runs(sub_title, lang=lang)
             flowables.append(Spacer(1, 10))
             flowables.append(Paragraph(f'<b>{sub_title}</b>', styles['h3']))
             flowables.append(Spacer(1, 4))
@@ -195,6 +197,8 @@ def markdown_to_paragraphs(text, styles, max_width=None, lang='en'):
 
         # Sanitize stray < > that aren't valid XML tags
         p = re.sub(r'<(?!/?(?:b|i|font|sub|super|br)\b)', '&lt;', p)
+
+        p = wrap_cjk_runs(p, lang=lang)
 
         if p.startswith('- ') or p.startswith('• ') or p.startswith('\u2022 '):
             bullet_text = re.sub(r'^[-•\u2022]\s*', '', p)
@@ -325,7 +329,7 @@ def generate_pdf_for(md_path: str, metadata: dict, lang: str = 'en', output_path
 
             # Add prose before first table
             if clean_prose:
-                story.extend(markdown_to_paragraphs(clean_prose, styles))
+                story.extend(markdown_to_paragraphs(clean_prose, styles, lang=lang))
 
             # Add tables and associated charts
             for (headers, rows), _ in tables_in_section:
@@ -362,7 +366,7 @@ def generate_pdf_for(md_path: str, metadata: dict, lang: str = 'en', output_path
 
         else:
             # No tables - just prose
-            story.extend(markdown_to_paragraphs(section_content, styles))
+            story.extend(markdown_to_paragraphs(section_content, styles, lang=lang))
 
     # Forensic multi-factor radar (if risk_indicators available)
     if charts_data.get('risk_indicators') and len(charts_data['risk_indicators']) >= 3:
