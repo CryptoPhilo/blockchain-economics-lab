@@ -121,7 +121,7 @@ export default async function ScorePage({
         </h1>
         <p className="text-gray-400 max-w-xl mx-auto">
           {isKo
-            ? '크립토 프로젝트 시가총액 순위와 BCE 분석 보고서를 확인하세요'
+            ? '시가총액 200위 종목들의 BCE 보고서를 확인하세요'
             : 'Crypto project rankings by market cap with BCE analysis reports'}
         </p>
       </div>

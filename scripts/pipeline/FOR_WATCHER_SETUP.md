@@ -2,11 +2,11 @@
 
 **Task**: BCE-221  
 **Script**: `watch_for_drafts.py`  
-**Purpose**: Automated monitoring of GDrive `drafts/FOR/` folder to detect and process new forensic analysis reports.
+**Purpose**: Automated monitoring of GDrive `drafts/FOR/` folder to detect and process new forensic analysis reports through the shared draft-ingest path.
 
 ## Overview
 
-The FOR Draft Watcher automatically scans the Google Drive `drafts/FOR/` folder for new markdown reports and processes them through the full BCE Lab pipeline:
+The FOR Draft Watcher uses `ingest_for.scan_for_drafts()` and the shared Drive draft helper to scan the Google Drive `drafts/FOR/` folder for new markdown reports and process them through the full BCE Lab pipeline:
 
 1. **Scan** - Detect new .md files in `drafts/FOR/`
 2. **Ingest** - Download and validate the report
@@ -41,8 +41,8 @@ All scan results are written to timestamped log files:
 - **Contents**: List of detected files with metadata (ID, size, modified date, GDrive link)
 
 ### Processed Files Tracking
-- **Location**: `logs/for_pipeline/processed_files.json`
-- **Purpose**: Prevents reprocessing of already-handled files
+- **Location**: `scripts/pipeline/output/_for_processed.json`
+- **Purpose**: Shared state tracker used by both `ingest_for.py` and `watch_for_drafts.py`
 
 ## Scheduling
 
@@ -85,7 +85,9 @@ Add to crontab:
 ```
 watch_for_drafts.py (Scheduler/Watcher)
     ↓
-    Scans GDrive drafts/FOR/
+    Calls ingest_for.scan_for_drafts()
+    ↓
+    Shared helper resolves drafts/FOR/ and scans markdown + Google Docs
     ↓
     For each new .md file:
         ↓

@@ -27,7 +27,7 @@ import requests as http_requests
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import (
     FORENSIC_TRIGGERS, MARKET_BENCHMARK,
-    CMC_API_KEY, CMC_RATE_LIMIT_SLEEP,
+    CMC_API_KEY, CMC_RATE_LIMIT_SLEEP, get_forensic_scan_deviation_threshold,
 )
 
 # ── Load .env.local ──
@@ -43,7 +43,7 @@ if _env.exists():
 if not CMC_API_KEY:
     CMC_API_KEY = os.environ.get('CMC_API_KEY', '')
 
-RELATIVE_DEVIATION_THRESHOLD = FORENSIC_TRIGGERS.get('relative_deviation_24h_pct', 10.0)
+RELATIVE_DEVIATION_THRESHOLD = get_forensic_scan_deviation_threshold()
 NOTIFY_EMAIL = 'philoskor@gmail.com'
 
 
@@ -185,19 +185,11 @@ def register_coming_soon(triggers: list[dict], dry_run: bool = False) -> list[di
 
     scan_ts = datetime.now(timezone.utc).isoformat()
     registered = []
+    validity_days = FORENSIC_TRIGGERS.get('report_validity_days', 7)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=validity_days)
 
     for t in triggers:
         slug = t['slug']
-
-        # Check if already has a coming_soon or active FOR report
-        existing = sb.table('project_reports').select('id, status') \
-            .eq('report_type', 'forensic') \
-            .filter('status', 'in', '("coming_soon","assigned","in_progress","in_review")') \
-            .execute()
-
-        # Find matching slug entries
-        slug_existing = [r for r in (existing.data or [])
-                         if True]  # We need project_id match
 
         # Get or create tracked_project
         proj = sb.table('tracked_projects').select('id').eq('slug', slug).execute()
@@ -219,21 +211,29 @@ def register_coming_soon(triggers: list[dict], dry_run: bool = False) -> list[di
         else:
             project_id = proj.data[0]['id']
 
-        # Check for existing coming_soon FOR report for this project
-        existing_for = sb.table('project_reports').select('id') \
+        # Skip if a FOR report is already active for this project.
+        active_for = sb.table('project_reports').select('id, status') \
             .eq('project_id', project_id) \
             .eq('report_type', 'forensic') \
-            .eq('status', 'coming_soon') \
+            .filter('status', 'in', '("coming_soon","assigned","in_progress","in_review")') \
             .execute()
 
-        if existing_for.data:
-            print(f"  {slug}: already has coming_soon FOR report — skip")
+        if active_for.data:
+            print(f"  {slug}: active FOR report already exists — skip")
+            continue
+
+        # Skip if a recent trigger is already being processed for this project.
+        active_trigger = sb.table('forensic_triggers').select('id, status, scan_timestamp') \
+            .eq('project_id', project_id) \
+            .filter('status', 'in', '("detected","notified","draft_pending","processing")') \
+            .gte('scan_timestamp', cutoff.isoformat()) \
+            .execute()
+
+        if active_trigger.data:
+            print(f"  {slug}: active forensic trigger already exists — skip")
             continue
 
         # BCE-481: Check for recent published FOR report within validity period
-        validity_days = FORENSIC_TRIGGERS.get('report_validity_days', 7)
-        cutoff = datetime.now(timezone.utc) - timedelta(days=validity_days)
-
         recent_published = sb.table('project_reports').select('id, published_at') \
             .eq('project_id', project_id) \
             .eq('report_type', 'forensic') \

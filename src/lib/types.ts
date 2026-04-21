@@ -219,6 +219,93 @@ export interface ProjectSubscriptionItem {
 }
 
 // ============================================================
+// Trading Signal Types
+// ============================================================
+
+export type TradingSignalDirection = 'long' | 'short' | 'hold'
+export type TradingSignalReviewStatus = 'pending_review' | 'approved' | 'rejected'
+export type TradingSignalReviewAction = 'approve' | 'reject' | 'manual_override'
+
+export interface TradingSignalRun {
+  id: string
+  source: string
+  model_version?: string
+  features_version?: string
+  method?: string
+  generated_at: string
+  source_window_start?: string
+  source_window_end?: string
+  input_uri?: string
+  metadata?: Record<string, unknown>
+  created_at: string
+}
+
+export interface TradingSignal {
+  id: string
+  run_id: string
+  project_id: string
+  signal_date: string
+  horizon_days: number
+  direction: TradingSignalDirection
+  confidence?: number
+  predicted_return_1d?: number
+  historical_direction_accuracy?: number
+  last_spot_close?: number
+  predicted_spot_close_1d?: number
+  review_status: TradingSignalReviewStatus
+  reviewed_at?: string
+  reviewed_by?: string
+  approved_at?: string
+  rejected_at?: string
+  created_at: string
+  project?: TrackedProject
+  run?: TradingSignalRun
+}
+
+export interface TradingSignalReview {
+  id: string
+  signal_id: string
+  action: TradingSignalReviewAction
+  actor_id?: string
+  note?: string
+  metadata?: Record<string, unknown>
+  created_at: string
+}
+
+export interface CreateTradingSignalRunInput {
+  source?: string
+  modelVersion?: string
+  featuresVersion?: string
+  method?: string
+  generatedAt: string
+  sourceWindowStart?: string
+  sourceWindowEnd?: string
+  inputUri?: string
+  metadata?: Record<string, unknown>
+}
+
+export interface CreateTradingSignalInput {
+  runId: string
+  projectId: string
+  signalDate: string
+  horizonDays?: number
+  direction: TradingSignalDirection
+  confidence?: number
+  predictedReturn1d?: number
+  historicalDirectionAccuracy?: number
+  lastSpotClose?: number
+  predictedSpotClose1d?: number
+}
+
+export interface CreateTradingSignalReviewInput {
+  signalId: string
+  action: TradingSignalReviewAction
+  actorId?: string
+  note?: string
+  metadata?: Record<string, unknown>
+}
+
+// ============================================================
 // Referral Tracking Types
 // ============================================================
 

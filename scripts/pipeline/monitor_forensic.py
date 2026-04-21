@@ -29,6 +29,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from config import get_forensic_scan_deviation_threshold
+
 
 # ============================================================================
 # FORENSIC TRIGGER CHECKERS
@@ -130,13 +133,8 @@ def check_price_volatility(project_slug: str, token_id: str) -> Tuple[bool, floa
         # Calculate relative deviation
         relative_deviation = token_change - market_avg
 
-        # Trigger threshold from config (default 10%)
-        threshold = 10.0
-        try:
-            from config import FORENSIC_TRIGGERS
-            threshold = FORENSIC_TRIGGERS.get('relative_deviation_24h_pct', 10.0)
-        except ImportError:
-            pass
+        # Scanner/monitor threshold is the broader 10% candidate-detection gate.
+        threshold = get_forensic_scan_deviation_threshold()
 
         triggered = abs(relative_deviation) >= threshold
 

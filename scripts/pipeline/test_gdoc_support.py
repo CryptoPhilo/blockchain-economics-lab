@@ -40,11 +40,11 @@ More content here.
     return True
 
 def test_scan_logic_structure():
-    """Verify scan_new_md_files has the correct structure."""
+    """Verify scan_new_md_files delegates to the shared draft scanner."""
     import inspect
     from ingest_gdoc import scan_new_md_files
+    from gdrive_drafts import scan_markdown_drafts
 
-    # Check function signature
     sig = inspect.signature(scan_new_md_files)
     params = list(sig.parameters.keys())
 
@@ -52,22 +52,24 @@ def test_scan_logic_structure():
     assert 'folder_id' in params, "Missing 'folder_id' parameter"
     assert 'tracker' in params, "Missing 'tracker' parameter"
 
-    # Check source code includes Google Docs query
     source = inspect.getsource(scan_new_md_files)
-    assert 'application/vnd.google-apps.document' in source, \
-        "Missing Google Docs query"
-    assert 'q_gdocs' in source or 'q_md' in source, \
-        "Missing query variable names"
-    assert '_gdoc' in source, \
-        "Missing _gdoc flag handling"
+    assert 'scan_markdown_drafts' in source, \
+        "Missing shared draft scanner usage"
+
+    shared_source = inspect.getsource(scan_markdown_drafts)
+    assert 'application/vnd.google-apps.document' in shared_source, \
+        "Missing Google Docs query in shared scanner"
+    assert '_gdoc' in shared_source, \
+        "Missing _gdoc flag handling in shared scanner"
 
     print("✓ test_scan_logic_structure passed")
     return True
 
 def test_download_signature():
-    """Verify download_md_file has correct signature."""
+    """Verify download_md_file delegates to the shared download helper."""
     import inspect
     from ingest_gdoc import download_md_file
+    from gdrive_drafts import download_markdown_text
 
     sig = inspect.signature(download_md_file)
     params = list(sig.parameters.keys())
@@ -81,10 +83,13 @@ def test_download_signature():
     assert is_gdoc_default is False, \
         f"is_gdoc default should be False, got {is_gdoc_default}"
 
-    # Check source includes export logic
     source = inspect.getsource(download_md_file)
-    assert 'export' in source, "Missing export() call for Google Docs"
-    assert 'text/plain' in source, "Missing text/plain mimetype"
+    assert 'download_markdown_text' in source, \
+        "Missing shared download helper usage"
+
+    shared_source = inspect.getsource(download_markdown_text)
+    assert 'export' in shared_source, "Missing export() call for Google Docs"
+    assert 'text/plain' in shared_source, "Missing text/plain mimetype"
 
     print("✓ test_download_signature passed")
     return True

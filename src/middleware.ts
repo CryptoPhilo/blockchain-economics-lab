@@ -1,6 +1,7 @@
 import createMiddleware from 'next-intl/middleware'
 import { NextRequest, NextResponse } from 'next/server'
 import { locales, defaultLocale } from './i18n/config'
+import { isInternalApiRouteEnabled } from './lib/internal-api-auth'
 
 const RESTRICTED_COUNTRIES = ['KR']
 
@@ -12,6 +13,10 @@ const intlMiddleware = createMiddleware({
 
 export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  if (pathname.startsWith('/api/internal') && !isInternalApiRouteEnabled()) {
+    return NextResponse.json({ error: 'Not Found' }, { status: 404 })
+  }
 
   // Skip API routes, Next.js internals, and static files
   if (

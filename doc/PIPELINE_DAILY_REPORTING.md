@@ -24,7 +24,7 @@
 
 3. **Tracking Data** — 파이프라인 실행 이력
    - Location: `scripts/pipeline/output/_for_processed.json`
-   - Managed by: `ingest_for.py` (FOR pipeline)
+   - Managed by: `ingest_for.py` and read by `watch_for_drafts.py`
    - Updated: 매 파이프라인 실행 시
 
 ## Report Contents
@@ -134,12 +134,12 @@ claude code 'Use exec-report skill to send COO-20260419_pipeline_operations_dail
 
 ECON, MAT 파이프라인으로 확장하려면:
 
-1. **각 파이프라인의 tracking file 추가**
-   - `_econ_processed.json`
-   - `_mat_processed.json`
+1. **공통 draft ingress 상태 수집 전략 확장**
+   - FOR는 `scripts/pipeline/output/_for_processed.json` shared tracker 사용
+   - ECON/MAT는 `gdrive_drafts.py` 기반 `drafts/{TYPE}` 공통 ingress 경로를 사용하므로, 일일 리포트는 타입별 processed tracker semantics만 추가로 수집하면 됨
 
 2. **`daily_pipeline_report.py` 수정**
-   - `load_processed_data()` 함수에서 모든 tracking files 로드
+   - `load_processed_data()` 함수에서 FOR local tracker + ECON/MAT source tracker 로드
    - 파이프라인별 카테고리 추가
 
 3. **보고서 템플릿 확장**
@@ -155,7 +155,7 @@ ECON, MAT 파이프라인으로 확장하려면:
 
 ### Tracking data가 없을 때
 - FOR pipeline이 아직 실행되지 않았을 수 있음
-- `watch_for_drafts.py` 실행 확인
+- `watch_for_drafts.py` 또는 `ingest_for.py` 실행 확인
 - GDrive `drafts/FOR/` 폴더에 파일 존재 확인
 
 ## Related Issues

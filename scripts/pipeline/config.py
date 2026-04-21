@@ -209,6 +209,27 @@ FORENSIC_AUTO_TRIGGERS = {
     'exchange_netflow_pct': 1.0,         # > 1% of supply to exchanges
 }
 
+
+def get_forensic_scan_deviation_threshold() -> float:
+    """
+    Threshold for scanner/monitor candidate detection.
+
+    This is the broader gate used to surface projects for review and register
+    `coming_soon` forensic work when the market-relative move is large enough.
+    """
+    return float(FORENSIC_TRIGGERS.get('relative_deviation_24h_pct', 10.0))
+
+
+def get_forensic_auto_deviation_threshold() -> float:
+    """
+    Threshold for automatic FOR generation.
+
+    This intentionally stays stricter than the scan threshold so the system can
+    surface 10%+ candidates without auto-triggering full FOR generation until
+    the move reaches the auto-FOR threshold.
+    """
+    return float(FORENSIC_AUTO_TRIGGERS.get('relative_deviation_24h_pct', 15.0))
+
 # Daily pipeline schedule (UTC)
 DAILY_PIPELINE_SCHEDULE = {
     'phase_a_token_list':     '06:00',

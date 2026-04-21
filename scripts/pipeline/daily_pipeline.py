@@ -40,7 +40,7 @@ from config import (
     COINGECKO_BATCH_SIZE,
     TRANSPARENCY_SCAN_ROTATION_DAYS,
     MAX_DAILY_REPORTS,
-    FORENSIC_AUTO_TRIGGERS,
+    get_forensic_auto_deviation_threshold,
     OUTPUT_DIR,
 )
 from collectors.collector_tokenlist import CollectorTokenList
@@ -56,6 +56,30 @@ try:
     HAS_SUPABASE = True
 except ImportError:
     HAS_SUPABASE = False
+
+
+def compute_market_average_24h(market_data: Dict[str, Dict]) -> float:
+    """
+    Compute a market-cap-weighted 24h return baseline for relative deviation checks.
+
+    This keeps the daily pipeline aligned with the forensic scanner's
+    "compare against market average" semantics instead of using raw price moves.
+    """
+    total_market_cap = 0.0
+    weighted_change = 0.0
+
+    for token in market_data.values():
+        market_cap = token.get('market_cap') or 0
+        change_24h = token.get('price_change_percentage_24h')
+        if market_cap <= 0 or change_24h is None:
+            continue
+
+        total_market_cap += float(market_cap)
+        weighted_change += float(market_cap) * float(change_24h)
+
+    if total_market_cap <= 0:
+        return 0.0
+    return weighted_change / total_market_cap
 
 
 class DailyPipeline:
@@ -238,15 +262,25 @@ class DailyPipeline:
 
         print(f"  [Phase B] {count} tokens with market data indexed")
 
-        # Detect anomalies
+        # Detect anomalies using relative deviation vs the current market baseline.
+        market_avg_change_24h = compute_market_average_24h(self.market_data)
+        deviation_threshold = get_forensic_auto_deviation_threshold()
         anomaly_count = 0
         for slug, token in self.market_data.items():
-            change = abs(token.get('price_change_percentage_24h', 0) or 0)
-            if change > FORENSIC_AUTO_TRIGGERS['price_change_24h_pct']:
+            change = token.get('price_change_percentage_24h')
+            if change is None:
+                continue
+
+            deviation = abs(float(change) - market_avg_change_24h)
+            if deviation >= deviation_threshold:
                 anomaly_count += 1
 
         if anomaly_count:
-            print(f"  [Phase B] {anomaly_count} price anomalies detected (>±{FORENSIC_AUTO_TRIGGERS['price_change_24h_pct']}%)")
+            print(
+                "  [Phase B] "
+                f"{anomaly_count} relative-deviation anomalies detected "
+                f"(>=±{deviation_threshold}% vs market avg {market_avg_change_24h:+.2f}%)"
+            )
 
     # ═══════════════════════════════════════════════════════════
     # PHASE C: Transparency Scan

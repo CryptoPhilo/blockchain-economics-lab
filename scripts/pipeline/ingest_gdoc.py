@@ -6,7 +6,7 @@ validates factual accuracy, formats titles and dates,
 translates to 6 languages, generates PDFs, uploads, and registers.
 
 Pipeline:
-    GDrive /drafts/econ/  (Korean .md files)
+    GDrive /drafts/ECON|MAT/  (Korean .md files)
         ↓  Download .md → Local
     [1] 종목 확정 (파일명 + 본문 분석)
     [2] 제목 포맷: "[종목명] 크립토이코노미 분석 보고서"
@@ -23,8 +23,8 @@ Trigger: Manual — COO runs `python ingest_gdoc.py --type econ`
 Folder convention:
     BCE Lab Reports/
         drafts/
-            econ/   ← Korean .md files dropped here
-            mat/    ← Korean .md files dropped here
+            ECON/   ← Korean .md files dropped here
+            MAT/    ← Korean .md files dropped here
         <project-slug>/
             econ/   ← Final PDFs delivered here
             mat/
@@ -44,6 +44,7 @@ import argparse
 import json
 import os
 import re
+import ssl
 import sys
 import time
 import unicodedata
@@ -71,6 +72,12 @@ try:
 except ImportError:
     GDriveStorage = None
     get_gdrive = None
+
+from gdrive_drafts import (
+    download_markdown_text,
+    ensure_drafts_type_folder,
+    scan_markdown_drafts,
+)
 
 # ── Constants ──
 LANGS = ['en', 'ja', 'zh', 'fr', 'es', 'de']
@@ -380,27 +387,8 @@ def _ensure_references_heading(md_text: str) -> str:
 # ═══════════════════════════════════════════════════════
 
 def ensure_drafts_folder(drive, report_type: str) -> str:
-    """Ensure drafts/<report_type> folder exists. Returns folder ID."""
-    drafts_id = _find_or_create_folder(drive, 'drafts', ROOT_FOLDER_ID)
-    type_id = _find_or_create_folder(drive, report_type, drafts_id)
-    return type_id
-
-
-def _find_or_create_folder(drive, name: str, parent_id: str) -> str:
-    q = (f"name='{name}' and '{parent_id}' in parents "
-         f"and mimeType='application/vnd.google-apps.folder' and trashed=false")
-    results = drive.files().list(q=q, fields='files(id,name)', spaces='drive').execute()
-    files = results.get('files', [])
-    if files:
-        return files[0]['id']
-    meta = {
-        'name': name,
-        'mimeType': 'application/vnd.google-apps.folder',
-        'parents': [parent_id],
-    }
-    folder = drive.files().create(body=meta, fields='id').execute()
-    print(f"  Created folder: {name} ({folder['id']})")
-    return folder['id']
+    """Ensure drafts/{TYPE} folder exists. Returns folder ID."""
+    return ensure_drafts_type_folder(drive, ROOT_FOLDER_ID, report_type)
 
 
 # ═══════════════════════════════════════════════════════
@@ -441,40 +429,8 @@ def save_processed_tracker(drive, folder_id: str, tracker: dict):
 # ═══════════════════════════════════════════════════════
 
 def scan_new_md_files(drive, folder_id: str, tracker: dict) -> list:
-    """Find .md files and Google Docs in folder that haven't been processed yet."""
-    # Query 1: .md files (text/markdown, text/plain, etc.)
-    q_md = (f"'{folder_id}' in parents "
-            f"and (name contains '.md') "
-            f"and trashed=false")
-    results_md = drive.files().list(
-        q=q_md,
-        fields='files(id,name,modifiedTime,size,mimeType)',
-        orderBy='modifiedTime desc',
-    ).execute()
-    docs = results_md.get('files', [])
-    seen_ids = {d['id'] for d in docs}
-
-    # Query 2: Google Docs (may be uploaded via web without .md extension)
-    q_gdocs = (f"'{folder_id}' in parents "
-               f"and mimeType='application/vnd.google-apps.document' "
-               f"and trashed=false")
-    results_gdocs = drive.files().list(
-        q=q_gdocs,
-        fields='files(id,name,modifiedTime,size,mimeType)',
-        orderBy='modifiedTime desc',
-    ).execute()
-    gdocs = results_gdocs.get('files', [])
-
-    # Add Google Docs to the list (mark them as _gdoc for later handling)
-    for doc in gdocs:
-        if doc['id'] not in seen_ids:
-            doc['_gdoc'] = True
-            # Add synthetic .md extension if missing for slug parsing
-            if not doc['name'].endswith('.md'):
-                doc['name'] = doc['name'] + '.md'
-            docs.append(doc)
-            seen_ids.add(doc['id'])
-
+    """Find markdown drafts in folder that haven't been processed yet."""
+    docs = scan_markdown_drafts(drive, folder_id)
     # Filter: only unprocessed files
     new_docs = [
         d for d in docs
@@ -486,14 +442,7 @@ def scan_new_md_files(drive, folder_id: str, tracker: dict) -> list:
 
 def download_md_file(drive, file_id: str, is_gdoc: bool = False) -> str:
     """Download a .md file's content from GDrive. Handles both raw files and Google Docs."""
-    if is_gdoc:
-        # Google Docs must be exported — use text/plain for markdown-like content
-        content = drive.files().export(fileId=file_id, mimeType='text/plain').execute()
-        if isinstance(content, str):
-            content = content.encode('utf-8')
-    else:
-        content = drive.files().get_media(fileId=file_id).execute()
-    return content.decode('utf-8')
+    return download_markdown_text(drive, file_id, is_gdoc=is_gdoc)
 
 
 # ═══════════════════════════════════════════════════════
@@ -764,12 +713,17 @@ def fact_check_report(md_text: str, project_slug: str) -> dict:
     # Fetch CoinGecko data
     try:
         import urllib.request
+        try:
+            import certifi
+            ssl_context = ssl.create_default_context(cafile=certifi.where())
+        except Exception:
+            ssl_context = ssl.create_default_context()
         url = f"https://api.coingecko.com/api/v3/coins/{project_slug}"
         req = urllib.request.Request(url, headers={
             'User-Agent': 'BCE-Lab-Pipeline/2.0',
             'Accept': 'application/json',
         })
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=15, context=ssl_context) as resp:
             api_data = json.loads(resp.read().decode('utf-8'))
     except Exception as e:
         print(f"    CoinGecko API 조회 실패: {e}")
@@ -1018,7 +972,33 @@ def translate_md_chunked(md_text: str, target_lang: str, chunk_size: int = 2000)
     if fail_count > 0:
         print(f"    Warning: {fail_count} chunk(s) kept in original Korean")
 
-    return '\n\n'.join(translated_parts)
+    result = '\n\n'.join(translated_parts)
+
+    hangul_re = re.compile(r'[\uAC00-\uD7AF]')
+    hangul_chars = hangul_re.findall(result)
+    non_ws = re.sub(r'\s', '', result)
+    if non_ws and len(hangul_chars) / len(non_ws) > 0.05:
+        print(f"    [QA] Korean residue detected ({len(hangul_chars)} chars), retrying affected lines...")
+        lines = result.split('\n')
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+            if not stripped:
+                continue
+            line_hangul = hangul_re.findall(stripped)
+            line_non_ws = re.sub(r'\s', '', stripped)
+            if line_non_ws and len(line_hangul) / len(line_non_ws) > 0.15:
+                try:
+                    retry = _translate_with_retry(translator, stripped)
+                    retry_hangul = hangul_re.findall(retry)
+                    retry_non_ws = re.sub(r'\s', '', retry)
+                    if not retry_non_ws or len(retry_hangul) / len(retry_non_ws) < len(line_hangul) / len(line_non_ws):
+                        lines[i] = retry
+                    time.sleep(0.3)
+                except Exception:
+                    pass
+        result = '\n'.join(lines)
+
+    return result
 
 
 # ═══════════════════════════════════════════════════════
@@ -1072,14 +1052,38 @@ def _classify_stage(score):
     return 'nascent'
 
 
+def _resolve_project_name(slug: str) -> str:
+    """Resolve canonical project name from Supabase tracked_projects."""
+    try:
+        url = os.environ.get('SUPABASE_URL') or os.environ.get('NEXT_PUBLIC_SUPABASE_URL')
+        key = os.environ.get('SUPABASE_SERVICE_KEY') or os.environ.get('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+        if not url or not key:
+            return None
+        from supabase import create_client
+        sb = create_client(url, key)
+        norm_slug = unicodedata.normalize('NFC', slug)
+        proj = sb.table('tracked_projects').select('name, symbol').eq('slug', norm_slug).execute()
+        if proj.data:
+            return proj.data[0].get('name')
+        symbol_candidate = norm_slug.split('-')[0].upper()
+        if symbol_candidate:
+            proj = sb.table('tracked_projects').select('name').eq('symbol', symbol_candidate).execute()
+            if proj.data:
+                return proj.data[0].get('name')
+    except Exception as e:
+        print(f"    [WARN] tracked_projects lookup failed: {e}")
+    return None
+
+
 def generate_pdf(md_path: Path, project_slug: str, report_type: str,
                  version: int, lang: str) -> Path:
     """Generate branded PDF from markdown file."""
     pdf_path = md_path.with_suffix('.pdf')
 
+    canonical_name = _resolve_project_name(project_slug)
     metadata = {
         'project_slug': project_slug,
-        'project_name': project_slug.replace('-', ' ').title(),
+        'project_name': canonical_name or project_slug.replace('-', ' ').title(),
         'slug': project_slug,
         'version': version,
         'lang': lang,
@@ -1580,7 +1584,13 @@ def main():
         print(f"    - {f['name']} ({size:,} bytes, 수정: {f['modifiedTime']})")
 
     # Initialize GDrive storage for uploads
-    gd = get_gdrive() if get_gdrive else None
+    gd = None
+    if GDriveStorage:
+        gd = GDriveStorage(
+            root_folder_id=ROOT_FOLDER_ID,
+            service_account_file=SA_FILE,
+            delegate_email=DELEGATE_EMAIL,
+        )
 
     # Process each document
     results = []

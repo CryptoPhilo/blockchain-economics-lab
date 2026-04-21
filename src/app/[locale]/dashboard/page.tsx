@@ -5,11 +5,14 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import DashboardOnboarding from '@/components/DashboardOnboarding'
 import ReferralTab from '@/components/ReferralTab'
+import DashboardBetaSignalsSection from '@/components/DashboardBetaSignalsSection'
+import { createDashboardRepository } from '@/lib/repositories'
 import { randomBytes } from 'crypto'
 
 export default async function DashboardPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const supabase = await createServerSupabaseClient()
+  const dashboardRepository = createDashboardRepository(supabase)
   const t = await getTranslations('dashboard')
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -80,6 +83,9 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
     .eq('user_id', user.id)
     .eq('status', 'active')
 
+  const subscriptionPlans = await dashboardRepository.getPublishedSubscriptionPlans()
+  const betaSignalSnapshot = await dashboardRepository.getLatestApprovedBetaSignal()
+
   // Fetch order history
   const { data: orders } = await supabase
     .from('orders')
@@ -119,6 +125,13 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
           </div>
         </section>
       )}
+
+      <DashboardBetaSignalsSection
+        locale={locale}
+        subscriptions={subscriptions || []}
+        plans={subscriptionPlans}
+        signalSnapshot={betaSignalSnapshot}
+      />
 
       {/* Library */}
       <section className="mb-12">

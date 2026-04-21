@@ -12,7 +12,7 @@ from typing import Optional, Dict, List, Any
 
 # Import config thresholds
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from config import FORENSIC_AUTO_TRIGGERS
+from config import FORENSIC_AUTO_TRIGGERS, get_forensic_auto_deviation_threshold
 
 
 class AutoForensicDetector:
@@ -29,10 +29,32 @@ class AutoForensicDetector:
 
     def __init__(self):
         """Initialize detector with config thresholds."""
-        self.price_change_threshold = FORENSIC_AUTO_TRIGGERS['price_change_24h_pct']
+        # Auto-FOR is stricter than the scanner: it triggers full report generation
+        # only after a larger market-relative move crosses the dedicated threshold.
+        self.relative_deviation_threshold = get_forensic_auto_deviation_threshold()
         self.volume_spike_threshold = FORENSIC_AUTO_TRIGGERS['volume_spike_ratio']
         self.whale_supply_threshold = FORENSIC_AUTO_TRIGGERS['whale_supply_pct']
         self.exchange_netflow_threshold = FORENSIC_AUTO_TRIGGERS['exchange_netflow_pct']
+
+    @staticmethod
+    def _get_relative_deviation(market_token: Dict[str, Any]) -> Optional[float]:
+        """
+        Resolve the relative price deviation used by the auto-FOR gate.
+
+        Preferred input is the explicit `relative_deviation` field produced by
+        the scanner. Legacy data can still fall back to a raw 24h move.
+        """
+        if market_token.get('relative_deviation') is not None:
+            return float(market_token['relative_deviation'])
+
+        price_change = market_token.get('price_change_24h')
+        market_avg = market_token.get('market_avg_change_24h')
+
+        if price_change is None:
+            return None
+        if market_avg is None:
+            return abs(float(price_change))
+        return abs(float(price_change) - float(market_avg))
 
     def detect_anomalies(
         self,
@@ -43,13 +65,14 @@ class AutoForensicDetector:
         Detect forensic anomalies from market token data.
 
         Checks against configured thresholds:
-        - price_change_24h > ±20% → ELEVATED+
+        - relative deviation vs market average > configured threshold → ELEVATED+
         - volume_spike > 5× 7-day avg → HIGH
         - Combined signals → CRITICAL
 
         Args:
-            market_token: Market data dict with keys: price_change_24h,
-                         total_volume, market_cap, supply_info, exchange_flows, etc.
+            market_token: Market data dict with keys such as relative_deviation,
+                         price_change_24h, market_avg_change_24h, total_volume,
+                         market_cap, supply_info, exchange_flows, etc.
             prev_market_data: Optional previous market state for comparison
 
         Returns:
@@ -64,19 +87,28 @@ class AutoForensicDetector:
         findings = []
         risk_score = 0
 
-        # 1. PRICE VOLATILITY CHECK
-        if 'price_change_24h' in market_token:
-            price_change = market_token['price_change_24h']
-            if abs(price_change) > self.price_change_threshold:
-                direction = "spike" if price_change > 0 else "crash"
-                anomalies['price_volatility'] = True
-                findings.append(
-                    f"Extreme price {direction}: {price_change:+.2f}% in 24h "
-                    f"(threshold: ±{self.price_change_threshold}%)"
-                )
+        # 1. RELATIVE PRICE DEVIATION CHECK
+        relative_deviation = self._get_relative_deviation(market_token)
+        if relative_deviation is not None:
+            if relative_deviation >= self.relative_deviation_threshold:
+                price_change = market_token.get('price_change_24h')
+                market_avg = market_token.get('market_avg_change_24h')
+                if price_change is not None and market_avg is not None:
+                    delta = float(price_change) - float(market_avg)
+                    direction = "spike" if delta > 0 else "crash"
+                    findings.append(
+                        f"Extreme relative price {direction}: {delta:+.2f}% vs market average "
+                        f"(threshold: ±{self.relative_deviation_threshold}%)"
+                    )
+                else:
+                    findings.append(
+                        f"Extreme relative price deviation: {relative_deviation:.2f}% "
+                        f"(threshold: ±{self.relative_deviation_threshold}%)"
+                    )
+                anomalies['relative_price_deviation'] = True
                 risk_score += 2
             else:
-                anomalies['price_volatility'] = False
+                anomalies['relative_price_deviation'] = False
 
         # 2. VOLUME SPIKE CHECK
         if 'total_volume' in market_token and 'volume_7d_avg' in market_token:
@@ -179,6 +211,7 @@ class AutoForensicDetector:
             'forensic_findings': anomaly_result['findings'],
             'market_context': {
                 'price_24h_change': market_token.get('price_change_24h', 0),
+                'relative_deviation': market_token.get('relative_deviation', 0),
                 'volume_24h': market_token.get('total_volume', 0),
                 'market_cap': market_token.get('market_cap', 0),
                 'supply': market_token.get('total_supply', market_token.get('circulating_supply', 0)),

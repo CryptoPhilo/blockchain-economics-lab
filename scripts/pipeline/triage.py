@@ -31,7 +31,7 @@ from config import (
     REPORT_DECISIONS,
     UNRATABLE_TRANSPARENCY_THRESHOLD,
     MATURITY_WEIGHTS,
-    FORENSIC_AUTO_TRIGGERS,
+    get_forensic_auto_deviation_threshold,
 )
 
 
@@ -456,8 +456,7 @@ class TriageEngine:
         # Price anomaly: 상대 변동률 (시장 평균 대비) ≥ 15%
         change_24h = market_token.get('price_change_percentage_24h', 0) or 0
         relative_deviation = abs(change_24h - market_avg_24h)
-        threshold = FORENSIC_AUTO_TRIGGERS.get('relative_deviation_24h_pct',
-                    FORENSIC_AUTO_TRIGGERS.get('price_change_24h_pct', 15.0))
+        threshold = get_forensic_auto_deviation_threshold()
         if relative_deviation >= threshold:
             flags['price_anomaly'] = True
 

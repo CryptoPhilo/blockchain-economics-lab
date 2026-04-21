@@ -4,43 +4,40 @@
 
 ## Changes Implemented
 
+> Note: As of `BCE-634`, the draft ingress path is shared via `gdrive_drafts.py`.
+> `ingest_gdoc.py` now delegates folder resolution, markdown/Google Docs scanning,
+> and content download to the common helper used by `ingest_for.py`.
+
 ### 1. Enhanced `scan_new_md_files()` function
 
-**Location**: `ingest_gdoc.py` lines 328-362
+**Location**: `ingest_gdoc.py` + `gdrive_drafts.py`
 
 **Changes**:
-- Added Google Docs detection query (`application/vnd.google-apps.document`)
-- Merged results from both .md files and Google Docs
-- Added `_gdoc` flag to track Google Docs for special handling
-- Added synthetic `.md` extension to Google Docs for slug parsing
+- Uses shared draft scanner from `gdrive_drafts.py`
+- Includes Google Docs detection query (`application/vnd.google-apps.document`)
+- Merges results from both `.md` files and Google Docs
+- Adds `_gdoc` flag to track Google Docs for special handling
+- Adds synthetic `.md` extension to Google Docs for slug parsing
 
 **Implementation**:
 ```python
-# Query 2: Google Docs (may be uploaded via web without .md extension)
-q_gdocs = (f"'{folder_id}' in parents "
-           f"and mimeType='application/vnd.google-apps.document' "
-           f"and trashed=false")
+docs = scan_markdown_drafts(drive, folder_id)
 ```
 
 ### 2. Enhanced `download_md_file()` function
 
-**Location**: `ingest_gdoc.py` lines 349-360
+**Location**: `ingest_gdoc.py` + `gdrive_drafts.py`
 
 **Changes**:
-- Added `is_gdoc` parameter to handle Google Docs export
+- Delegates to shared `download_markdown_text()`
+- Supports `is_gdoc` parameter for Google Docs export
 - Google Docs are exported as `text/plain` mimetype
 - Handles both string and bytes response from export API
 
 **Implementation**:
 ```python
 def download_md_file(drive, file_id: str, is_gdoc: bool = False) -> str:
-    if is_gdoc:
-        content = drive.files().export(fileId=file_id, mimeType='text/plain').execute()
-        if isinstance(content, str):
-            content = content.encode('utf-8')
-    else:
-        content = drive.files().get_media(fileId=file_id).execute()
-    return content.decode('utf-8')
+    return download_markdown_text(drive, file_id, is_gdoc=is_gdoc)
 ```
 
 ### 3. Added `_strip_equation_images()` function
@@ -70,7 +67,7 @@ def download_md_file(drive, file_id: str, is_gdoc: bool = False) -> str:
 
 ### Manual Testing Steps
 
-1. **Upload a Google Doc to drafts/econ/**
+1. **Upload a Google Doc to `drafts/ECON/`**
    ```bash
    # Upload via GDrive web interface or API
    ```
@@ -99,20 +96,21 @@ def download_md_file(drive, file_id: str, is_gdoc: bool = False) -> str:
 ## Compatibility
 
 - ✅ Maintains backward compatibility with .md files
-- ✅ Follows same architecture as FOR pipeline (`ingest_for.py`)
+- ✅ Shares the same Drive ingress architecture as FOR pipeline (`ingest_for.py`)
 - ✅ Reuses proven equation stripping logic
 - ✅ No breaking changes to existing functionality
 
 ## Reference
 
-- **FOR Pipeline**: `ingest_for.py` lines 223-235 (Google Docs query), 296-308 (export handling), 64-92 (equation stripping)
+- **Shared helper**: `gdrive_drafts.py`
+- **FOR Pipeline**: `ingest_for.py`
 - **Issue**: [BCE-454](/BCE/issues/BCE-454)
 - **Parent Issue**: [BCE-450](/BCE/issues/BCE-450)
 
 ## Next Steps
 
 1. ✅ Code implementation complete
-2. ⏳ Create test Google Doc in drafts/econ/
+2. ⏳ Create test Google Doc in `drafts/ECON/`
 3. ⏳ Run dry-run validation
 4. ⏳ Run full pipeline test
 5. ⏳ Update issue status to done

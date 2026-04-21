@@ -206,22 +206,10 @@
     "finished_at": "2026-04-20T11:48:55.124217+00:00",
     "updated_at": "2026-04-20T11:48:55.124217+00:00"
   },
-  "1hYV-dIYwodcx9m9k4FRC2vzOI36bgmIZ": {
-    "status": "upload_done_db_error",
-    "slug": "zro-포렌식-분석-보고서",
-    "started_at": "2026-04-21T19:46:30.348961+00:00",
-    "retry_count": 0,
-    "error": "{'message': 'duplicate key value violates unique constraint \"idx_project_reports_unique_version\"', 'code': '23505', 'hint': None, 'details': 'Key (project_id, report_type, version, language)=(4d826045",
-    "finished_at": "2026-04-21T19:55:08.709473+00:00",
-    "updated_at": "2026-04-21T19:55:08.709473+00:00"
-  },
   "1VpAIULoqfBopI2gBD8oLMDMOG6ffft_D": {
-    "status": "upload_done_db_error",
+    "status": "processing",
     "slug": "req-포렌식-분석-보고서",
-    "started_at": "2026-04-21T19:55:08.709942+00:00",
-    "retry_count": 0,
-    "error": "{'message': 'duplicate key value violates unique constraint \"idx_project_reports_unique_version\"', 'code': '23505', 'hint': None, 'details': 'Key (project_id, report_type, version, language)=(6b97e453",
-    "finished_at": "2026-04-21T20:02:14.742516+00:00",
-    "updated_at": "2026-04-21T20:02:14.742516+00:00"
+    "started_at": "2026-04-21T18:57:01.338509+00:00",
+    "retry_count": 0
   }
 }
