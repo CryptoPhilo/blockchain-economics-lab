@@ -15,6 +15,11 @@ on:
         required: false
         type: boolean
         default: false
+      force:
+        description: 'Force re-process published reports (for retranslation after code fixes)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -85,16 +90,22 @@ jobs:
           GDRIVE_SERVICE_ACCOUNT_FILE: ${{ github.workspace }}/scripts/pipeline/.gdrive_service_account.json
           QA_STRICT: "1"
         run: |
+          FORCE_FLAG=""
+          if [ "${{ github.event.inputs.force }}" == "true" ]; then
+            FORCE_FLAG="--force"
+            echo "⚡ Force re-processing enabled"
+          fi
+
           if [ "${{ github.event.inputs.dry_run }}" == "true" ]; then
             echo "🧪 Running in DRY RUN mode"
-            python3 ingest_for.py --dry-run ${{ github.event.inputs.slug && format('--slug {0}', github.event.inputs.slug) || '' }}
+            python3 ingest_for.py --dry-run $FORCE_FLAG ${{ github.event.inputs.slug && format('--slug {0}', github.event.inputs.slug) || '' }}
           else
             if [ -n "${{ github.event.inputs.slug }}" ]; then
               echo "🎯 Processing specific slug: ${{ github.event.inputs.slug }}"
-              python3 ingest_for.py --slug ${{ github.event.inputs.slug }}
+              python3 ingest_for.py --slug ${{ github.event.inputs.slug }} $FORCE_FLAG
             else
-              echo "🔄 Scanning for all new FOR reports"
-              python3 ingest_for.py
+              echo "🔄 Scanning for all FOR reports"
+              python3 ingest_for.py $FORCE_FLAG
             fi
           fi
 
