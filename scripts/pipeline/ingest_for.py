@@ -52,6 +52,12 @@ from translate_md import translate_md_file
 from qa_verify import verify_pdf, QASeverity
 from qa_verify_md import verify_markdown
 from gdrive_storage import GDriveStorage
+from gdrive_drafts import (
+    download_markdown_text,
+    ensure_drafts_type_folder,
+    find_or_create_folder,
+    scan_markdown_drafts,
+)
 
 TERMINAL_CONTENT_STATUS = 'content_failed_terminal'
 RETRIABLE_PROCESSING_STATUS = 'processing_error'
@@ -109,26 +115,6 @@ def _get_drive_service():
     if delegate:
         creds = creds.with_subject(delegate)
     return build('drive', 'v3', credentials=creds)
-
-
-def _find_folder_id(service, parent_id: str, name: str) -> str | None:
-    """Find a subfolder by name under parent (case-insensitive)."""
-    # First try exact match
-    q = (f"'{parent_id}' in parents and name='{name}' "
-         f"and mimeType='application/vnd.google-apps.folder' and trashed=false")
-    r = service.files().list(q=q, fields='files(id,name)', pageSize=10).execute()
-    files = r.get('files', [])
-    if files:
-        return files[0]['id']
-    # Fallback: list all subfolders and match case-insensitively
-    q2 = (f"'{parent_id}' in parents "
-          f"and mimeType='application/vnd.google-apps.folder' and trashed=false")
-    r2 = service.files().list(q=q2, fields='files(id,name)', pageSize=50).execute()
-    for f in r2.get('files', []):
-        if f['name'].lower() == name.lower():
-            print(f"  [INFO] Folder case mismatch: expected '{name}', found '{f['name']}'")
-            return f['id']
-    return None
 
 
 _PROCESSED_LOCAL = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output', '_for_processed.json')
@@ -204,7 +190,7 @@ def _retriable_failure_result(file_info: dict, error: Exception) -> dict:
     }
 
 
-def scan_for_drafts(filter_slug: str = None) -> list[dict]:
+def scan_for_drafts(filter_slug: str = None, force: bool = False) -> list[dict]:
     """Scan GDrive drafts/FOR/ for new .md files."""
     service = _get_drive_service()
     root_id = os.environ.get('GDRIVE_ROOT_FOLDER_ID', '1E87EcasPlrGuet0t6e1CA9kLFO0sTdFq')
@@ -212,53 +198,11 @@ def scan_for_drafts(filter_slug: str = None) -> list[dict]:
         print("[ERROR] GDRIVE_ROOT_FOLDER_ID not set")
         return []
 
-    drafts_id = _find_folder_id(service, root_id, 'drafts')
-    if not drafts_id:
-        print("[WARN] drafts/ folder not found — creating it")
-        meta = {'name': 'drafts', 'parents': [root_id],
-                'mimeType': 'application/vnd.google-apps.folder'}
-        drafts_id = service.files().create(body=meta, fields='id').execute()['id']
-
-    for_id = _find_folder_id(service, drafts_id, 'FOR')
-    if not for_id:
-        print("[WARN] drafts/FOR/ folder not found — creating it")
-        meta = {'name': 'FOR', 'parents': [drafts_id],
-                'mimeType': 'application/vnd.google-apps.folder'}
-        for_id = service.files().create(body=meta, fields='id').execute()['id']
+    for_id = ensure_drafts_type_folder(service, root_id, 'for')
 
     # Load processed state
     processed = _load_processed(service, for_id)
-
-    # ── Query 1: text/markdown mimeType ──
-    q1 = f"'{for_id}' in parents and mimeType='text/markdown' and trashed=false"
-    r1 = service.files().list(
-        q=q1, fields='files(id,name,size,modifiedTime,mimeType)', pageSize=100,
-        orderBy='modifiedTime desc').execute()
-    files = r1.get('files', [])
-    seen_ids = {f['id'] for f in files}
-
-    # ── Query 2: name contains '.md' (catches text/plain, etc.) ──
-    q2 = f"'{for_id}' in parents and name contains '.md' and trashed=false"
-    r2 = service.files().list(
-        q=q2, fields='files(id,name,size,modifiedTime,mimeType)', pageSize=100).execute()
-    for f in r2.get('files', []):
-        if f['id'] not in seen_ids:
-            files.append(f)
-            seen_ids.add(f['id'])
-
-    # ── Query 3: Google Docs (board may upload .md via web → auto-converted) ──
-    q3 = (f"'{for_id}' in parents "
-          f"and mimeType='application/vnd.google-apps.document' and trashed=false")
-    r3 = service.files().list(
-        q=q3, fields='files(id,name,size,modifiedTime,mimeType)', pageSize=100).execute()
-    for f in r3.get('files', []):
-        if f['id'] not in seen_ids:
-            # Google Docs won't have .md extension — add a synthetic one for slug extraction
-            if not f['name'].endswith('.md'):
-                f['_gdoc'] = True
-                f['name'] = f['name'] + '.md'
-            files.append(f)
-            seen_ids.add(f['id'])
+    files = scan_markdown_drafts(service, for_id)
 
     print(f"  [SCAN] Found {len(files)} total files in drafts/FOR/")
     for f in files:
@@ -271,8 +215,8 @@ def scan_for_drafts(filter_slug: str = None) -> list[dict]:
         fid = f['id']
         entry = processed.get(fid)
 
-        # Skip only successfully published files
-        if entry and entry.get('status') == 'published':
+        # Skip only successfully published files (unless --force)
+        if entry and entry.get('status') == 'published' and not force:
             continue
         # Skip 'processing' entries that are NOT stale
         if entry and entry.get('status') == 'processing' and not _is_stale_processing(entry):
@@ -325,15 +269,8 @@ def scan_for_drafts(filter_slug: str = None) -> list[dict]:
 def download_md(file_id: str, output_path: str, is_gdoc: bool = False):
     """Download a .md file from GDrive. Handles both raw files and Google Docs."""
     service = _get_drive_service()
-    if is_gdoc:
-        # Google Docs must be exported — use text/plain for markdown-like content
-        content = service.files().export(
-            fileId=file_id, mimeType='text/plain').execute()
-        if isinstance(content, str):
-            content = content.encode('utf-8')
-    else:
-        content = service.files().get_media(fileId=file_id).execute()
-    Path(output_path).write_bytes(content)
+    content = download_markdown_text(service, file_id, is_gdoc=is_gdoc)
+    Path(output_path).write_text(content, encoding='utf-8')
     return output_path
 
 
@@ -355,6 +292,21 @@ def process_for_report(file_info: dict, dry_run: bool = False) -> dict:
     print(f"\n{'─'*50}")
     print(f"Processing: {file_info['name']} → {slug}")
     print(f"{'─'*50}")
+
+    # Resolve project_name and symbol from Supabase tracked_projects
+    if not file_info.get('project_name') or not file_info.get('symbol'):
+        try:
+            _sb = _get_supabase_client()
+            if _sb:
+                _pid, _cslug, _pname, _psym = _resolve_project_slug(_sb, slug)
+                if _pname and 'project_name' not in file_info:
+                    file_info['project_name'] = _pname
+                if _psym and 'symbol' not in file_info:
+                    file_info['symbol'] = _psym
+                if _pname or _psym:
+                    print(f"  ✓ Project resolved: {_pname} ({_psym})")
+        except Exception as e:
+            print(f"  [WARN] Project metadata lookup failed: {e}")
 
     # 1. Download
     ko_path = os.path.join(OUTPUT_DIR, f'{slug}_{rtype}_v{version}_ko.md')
@@ -406,25 +358,34 @@ def process_for_report(file_info: dict, dry_run: bool = False) -> dict:
     print(f"[2/6] 번역 (ko → {', '.join(target_langs)}) — parallel mode...")
     translated = {'ko': ko_path}
 
-    from concurrent.futures import ThreadPoolExecutor, as_completed
+    from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 
     def _translate_one(lang):
+        started = time.time()
         out_path, meta = translate_md_file(
             ko_path, target_lang=lang, output_dir=OUTPUT_DIR, backend='google')
-        return lang, out_path, meta
+        return lang, out_path, meta, time.time() - started
 
     with ThreadPoolExecutor(max_workers=3) as executor:
         futures = {executor.submit(_translate_one, lang): lang for lang in target_langs}
-        for future in as_completed(futures):
-            lang = futures[future]
-            try:
-                lang, out_path, meta = future.result()
-                translated[lang] = out_path
-                words = meta.get('word_count_target', '?')
-                print(f"  ✓ {lang}: {words} words")
-            except Exception as e:
-                print(f"  ✗ {lang}: {e}")
-                # Continue with other languages
+        pending = set(futures)
+        while pending:
+            done, pending = wait(pending, timeout=30, return_when=FIRST_COMPLETED)
+            if not done:
+                still_running = ', '.join(sorted(futures[f] for f in pending))
+                print(f"  … 번역 진행 중 (30s 경과): {still_running}")
+                continue
+
+            for future in done:
+                lang = futures[future]
+                try:
+                    lang, out_path, meta, elapsed = future.result()
+                    translated[lang] = out_path
+                    words = meta.get('word_count_target', '?')
+                    print(f"  ✓ {lang}: {words} words ({elapsed:.1f}s)")
+                except Exception as e:
+                    print(f"  ✗ {lang}: {e}")
+                    # Continue with other languages
 
     result['translated_langs'] = list(translated.keys())
 
@@ -441,8 +402,12 @@ def process_for_report(file_info: dict, dry_run: bool = False) -> dict:
     for lang, md_path in translated.items():
         pdf_path = os.path.join(OUTPUT_DIR, f'{slug}_{rtype}_v{version}_{lang}.pdf')
         meta = {
-            'project_slug': slug, 'project_name': slug,
+            'project_slug': slug,
+            'project_name': file_info.get('project_name', slug),
+            'token_symbol': file_info.get('symbol', slug.upper()),
             'slug': slug, 'version': version, 'lang': lang,
+            'risk_level': file_info.get('risk_level', 'warning'),
+            'trigger_reason': file_info.get('trigger_reason', 'Market Analysis Alert'),
         }
         try:
             generate_pdf_for(md_path, meta, lang=lang, output_path=pdf_path)
@@ -513,7 +478,7 @@ def process_for_report(file_info: dict, dry_run: bool = False) -> dict:
                 _sb = _get_supabase_client()
                 if _sb:
                     _symbol = file_info.get('symbol', slug.split('-')[0]).upper()
-                    _pid, _cslug = _resolve_project_slug(_sb, slug)
+                    _pid, _cslug, _, _ = _resolve_project_slug(_sb, slug)
 
                     # Strategy 0: read trigger_data from existing coming_soon record
                     if _pid:
@@ -652,32 +617,36 @@ def _resolve_project_slug(sb, raw_slug: str) -> tuple:
     """
     Resolve a filename-derived slug to a tracked_projects entry.
     Tries: exact slug match → symbol match → name substring match.
-    Returns (project_id, canonical_slug) or (None, None).
+    Returns (project_id, canonical_slug, project_name, symbol) or (None, None, None, None).
     """
+    _fields = 'id, slug, name, symbol'
     # Normalize to NFC — GDrive filenames may be NFD on macOS
     raw_slug = unicodedata.normalize('NFC', raw_slug)
     # 1. Direct slug match
-    proj = sb.table('tracked_projects').select('id, slug').eq('slug', raw_slug).execute()
+    proj = sb.table('tracked_projects').select(_fields).eq('slug', raw_slug).execute()
     if proj.data:
-        return proj.data[0]['id'], proj.data[0]['slug']
+        p = proj.data[0]
+        return p['id'], p['slug'], p.get('name'), p.get('symbol')
 
     # 2. Extract possible symbol from slug (e.g., "rave-포렌식-분석-보고서-20260414" → "rave")
     symbol_candidate = raw_slug.split('-')[0].upper()
     if symbol_candidate:
-        proj = sb.table('tracked_projects').select('id, slug') \
+        proj = sb.table('tracked_projects').select(_fields) \
             .eq('symbol', symbol_candidate).execute()
         if proj.data:
-            return proj.data[0]['id'], proj.data[0]['slug']
+            p = proj.data[0]
+            return p['id'], p['slug'], p.get('name'), p.get('symbol')
 
     # 3. Search by name substring (case-insensitive via ilike)
     name_part = raw_slug.split('-')[0]
     if name_part:
-        proj = sb.table('tracked_projects').select('id, slug') \
+        proj = sb.table('tracked_projects').select(_fields) \
             .ilike('name', f'%{name_part}%').execute()
         if proj.data:
-            return proj.data[0]['id'], proj.data[0]['slug']
+            p = proj.data[0]
+            return p['id'], p['slug'], p.get('name'), p.get('symbol')
 
-    return None, None
+    return None, None, None, None
 
 
 def _get_supabase_client():
@@ -701,7 +670,7 @@ def _publish_supabase(slug: str, report_type: str, version: int, gdrive_urls: di
     sb = create_client(url, key)
 
     # Resolve slug to tracked_project
-    project_id, canonical_slug = _resolve_project_slug(sb, slug)
+    project_id, canonical_slug, _, _ = _resolve_project_slug(sb, slug)
     if not project_id:
         print(f"  [WARN] Project '{slug}' not in tracked_projects — creating")
         new = sb.table('tracked_projects').insert({
@@ -785,6 +754,7 @@ def main():
     parser = argparse.ArgumentParser(description='FOR Report GDrive Watcher & Pipeline')
     parser.add_argument('--dry-run', action='store_true', help='Download only, no processing')
     parser.add_argument('--slug', type=str, help='Process specific slug only')
+    parser.add_argument('--force', action='store_true', help='Force re-process published reports')
     args = parser.parse_args()
 
     print(f"\n{'='*60}")
@@ -793,7 +763,7 @@ def main():
 
     # Scan for new drafts
     print("[SCAN] GDrive drafts/FOR/ 스캔 중...")
-    new_files = scan_for_drafts(filter_slug=args.slug)
+    new_files = scan_for_drafts(filter_slug=args.slug, force=args.force)
 
     if not new_files:
         print("  새로운 .md 파일 없음")
@@ -807,8 +777,8 @@ def main():
     results = []
     service = _get_drive_service()
     root_id = os.environ.get('GDRIVE_ROOT_FOLDER_ID', '1E87EcasPlrGuet0t6e1CA9kLFO0sTdFq')
-    drafts_id = _find_folder_id(service, root_id, 'drafts')
-    for_id = _find_folder_id(service, drafts_id, 'FOR')
+    drafts_id = find_or_create_folder(service, 'drafts', root_id)
+    for_id = find_or_create_folder(service, 'FOR', drafts_id)
     processed = _load_processed(service, for_id)
 
     for f in new_files:
