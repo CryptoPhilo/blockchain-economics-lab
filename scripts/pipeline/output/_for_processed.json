@@ -209,19 +209,28 @@
   "1VpAIULoqfBopI2gBD8oLMDMOG6ffft_D": {
     "status": "upload_done_db_error",
     "slug": "req-포렌식-분석-보고서",
-    "started_at": "2026-04-21T22:01:29.076803+00:00",
-    "retry_count": 1,
+    "started_at": "2026-04-21T23:01:20.529722+00:00",
+    "retry_count": 2,
     "error": "{'message': 'duplicate key value violates unique constraint \"idx_project_reports_unique_version\"', 'code': '23505', 'hint': None, 'details': 'Key (project_id, report_type, version, language)=(6b97e453",
-    "finished_at": "2026-04-21T22:07:19.970275+00:00",
-    "updated_at": "2026-04-21T22:07:19.970275+00:00"
+    "finished_at": "2026-04-21T23:10:24.287991+00:00",
+    "updated_at": "2026-04-21T23:10:24.287991+00:00"
   },
   "1hYV-dIYwodcx9m9k4FRC2vzOI36bgmIZ": {
     "status": "upload_done_db_error",
     "slug": "zro-포렌식-분석-보고서",
-    "started_at": "2026-04-21T21:55:09.528917+00:00",
-    "retry_count": 0,
+    "started_at": "2026-04-21T22:51:50.206581+00:00",
+    "retry_count": 1,
     "error": "{'message': 'duplicate key value violates unique constraint \"idx_project_reports_unique_version\"', 'code': '23505', 'hint': None, 'details': 'Key (project_id, report_type, version, language)=(4d826045",
-    "finished_at": "2026-04-21T22:01:29.076311+00:00",
-    "updated_at": "2026-04-21T22:01:29.076311+00:00"
+    "finished_at": "2026-04-21T23:01:20.529247+00:00",
+    "updated_at": "2026-04-21T23:01:20.529247+00:00"
+  },
+  "1hzH6V6YhNeV43-kbf3ID1hcWNYWpNcYX": {
+    "status": "upload_done_db_error",
+    "slug": "aave-포렌식-분석-보고서",
+    "started_at": "2026-04-21T22:42:18.793306+00:00",
+    "retry_count": 0,
+    "error": "{'message': 'duplicate key value violates unique constraint \"idx_project_reports_unique_version\"', 'code': '23505', 'hint': None, 'details': 'Key (project_id, report_type, version, language)=(66d7d78d",
+    "finished_at": "2026-04-21T22:51:50.206154+00:00",
+    "updated_at": "2026-04-21T22:51:50.206154+00:00"
   }
 }
