@@ -26,6 +26,7 @@ import json
 import os
 import re
 import sys
+import threading
 import yaml
 import logging
 from pathlib import Path
@@ -335,6 +336,60 @@ _PRESERVE_TOKENS = [
 ]
 
 
+_KO_DATE_RE = re.compile(
+    r'(\d{1,2})월\s*(\d{1,2}),?\s*(\d{4})년?에?\s*액세스'
+)
+_KO_DATE_ACCESSED_RE = re.compile(
+    r'(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일에?\s*액세스'
+)
+
+_MONTH_NAMES = {
+    'en': ['January','February','March','April','May','June','July','August','September','October','November','December'],
+    'fr': ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'],
+    'es': ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'],
+    'de': ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],
+    'ja': ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
+    'zh': ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
+}
+
+_ACCESSED_WORD = {
+    'en': 'Accessed', 'fr': 'Consulté le', 'es': 'Consultado el',
+    'de': 'Abgerufen am', 'ja': 'アクセス日', 'zh': '访问日期',
+}
+
+
+def _normalize_korean_dates(text: str, target_lang: str) -> str:
+    """Convert Korean date expressions (e.g. '4월 16, 2026에 액세스') to target language."""
+    if target_lang == 'ko':
+        return text
+
+    def _replace_date(m):
+        month_num = int(m.group(1))
+        day = m.group(2)
+        year = m.group(3)
+        months = _MONTH_NAMES.get(target_lang, _MONTH_NAMES['en'])
+        accessed = _ACCESSED_WORD.get(target_lang, 'Accessed')
+        month_name = months[month_num - 1] if 1 <= month_num <= 12 else str(month_num)
+        if target_lang in ('ja', 'zh'):
+            return f"{year}年{month_name}{day}日 {accessed}"
+        return f"{accessed} {month_name} {day}, {year}"
+
+    def _replace_date_ymd(m):
+        year = m.group(1)
+        month_num = int(m.group(2))
+        day = m.group(3)
+        months = _MONTH_NAMES.get(target_lang, _MONTH_NAMES['en'])
+        accessed = _ACCESSED_WORD.get(target_lang, 'Accessed')
+        month_name = months[month_num - 1] if 1 <= month_num <= 12 else str(month_num)
+        if target_lang in ('ja', 'zh'):
+            return f"{year}年{month_name}{day}日 {accessed}"
+        return f"{accessed} {month_name} {day}, {year}"
+
+    text = _KO_DATE_RE.sub(_replace_date, text)
+    text = _KO_DATE_ACCESSED_RE.sub(_replace_date_ymd, text)
+    return text
+
+
 def _protect_tokens(text: str) -> tuple:
     """Replace token symbols and inline math with numbered placeholders before translation."""
     protected = text
@@ -408,8 +463,7 @@ def _translate_google(text: str, target_lang: str, _ctx: str = '') -> str:
     def _timeout_handler(signum, frame):
         raise TimeoutError("Google Translate request timed out (15s)")
 
-    import threading as _threading
-    _is_main_thread = _threading.current_thread() is _threading.main_thread()
+    _is_main_thread = threading.current_thread() is threading.main_thread()
 
     MAX_RETRIES = 3
     for attempt in range(MAX_RETRIES):
@@ -426,11 +480,25 @@ def _translate_google(text: str, target_lang: str, _ctx: str = '') -> str:
                     _signal.alarm(0)  # cancel alarm
                     _signal.signal(_signal.SIGALRM, old_handler)
             else:
-                # Thread-safe timeout using concurrent.futures
-                from concurrent.futures import ThreadPoolExecutor as _TPool, TimeoutError as _FTErr
-                with _TPool(max_workers=1) as _tp:
-                    _fut = _tp.submit(GoogleTranslator(source='auto', target=gl).translate, protected)
-                    result = _fut.result(timeout=15)
+                # Avoid nested ThreadPoolExecutor shutdown waits inside pipeline workers.
+                result_holder = {'result': None, 'error': None}
+
+                def _run_translate():
+                    try:
+                        result_holder['result'] = GoogleTranslator(
+                            source='auto', target=gl
+                        ).translate(protected)
+                    except Exception as exc:
+                        result_holder['error'] = exc
+
+                worker = threading.Thread(target=_run_translate, daemon=True)
+                worker.start()
+                worker.join(timeout=15)
+                if worker.is_alive():
+                    raise TimeoutError("Google Translate request timed out (15s)")
+                if result_holder['error'] is not None:
+                    raise result_holder['error']
+                result = result_holder['result']
             # Small throttle to avoid rate limiting
             _time.sleep(0.3)
             if result:
@@ -654,22 +722,27 @@ def _translate_line(line_type: str, line: str, target_lang: str, translate_fn) -
         return line  # preserve as-is
 
     if line_type == 'header':
-        # Translate text after # markers
         match = re.match(r'^(#{1,6}\s+)(.*)', line)
         if match:
             prefix, text = match.groups()
-            # Don't translate chapter numbers like "Chapter 1:"
-            chapter_match = re.match(r'^(Chapter\s+\d+[.:]\s*)(.*)', text)
+            # Strip bold markup before translating, restore after
+            bold_wrap = False
+            inner = text
+            if re.match(r'^\*\*.*\*\*$', text.strip()):
+                bold_wrap = True
+                inner = text.strip()[2:-2]
+            chapter_match = re.match(r'^(Chapter\s+\d+[.:]\s*)(.*)', inner)
             if chapter_match:
                 ch_prefix, ch_text = chapter_match.groups()
-                return f"{prefix}{translate_fn(ch_prefix, target_lang)}{translate_fn(ch_text, target_lang)}"
-            return f"{prefix}{translate_fn(text, target_lang)}"
+                translated = f"{translate_fn(ch_prefix, target_lang)}{translate_fn(ch_text, target_lang)}"
+            else:
+                translated = translate_fn(inner, target_lang)
+            if bold_wrap:
+                translated = f"**{translated}**"
+            return f"{prefix}{translated}"
         return line
 
     if line_type == 'table_row':
-        # Translate cell contents, preserve | structure.
-        # CRITICAL: translator output must NOT contain '|' (would break table
-        # geometry). If it does, fall back to original cell.
         cells = line.split('|')
         translated_cells = []
         for cell in cells:
@@ -677,18 +750,23 @@ def _translate_line(line_type: str, line: str, target_lang: str, translate_fn) -
             if not stripped:
                 translated_cells.append(cell)
             elif re.match(r'^[\d.,\-$%+×/()EHMBLNTPS:]+$', stripped):
-                translated_cells.append(cell)  # numeric / code
+                translated_cells.append(cell)
             elif stripped in ('PASS', 'FAIL', 'WARN', 'GAP', 'N/A', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'):
-                translated_cells.append(cell)  # status labels — keep
+                translated_cells.append(cell)
             else:
                 padding = len(cell) - len(cell.lstrip())
                 translated = translate_fn(stripped, target_lang)
-                # Defensive: strip any pipe characters the translator may have
-                # emitted (including full-width ｜). Keep original if the
-                # translation is empty after cleaning.
                 translated = translated.replace('|', ' ').replace('\uff5c', ' ').strip()
                 if not translated:
                     translated = stripped
+                # Retry once with fallback backend if Korean residue remains
+                if target_lang != 'ko' and _has_korean(translated):
+                    logger.warning(f"Korean residue in table cell, retrying: {stripped[:60]}")
+                    fallback_fn = _translate_google if translate_fn != _translate_google else _translate_claude
+                    retry = fallback_fn(stripped, target_lang)
+                    retry = retry.replace('|', ' ').replace('\uff5c', ' ').strip()
+                    if retry and not _has_korean(retry):
+                        translated = retry
                 translated_cells.append(' ' * padding + translated + ' ')
         return '|'.join(translated_cells)
 
@@ -777,6 +855,73 @@ def _reconstruct_line(line_type: str, original: str, translated: str) -> str:
 
 
 # ============================================================================
+# KOREAN RESIDUE DETECTION — QA guard for non-Korean translations
+# ============================================================================
+
+_HANGUL_RE = re.compile(r'[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]')
+_HANGUL_WORD_RE = re.compile(r'[\uAC00-\uD7AF]{2,}')
+
+
+def _has_korean(text: str) -> bool:
+    """Return True if *text* contains Korean (Hangul) characters."""
+    return bool(_HANGUL_RE.search(text))
+
+
+def _korean_ratio(text: str) -> float:
+    """Fraction of non-whitespace characters that are Hangul."""
+    non_ws = re.sub(r'\s', '', text)
+    if not non_ws:
+        return 0.0
+    hangul_chars = _HANGUL_RE.findall(non_ws)
+    return len(hangul_chars) / len(non_ws)
+
+
+def _retranslate_korean_residue(text: str, target_lang: str, translate_fn) -> str:
+    """
+    If *text* still contains Korean after translation to a non-Korean language,
+    extract the Korean fragments and re-translate them individually.
+    """
+    if target_lang == 'ko' or not _has_korean(text):
+        return text
+
+    def _replace_korean_span(m):
+        fragment = m.group(0)
+        retranslated = translate_fn(fragment, target_lang)
+        if _has_korean(retranslated):
+            return retranslated
+        return retranslated
+
+    result = _HANGUL_WORD_RE.sub(_replace_korean_span, text)
+    return result
+
+
+def qa_check_korean_residue(text: str, target_lang: str, source_path: str = '') -> List[dict]:
+    """
+    Scan translated text for Korean residue. Returns list of findings.
+    Each finding: {'line': int, 'content': str, 'ratio': float}
+    """
+    if target_lang == 'ko':
+        return []
+
+    findings = []
+    for i, line in enumerate(text.split('\n'), 1):
+        if _has_korean(line):
+            ratio = _korean_ratio(line)
+            if ratio > 0.05:
+                findings.append({
+                    'line': i,
+                    'content': line.strip()[:120],
+                    'ratio': round(ratio, 3),
+                })
+    if findings:
+        logger.warning(
+            f"Korean residue in {target_lang} translation ({source_path}): "
+            f"{len(findings)} lines with Hangul"
+        )
+    return findings
+
+
+# ============================================================================
 # GLOSSARY POST-PROCESSING
 # ============================================================================
 
@@ -835,6 +980,25 @@ def translate_md_file(
     if apply_gloss:
         translated_body = apply_glossary(translated_body, target_lang)
 
+    # Normalize Korean date expressions before QA
+    if target_lang != 'ko':
+        translated_body = _normalize_korean_dates(translated_body, target_lang)
+
+    # QA: detect and fix Korean residue in non-Korean translations
+    if target_lang != 'ko':
+        residue = qa_check_korean_residue(translated_body, target_lang, input_path)
+        if residue:
+            logger.info(f"Attempting Korean residue cleanup ({len(residue)} lines)...")
+            translated_body = _retranslate_korean_residue(
+                translated_body, target_lang, translate_fn
+            )
+            residue_after = qa_check_korean_residue(translated_body, target_lang, input_path)
+            if residue_after:
+                logger.warning(
+                    f"Korean residue remains after cleanup: {len(residue_after)} lines "
+                    f"(was {len(residue)})"
+                )
+
     # Assemble output
     fm_yaml = yaml.dump(translated_fm, allow_unicode=True, default_flow_style=False, sort_keys=False)
     output_content = f"---\n{fm_yaml}---\n\n{translated_body}"
@@ -856,6 +1020,9 @@ def translate_md_file(
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(output_content)
 
+    # Final QA scan for metadata
+    final_residue = qa_check_korean_residue(translated_body, target_lang, input_path) if target_lang != 'ko' else []
+
     # Metadata
     meta = {
         'source': input_path,
@@ -867,6 +1034,7 @@ def translate_md_file(
         'translated_at': datetime.utcnow().isoformat() + 'Z',
         'word_count_source': len(body.split()),
         'word_count_target': len(translated_body.split()),
+        'korean_residue_lines': len(final_residue),
     }
 
     logger.info(f"✓ Written: {output_path} ({meta['word_count_target']} words)")
