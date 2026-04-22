@@ -227,10 +227,19 @@
   "1hzH6V6YhNeV43-kbf3ID1hcWNYWpNcYX": {
     "status": "upload_done_db_error",
     "slug": "aave-포렌식-분석-보고서",
-    "started_at": "2026-04-22T02:55:15.721896+00:00",
-    "retry_count": 2,
+    "started_at": "2026-04-22T05:35:38.896404+00:00",
+    "retry_count": 3,
     "error": "{'message': 'duplicate key value violates unique constraint \"idx_project_reports_unique_version\"', 'code': '23505', 'hint': None, 'details': 'Key (project_id, report_type, version, language)=(66d7d78d",
-    "finished_at": "2026-04-22T03:04:18.985177+00:00",
-    "updated_at": "2026-04-22T03:04:18.985177+00:00"
+    "finished_at": "2026-04-22T05:38:56.093299+00:00",
+    "updated_at": "2026-04-22T05:38:56.093299+00:00"
+  },
+  "1G5BdkBfmA5OouSfCMFDQ9rApJ8sDe3N2": {
+    "status": "upload_done_db_error",
+    "slug": "spx-시장-포렌식-보고서",
+    "started_at": "2026-04-22T05:30:19.891620+00:00",
+    "retry_count": 0,
+    "error": "{'message': 'duplicate key value violates unique constraint \"idx_project_reports_unique_version\"', 'code': '23505', 'hint': None, 'details': 'Key (project_id, report_type, version, language)=(c02e05ba",
+    "finished_at": "2026-04-22T05:35:38.895825+00:00",
+    "updated_at": "2026-04-22T05:35:38.895825+00:00"
   }
 }
