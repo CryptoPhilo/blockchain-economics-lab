@@ -236,10 +236,10 @@
   "1G5BdkBfmA5OouSfCMFDQ9rApJ8sDe3N2": {
     "status": "upload_done_db_error",
     "slug": "spx-시장-포렌식-보고서",
-    "started_at": "2026-04-22T09:06:48.619919+00:00",
-    "retry_count": 2,
+    "started_at": "2026-04-22T10:48:55.108996+00:00",
+    "retry_count": 3,
     "error": "{'message': 'duplicate key value violates unique constraint \"idx_project_reports_unique_version\"', 'code': '23505', 'hint': None, 'details': 'Key (project_id, report_type, version, language)=(c02e05ba",
-    "finished_at": "2026-04-22T09:12:02.921983+00:00",
-    "updated_at": "2026-04-22T09:12:02.921983+00:00"
+    "finished_at": "2026-04-22T10:51:30.773213+00:00",
+    "updated_at": "2026-04-22T10:51:30.773213+00:00"
   }
 }
