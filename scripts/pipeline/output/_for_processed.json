@@ -216,21 +216,21 @@
     "updated_at": "2026-04-21T23:57:05.288661+00:00"
   },
   "1hYV-dIYwodcx9m9k4FRC2vzOI36bgmIZ": {
-    "status": "upload_done_db_error",
+    "status": "published",
     "slug": "zro-포렌식-분석-보고서",
-    "started_at": "2026-04-21T23:47:48.586267+00:00",
-    "retry_count": 2,
-    "error": "{'message': 'duplicate key value violates unique constraint \"idx_project_reports_unique_version\"', 'code': '23505', 'hint': None, 'details': 'Key (project_id, report_type, version, language)=(4d826045",
-    "finished_at": "2026-04-21T23:52:22.691029+00:00",
-    "updated_at": "2026-04-21T23:52:22.691029+00:00"
+    "started_at": "2026-04-22T03:04:18.985717+00:00",
+    "retry_count": 3,
+    "error": null,
+    "finished_at": "2026-04-22T03:08:04.862216+00:00",
+    "updated_at": "2026-04-22T03:08:04.862216+00:00"
   },
   "1hzH6V6YhNeV43-kbf3ID1hcWNYWpNcYX": {
     "status": "upload_done_db_error",
     "slug": "aave-포렌식-분석-보고서",
-    "started_at": "2026-04-21T23:39:04.697632+00:00",
-    "retry_count": 1,
+    "started_at": "2026-04-22T02:55:15.721896+00:00",
+    "retry_count": 2,
     "error": "{'message': 'duplicate key value violates unique constraint \"idx_project_reports_unique_version\"', 'code': '23505', 'hint': None, 'details': 'Key (project_id, report_type, version, language)=(66d7d78d",
-    "finished_at": "2026-04-21T23:47:48.585730+00:00",
-    "updated_at": "2026-04-21T23:47:48.585730+00:00"
+    "finished_at": "2026-04-22T03:04:18.985177+00:00",
+    "updated_at": "2026-04-22T03:04:18.985177+00:00"
   }
 }
