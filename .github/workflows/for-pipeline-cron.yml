@@ -28,7 +28,7 @@ jobs:
   process-for-reports:
     name: 🔍 Process FOR Reports
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 240
 
     steps:
       - name: Checkout repository
