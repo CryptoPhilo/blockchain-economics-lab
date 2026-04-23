@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { isProductPubliclyAvailable } from '@/lib/product-access'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +15,7 @@ export async function POST(request: NextRequest) {
       .eq('id', productId)
       .single()
 
-    if (error || !product) {
+    if (error || !product || !isProductPubliclyAvailable(product)) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 

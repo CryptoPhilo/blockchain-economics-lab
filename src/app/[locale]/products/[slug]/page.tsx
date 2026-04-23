@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getLocalizedField, formatPrice, type Locale } from '@/lib/types'
+import { isProductPubliclyAvailable } from '@/lib/product-access'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import CheckoutButton from '@/components/CheckoutButton'
@@ -34,7 +35,7 @@ export default async function ProductDetailPage({ params }: Props) {
     .eq('status', 'published')
     .single()
 
-  if (!product) notFound()
+  if (!product || !isProductPubliclyAvailable(product)) notFound()
 
   // If bundle, fetch items
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

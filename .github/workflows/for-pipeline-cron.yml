@@ -1,9 +1,9 @@
-name: FOR Pipeline - Automated Processing
+name: FOR Pipeline - Automated Processing (DEPRECATED - use report-pipeline-cron.yml)
 
 on:
-  schedule:
-    # Run every 30 minutes
-    - cron: '*/30 * * * *'
+  # DEPRECATED: cron schedule removed in BCE-732. Use report-pipeline-cron.yml instead.
+  # schedule:
+  #   - cron: '*/30 * * * *'
   workflow_dispatch:
     inputs:
       slug:

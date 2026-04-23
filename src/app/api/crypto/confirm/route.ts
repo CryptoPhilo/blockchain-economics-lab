@@ -1,17 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createSupabaseAdminClient } from '@/lib/supabase-admin'
+import { fulfillOrderEntitlements } from '@/lib/purchase-fulfillment'
 import { cryptoConfirmLimiter, getRateLimitId, rateLimitResponse } from '@/lib/rate-limit'
 
-/**
- * POST /api/crypto/confirm
- * Polls blockchain for crypto payment confirmation.
- * Called by client after user sends crypto payment.
- *
- * Body: { order_id: string }
- * Returns: { status: 'pending' | 'confirmed' | 'failed', confirmations?: number }
- */
-
-// STRIX-SS-002: Validate transaction hash format
 const ETH_TX_HASH_RE = /^0x[a-fA-F0-9]{64}$/
 const BTC_TX_HASH_RE = /^[a-fA-F0-9]{64}$/
 
@@ -22,233 +14,238 @@ const MIN_CONFIRMATIONS: Record<string, number> = {
   crypto_usdc: 12,
 }
 
-// Etherscan / blockchain explorer APIs (placeholder — replace with production keys)
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || ''
 const ETHERSCAN_API = 'https://api.etherscan.io/api'
 
-interface EtherscanTxResult {
+interface OrderRecord {
+  id: string
+  user_id: string
   status: string
-  result: {
-    isError: string
-    blockNumber: string
-    confirmations: string
-    value: string
-    to: string
-  }
+  payment_method: string
+  crypto_tx_hash?: string | null
 }
 
-async function checkEthTxConfirmation(txHash: string): Promise<{
-  confirmed: boolean
-  confirmations: number
-  toAddress: string
-  valueWei: string
-}> {
-  // FIX 3: Require ETHERSCAN_API_KEY instead of simulating
+function validateTxHash(paymentMethod: string, txHash: string) {
+  if (
+    (paymentMethod === 'crypto_eth' || paymentMethod === 'crypto_usdt' || paymentMethod === 'crypto_usdc') &&
+    !ETH_TX_HASH_RE.test(txHash)
+  ) {
+    return false
+  }
+
+  if (paymentMethod === 'crypto_btc' && !BTC_TX_HASH_RE.test(txHash)) {
+    return false
+  }
+
+  return true
+}
+
+async function loadAuthorizedOrder(request: NextRequest, orderId: string) {
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: NextResponse.json({ error: 'Authentication required' }, { status: 401 }) }
+  }
+
+  const rlResult = cryptoConfirmLimiter.check(getRateLimitId(request, user.id))
+  if (!rlResult.success) {
+    return { error: rateLimitResponse(rlResult) }
+  }
+
+  const { data: order, error } = await supabase
+    .from('orders')
+    .select('id, user_id, status, payment_method, crypto_tx_hash')
+    .eq('id', orderId)
+    .single()
+
+  if (error || !order) {
+    return { error: NextResponse.json({ error: 'Order not found' }, { status: 404 }) }
+  }
+
+  if (order.user_id !== user.id) {
+    return { error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) }
+  }
+
+  return { supabase, user, order: order as OrderRecord }
+}
+
+async function checkEthTxConfirmation(txHash: string) {
   if (!ETHERSCAN_API_KEY) {
-    console.error('[Crypto] ETHERSCAN_API_KEY not configured')
     throw new Error('Payment verification unavailable')
   }
 
-  try {
-    const url = `${ETHERSCAN_API}?module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=${ETHERSCAN_API_KEY}`
-    const response = await fetch(url)
-    const data: EtherscanTxResult = await response.json()
+  const [txResponse, blockResponse] = await Promise.all([
+    fetch(
+      `${ETHERSCAN_API}?module=proxy&action=eth_getTransactionByHash&txhash=${txHash}&apikey=${ETHERSCAN_API_KEY}`,
+      { cache: 'no-store' }
+    ),
+    fetch(
+      `${ETHERSCAN_API}?module=proxy&action=eth_blockNumber&apikey=${ETHERSCAN_API_KEY}`,
+      { cache: 'no-store' }
+    ),
+  ])
 
-    if (data.status === '1' && data.result) {
-      const confirmations = parseInt(data.result.confirmations || '0', 10)
-      return {
-        confirmed: confirmations >= MIN_CONFIRMATIONS.crypto_eth,
-        confirmations,
-        toAddress: data.result.to || '',
-        valueWei: data.result.value || '0',
-      }
+  if (!txResponse.ok || !blockResponse.ok) {
+    return { confirmed: false, confirmations: 0 }
+  }
+
+  const txData = await txResponse.json()
+  const blockData = await blockResponse.json()
+  const txBlock = typeof txData.result?.blockNumber === 'string' ? parseInt(txData.result.blockNumber, 16) : 0
+  const latestBlock = typeof blockData.result === 'string' ? parseInt(blockData.result, 16) : 0
+
+  if (!txBlock || !latestBlock) {
+    return { confirmed: false, confirmations: 0 }
+  }
+
+  const confirmations = Math.max(latestBlock - txBlock + 1, 0)
+  return {
+    confirmed: confirmations >= MIN_CONFIRMATIONS.crypto_eth,
+    confirmations,
+  }
+}
+
+async function checkBtcTxConfirmation(txHash: string) {
+  const response = await fetch(`https://mempool.space/api/tx/${txHash}`, { cache: 'no-store' })
+  if (!response.ok) {
+    return { confirmed: false, confirmations: 0 }
+  }
+
+  const txData = await response.json()
+  if (txData.status?.confirmed !== true) {
+    return { confirmed: false, confirmations: 0 }
+  }
+
+  const blockHeight = txData.status?.block_height || 0
+  const tipRes = await fetch('https://mempool.space/api/blocks/tip/height', { cache: 'no-store' })
+  const tipHeight = tipRes.ok ? parseInt(await tipRes.text(), 10) : 0
+  const confirmations = tipHeight > 0 ? tipHeight - blockHeight + 1 : 1
+
+  return {
+    confirmed: confirmations >= MIN_CONFIRMATIONS.crypto_btc,
+    confirmations,
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const { order_id, tx_hash } = await request.json()
+
+    if (!order_id || !tx_hash) {
+      return NextResponse.json({ error: 'order_id and tx_hash are required' }, { status: 400 })
     }
 
-    return { confirmed: false, confirmations: 0, toAddress: '', valueWei: '0' }
+    const loaded = await loadAuthorizedOrder(request, order_id)
+    if (loaded.error) {
+      return loaded.error
+    }
+
+    const normalizedHash = String(tx_hash).trim()
+    if (!validateTxHash(loaded.order.payment_method, normalizedHash)) {
+      return NextResponse.json({ error: 'Invalid transaction hash format' }, { status: 400 })
+    }
+
+    if (loaded.order.status !== 'pending') {
+      return NextResponse.json({ error: 'Order is no longer pending' }, { status: 409 })
+    }
+
+    const adminSupabase = createSupabaseAdminClient()
+    const { error } = await adminSupabase
+      .from('orders')
+      .update({ crypto_tx_hash: normalizedHash })
+      .eq('id', order_id)
+
+    if (error) {
+      console.error('[Crypto] Failed to save transaction hash:', error)
+      return NextResponse.json({ error: 'Failed to save transaction hash' }, { status: 500 })
+    }
+
+    return NextResponse.json({ ok: true })
   } catch (error) {
-    console.error('[Crypto] Etherscan check failed:', error)
-    return { confirmed: false, confirmations: 0, toAddress: '', valueWei: '0' }
+    console.error('[Crypto] Submit hash error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const { order_id } = await request.json()
-
     if (!order_id) {
       return NextResponse.json({ error: 'order_id is required' }, { status: 400 })
     }
 
-    const supabase = await createServerSupabaseClient()
-
-    // FIX 1: Require authentication
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    const loaded = await loadAuthorizedOrder(request, order_id)
+    if (loaded.error) {
+      return loaded.error
     }
 
-    // STRIX-INFRA-002: Rate limit crypto confirm polling (30/min per user)
-    const rlResult = cryptoConfirmLimiter.check(getRateLimitId(request, user.id))
-    if (!rlResult.success) {
-      return rateLimitResponse(rlResult)
-    }
+    const { user, order } = loaded
 
-    // Fetch order
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .select('id, user_id, status, payment_method, crypto_amount, crypto_currency, crypto_tx_hash, total_cents')
-      .eq('id', order_id)
-      .single()
-
-    if (orderError || !order) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 })
-    }
-
-    // FIX 2: Verify order ownership
-    if (order.user_id !== user.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
-    // Already completed or failed
     if (order.status === 'completed') {
       return NextResponse.json({ status: 'confirmed', confirmations: 999 })
     }
+
     if (order.status === 'failed' || order.status === 'refunded') {
       return NextResponse.json({ status: 'failed' })
     }
 
-    // No TX hash yet — user hasn't submitted payment
     if (!order.crypto_tx_hash) {
-      return NextResponse.json({ status: 'pending', confirmations: 0 })
+      return NextResponse.json({ status: 'pending', confirmations: 0, txHashSubmitted: false })
     }
 
-    const paymentMethod = order.payment_method as string
-
-    // STRIX-SS-002: Validate tx_hash format before using in external API calls
-    const txHash = order.crypto_tx_hash as string
-    if (paymentMethod.startsWith('crypto_eth') || paymentMethod === 'crypto_usdt' || paymentMethod === 'crypto_usdc') {
-      if (!ETH_TX_HASH_RE.test(txHash)) {
-        return NextResponse.json({ error: 'Invalid transaction hash format' }, { status: 400 })
-      }
-    } else if (paymentMethod === 'crypto_btc') {
-      if (!BTC_TX_HASH_RE.test(txHash)) {
-        return NextResponse.json({ error: 'Invalid transaction hash format' }, { status: 400 })
-      }
+    if (!validateTxHash(order.payment_method, order.crypto_tx_hash)) {
+      return NextResponse.json({ error: 'Invalid transaction hash format' }, { status: 400 })
     }
 
-    // Check based on payment method
-    if (paymentMethod === 'crypto_eth' || paymentMethod === 'crypto_usdt' || paymentMethod === 'crypto_usdc') {
+    let result = { confirmed: false, confirmations: 0 }
+
+    if (
+      order.payment_method === 'crypto_eth' ||
+      order.payment_method === 'crypto_usdt' ||
+      order.payment_method === 'crypto_usdc'
+    ) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const result = await checkEthTxConfirmation(order.crypto_tx_hash as any)
-
-        if (result.confirmed) {
-          // Mark order as completed
-          await supabase
-            .from('orders')
-            .update({
-              status: 'completed',
-              paid_at: new Date().toISOString(),
-            })
-            .eq('id', order_id)
-            .eq('status', 'pending')
-
-          // Grant access to purchased products
-          const { data: items } = await supabase
-            .from('order_items')
-            .select('product_id')
-            .eq('order_id', order_id)
-
-          if (items && items.length > 0) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const libraryInserts = items.map((item: any) => ({
-              user_id: order.user_id || '',
-              product_id: item.product_id,
-              order_id: order_id,
-              access_granted_at: new Date().toISOString(),
-              download_count: 0,
-            }))
-
-            await supabase.from('user_library').insert(libraryInserts)
-          }
-
-          return NextResponse.json({
-            status: 'confirmed',
-            confirmations: result.confirmations,
-          })
-        }
-
-        return NextResponse.json({
-          status: 'pending',
-          confirmations: result.confirmations,
-        })
-      } catch (err) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        console.error('[Crypto] ETH check failed:', err as any)
+        result = await checkEthTxConfirmation(order.crypto_tx_hash)
+      } catch (error) {
+        console.error('[Crypto] ETH check failed:', error)
         return NextResponse.json({ error: 'Payment verification unavailable' }, { status: 503 })
       }
-    }
-
-    if (paymentMethod === 'crypto_btc') {
-      // BTC confirmation check via mempool.space API (no key needed)
+    } else if (order.payment_method === 'crypto_btc') {
       try {
-        const mempoolUrl = `https://mempool.space/api/tx/${order.crypto_tx_hash}`
-        const response = await fetch(mempoolUrl)
-
-        if (response.ok) {
-          const txData = await response.json()
-          const isConfirmed = txData.status?.confirmed === true
-          const blockHeight = txData.status?.block_height || 0
-
-          if (isConfirmed) {
-            // Get current block height for confirmation count
-            const tipRes = await fetch('https://mempool.space/api/blocks/tip/height')
-            const tipHeight = tipRes.ok ? parseInt(await tipRes.text(), 10) : 0
-            const confirmations = tipHeight > 0 ? tipHeight - blockHeight + 1 : 1
-
-            if (confirmations >= MIN_CONFIRMATIONS.crypto_btc) {
-              // FIX 4: Add optimistic locking to prevent race conditions
-              await supabase
-                .from('orders')
-                .update({
-                  status: 'completed',
-                  paid_at: new Date().toISOString(),
-                })
-                .eq('id', order_id)
-                .eq('status', 'pending')
-
-              // Grant library access
-              const { data: items } = await supabase
-                .from('order_items')
-                .select('product_id')
-                .eq('order_id', order_id)
-
-              if (items && items.length > 0) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const libraryInserts = items.map((item: any) => ({
-                  user_id: order.user_id || '',
-                  product_id: item.product_id,
-                  order_id: order_id,
-                  access_granted_at: new Date().toISOString(),
-                  download_count: 0,
-                }))
-                await supabase.from('user_library').insert(libraryInserts)
-              }
-
-              return NextResponse.json({ status: 'confirmed', confirmations })
-            }
-
-            return NextResponse.json({ status: 'pending', confirmations })
-          }
-        }
-      } catch (err) {
-        console.error('[Crypto] BTC check failed:', err)
+        result = await checkBtcTxConfirmation(order.crypto_tx_hash)
+      } catch (error) {
+        console.error('[Crypto] BTC check failed:', error)
       }
-
-      return NextResponse.json({ status: 'pending', confirmations: 0 })
+    } else {
+      return NextResponse.json({ error: 'Unsupported payment method' }, { status: 400 })
     }
 
-    return NextResponse.json({ error: 'Unsupported payment method' }, { status: 400 })
+    if (!result.confirmed) {
+      return NextResponse.json({
+        status: 'pending',
+        confirmations: result.confirmations,
+        txHashSubmitted: true,
+      })
+    }
+
+    try {
+      await fulfillOrderEntitlements({
+        supabase: createSupabaseAdminClient(),
+        orderId: order_id,
+        userId: user.id,
+        paymentMethod: order.payment_method as 'crypto_btc' | 'crypto_eth' | 'crypto_usdt' | 'crypto_usdc',
+      })
+    } catch (error) {
+      console.error('[Crypto] Fulfillment failed:', error)
+      return NextResponse.json({ error: 'Failed to grant access' }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      status: 'confirmed',
+      confirmations: result.confirmations,
+      txHashSubmitted: true,
+    })
   } catch (error) {
     console.error('[Crypto] Confirm error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

@@ -82,6 +82,14 @@ export interface OrderItem {
   product?: Product
 }
 
+export interface BundleItem {
+  id: string
+  bundle_id: string
+  product_id: string
+  sort_order: number
+  product?: Product
+}
+
 export interface Subscription {
   id: string
   user_id: string
@@ -144,6 +152,28 @@ export interface TrackedProject {
 export type SupportedLanguage = 'en' | 'ko' | 'fr' | 'es' | 'de' | 'ja' | 'zh'
 export type TranslationStatus = Record<SupportedLanguage, 'pending' | 'in_progress' | 'completed'>
 
+export interface GDriveUrlEntry {
+  url: string
+  download_url?: string
+}
+
+export interface ReportCardData {
+  risk_level?: string
+  risk_score?: number
+  keywords?: string[]
+  keywords_en?: string[]
+  keywords_ko?: string[]
+  keywords_by_lang?: Record<string, string[]>
+  summary?: string
+  summary_en?: string
+  summary_ko?: string
+  summary_by_lang?: Record<string, string>
+  price_change_24h?: number
+  change_24h?: number
+  direction?: 'up' | 'down'
+  generated_at?: string
+}
+
 export interface ProjectReport {
   id: string
   project_id: string
@@ -158,10 +188,24 @@ export interface ProjectReport {
   review_at?: string
   approved_at?: string
   published_at?: string
+  created_at: string
   trigger_reason?: string
   risk_level?: string
+  card_risk_score?: number
+  card_keywords?: string[]
+  card_summary_en?: string
+  card_summary_ko?: string
+  card_summary_fr?: string
+  card_summary_es?: string
+  card_summary_de?: string
+  card_summary_ja?: string
+  card_summary_zh?: string
+  card_data?: ReportCardData | null
   file_url?: string
   file_urls_by_lang?: Record<SupportedLanguage, string>
+  gdrive_url?: string
+  gdrive_download_url?: string
+  gdrive_urls_by_lang?: Record<string, GDriveUrlEntry | string>
   page_count?: number
   task_id?: string
   title_en?: string
@@ -174,6 +218,34 @@ export interface ProjectReport {
   translation_status?: TranslationStatus
   project?: TrackedProject
   product?: Product
+}
+
+export interface HomepageForensicProject {
+  id: string
+  name: string
+  slug: string
+  symbol: string
+  chain?: string
+  category?: string
+}
+
+export type HomepageForensicCardData = ReportCardData
+
+export interface HomepageForensicReport {
+  id: string
+  project_id: string
+  status: ReportStatus
+  published_at?: string
+  created_at: string
+  page_count?: number
+  risk_level?: string
+  card_risk_score?: number
+  card_keywords?: string[]
+  card_summary_en?: string
+  card_summary_ko?: string
+  card_data?: HomepageForensicCardData | null
+  tracked_projects?: HomepageForensicProject | HomepageForensicProject[] | null
+  project?: HomepageForensicProject | null
 }
 
 export interface ForensicMonitoringLog {

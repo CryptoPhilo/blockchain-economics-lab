@@ -9,15 +9,14 @@ Translates .md files while preserving:
   - File naming convention: {slug}_{type}_v{ver}_{lang}.md
 
 Translation backends (pluggable):
-  1. Anthropic Claude API (recommended — structure-aware, blockchain terminology)
-  2. Google Cloud Translation API
-  3. DeepL API
-  4. Offline stub (for testing)
+  1. Google Translate via deep-translator (default operational path)
+  2. Anthropic Claude API (optional fallback / explicit override)
+  3. Offline stub (for testing / dependency fallback)
 
 Usage:
     python translate_md.py input.md --lang ko
     python translate_md.py input.md --lang all
-    python translate_md.py input.md --lang ko --backend claude
+    python translate_md.py input.md --lang ko --backend google
 """
 
 import argparse
@@ -564,21 +563,23 @@ BACKENDS = {
 }
 
 
-def get_translate_fn(backend: str = 'auto'):
-    """Get translation function. 'auto' tries Claude → Google → stub."""
+def resolve_backend(backend: str = 'auto') -> str:
+    """Resolve the requested backend to the concrete runtime backend name."""
     if backend == 'auto':
-        if os.environ.get('ANTHROPIC_API_KEY'):
-            return _translate_claude
-        # Try Google Translate via deep-translator
         try:
-            from deep_translator import GoogleTranslator
-            return _translate_google
+            from deep_translator import GoogleTranslator  # noqa: F401
+            return 'google'
         except ImportError:
             pass
-        return _translate_stub
-    if backend == 'google':
-        return _translate_google
-    return BACKENDS.get(backend, _translate_stub)
+        if os.environ.get('ANTHROPIC_API_KEY'):
+            return 'claude'
+        return 'stub'
+    return backend if backend in BACKENDS else 'stub'
+
+
+def get_translate_fn(backend: str = 'auto'):
+    """Get translation function. 'auto' prefers Google → Claude → stub."""
+    return BACKENDS[resolve_backend(backend)]
 
 
 # ============================================================================
@@ -957,7 +958,7 @@ def translate_md_file(
         input_path: Path to source .md file (EN master)
         target_lang: Target language code (ko, fr, es, de, ja, zh)
         output_dir: Output directory (default: same as input)
-        backend: Translation backend ('auto', 'claude', 'stub')
+        backend: Translation backend ('auto' resolves Google -> Claude -> stub)
         apply_gloss: Apply glossary post-processing
 
     Returns:
@@ -968,13 +969,14 @@ def translate_md_file(
 
     # Parse source .md
     fm, body = parse_md_file(input_path)
-    translate_fn = get_translate_fn(backend)
+    resolved_backend = resolve_backend(backend)
+    translate_fn = BACKENDS[resolved_backend]
 
     # Translate frontmatter
     translated_fm = translate_frontmatter(fm, target_lang, translate_fn)
 
     # Translate body
-    translated_body = translate_body(body, target_lang, translate_fn, batch=(backend == 'claude'))
+    translated_body = translate_body(body, target_lang, translate_fn, batch=(resolved_backend == 'claude'))
 
     # Apply glossary
     if apply_gloss:
@@ -1028,7 +1030,8 @@ def translate_md_file(
         'source': input_path,
         'target_lang': target_lang,
         'output': output_path,
-        'backend': backend,
+        'backend': resolved_backend,
+        'backend_requested': backend,
         'glossary_applied': apply_gloss,
         'source_lang': fm.get('lang', 'en'),
         'translated_at': datetime.utcnow().isoformat() + 'Z',
@@ -1078,8 +1081,8 @@ if __name__ == '__main__':
     parser.add_argument('--lang', default='all',
                         help=f"Target language or 'all' ({', '.join(LANGUAGES)})")
     parser.add_argument('--backend', default='auto',
-                        choices=['auto', 'claude', 'stub'],
-                        help='Translation backend')
+                        choices=['auto', 'google', 'claude', 'stub'],
+                        help='Translation backend (auto prefers Google when available)')
     parser.add_argument('--output-dir', default=None,
                         help='Output directory')
     parser.add_argument('--no-glossary', action='store_true',
@@ -1117,3 +1120,5 @@ if __name__ == '__main__':
         print(f"\n✓ Output: {path}")
         print(f"  Words: {meta['word_count_target']}")
         print(f"  Backend: {meta['backend']}")
+        if meta['backend_requested'] != meta['backend']:
+            print(f"  Requested backend: {meta['backend_requested']}")

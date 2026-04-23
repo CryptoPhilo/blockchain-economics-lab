@@ -319,6 +319,7 @@ def register_coming_soon(triggers: list[dict], dry_run: bool = False) -> list[di
             'project_id': project_id,
             'report_type': 'forensic',
             'version': 1,
+            'language': 'ko',
             'status': 'coming_soon',
             'trigger_reason': trigger_reason,
             'trigger_data': json.dumps(t),

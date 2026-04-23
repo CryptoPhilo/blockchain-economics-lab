@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { type Locale } from '@/lib/types'
+import { filterPublicProducts } from '@/lib/product-access'
 import ProductCard from '@/components/ProductCard'
 import ProductFilter from '@/components/ProductFilter'
 
@@ -27,6 +28,7 @@ export default async function ProductsPage({ params, searchParams }: Props) {
 
   const { data: products } = await query
   const { data: categories } = await supabase.from('categories').select('*').order('sort_order')
+  const visibleProducts = filterPublicProducts(products || [])
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
@@ -35,9 +37,9 @@ export default async function ProductsPage({ params, searchParams }: Props) {
 
       <ProductFilter currentType={type} currentCategory={category} categories={categories || []} locale={locale as Locale} />
 
-      {products && products.length > 0 ? (
+      {visibleProducts.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-          {products.map((product) => (
+          {visibleProducts.map((product) => (
             <ProductCard key={product.id} product={product} locale={locale as Locale} />
           ))}
         </div>

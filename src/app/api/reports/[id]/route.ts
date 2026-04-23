@@ -55,12 +55,14 @@ export async function GET(
     return NextResponse.json({ error: 'Report not found' }, { status: 404 })
   }
 
-  // Check access: if product exists and has a price, verify user owns it
+  // Check access: if product exists and has a price, verify user owns it.
+  // Exception: logged-in free members can access ECON reports.
   const product = report.product
   if (product && product.price_usd_cents > 0) {
-    if (!user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
+    if (product.report_type !== 'econ' || !user) {
+      if (!user) {
+        return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+      }
 
     const { data: access } = await supabase
       .from('user_library')
@@ -79,6 +81,7 @@ export async function GET(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .update({ download_count: (access as any).download_count + 1 || 1 })
       .eq('id', access.id)
+    }
   }
 
   // Resolve file URL by language

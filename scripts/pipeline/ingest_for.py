@@ -25,6 +25,7 @@ import argparse
 import json
 import os
 import re
+import signal
 import sys
 import time
 import unicodedata
@@ -123,16 +124,21 @@ _PROCESSED_LOCAL = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'out
 def _load_processed(service=None, folder_id: str = None) -> dict:
     """Load processed tracker from local file."""
     if os.path.exists(_PROCESSED_LOCAL):
-        with open(_PROCESSED_LOCAL, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        try:
+            with open(_PROCESSED_LOCAL, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except json.JSONDecodeError as exc:
+            print(f"  [WARN] Ignoring invalid processed tracker {_PROCESSED_LOCAL}: {exc}")
     return {}
 
 
 def _save_processed(service=None, folder_id: str = None, data: dict = None):
     """Save processed tracker to local file."""
     os.makedirs(os.path.dirname(_PROCESSED_LOCAL), exist_ok=True)
-    with open(_PROCESSED_LOCAL, 'w', encoding='utf-8') as f:
+    temp_path = f'{_PROCESSED_LOCAL}.tmp'
+    with open(temp_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+    os.replace(temp_path, _PROCESSED_LOCAL)
 
 
 STALE_PROCESSING_MINUTES = 30   # 'processing' entries older than this → retriable
@@ -141,6 +147,25 @@ MAX_RETRIES = 3                 # max retry count before marking permanently fai
 
 class TerminalContentError(RuntimeError):
     """Raised when the input content is invalid and should not be retried."""
+
+
+class ProcessingInterruptedError(RuntimeError):
+    """Raised when the current file processing is interrupted by a termination signal."""
+
+
+_LAST_TERMINATION_SIGNAL = None
+
+
+def _termination_signal_handler(signum, _frame):
+    global _LAST_TERMINATION_SIGNAL
+    _LAST_TERMINATION_SIGNAL = signum
+    signal_name = signal.Signals(signum).name
+    raise ProcessingInterruptedError(f'Interrupted by {signal_name}')
+
+
+def _register_signal_handlers():
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        signal.signal(sig, _termination_signal_handler)
 
 
 def _is_stale_processing(entry: dict) -> bool:
@@ -190,6 +215,47 @@ def _retriable_failure_result(file_info: dict, error: Exception) -> dict:
     }
 
 
+def _normalize_slug_token(value: str | None) -> str:
+    if not value:
+        return ''
+    return unicodedata.normalize('NFC', value).strip().lower().replace(' ', '-').replace('_', '-')
+
+
+def _build_slug_aliases(raw_slug: str, canonical_slug: str | None = None, symbol: str | None = None) -> set[str]:
+    normalized_raw = _normalize_slug_token(raw_slug)
+    aliases = {normalized_raw} if normalized_raw else set()
+
+    for marker in ('-포렌식-분석-보고서', '-시장-무결성-보고서'):
+        if marker in normalized_raw:
+            aliases.add(normalized_raw.split(marker, 1)[0].rstrip('-'))
+
+    head = normalized_raw.split('-', 1)[0] if normalized_raw else ''
+    if head:
+        aliases.add(head)
+
+    canonical = _normalize_slug_token(canonical_slug)
+    if canonical:
+        aliases.add(canonical)
+
+    normalized_symbol = _normalize_slug_token(symbol)
+    if normalized_symbol:
+        aliases.add(normalized_symbol)
+
+    return {alias for alias in aliases if alias}
+
+
+def _slug_filter_matches(
+    filter_slug: str | None,
+    raw_slug: str,
+    canonical_slug: str | None = None,
+    symbol: str | None = None,
+) -> bool:
+    normalized_filter = _normalize_slug_token(filter_slug)
+    if not normalized_filter:
+        return True
+    return normalized_filter in _build_slug_aliases(raw_slug, canonical_slug=canonical_slug, symbol=symbol)
+
+
 def scan_for_drafts(filter_slug: str = None, force: bool = False) -> list[dict]:
     """Scan GDrive drafts/FOR/ for new .md files."""
     service = _get_drive_service()
@@ -203,6 +269,13 @@ def scan_for_drafts(filter_slug: str = None, force: bool = False) -> list[dict]:
     # Load processed state
     processed = _load_processed(service, for_id)
     files = scan_markdown_drafts(service, for_id)
+    filter_slug = _normalize_slug_token(filter_slug)
+
+    sb = None
+    try:
+        sb = _get_supabase_client()
+    except Exception as exc:
+        print(f"  [WARN] Supabase client unavailable during slug resolution: {exc}")
 
     print(f"  [SCAN] Found {len(files)} total files in drafts/FOR/")
     for f in files:
@@ -215,20 +288,19 @@ def scan_for_drafts(filter_slug: str = None, force: bool = False) -> list[dict]:
         fid = f['id']
         entry = processed.get(fid)
 
-        # Skip only successfully published files (unless --force)
-        if entry and entry.get('status') == 'published' and not force:
-            continue
-        # Skip 'processing' entries that are NOT stale
-        if entry and entry.get('status') == 'processing' and not _is_stale_processing(entry):
-            continue
-        # Skip permanently failed (max retries exceeded)
-        if entry and not _should_retry(entry) and entry.get('status') not in (None, 'dry_run'):
-            if entry.get('status') in TERMINAL_STATUSES:
-                print(f"    [SKIP] {f['name']} — terminal failure ({entry.get('status')})")
+        # --force bypasses tracker gating so operators can recover immediately.
+        if entry and not force:
+            if entry.get('status') == 'published':
                 continue
-            if entry.get('retry_count', 0) >= MAX_RETRIES:
-                print(f"    [SKIP] {f['name']} — max retries ({MAX_RETRIES}) reached")
+            if entry.get('status') == 'processing' and not _is_stale_processing(entry):
                 continue
+            if not _should_retry(entry) and entry.get('status') not in (None, 'dry_run'):
+                if entry.get('status') in TERMINAL_STATUSES:
+                    print(f"    [SKIP] {f['name']} — terminal failure ({entry.get('status')})")
+                    continue
+                if entry.get('retry_count', 0) >= MAX_RETRIES:
+                    print(f"    [SKIP] {f['name']} — max retries ({MAX_RETRIES}) reached")
+                    continue
 
         name = f['name']
         if not name.endswith('.md'):
@@ -239,13 +311,24 @@ def scan_for_drafts(filter_slug: str = None, force: bool = False) -> list[dict]:
         if not slug_match:
             print(f"    [SKIP] {name} — filename doesn't match slug pattern")
             continue
-        slug = slug_match.group(1).lower().replace(' ', '-').replace('_', '-')
-        # macOS GDrive API returns NFD-normalized filenames; normalize to NFC
-        # to ensure consistent slug comparison across platforms
-        slug = unicodedata.normalize('NFC', slug)
+        raw_slug = _normalize_slug_token(slug_match.group(1))
+        canonical_slug = None
+        project_name = None
+        symbol = None
+        if sb:
+            try:
+                _, canonical_slug, project_name, symbol = _resolve_project_slug(sb, raw_slug)
+            except Exception as exc:
+                print(f"    [WARN] slug resolution failed for {name}: {exc}")
 
-        if filter_slug and unicodedata.normalize('NFC', filter_slug) != slug:
+        if filter_slug and not _slug_filter_matches(
+            filter_slug,
+            raw_slug,
+            canonical_slug=canonical_slug,
+            symbol=symbol,
+        ):
             continue
+        slug = canonical_slug or raw_slug
 
         is_retry = entry is not None and entry.get('status') not in (None, 'dry_run')
         if is_retry:
@@ -257,6 +340,10 @@ def scan_for_drafts(filter_slug: str = None, force: bool = False) -> list[dict]:
             'file_id': fid,
             'name': name,
             'slug': slug,
+            'source_slug': raw_slug,
+            'canonical_slug': canonical_slug,
+            'project_name': project_name,
+            'symbol': symbol,
             'size': int(f.get('size', 0)),
             'modified': f.get('modifiedTime'),
             '_gdoc': f.get('_gdoc', False),
@@ -369,23 +456,27 @@ def process_for_report(file_info: dict, dry_run: bool = False) -> dict:
     with ThreadPoolExecutor(max_workers=3) as executor:
         futures = {executor.submit(_translate_one, lang): lang for lang in target_langs}
         pending = set(futures)
-        while pending:
-            done, pending = wait(pending, timeout=30, return_when=FIRST_COMPLETED)
-            if not done:
-                still_running = ', '.join(sorted(futures[f] for f in pending))
-                print(f"  … 번역 진행 중 (30s 경과): {still_running}")
-                continue
+        try:
+            while pending:
+                done, pending = wait(pending, timeout=30, return_when=FIRST_COMPLETED)
+                if not done:
+                    still_running = ', '.join(sorted(futures[f] for f in pending))
+                    print(f"  … 번역 진행 중 (30s 경과): {still_running}")
+                    continue
 
-            for future in done:
-                lang = futures[future]
-                try:
-                    lang, out_path, meta, elapsed = future.result()
-                    translated[lang] = out_path
-                    words = meta.get('word_count_target', '?')
-                    print(f"  ✓ {lang}: {words} words ({elapsed:.1f}s)")
-                except Exception as e:
-                    print(f"  ✗ {lang}: {e}")
-                    # Continue with other languages
+                for future in done:
+                    lang = futures[future]
+                    try:
+                        lang, out_path, meta, elapsed = future.result()
+                        translated[lang] = out_path
+                        words = meta.get('word_count_target', '?')
+                        print(f"  ✓ {lang}: {words} words ({elapsed:.1f}s)")
+                    except Exception as e:
+                        print(f"  ✗ {lang}: {e}")
+                        # Continue with other languages
+        except BaseException:
+            executor.shutdown(wait=False, cancel_futures=True)
+            raise
 
     result['translated_langs'] = list(translated.keys())
 
@@ -659,6 +750,57 @@ def _get_supabase_client():
     return create_client(url, key)
 
 
+def _get_master_report_language(gdrive_urls: dict) -> str:
+    """Use Korean source as the canonical project_reports language when available."""
+    if 'ko' in gdrive_urls:
+        return 'ko'
+    if 'en' in gdrive_urls:
+        return 'en'
+    return sorted(gdrive_urls.keys())[0]
+
+
+def _select_existing_project_reports(sb, project_id: str, db_report_type: str, version: int):
+    """
+    Load all existing project_reports rows for the target version.
+
+    Returns (rows, has_language_column). If the schema does not expose `language`,
+    falls back to version-only lookup.
+    """
+    try:
+        result = sb.table('project_reports').select('id, status, language, published_at') \
+            .eq('project_id', project_id) \
+            .eq('report_type', db_report_type) \
+            .eq('version', version) \
+            .execute()
+        return result.data or [], True
+    except Exception as exc:
+        if 'language' not in str(exc).lower():
+            raise
+
+    fallback = sb.table('project_reports').select('id, status, published_at') \
+        .eq('project_id', project_id) \
+        .eq('report_type', db_report_type) \
+        .eq('version', version) \
+        .execute()
+    return fallback.data or [], False
+
+
+def _mark_forensic_triggers_published(sb, project_id: str, report_ids: list[str] | None = None):
+    """Promote any active forensic triggers for the project once publish succeeds."""
+    active_statuses = ['detected', 'notified', 'draft_pending', 'processing']
+
+    for report_id in report_ids or []:
+        sb.table('forensic_triggers').update({'status': 'published'}) \
+            .eq('report_id', report_id) \
+            .in_('status', active_statuses) \
+            .execute()
+
+    sb.table('forensic_triggers').update({'status': 'published'}) \
+        .eq('project_id', project_id) \
+        .in_('status', active_statuses) \
+        .execute()
+
+
 def _publish_supabase(slug: str, report_type: str, version: int, gdrive_urls: dict, card_db: dict = None):
     """Update project_reports from coming_soon to published, or create new."""
     url = os.environ.get('SUPABASE_URL') or os.environ.get('NEXT_PUBLIC_SUPABASE_URL')
@@ -687,54 +829,38 @@ def _publish_supabase(slug: str, report_type: str, version: int, gdrive_urls: di
 
     translation_status = {lang: 'published' for lang in gdrive_urls.keys()}
     now = datetime.now(timezone.utc).isoformat()
+    master_language = _get_master_report_language(gdrive_urls)
 
-    # Check if already published (avoid duplicate insert on retry)
-    already_published = sb.table('project_reports').select('id') \
-        .eq('project_id', project_id) \
-        .eq('report_type', db_report_type) \
-        .eq('status', 'published') \
-        .eq('version', version) \
-        .execute()
+    existing_rows, has_language_column = _select_existing_project_reports(
+        sb,
+        project_id,
+        db_report_type,
+        version,
+    )
 
-    if already_published.data:
-        report_id = already_published.data[0]['id']
-        update_data = {
-            'gdrive_urls_by_lang': gdrive_urls,
-            'translation_status': translation_status,
-        }
-        if card_db:
-            update_data.update(card_db)
-        sb.table('project_reports').update(update_data).eq('id', report_id).execute()
-        print(f"  이미 published 상태 — 메타데이터 업데이트: {report_id}")
-        return
+    if not has_language_column:
+        if existing_rows:
+            existing_report = existing_rows[0]
+            report_id = existing_report['id']
+            was_published = existing_report.get('status') == 'published'
+            update_data = {
+                'gdrive_urls_by_lang': gdrive_urls,
+                'translation_status': translation_status,
+            }
+            if not was_published:
+                update_data.update({
+                    'status': 'published',
+                    'published_at': now,
+                    'version': version,
+                })
+            if card_db:
+                update_data.update(card_db)
+            sb.table('project_reports').update(update_data).eq('id', report_id).execute()
+            _mark_forensic_triggers_published(sb, project_id, report_ids=[report_id])
+            print(f"  기존 보고서 갱신(legacy schema): {report_id}")
+            return
 
-    # Try to update existing coming_soon report
-    existing = sb.table('project_reports').select('id') \
-        .eq('project_id', project_id) \
-        .eq('report_type', db_report_type) \
-        .eq('status', 'coming_soon') \
-        .execute()
-
-    if existing.data:
-        report_id = existing.data[0]['id']
-        update_data = {
-            'status': 'published',
-            'published_at': now,
-            'gdrive_urls_by_lang': gdrive_urls,
-            'translation_status': translation_status,
-            'version': version,
-        }
-        if card_db:
-            update_data.update(card_db)
-        sb.table('project_reports').update(update_data).eq('id', report_id).execute()
-        print(f"  기존 coming_soon 보고서 → published: {report_id}")
-
-        # Update forensic_triggers status
-        sb.table('forensic_triggers').update({'status': 'published'}) \
-            .eq('report_id', report_id).execute()
-    else:
-        # Create new published report
-        sb.table('project_reports').insert({
+        report_row = {
             'project_id': project_id,
             'report_type': db_report_type,
             'version': version,
@@ -742,8 +868,55 @@ def _publish_supabase(slug: str, report_type: str, version: int, gdrive_urls: di
             'published_at': now,
             'gdrive_urls_by_lang': gdrive_urls,
             'translation_status': translation_status,
-        }).execute()
-        print(f"  새 보고서 등록: {slug}/{report_type} published")
+        }
+        if card_db:
+            report_row.update(card_db)
+        sb.table('project_reports').insert(report_row).execute()
+        _mark_forensic_triggers_published(sb, project_id)
+        print(f"  새 보고서 등록(legacy schema): {slug}/{report_type} published")
+        return
+
+    existing_by_language = {
+        row.get('language'): row for row in existing_rows if row.get('language')
+    }
+    published_ids = []
+
+    for language, language_url in gdrive_urls.items():
+        existing_report = existing_by_language.get(language)
+        row_data = {
+            'project_id': project_id,
+            'report_type': db_report_type,
+            'version': version,
+            'language': language,
+            'status': 'published',
+            'published_at': now,
+            'gdrive_urls_by_lang': gdrive_urls,
+            'translation_status': translation_status,
+            'gdrive_url': language_url,
+            'file_url': language_url,
+        }
+        if card_db:
+            row_data.update(card_db)
+
+        if existing_report:
+            report_id = existing_report['id']
+            if existing_report.get('status') == 'published':
+                row_data.pop('published_at', None)
+            sb.table('project_reports').update(row_data).eq('id', report_id).execute()
+            print(f"  기존 {language} 보고서 갱신: {report_id}")
+            published_ids.append(report_id)
+            continue
+
+        upsert_result = sb.table('project_reports').upsert(
+            row_data,
+            on_conflict='project_id,report_type,version,language',
+        ).execute()
+        if upsert_result.data:
+            published_ids.extend(row['id'] for row in upsert_result.data if row.get('id'))
+        print(f"  새 {language} 보고서 등록/UPSERT")
+
+    if published_ids or existing_by_language.get(master_language):
+        _mark_forensic_triggers_published(sb, project_id, report_ids=published_ids)
 
 
 # ═══════════════════════════════════════════
@@ -751,6 +924,7 @@ def _publish_supabase(slug: str, report_type: str, version: int, gdrive_urls: di
 # ═══════════════════════════════════════════
 
 def main():
+    _register_signal_handlers()
     parser = argparse.ArgumentParser(description='FOR Report GDrive Watcher & Pipeline')
     parser.add_argument('--dry-run', action='store_true', help='Download only, no processing')
     parser.add_argument('--slug', type=str, help='Process specific slug only')
@@ -806,11 +980,29 @@ def main():
         except TerminalContentError as e:
             result = _terminal_failure_result(f, e)
             print(f"  [TERMINAL] {f['name']} — {e}")
+        except ProcessingInterruptedError as e:
+            result = _retriable_failure_result(f, e)
+            print(f"  [INTERRUPTED] {f['name']} — {e}")
+            results.append(result)
+            processed[f['file_id']]['status'] = result['status']
+            processed[f['file_id']]['error'] = result.get('error')
+            processed[f['file_id']]['finished_at'] = datetime.now(timezone.utc).isoformat()
+            processed[f['file_id']]['updated_at'] = processed[f['file_id']]['finished_at']
+            _save_processed(service, for_id, processed)
+            break
         except Exception as e:
             result = _retriable_failure_result(f, e)
             print(f"  [ERROR] {f['name']} — continuing after retriable failure: {e}")
-        results.append(result)
+        else:
+            results.append(result)
+            processed[f['file_id']]['status'] = result['status']
+            processed[f['file_id']]['error'] = result.get('error')
+            processed[f['file_id']]['finished_at'] = datetime.now(timezone.utc).isoformat()
+            processed[f['file_id']]['updated_at'] = processed[f['file_id']]['finished_at']
+            _save_processed(service, for_id, processed)
+            continue
 
+        results.append(result)
         processed[f['file_id']]['status'] = result['status']
         processed[f['file_id']]['error'] = result.get('error')
         processed[f['file_id']]['finished_at'] = datetime.now(timezone.utc).isoformat()
