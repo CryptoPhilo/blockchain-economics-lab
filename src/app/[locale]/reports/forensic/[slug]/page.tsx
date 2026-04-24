@@ -59,13 +59,17 @@ export default async function ForensicReportPage({ params }: Props) {
   // Locale-aware keyword/summary resolution
   const keywordsByLang = cardData?.keywords_by_lang as Record<string, string[]> | undefined
   const keywordsLocaleKey = `keywords_${locale}`
-  const keywords: string[] =
-    keywordsByLang?.[locale]
-    ?? keywordsByLang?.en
+  // Turbopack requires explicit grouping when ?? is mixed with ||.
+  const localizedKeywords =
+    keywordsByLang?.[locale] ??
+    keywordsByLang?.en ??
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ?? ((cardData as any)?.[keywordsLocaleKey]
-    ?? (locale === 'ko' ? (report.card_keywords ?? cardData?.keywords_ko ?? cardData?.keywords ?? []) : []))
-    || (cardData?.keywords_en ?? report.card_keywords ?? [])
+    ((cardData as any)?.[keywordsLocaleKey] ??
+      (locale === 'ko' ? (report.card_keywords ?? cardData?.keywords_ko ?? cardData?.keywords ?? []) : []))
+  const keywords: string[] =
+    localizedKeywords.length > 0
+      ? localizedKeywords
+      : (cardData?.keywords_en ?? report.card_keywords ?? [])
 
   const summaryByLang = cardData?.summary_by_lang as Record<string, string> | undefined
   const summary =

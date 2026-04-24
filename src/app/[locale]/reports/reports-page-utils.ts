@@ -26,7 +26,13 @@ function compareRapidChangeReports(a: ProjectReport, b: ProjectReport): number {
     return statusDelta
   }
 
-  const createdAtDelta = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  const createdAtDelta = getEffectiveTimestamp({
+    published_at: undefined,
+    created_at: a.created_at,
+  }) - getEffectiveTimestamp({
+    published_at: undefined,
+    created_at: b.created_at,
+  })
   if (createdAtDelta !== 0) {
     return createdAtDelta
   }
