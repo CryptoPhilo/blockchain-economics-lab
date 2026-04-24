@@ -1,6 +1,8 @@
 import { getTranslations } from 'next-intl/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import Link from 'next/link'
+import type { ProjectReport } from '@/lib/types'
+import { prepareRapidChangeReports } from './reports-page-utils'
 
 interface Props {
   params: Promise<{ locale: string }>
@@ -65,41 +67,26 @@ export default async function ReportsPage({ params, searchParams }: Props) {
   const seventyTwoHoursAgo = new Date()
   seventyTwoHoursAgo.setHours(seventyTwoHoursAgo.getHours() - 72)
 
-  let countQuery = supabase
-    .from('project_reports')
-    .select('id', { count: 'exact', head: true })
-    .in('status', ['published', 'coming_soon'])
-    .eq('report_type', 'forensic')
-    .gte('created_at', seventyTwoHoursAgo.toISOString())
-
-  let dataQuery = supabase
+  const dataQuery = supabase
     .from('project_reports')
     .select('*, project:tracked_projects(id, name, slug, symbol, chain, category)')
     .in('status', ['published', 'coming_soon'])
     .eq('report_type', 'forensic')
     .gte('created_at', seventyTwoHoursAgo.toISOString())
+    .order('published_at', { ascending: false })
     .order('created_at', { ascending: false })
 
-  if (searchQuery && searchQuery.trim()) {
-    const q = `%${searchQuery.trim()}%`
-    countQuery = countQuery.ilike('title_en', q)
-    dataQuery = dataQuery.ilike('title_en', q)
-  }
-
-  const from = (currentPage - 1) * PAGE_SIZE
-  const to = from + PAGE_SIZE - 1
-  dataQuery = dataQuery.range(from, to)
-
-  const [{ count: totalCount }, { data: reports }] = await Promise.all([
-    countQuery,
-    dataQuery,
-  ])
-
-  const totalPages = Math.ceil((totalCount || 0) / PAGE_SIZE)
+  const { data: rawReports } = await dataQuery
+  const { reports, totalCount, totalPages, currentPage: activePage } = prepareRapidChangeReports({
+    reports: (rawReports || []) as ProjectReport[],
+    page: currentPage,
+    pageSize: PAGE_SIZE,
+    searchQuery,
+  })
 
   function filterUrl(params: { page?: number; q?: string }) {
     const sp = new URLSearchParams()
-    const pg = params.page !== undefined ? params.page : (params.q !== undefined ? 1 : currentPage)
+    const pg = params.page !== undefined ? params.page : (params.q !== undefined ? 1 : activePage)
     const query = params.q !== undefined ? params.q : (searchQuery || '')
     if (pg > 1) sp.set('page', String(pg))
     if (query) sp.set('q', query)
@@ -177,8 +164,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
       {/* Reports List */}
       {reports && reports.length > 0 ? (
         <div className="grid gap-4">
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {reports.map((report: any) => {
+          {reports.map((report: ProjectReport) => {
             const project = report.project
             const config = FORENSIC_CONFIG
             const title = getLocalizedTitle(report, locale)
@@ -306,16 +292,16 @@ export default async function ReportsPage({ params, searchParams }: Props) {
       {/* Pagination */}
       {totalPages > 1 && (
         <nav className="flex items-center justify-center gap-2 mt-10">
-          {currentPage > 1 && (
+          {activePage > 1 && (
             <Link
-              href={filterUrl({ page: currentPage - 1 })}
+              href={filterUrl({ page: activePage - 1 })}
               className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 text-sm transition-colors"
             >
               ← {locale === 'ko' ? '이전' : 'Prev'}
             </Link>
           )}
           {Array.from({ length: totalPages }, (_, i) => i + 1)
-            .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 2)
+            .filter((p) => p === 1 || p === totalPages || Math.abs(p - activePage) <= 2)
             .reduce<(number | string)[]>((acc, p, i, arr) => {
               if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push('...')
               acc.push(p)
@@ -329,7 +315,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
                   key={p}
                   href={filterUrl({ page: p })}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    p === currentPage
+                    p === activePage
                       ? 'bg-indigo-500 text-white'
                       : 'bg-white/5 hover:bg-white/10 text-gray-400'
                   }`}
@@ -338,9 +324,9 @@ export default async function ReportsPage({ params, searchParams }: Props) {
                 </Link>
               )
             )}
-          {currentPage < totalPages && (
+          {activePage < totalPages && (
             <Link
-              href={filterUrl({ page: currentPage + 1 })}
+              href={filterUrl({ page: activePage + 1 })}
               className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 text-sm transition-colors"
             >
               {locale === 'ko' ? '다음' : 'Next'} →
@@ -363,7 +349,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
             </p>
           </div>
           <div className="text-center px-6 py-4 rounded-xl bg-red-500/10 border border-red-500/20">
-            <div className="text-3xl font-bold text-red-400 mb-1">{totalCount || 0}</div>
+            <div className="text-3xl font-bold text-red-400 mb-1">{totalCount}</div>
             <div className="text-xs text-gray-500 uppercase">
               {locale === 'ko' ? '최근 72시간' : 'Last 72 Hours'}
             </div>
