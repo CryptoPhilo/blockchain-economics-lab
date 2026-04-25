@@ -59,13 +59,17 @@ export default async function ForensicReportPage({ params }: Props) {
   // Locale-aware keyword/summary resolution
   const keywordsByLang = cardData?.keywords_by_lang as Record<string, string[]> | undefined
   const keywordsLocaleKey = `keywords_${locale}`
-  const keywords: string[] =
+  // Turbopack requires explicit grouping when ?? is mixed with ||.
+  const localizedKeywords =
     keywordsByLang?.[locale] ??
     keywordsByLang?.en ??
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (((cardData as any)?.[keywordsLocaleKey] ??
-      (locale === 'ko' ? (report.card_keywords ?? cardData?.keywords_ko ?? cardData?.keywords ?? []) : [])) ||
-      (cardData?.keywords_en ?? report.card_keywords ?? []))
+    ((cardData as any)?.[keywordsLocaleKey] ??
+      (locale === 'ko' ? (report.card_keywords ?? cardData?.keywords_ko ?? cardData?.keywords ?? []) : []))
+  const keywords: string[] =
+    localizedKeywords.length > 0
+      ? localizedKeywords
+      : (cardData?.keywords_en ?? report.card_keywords ?? [])
 
   const summaryByLang = cardData?.summary_by_lang as Record<string, string> | undefined
   const summary =
@@ -113,19 +117,19 @@ export default async function ForensicReportPage({ params }: Props) {
   const statusToneClass = isComingSoon ? 'text-amber-300' : hasReport ? 'text-green-300' : 'text-gray-300'
   const previewCtaCopy =
     isComingSoon
-      ? {
-          ko: '전체 포렌식 보고서는 공개 준비가 끝나는 대로 연결됩니다.',
-          en: 'The full forensic report will be linked once publishing is complete.',
-        }
+        ? {
+            ko: '전체 포렌식 보고서는 공개 준비가 끝나는 대로 연결됩니다.',
+            en: 'The full forensic report will be linked once publishing is complete.',
+          }
       : pageCount
         ? {
-            ko: `이 미리보기가 유용하셨나요? 전체 PDF 보고서(${pageCount}페이지)를 받아보세요.`,
-            en: `Found this preview helpful? Get the full PDF report (${pageCount} pages).`,
+            ko: `이 미리보기가 유용하셨나요? 아래에서 권한 정책을 충족하면 전체 PDF 보고서(${pageCount}페이지) 열람/다운로드가 가능합니다.`,
+            en: `If this preview is helpful, you can proceed to full PDF access when access rights are satisfied (${pageCount} pages).`,
           }
         : {
-            ko: '이 미리보기가 유용하셨나요? 전체 PDF 보고서를 확인해 보세요.',
-            en: 'Found this preview helpful? Get the full PDF report.',
-          }
+            ko: '이 미리보기가 유용하셨나요? 권한 정책을 충족하면 전체 PDF 보고서를 확인해 보세요.',
+            en: 'If this preview is helpful, full PDF access is shown according to access rights.',
+        }
   const reportIntroCopy = isComingSoon
     ? {
         ko: '보고서가 아직 공개 대기 중입니다. 아래 요약 정보로 현재 상태를 확인할 수 있습니다.',
@@ -145,7 +149,7 @@ export default async function ForensicReportPage({ params }: Props) {
       ? [
           `현재 상태: ${previewStatusLabel}`,
           `보고서 분량: ${previewLengthLabel}`,
-          isComingSoon ? '공개 전까지는 핵심 신호만 미리보기로 제공합니다.' : '언어별 PDF 링크와 요약본 접근 경로를 한곳에 모았습니다.',
+          isComingSoon ? '공개 전까지는 핵심 신호만 미리보기로 제공합니다.' : '언어별 PDF 링크와 권한 기반 접근 경로를 한곳에 모았습니다.',
         ]
       : [
           `Status: ${previewStatusLabel}`,
@@ -364,9 +368,9 @@ export default async function ForensicReportPage({ params }: Props) {
                     label={
                       pageCount
                         ? (locale === 'ko'
-                            ? `전체 PDF 받기 (${pageCount}페이지)`
-                            : `Get Full PDF (${pageCount} pages)`)
-                        : (locale === 'ko' ? '전체 PDF 받기' : 'Get Full PDF')
+                            ? `전체 PDF 열람/다운로드 (${pageCount}페이지)`
+                            : `Open or Download Full PDF (${pageCount} pages)`)
+                        : (locale === 'ko' ? '전체 PDF 열람/다운로드' : 'Open or Download Full PDF')
                     }
                   />
                 ) : (
@@ -382,8 +386,8 @@ export default async function ForensicReportPage({ params }: Props) {
                     </p>
                     <p className="mt-2 text-gray-400">
                       {isComingSoon ? t('comingSoonDesc') : (locale === 'ko'
-                        ? '출시가 완료되면 다운로드 게이트와 언어별 링크가 이 영역에 표시됩니다.'
-                        : 'Once publishing completes, the download gate and language-specific links will appear here.')}
+                        ? '출시가 완료되면 권한이 확인된 사용자에게만 다운로드 게이트와 언어별 링크가 이 영역에 표시됩니다.'
+                        : 'Once publishing completes, download access and language-specific links are shown for authorized users.')}
                     </p>
                   </div>
                 )}

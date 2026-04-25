@@ -1,0 +1,224 @@
+name: Report Pipeline - Automated Processing (BCE-732)
+
+on:
+  schedule:
+    # Run every 30 minutes
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+    inputs:
+      qa_strict:
+        description: 'Enforce strict QA mode'
+        required: false
+        type: boolean
+        default: true
+      report_type:
+        description: 'Report type (econ, mat, for, all)'
+        required: true
+        type: choice
+        options:
+          - for
+          - econ
+          - mat
+          - all
+        default: for
+      slug:
+        description: 'Process specific project slug only (optional)'
+        required: false
+        type: string
+      dry_run:
+        description: 'Dry run mode (download only, no processing)'
+        required: false
+        type: boolean
+        default: false
+      force:
+        description: 'Force re-process published reports'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# Serialize scheduled/manual runs per ref so the 30-minute cron never overlaps itself.
+concurrency:
+  group: report-pipeline-cron-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  process-reports:
+    name: Process Reports
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          cd scripts/pipeline
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
+            pip install anthropic supabase requests python-dotenv
+            pip install pypdf2 reportlab pillow markdown beautifulsoup4
+          fi
+          python3 -m playwright install --with-deps chromium
+
+      - name: Verify CJK fonts
+        run: |
+          echo "Checking bundled fonts:"
+          ls -lh scripts/pipeline/fonts/*.ttf 2>/dev/null || echo "WARNING: No fonts found in scripts/pipeline/fonts/"
+
+      - name: Create .env.local from secrets
+        run: |
+          cat > .env.local << EOF
+          NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
+          GDRIVE_ROOT_FOLDER_ID=${{ secrets.GDRIVE_ROOT_FOLDER_ID }}
+          GDRIVE_DELEGATE_EMAIL=${{ secrets.GDRIVE_DELEGATE_EMAIL }}
+          COINMARKETCAP_API_KEY=${{ secrets.COINMARKETCAP_API_KEY }}
+          CMC_API_KEY=${{ secrets.COINMARKETCAP_API_KEY }}
+          RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+          EMAIL_FROM=BCE Lab <research@bcelab.xyz>
+          NEXT_PUBLIC_APP_URL=https://bcelab.xyz
+          EOF
+
+      - name: Create Google Drive service account credentials
+        run: |
+          echo '${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}' > scripts/pipeline/.gdrive_service_account.json
+
+      - name: Validate workflow secrets and runtime prerequisites
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          GDRIVE_ROOT_FOLDER_ID: ${{ secrets.GDRIVE_ROOT_FOLDER_ID }}
+          GDRIVE_DELEGATE_EMAIL: ${{ secrets.GDRIVE_DELEGATE_EMAIL }}
+          GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
+          COINMARKETCAP_API_KEY: ${{ secrets.COINMARKETCAP_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          required_secrets = [
+              'NEXT_PUBLIC_SUPABASE_URL',
+              'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+              'SUPABASE_SERVICE_KEY',
+              'GDRIVE_ROOT_FOLDER_ID',
+              'GDRIVE_DELEGATE_EMAIL',
+              'GDRIVE_SERVICE_ACCOUNT_JSON',
+              'COINMARKETCAP_API_KEY',
+              'RESEND_API_KEY',
+          ]
+          missing = [name for name in required_secrets if not os.environ.get(name, '').strip()]
+          if missing:
+              raise SystemExit(f"Missing required GitHub Actions secrets: {', '.join(missing)}")
+
+          service_account_path = Path('scripts/pipeline/.gdrive_service_account.json')
+          payload = json.loads(service_account_path.read_text(encoding='utf-8'))
+          required_sa_keys = ['project_id', 'client_email', 'private_key']
+          missing_sa_keys = [name for name in required_sa_keys if not str(payload.get(name, '')).strip()]
+          if missing_sa_keys:
+              raise SystemExit(
+                  "Google service account JSON is missing required keys: "
+                  + ', '.join(missing_sa_keys)
+              )
+
+          fonts_dir = Path('scripts/pipeline/fonts')
+          required_fonts = [
+              'NotoSansKR-Regular.ttf',
+              'NotoSansKR-Bold.ttf',
+              'NotoSansKR-Medium.ttf',
+              'NotoSansJP-Regular-Static.ttf',
+              'NotoSansJP-Bold-Static.ttf',
+              'NotoSansSC-Regular-Static.ttf',
+              'NotoSansSC-Bold-Static.ttf',
+          ]
+          missing_fonts = [name for name in required_fonts if not (fonts_dir / name).exists()]
+          if missing_fonts:
+              raise SystemExit(f"Missing bundled fonts required for PDF rendering: {', '.join(missing_fonts)}")
+          PY
+
+          python3 - <<'PY'
+          from playwright.sync_api import sync_playwright
+
+          with sync_playwright() as p:
+              browser = p.chromium.launch(headless=True, args=['--no-sandbox', '--disable-gpu'])
+              version = browser.version
+              browser.close()
+
+          if not version.strip():
+              raise SystemExit("Playwright Chromium launch succeeded but version is empty")
+
+          print(f"Validated Playwright Chromium launch: {version}")
+          PY
+
+      - name: Determine report type
+        id: type
+        run: |
+          if [ "${{ github.event_name }}" == "schedule" ]; then
+            echo "report_type=all" >> $GITHUB_OUTPUT
+          else
+            echo "report_type=${{ github.event.inputs.report_type || 'for' }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run unified watcher via watch_drafts.py
+        working-directory: scripts/pipeline
+        env:
+          GDRIVE_SERVICE_ACCOUNT_FILE: ${{ github.workspace }}/scripts/pipeline/.gdrive_service_account.json
+          QA_STRICT: ${{ github.event_name == 'schedule' || github.event.inputs.qa_strict }}
+        run: |
+          REPORT_TYPE="${{ steps.type.outputs.report_type }}"
+          FORCE_FLAG=""
+          SLUG_FLAG=""
+          DRY_FLAG=""
+
+          if [ "${{ github.event.inputs.force }}" == "true" ]; then
+            FORCE_FLAG="--force"
+          fi
+
+          if [ -n "${{ github.event.inputs.slug }}" ]; then
+            SLUG_FLAG="--slug ${{ github.event.inputs.slug }}"
+          fi
+
+          if [ "${{ github.event.inputs.dry_run }}" == "true" ]; then
+            DRY_FLAG="--dry-run"
+          fi
+
+          python3 watch_drafts.py --type "$REPORT_TYPE" $FORCE_FLAG $SLUG_FLAG $DRY_FLAG
+
+      - name: Upload pipeline logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-logs-${{ github.run_number }}
+          path: |
+            scripts/pipeline/output/*.json
+            logs/pipeline/*.md
+          retention-days: 30
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Pipeline Run Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Report Type**: ${{ steps.type.outputs.report_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Run ID**: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+
+          if [ -n "${{ github.event.inputs.slug }}" ]; then
+            echo "- **Slug Filter**: ${{ github.event.inputs.slug }}" >> $GITHUB_STEP_SUMMARY
+          fi
