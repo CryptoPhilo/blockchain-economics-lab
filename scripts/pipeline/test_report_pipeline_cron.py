@@ -9,7 +9,8 @@ def test_report_pipeline_workflow_prevents_overlap_and_uses_unified_watcher():
     workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
 
     assert "concurrency:" in workflow
-    assert "group: report-pipeline-cron-${{ github.ref }}" in workflow
+    assert "report-pipeline-cron-${{ github.ref }}-${{ github.event_name }}" in workflow
+    assert "github.event.inputs.report_type || 'for') || 'scheduled-all'" in workflow
     assert "cancel-in-progress: false" in workflow
     assert "python3 watch_drafts.py --type \"$REPORT_TYPE\"" in workflow
     assert "python3 -m playwright install --with-deps chromium" in workflow
