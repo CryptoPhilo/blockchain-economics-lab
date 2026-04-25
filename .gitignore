@@ -32,9 +32,17 @@ scripts/pipeline/.gdrive_token.json
 # Pipeline secrets
 scripts/pipeline/.env
 
-# Font files (large binaries) — KR fonts tracked for CI pipeline
-# fonts/  — un-ignored: KR TTFs required for FOR pipeline PDF generation
-scripts/pipeline/fonts/
+# Font files (large binaries)
+# Keep pipeline font directory ignored by default, but publish the bundled CJK set
+# required by the report-pipeline workflow preflight.
+scripts/pipeline/fonts/*
+!scripts/pipeline/fonts/NotoSansKR-Regular.ttf
+!scripts/pipeline/fonts/NotoSansKR-Bold.ttf
+!scripts/pipeline/fonts/NotoSansKR-Medium.ttf
+!scripts/pipeline/fonts/NotoSansJP-Regular-Static.ttf
+!scripts/pipeline/fonts/NotoSansJP-Bold-Static.ttf
+!scripts/pipeline/fonts/NotoSansSC-Regular-Static.ttf
+!scripts/pipeline/fonts/NotoSansSC-Bold-Static.ttf
 fonts/*.otf
 fonts/*.woff*
 
