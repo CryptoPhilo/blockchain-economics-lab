@@ -39,9 +39,13 @@ on:
 permissions:
   contents: read
 
-# Serialize scheduled/manual runs per ref so the 30-minute cron never overlaps itself.
+# Separate schedule/manual queues so long-running force reruns do not starve or cancel
+# each other, while still preventing overlap within the same trigger scope.
 concurrency:
-  group: report-pipeline-cron-${{ github.ref }}
+  group: >-
+    report-pipeline-cron-${{ github.ref }}-${{ github.event_name }}-${{
+      github.event_name == 'workflow_dispatch' && (github.event.inputs.report_type || 'for') || 'scheduled-all'
+    }}
   cancel-in-progress: false
 
 jobs:
