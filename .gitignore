@@ -69,9 +69,3 @@ doc/samples/*.pdf
 scripts/trading/
 third_party_signal_backtest_package/
 third_party_signal_backtest_package.zip
-src/app/api/internal/beta-signals/
-src/components/DashboardBetaSignalsSection.tsx
-src/components/DashboardBetaSignalsSection.test.tsx
-src/lib/beta-signals-admin.ts
-src/lib/internal-api-auth.ts
-src/lib/repositories/trading-signals.ts
