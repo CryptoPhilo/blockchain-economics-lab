@@ -12,15 +12,15 @@ DOMAIN = "bcelab.xyz"
 COPYRIGHT_YEAR = 2026
 
 # ═══════════════════════════════════════════
-# SUPPORTED LANGUAGES (STR-002)
+# SUPPORTED LANGUAGES (BCE-804)
 # ═══════════════════════════════════════════
-LANGUAGES = ['en', 'ko', 'fr', 'es', 'de', 'ja', 'zh']
-MASTER_LANGUAGES = ['en', 'ko']       # Written by researchers
-TRANSLATION_LANGUAGES = ['fr', 'es', 'de', 'ja', 'zh']  # Translated from EN
+LANGUAGES = ['ko', 'en']
+MASTER_LANGUAGES = ['ko', 'en']       # Source/master languages that may exist on disk
+TRANSLATION_LANGUAGES = ['en']        # Operational translation target set
 
 LANGUAGE_NAMES = {
-    'en': 'English', 'ko': '한국어', 'fr': 'Français',
-    'es': 'Español', 'de': 'Deutsch', 'ja': '日本語', 'zh': '中文'
+    'ko': '한국어',
+    'en': 'English',
 }
 
 # ═══════════════════════════════════════════
@@ -274,6 +274,39 @@ def report_filename(project_slug: str, report_type: str, version: int, lang: str
 
 def report_storage_path(project_slug: str, report_type: str, version: int, lang: str) -> str:
     return f"reports/{project_slug}/{report_type}/v{version}/{lang}.pdf"
+
+# ═══════════════════════════════════════════
+# INGEST CONFIG (BCE-732: unified pipeline)
+# ═══════════════════════════════════════════
+INGEST_CONFIG = {
+    'for': {
+        'gdrive_folder': 'FOR',
+        'db_report_type': 'forensic',
+        'filename_pattern': r'^(.+?)(?:_for)?(?:_v\d+)?\.md$',
+        'pdf_generator': 'gen_pdf_for.generate_pdf_for',
+        'card_generator': 'gen_report_card.generate_for_report_card',
+        'master_lang': 'ko',
+        'has_trigger_data': True,
+    },
+    'econ': {
+        'gdrive_folder': 'ECON',
+        'db_report_type': 'econ',
+        'filename_pattern': r'^(.+?)(?:_econ)?(?:_v\d+)?\.md$',
+        'pdf_generator': 'gen_pdf_econ.generate_pdf_econ',
+        'card_generator': 'gen_report_card.generate_econ_report_card',
+        'master_lang': 'ko',
+        'has_trigger_data': False,
+    },
+    'mat': {
+        'gdrive_folder': 'MAT',
+        'db_report_type': 'maturity',
+        'filename_pattern': r'^(.+?)(?:_mat)?(?:_v\d+)?\.md$',
+        'pdf_generator': 'gen_pdf_mat.generate_pdf_mat',
+        'card_generator': 'gen_report_card.generate_mat_report_card',
+        'master_lang': 'ko',
+        'has_trigger_data': False,
+    },
+}
 
 # ═══════════════════════════════════════════
 # PATHS

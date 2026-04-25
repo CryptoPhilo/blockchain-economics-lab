@@ -25,7 +25,7 @@ Architecture (v2 — Hybrid Version Management):
 
 Authentication:
     Google Drive:
-        Set env: GDRIVE_SERVICE_ACCOUNT_FILE, GDRIVE_ROOT_FOLDER_ID
+        Set env: GDRIVE_SERVICE_ACCOUNT_FILE or GDRIVE_SERVICE_ACCOUNT_JSON, GDRIVE_ROOT_FOLDER_ID
         Optional: GDRIVE_DELEGATE_EMAIL (domain-wide delegation)
 
     Supabase:
@@ -54,6 +54,9 @@ import mimetypes
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+from pipeline_env import bootstrap_environment, resolve_pipeline_relative_path
+
+bootstrap_environment()
 
 try:
     from google.oauth2 import service_account
@@ -75,19 +78,6 @@ except ImportError:
 # ─── Configuration ───────────────────────────────────────────
 
 _SCRIPT_DIR = Path(__file__).resolve().parent
-
-GDRIVE_ROOT_FOLDER_ID = os.environ.get('GDRIVE_ROOT_FOLDER_ID', '')
-GDRIVE_SERVICE_ACCOUNT_FILE = os.environ.get('GDRIVE_SERVICE_ACCOUNT_FILE', '')
-GDRIVE_OAUTH_CREDENTIALS = os.environ.get('GDRIVE_OAUTH_CREDENTIALS', '')
-GDRIVE_DELEGATE_EMAIL = os.environ.get('GDRIVE_DELEGATE_EMAIL', '')
-GDRIVE_TOKEN_FILE = os.environ.get(
-    'GDRIVE_TOKEN_FILE',
-    str(_SCRIPT_DIR / '.gdrive_token.json')
-)
-
-# Supabase: try pipeline-specific env vars, then fall back to Next.js env vars
-SUPABASE_URL = os.environ.get('SUPABASE_URL') or os.environ.get('NEXT_PUBLIC_SUPABASE_URL', '')
-SUPABASE_SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_KEY') or os.environ.get('NEXT_PUBLIC_SUPABASE_ANON_KEY', '')
 
 SCOPES = ['https://www.googleapis.com/auth/drive']
 
@@ -123,10 +113,16 @@ class GDriveStorage:
         supabase_url: str = None,
         supabase_key: str = None,
     ):
-        self.root_folder_id = root_folder_id or GDRIVE_ROOT_FOLDER_ID
-        self._sa_file = service_account_file or GDRIVE_SERVICE_ACCOUNT_FILE
-        self._oauth_file = oauth_credentials_file or GDRIVE_OAUTH_CREDENTIALS
-        self._delegate_email = delegate_email or GDRIVE_DELEGATE_EMAIL
+        env_root_folder_id = os.environ.get('GDRIVE_ROOT_FOLDER_ID', '').strip()
+        env_sa_file = os.environ.get('GDRIVE_SERVICE_ACCOUNT_FILE', '').strip()
+        env_oauth_file = os.environ.get('GDRIVE_OAUTH_CREDENTIALS', '').strip()
+        env_delegate = os.environ.get('GDRIVE_DELEGATE_EMAIL', '').strip()
+
+        self.root_folder_id = root_folder_id or env_root_folder_id
+        self._sa_file = service_account_file or resolve_pipeline_relative_path(env_sa_file, _SCRIPT_DIR)
+        self._oauth_file = oauth_credentials_file or env_oauth_file
+        self._delegate_email = delegate_email or env_delegate
+        self._token_file = os.environ.get('GDRIVE_TOKEN_FILE', str(_SCRIPT_DIR / '.gdrive_token.json'))
         self.service = None
         self._connected = False
         self._folder_cache: Dict[str, str] = {}  # path -> folder_id
@@ -145,8 +141,8 @@ class GDriveStorage:
 
         # ── Supabase client ──
         self.supabase: Optional[SupabaseClient] = None
-        sb_url = supabase_url or SUPABASE_URL
-        sb_key = supabase_key or SUPABASE_SERVICE_KEY
+        sb_url = supabase_url or os.environ.get('SUPABASE_URL') or os.environ.get('NEXT_PUBLIC_SUPABASE_URL', '')
+        sb_key = supabase_key or os.environ.get('SUPABASE_SERVICE_KEY') or os.environ.get('NEXT_PUBLIC_SUPABASE_ANON_KEY', '')
         if HAS_SUPABASE and sb_url and sb_key:
             try:
                 self.supabase = create_client(sb_url, sb_key)
@@ -182,12 +178,28 @@ class GDriveStorage:
             except Exception as e:
                 print(f"  [GDrive] Service account auth failed: {e}")
 
+        sa_json = os.environ.get('GDRIVE_SERVICE_ACCOUNT_JSON', '').strip()
+        if sa_json:
+            try:
+                creds = service_account.Credentials.from_service_account_info(
+                    json.loads(sa_json),
+                    scopes=SCOPES,
+                )
+                if self._delegate_email:
+                    creds = creds.with_subject(self._delegate_email)
+                    print(f"  [GDrive] Authenticated via inline service account JSON (delegating to {self._delegate_email})")
+                else:
+                    print("  [GDrive] Authenticated via inline service account JSON.")
+                return creds
+            except Exception as e:
+                print(f"  [GDrive] Inline JSON auth failed: {e}")
+
         # Option B: OAuth2
         if self._oauth_file and os.path.exists(self._oauth_file):
             creds = None
-            if os.path.exists(GDRIVE_TOKEN_FILE):
+            if os.path.exists(self._token_file):
                 try:
-                    creds = Credentials.from_authorized_user_file(GDRIVE_TOKEN_FILE, SCOPES)
+                    creds = Credentials.from_authorized_user_file(self._token_file, SCOPES)
                 except Exception:
                     pass
 
@@ -200,15 +212,15 @@ class GDriveStorage:
                     )
                     creds = flow.run_local_server(port=0)
 
-                with open(GDRIVE_TOKEN_FILE, 'w') as token:
+                with open(self._token_file, 'w') as token:
                     token.write(creds.to_json())
 
             if creds and creds.valid:
                 print("  [GDrive] Authenticated via OAuth2.")
                 return creds
 
-        if not self._sa_file and not self._oauth_file:
-            print("  [GDrive] No credentials configured. Set GDRIVE_SERVICE_ACCOUNT_FILE or GDRIVE_OAUTH_CREDENTIALS.")
+        if not self._sa_file and not sa_json and not self._oauth_file:
+            print("  [GDrive] No credentials configured. Set GDRIVE_SERVICE_ACCOUNT_FILE, GDRIVE_SERVICE_ACCOUNT_JSON, or GDRIVE_OAUTH_CREDENTIALS.")
         return None
 
     # ═══════════════════════════════════════════════════════════
@@ -498,6 +510,45 @@ class GDriveStorage:
 
         return result
 
+    def upload_source_markdown(
+        self,
+        local_path: str,
+        project_slug: str,
+        report_type: str,
+        version: int = 1,
+        lang: str = 'en',
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Archive the pipeline source markdown in a private Drive folder.
+
+        Source markdown is an internal artifact used for reruns and audits, so it
+        stays outside the public report folder and is uploaded without sharing.
+        """
+        if not self._connected:
+            print("  [GDrive] Not connected. Cannot upload source markdown.")
+            return None
+
+        folder_id = self.ensure_folder_path(project_slug, report_type, '_source')
+        if not folder_id:
+            print(f"  [GDrive] Failed to create source folder path: {project_slug}/{report_type}/_source")
+            return None
+
+        filename = f"{project_slug}_{report_type}_v{version}_{lang}.md"
+        result = self.upload_file(
+            local_path=local_path,
+            folder_id=folder_id,
+            filename=filename,
+            make_public=False,
+        )
+        if not result:
+            return None
+
+        result['version'] = version
+        result['folder_id'] = folder_id
+        action = 'Updated' if result.get('is_update') else 'Created'
+        print(f"  [GDrive] {action} source markdown: {filename}")
+        return result
+
     # ═══════════════════════════════════════════════════════════
     #  SUPABASE: VERSION RECORDING
     # ═══════════════════════════════════════════════════════════
@@ -734,12 +785,17 @@ def get_gdrive() -> GDriveStorage:
 
 
 if __name__ == '__main__':
+    root_folder_id = os.environ.get('GDRIVE_ROOT_FOLDER_ID', '').strip()
+    sa_file = os.environ.get('GDRIVE_SERVICE_ACCOUNT_FILE', '').strip()
+    sa_json = os.environ.get('GDRIVE_SERVICE_ACCOUNT_JSON', '').strip()
+    supabase_url = os.environ.get('SUPABASE_URL') or os.environ.get('NEXT_PUBLIC_SUPABASE_URL', '')
+
     print("GDrive Storage Module v2 — Status Check")
     print(f"  HAS_GDRIVE lib: {HAS_GDRIVE}")
     print(f"  HAS_SUPABASE lib: {HAS_SUPABASE}")
-    print(f"  Root folder ID: {'SET' if GDRIVE_ROOT_FOLDER_ID else 'NOT SET'}")
-    print(f"  Service account: {'SET' if GDRIVE_SERVICE_ACCOUNT_FILE else 'NOT SET'}")
-    print(f"  Supabase URL: {'SET' if SUPABASE_URL else 'NOT SET'}")
+    print(f"  Root folder ID: {'SET' if root_folder_id else 'NOT SET'}")
+    print(f"  Service account: {'SET' if (sa_file or sa_json) else 'NOT SET'}")
+    print(f"  Supabase URL: {'SET' if supabase_url else 'NOT SET'}")
 
     gd = GDriveStorage()
     print(f"  Drive connected: {gd.connected}")
