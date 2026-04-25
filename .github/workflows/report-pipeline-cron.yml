@@ -70,7 +70,7 @@ jobs:
             pip install anthropic supabase requests python-dotenv
             pip install pypdf2 reportlab pillow markdown beautifulsoup4
           fi
-          python -m playwright install --with-deps chromium
+          python3 -m playwright install --with-deps chromium
 
       - name: Verify CJK fonts
         run: |
@@ -151,16 +151,18 @@ jobs:
               raise SystemExit(f"Missing bundled fonts required for PDF rendering: {', '.join(missing_fonts)}")
           PY
 
-          python - <<'PY'
-          import glob
-          import os
+          python3 - <<'PY'
+          from playwright.sync_api import sync_playwright
 
-          pw_dir = os.environ.get('PLAYWRIGHT_BROWSERS_PATH', os.path.expanduser('~/.cache/ms-playwright'))
-          candidates = glob.glob(os.path.join(pw_dir, 'chromium-*/chrome-linux/chrome'))
-          candidates += glob.glob(os.path.join(pw_dir, 'chromium_headless_shell-*/chrome-linux/headless_shell'))
-          if not candidates:
-              raise SystemExit(f"Playwright Chromium browser not installed under {pw_dir}")
-          print(f"Validated Playwright browser install under {pw_dir}")
+          with sync_playwright() as p:
+              browser = p.chromium.launch(headless=True, args=['--no-sandbox', '--disable-gpu'])
+              version = browser.version
+              browser.close()
+
+          if not version.strip():
+              raise SystemExit("Playwright Chromium launch succeeded but version is empty")
+
+          print(f"Validated Playwright Chromium launch: {version}")
           PY
 
       - name: Determine report type
