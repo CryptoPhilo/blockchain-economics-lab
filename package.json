@@ -7,8 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "echo \"No tests configured yet\"",
-    "test:gmail-monitor": "python3 -m py_compile scripts/gmail_monitor.py && python3 -m unittest scripts.test_gmail_monitor"
+    "test": "echo \"No tests configured yet\""
   },
   "dependencies": {
     "@parcel/watcher": "^2.5.6",
