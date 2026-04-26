@@ -48,6 +48,10 @@ fonts/*.woff*
 
 # Pipeline logs
 logs/
+scripts/gmail_monitor.log
+scripts/processed_gmail_threads.json
+scripts/*.lock
+.pytest_cache/
 
 # Local SQLite database
 bce.db
