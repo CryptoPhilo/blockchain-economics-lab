@@ -1,9 +1,12 @@
 name: Gmail Inbox Monitor
 
+# Scheduled cron disabled per BCE-1038: GitHub-hosted runners cannot reach the
+# board-local Paperclip control plane (PAPERCLIP_API_URL=http://127.0.0.1:3100).
+# The 30-minute poll cadence now runs on the board machine via launchd
+# (scripts/launchd/com.bce.gmail-monitor.plist). This workflow remains as a
+# manual fallback so the same code path can be exercised from GitHub Actions
+# whenever a publicly reachable PAPERCLIP_API_URL secret is provisioned.
 on:
-  schedule:
-    # Keep poll cadence at fixed 30-minute intervals in UTC.
-    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 concurrency:

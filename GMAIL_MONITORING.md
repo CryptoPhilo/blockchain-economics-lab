@@ -4,7 +4,9 @@
 
 This implementation polls Gmail directly through the Gmail REST API on a 30-minute cadence (UTC), inspects inbox threads from the last 30 minutes, creates Paperclip issues for new actionable work-instruction emails, assigns them by category, and labels the processed Gmail thread to keep reruns safe.
 
-The current production runner intentionally uses the Gmail REST API instead of Gmail MCP. The parent issue description in [BCE-548](/BCE/issues/BCE-548) still references Gmail MCP verbs, but the checked-in automation runs through GitHub Actions and the `./run_gmail_inbox_monitor.sh` entrypoint with Gmail OAuth secrets, so this repository treats the REST implementation as the canonical execution path until an MCP-backed runtime is introduced.
+The current production runner intentionally uses the Gmail REST API instead of Gmail MCP. The parent issue description in [BCE-548](/BCE/issues/BCE-548) still references Gmail MCP verbs, but the checked-in automation runs through the `./run_gmail_inbox_monitor.sh` entrypoint with Gmail OAuth secrets, so this repository treats the REST implementation as the canonical execution path until an MCP-backed runtime is introduced.
+
+The 30-minute cadence is driven by **board-machine launchd** ([`scripts/launchd/com.bce.gmail-monitor.plist`](scripts/launchd/com.bce.gmail-monitor.plist)) per [BCE-1038](/BCE/issues/BCE-1038). GitHub Actions cron is disabled because hosted runners cannot reach the board-local Paperclip control plane (`PAPERCLIP_API_URL=http://127.0.0.1:3100`); the `gmail-inbox-monitor.yml` workflow remains as a `workflow_dispatch`-only fallback for whenever a publicly reachable Paperclip endpoint is provisioned.
 
 ## Canonical Execution Paths
 
@@ -23,13 +25,18 @@ The current production runner intentionally uses the Gmail REST API instead of G
 - The older Paperclip routine executions are kept only as historical overlap while duplicate-run cleanup is in progress
 - This path should be considered disabled for new traffic so the 30-minute cadence remains single-sourced through GitHub Actions
 
+### `scripts/launchd/com.bce.gmail-monitor.plist` (production cadence)
+- macOS launchd `LaunchAgent` running on the board machine
+- `StartCalendarInterval` fires at minute 0 and minute 30 of every hour (matches the previous `*/30 * * * *` GHA cadence)
+- Wraps `scripts/launchd/run_local_monitor.sh`, which sources secrets from `~/.bce/gmail-monitor.env` and invokes preflight + live run
+- Logs land in `~/Library/Logs/bce-gmail-monitor/{stdout,stderr}.log`
+- Install/refresh with `scripts/launchd/install.sh`; remove with `scripts/launchd/uninstall.sh`
+- Manual fire: `launchctl kickstart -k gui/$(id -u)/com.bce.gmail-monitor`
+
 ### `.github/workflows/gmail-inbox-monitor.yml`
-- GitHub Actions schedule: fixed 30-minute intervals (`*/30 * * * *`, i.e., every 30 minutes in UTC)
-- `workflow_dispatch` support for manual reruns
-- Runs `./run_gmail_inbox_monitor.sh --preflight` before the live monitor step so scheduled execution uses the same readiness gate as operator runs
-- Uses repository secrets for Paperclip and Gmail OAuth credentials
-- Uses a 30-minute Gmail search window on each 30-minute execution to avoid gaps when a scheduled run is delayed
-- Uses the same default processed label as the script: `Paperclip/Processed`
+- Manual fallback only. `workflow_dispatch` is enabled; the cron schedule is intentionally disabled because GitHub-hosted runners cannot reach `PAPERCLIP_API_URL=http://127.0.0.1:3100` ([BCE-1038](/BCE/issues/BCE-1038))
+- Runs `./run_gmail_inbox_monitor.sh --preflight` before the live monitor step so the manual path uses the same readiness gate as operator runs
+- Reuses repository secrets if a publicly reachable `PAPERCLIP_API_URL` is later provisioned
 
 ### `scripts/gmail_monitor.py`
 - Direct Gmail REST API runner using OAuth refresh-token auth
@@ -77,7 +84,7 @@ It skips obvious non-work mail such as test or forwarded subjects.
 
 ## Required Secrets
 
-GitHub Actions and manual runs need:
+The launchd job, GitHub Actions fallback, and manual runs all need:
 
 - `PAPERCLIP_API_URL`
 - `PAPERCLIP_API_KEY`
@@ -97,9 +104,62 @@ Optional overrides:
 - `PAPERCLIP_GOAL_ID` default: Board Operations goal
 - `PAPERCLIP_PROJECT_ID` default: Board Operations project
 
-## 운영 시크릿 프로비저닝 체크리스트
+## launchd 설치 (보드 머신, 운영 cadence)
 
-이 항목은 배포 운영 환경에서 `gmail_inbox_monitor`를 즉시 실행 가능한 상태로 만들기 위한 체크리스트입니다.
+[BCE-1038](/BCE/issues/BCE-1038)에서 결정된 운영 모델: 30분 cadence는 보드 머신 launchd가 담당합니다.
+
+1. **시크릿 env 파일 생성** (한 번만)
+
+   ```bash
+   install -d -m 0700 "${HOME}/.bce"
+   install -m 0600 /dev/null "${HOME}/.bce/gmail-monitor.env"
+   $EDITOR "${HOME}/.bce/gmail-monitor.env"
+   ```
+
+   파일 내용 (shell-source 형식, 따옴표 권장):
+
+   ```sh
+   PAPERCLIP_API_URL="http://127.0.0.1:3100"
+   PAPERCLIP_API_KEY="<board의 로컬 Paperclip 키>"
+   PAPERCLIP_COMPANY_ID="7f3e87fc-1d55-457d-98a9-dd1c3f5c01eb"
+   PAPERCLIP_AGENT_ID="<gmail monitor 용 agent id>"
+   GMAIL_CLIENT_ID="<oauth client id>"
+   GMAIL_CLIENT_SECRET="<oauth client secret>"
+   GMAIL_REFRESH_TOKEN="<refresh token>"
+   # 선택적 override
+   GMAIL_MONITOR_USER="me"
+   GMAIL_PROCESSED_LABEL="Paperclip/Processed"
+   GMAIL_SINCE_HOURS="0.5"
+   PAPERCLIP_GOAL_ID="176cc80b-f108-4098-ad4c-bac14515d346"
+   PAPERCLIP_PROJECT_ID="c99a905c-51d4-41a7-9635-b14c5537d9ab"
+   ```
+
+2. **launchd 잡 설치/업데이트**
+
+   ```bash
+   ./scripts/launchd/install.sh
+   ```
+
+   설치 스크립트는 템플릿 plist를 절대 경로로 렌더링해 `~/Library/LaunchAgents/com.bce.gmail-monitor.plist`로 복사하고, 기존 잡이 있으면 `bootout` 후 `bootstrap`으로 재로드합니다.
+
+3. **수동 1회 트리거로 검증**
+
+   ```bash
+   launchctl kickstart -k "gui/$(id -u)/com.bce.gmail-monitor"
+   tail -f "${HOME}/Library/Logs/bce-gmail-monitor/stdout.log"
+   ```
+
+   기대: `Preflight ... succeeded` → `Starting Gmail inbox monitor` → `Gmail inbox monitor completed`. 필요한 경우 `stderr.log`로 보강.
+
+4. **제거**
+
+   ```bash
+   ./scripts/launchd/uninstall.sh
+   ```
+
+## GitHub Actions 시크릿 (선택, manual fallback 용)
+
+`workflow_dispatch` fallback을 사용할 계획이라면 다음을 GitHub repo Settings → Secrets and variables → Actions에 등록합니다. 단 `PAPERCLIP_API_URL`은 GHA runner에서 도달 가능한 값이어야 합니다 (`127.0.0.1` 사용 시 [BCE-1038](/BCE/issues/BCE-1038)와 같은 도달성 실패가 재현됩니다).
 
 1. GitHub Actions 시크릿 설정
    - 대상 저장소: Paperclip 모니터링 워크플로가 있는 저장소
@@ -130,7 +190,8 @@ Optional overrides:
      - 쓰기 동작은 `--dry-run`에서만 별도로 시뮬레이트
 
 3. 운영 실행 검증
-   - GitHub Actions에서 수동 실행 1회 (`workflow_dispatch`)
+   - 보드 머신에서 `launchctl kickstart -k gui/$(id -u)/com.bce.gmail-monitor`로 1회 즉시 실행
+   - GitHub Actions 사용 시: `workflow_dispatch`로 수동 실행 1회
    - 완료 로그에서 `"Starting Gmail inbox monitor"` / `"Gmail inbox monitor completed"` 출력 확인
    - 실행 대상 스레드에 대해서는 `Paperclip/Processed` 라벨 또는 검색 범위 제외가 정상 동작해야 함
    - Paperclip routine 기반 legacy 실행 경로는 중복 생성 방지를 위해 비활성화 상태로 유지
