@@ -49,10 +49,55 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  process-reports:
-    name: Process Reports
+  resolve-runner:
+    name: Resolve runner policy
     runs-on: ubuntu-latest
-    timeout-minutes: 240
+    outputs:
+      report_type: ${{ steps.policy.outputs.report_type }}
+      long_runner_required: ${{ steps.policy.outputs.long_runner_required }}
+      runner_labels: ${{ steps.policy.outputs.runner_labels }}
+      timeout_minutes: ${{ steps.policy.outputs.timeout_minutes }}
+      runner_class: ${{ steps.policy.outputs.runner_class }}
+      route_reason: ${{ steps.policy.outputs.route_reason }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compute runner policy
+        id: policy
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REPORT_TYPE_INPUT: ${{ github.event.inputs.report_type || '' }}
+          SLUG_INPUT: ${{ github.event.inputs.slug || '' }}
+          FORCE_INPUT: ${{ github.event.inputs.force || 'false' }}
+        run: |
+          POLICY_JSON=$(python3 scripts/pipeline/report_runner_policy.py \
+            --event-name "$EVENT_NAME" \
+            --report-type "$REPORT_TYPE_INPUT" \
+            --slug "$SLUG_INPUT" \
+            --force "$FORCE_INPUT")
+          echo "$POLICY_JSON"
+          export POLICY_JSON
+
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          import os
+
+          policy = json.loads(os.environ["POLICY_JSON"])
+          for key, value in policy.items():
+              if isinstance(value, (dict, list)):
+                  serialized = json.dumps(value, separators=(",", ":"))
+              else:
+                  serialized = str(value)
+              print(f"{key}={serialized}")
+          PY
+
+  process-reports:
+    needs: resolve-runner
+    name: Process Reports
+    runs-on: ${{ fromJSON(needs.resolve-runner.outputs.runner_labels) }}
+    timeout-minutes: ${{ fromJSON(needs.resolve-runner.outputs.timeout_minutes) }}
 
     steps:
       - name: Checkout repository
@@ -145,8 +190,6 @@ jobs:
               'NotoSansKR-Regular.ttf',
               'NotoSansKR-Bold.ttf',
               'NotoSansKR-Medium.ttf',
-              'NotoSansJP-Regular-Static.ttf',
-              'NotoSansJP-Bold-Static.ttf',
               'NotoSansSC-Regular-Static.ttf',
               'NotoSansSC-Bold-Static.ttf',
           ]
@@ -169,22 +212,13 @@ jobs:
           print(f"Validated Playwright Chromium launch: {version}")
           PY
 
-      - name: Determine report type
-        id: type
-        run: |
-          if [ "${{ github.event_name }}" == "schedule" ]; then
-            echo "report_type=all" >> $GITHUB_OUTPUT
-          else
-            echo "report_type=${{ github.event.inputs.report_type || 'for' }}" >> $GITHUB_OUTPUT
-          fi
-
       - name: Run unified watcher via watch_drafts.py
         working-directory: scripts/pipeline
         env:
           GDRIVE_SERVICE_ACCOUNT_FILE: ${{ github.workspace }}/scripts/pipeline/.gdrive_service_account.json
           QA_STRICT: ${{ github.event_name == 'schedule' || github.event.inputs.qa_strict }}
         run: |
-          REPORT_TYPE="${{ steps.type.outputs.report_type }}"
+          REPORT_TYPE="${{ needs.resolve-runner.outputs.report_type }}"
           FORCE_FLAG=""
           SLUG_FLAG=""
           DRY_FLAG=""
@@ -218,11 +252,9 @@ jobs:
         run: |
           echo "## Pipeline Run Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Report Type**: ${{ steps.type.outputs.report_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Report Type**: ${{ needs.resolve-runner.outputs.report_type }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Run ID**: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Timestamp**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
-
-          if [ -n "${{ github.event.inputs.slug }}" ]; then
-            echo "- **Slug Filter**: ${{ github.event.inputs.slug }}" >> $GITHUB_STEP_SUMMARY
-          fi
+          echo "- **Runner Class**: ${{ needs.resolve-runner.outputs.runner_class }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Runner Labels**: `${{ needs.resolve-runner.outputs.runner_labels }}`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timeout Minutes**: ${{ needs.resolve-runner.outputs.timeout_minutes }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Route Reason**: ${{ needs.resolve-runner.outputs.route_reason }}" >> $GITHUB_STEP_SUMMARY
