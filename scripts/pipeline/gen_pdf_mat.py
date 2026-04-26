@@ -306,7 +306,9 @@ def generate_pdf_mat(md_path: str, metadata: dict, lang: str = 'en', output_path
     preamble, sections = parse_markdown(md_text)
 
     # Setup
-    project_name = metadata.get('project_name', 'Project')
+    project_name = metadata.get('project_name') or metadata.get('slug') or 'Project'
+    if lang == 'en':
+        project_name = metadata.get('name_en') or project_name
     slug = metadata.get('slug', 'project')
     version = metadata.get('version', 1)
     maturity_score = metadata.get('total_maturity_score', 0.0)
