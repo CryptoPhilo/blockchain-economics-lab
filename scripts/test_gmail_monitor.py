@@ -262,6 +262,58 @@ class GmailMonitorLogicTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "failed to resolve assignee routing"):
                 run_preflight(config)
 
+    def test_gmail_access_token_surfaces_google_error_body(self):
+        class FakeErrorResponse:
+            ok = False
+            status_code = 401
+            reason = "Unauthorized"
+            text = '{"error":"invalid_grant","error_description":"Bad Request"}'
+
+            def json(self):
+                return {"error": "invalid_grant", "error_description": "Bad Request"}
+
+        with (
+            patch.object(gmail_monitor, "GMAIL_CLIENT_ID", "cid"),
+            patch.object(gmail_monitor, "GMAIL_CLIENT_SECRET", "csec"),
+            patch.object(gmail_monitor, "GMAIL_REFRESH_TOKEN", "rtok"),
+            patch.object(gmail_monitor.requests, "post", return_value=FakeErrorResponse()),
+        ):
+            with self.assertRaises(RuntimeError) as ctx:
+                gmail_monitor.gmail_access_token()
+
+        message = str(ctx.exception)
+        self.assertIn("HTTP 401", message)
+        self.assertIn("Unauthorized", message)
+        self.assertIn("invalid_grant", message)
+        self.assertIn("Bad Request", message)
+        self.assertNotIn("cid", message)
+        self.assertNotIn("csec", message)
+        self.assertNotIn("rtok", message)
+
+    def test_gmail_access_token_falls_back_to_text_when_body_is_not_json(self):
+        class FakePlainErrorResponse:
+            ok = False
+            status_code = 502
+            reason = "Bad Gateway"
+            text = "<html>upstream timeout</html>"
+
+            def json(self):
+                raise ValueError("not json")
+
+        with (
+            patch.object(gmail_monitor, "GMAIL_CLIENT_ID", "cid"),
+            patch.object(gmail_monitor, "GMAIL_CLIENT_SECRET", "csec"),
+            patch.object(gmail_monitor, "GMAIL_REFRESH_TOKEN", "rtok"),
+            patch.object(gmail_monitor.requests, "post", return_value=FakePlainErrorResponse()),
+        ):
+            with self.assertRaises(RuntimeError) as ctx:
+                gmail_monitor.gmail_access_token()
+
+        message = str(ctx.exception)
+        self.assertIn("HTTP 502", message)
+        self.assertIn("Non-JSON body", message)
+        self.assertIn("upstream timeout", message)
+
     def test_run_wrapper_accepts_preflight_flag_and_returns_actionable_missing_secret_error(self):
         root_dir = Path(__file__).resolve().parent.parent
         script_path = root_dir / "run_gmail_inbox_monitor.sh"

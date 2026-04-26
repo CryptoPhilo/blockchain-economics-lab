@@ -181,11 +181,27 @@ def gmail_access_token() -> str:
         },
         timeout=30,
     )
-    payload = load_json_response(response)
+    if not response.ok:
+        raise RuntimeError(
+            f"Gmail OAuth token exchange failed: HTTP {response.status_code} {response.reason}. "
+            f"{_describe_oauth_error(response)}"
+        )
+    payload = response.json()
     token = payload.get("access_token")
     if not token:
         raise RuntimeError("OAuth token response did not include access_token")
     return token
+
+
+def _describe_oauth_error(response: requests.Response) -> str:
+    try:
+        body = response.json()
+    except ValueError:
+        text = (response.text or "").strip()
+        return f"Non-JSON body: {text[:300]}" if text else "Empty body"
+    error = body.get("error") or "unknown_error"
+    description = body.get("error_description") or "(no description)"
+    return f"Google: error={error}, error_description={description}"
 
 
 def gmail_headers(access_token: str) -> dict[str, str]:
