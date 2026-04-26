@@ -16,6 +16,9 @@ import argparse
 import os
 import subprocess
 import sys
+import threading
+import queue
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Dict
@@ -33,6 +36,11 @@ LOG_DIR = Path(__file__).resolve().parent.parent.parent / "logs" / "pipeline"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 
+def _log(message: str) -> None:
+    timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+    print(f"[{timestamp}] {message}", flush=True)
+
+
 def scan_type(report_type: str, slug: str = None, force: bool = False) -> List[Dict]:
     from ingest_report import scan_drafts
     return scan_drafts(report_type, filter_slug=slug, force=force)
@@ -48,41 +56,88 @@ def process_type(report_type: str, dry_run: bool = False, slug: str = None, forc
     if force:
         cmd.append('--force')
 
-    print(f"\n  Executing: python ingest_report.py --type {report_type}" +
-          (f" --slug {slug}" if slug else "") +
-          (" --force" if force else "") +
-          (" --dry-run" if dry_run else ""))
+    _log(
+        "Executing: python ingest_report.py --type "
+        f"{report_type}"
+        f"{f' --slug {slug}' if slug else ''}"
+        f"{' --force' if force else ''}"
+        f"{' --dry-run' if dry_run else ''}"
+    )
 
     try:
-        result = subprocess.run(
+        proc = subprocess.Popen(
             cmd,
             cwd=ingest_script.parent,
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             text=True,
-            timeout=14400,  # 4 hour timeout (batch processing)
+            bufsize=1,
         )
-        if result.stdout:
-            for line in result.stdout.splitlines():
-                print(f"    {line}")
+        assert proc.stdout is not None
 
-        # Count results from output
-        published = result.stdout.count('published') if result.stdout else 0
-        failed = result.stdout.count('[ERROR]') + result.stdout.count('[TERMINAL]') if result.stdout else 0
+        output_queue: queue.Queue[str | None] = queue.Queue()
+        captured_lines: list[str] = []
 
-        if result.returncode != 0:
-            if failed == 0:
-                failed = 1
-            if result.stderr:
-                for line in result.stderr.splitlines()[-5:]:
-                    print(f"    [ERR] {line}")
+        def _reader() -> None:
+            try:
+                for line in proc.stdout:
+                    output_queue.put(line)
+            finally:
+                output_queue.put(None)
+
+        reader = threading.Thread(target=_reader, daemon=True)
+        reader.start()
+
+        start = time.monotonic()
+        last_output = start
+        heartbeat_seconds = 60
+        timeout_seconds = 14400
+
+        while True:
+            now = time.monotonic()
+            if now - start > timeout_seconds:
+                proc.kill()
+                raise subprocess.TimeoutExpired(cmd, timeout_seconds)
+
+            try:
+                item = output_queue.get(timeout=1)
+            except queue.Empty:
+                if now - last_output >= heartbeat_seconds:
+                    elapsed = int(now - start)
+                    _log(
+                        f"{report_type.upper()} ingest still running "
+                        f"({elapsed}s elapsed, {int(now - last_output)}s since last output)"
+                    )
+                    last_output = now
+                if proc.poll() is not None and output_queue.empty():
+                    break
+                continue
+
+            if item is None:
+                if proc.poll() is not None:
+                    break
+                continue
+
+            line = item.rstrip("\n")
+            captured_lines.append(line)
+            print(f"    {line}", flush=True)
+            last_output = time.monotonic()
+
+        returncode = proc.wait()
+        stdout_text = "\n".join(captured_lines)
+        published = stdout_text.count('published') if stdout_text else 0
+        failed = stdout_text.count('[ERROR]') + stdout_text.count('[TERMINAL]') if stdout_text else 0
+
+        if returncode != 0 and failed == 0:
+            failed = 1
 
         return published, failed
 
     except subprocess.TimeoutExpired:
-        print(f"    ✗ Pipeline timed out")
+        _log("Pipeline timed out")
         return 0, 1
     except Exception as e:
-        print(f"    ✗ Exception: {e}")
+        _log(f"Exception while running ingest subprocess: {e}")
         return 0, 1
 
 
@@ -122,17 +177,17 @@ def main():
         print("ERROR: GDRIVE_ROOT_FOLDER_ID is required for draft scans.")
         return 1
 
-    print("=" * 60)
-    print(f"Pipeline Draft Watcher — BCE-732")
-    print(f"Types: {', '.join(t.upper() for t in types)}")
-    print(f"Scan Time: {scan_time}")
-    print("=" * 60)
+    _log("=" * 60)
+    _log("Pipeline Draft Watcher — BCE-732")
+    _log(f"Types: {', '.join(t.upper() for t in types)}")
+    _log(f"Scan Time: {scan_time}")
+    _log("=" * 60)
 
     results = {}
     for rtype in types:
-        print(f"\n[SCAN] {rtype.upper()} drafts...")
+        _log(f"[SCAN] {rtype.upper()} drafts...")
         new_files = scan_type(rtype, slug=args.slug, force=args.force)
-        print(f"  Found {len(new_files)} new file(s)")
+        _log(f"Found {len(new_files)} new file(s)")
 
         published, failed = 0, 0
         if new_files and not args.scan_only:
@@ -151,11 +206,11 @@ def main():
 
     log_file = write_scan_log(scan_time, results)
 
-    print("\n" + "=" * 60)
-    print("SCAN COMPLETE")
+    _log("=" * 60)
+    _log("SCAN COMPLETE")
     for rtype, data in results.items():
-        print(f"  {rtype.upper()}: {data['new_files']} new, {data['published']} published, {data['failed']} failed")
-    print("=" * 60)
+        _log(f"  {rtype.upper()}: {data['new_files']} new, {data['published']} published, {data['failed']} failed")
+    _log("=" * 60)
 
     total_failed = sum(d['failed'] for d in results.values())
     return 1 if total_failed > 0 else 0

@@ -183,11 +183,14 @@ jobs:
         env:
           GDRIVE_SERVICE_ACCOUNT_FILE: ${{ github.workspace }}/scripts/pipeline/.gdrive_service_account.json
           QA_STRICT: ${{ github.event_name == 'schedule' || github.event.inputs.qa_strict }}
+          PYTHONUNBUFFERED: "1"
         run: |
           REPORT_TYPE="${{ steps.type.outputs.report_type }}"
           FORCE_FLAG=""
           SLUG_FLAG=""
           DRY_FLAG=""
+          RUN_TS="$(date -u '+%Y%m%d_%H%M%S')"
+          LOG_FILE="../../logs/pipeline/run_${REPORT_TYPE}_${RUN_TS}_${GITHUB_RUN_ID}.log"
 
           if [ "${{ github.event.inputs.force }}" == "true" ]; then
             FORCE_FLAG="--force"
@@ -201,7 +204,10 @@ jobs:
             DRY_FLAG="--dry-run"
           fi
 
-          python3 watch_drafts.py --type "$REPORT_TYPE" $FORCE_FLAG $SLUG_FLAG $DRY_FLAG
+          mkdir -p ../../logs/pipeline
+          echo "Streaming watcher output to $LOG_FILE"
+          python3 watch_drafts.py --type "$REPORT_TYPE" $FORCE_FLAG $SLUG_FLAG $DRY_FLAG 2>&1 | tee "$LOG_FILE"
+          exit "${PIPESTATUS[0]}"
 
       - name: Upload pipeline logs
         if: always()
@@ -211,6 +217,7 @@ jobs:
           path: |
             scripts/pipeline/output/*.json
             logs/pipeline/*.md
+            logs/pipeline/*.log
           retention-days: 30
 
       - name: Summary

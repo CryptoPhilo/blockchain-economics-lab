@@ -13,6 +13,9 @@ def test_report_pipeline_workflow_prevents_overlap_and_uses_unified_watcher():
     assert "github.event.inputs.report_type || 'for') || 'scheduled-all'" in workflow
     assert "cancel-in-progress: false" in workflow
     assert "python3 watch_drafts.py --type \"$REPORT_TYPE\"" in workflow
+    assert "PYTHONUNBUFFERED: \"1\"" in workflow
+    assert "tee \"$LOG_FILE\"" in workflow
+    assert "logs/pipeline/*.log" in workflow
     assert "python3 -m playwright install --with-deps chromium" in workflow
     assert "Validate workflow secrets and runtime prerequisites" in workflow
     assert "from playwright.sync_api import sync_playwright" in workflow
