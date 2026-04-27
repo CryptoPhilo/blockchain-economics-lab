@@ -1,0 +1,200 @@
+name: Slide Pipeline - Automated Processing
+
+on:
+  schedule:
+    # Run every 30 minutes
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+    inputs:
+      type:
+        description: 'Report type filter'
+        required: false
+        type: choice
+        default: 'all'
+        options:
+          - all
+          - econ
+          - mat
+          - for
+      slug:
+        description: 'Process specific project slug only (optional)'
+        required: false
+        type: string
+      dry_run:
+        description: 'Dry run mode (scan only, no upload)'
+        required: false
+        type: boolean
+        default: false
+      force:
+        description: 'Force re-process even if manifest is up-to-date'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: slide-pipeline-cron
+  cancel-in-progress: false
+
+jobs:
+  process-slides:
+    name: 🎬 Process Slide Decks
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          cd scripts/pipeline
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
+            pip install supabase requests python-dotenv pymupdf pillow
+          fi
+
+      - name: Create .env.local from secrets
+        run: |
+          cat > .env.local << EOF
+          # Supabase
+          NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
+
+          # Google Drive
+          GDRIVE_ROOT_FOLDER_ID=${{ secrets.GDRIVE_ROOT_FOLDER_ID }}
+          GDRIVE_DELEGATE_EMAIL=${{ secrets.GDRIVE_DELEGATE_EMAIL }}
+
+          # App
+          NEXT_PUBLIC_APP_URL=https://bcelab.xyz
+          EOF
+
+      - name: Create Google Drive service account credentials
+        run: |
+          echo '${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}' > scripts/pipeline/.gdrive_service_account.json
+
+      - name: Run slide pipeline
+        working-directory: scripts/pipeline
+        env:
+          GDRIVE_SERVICE_ACCOUNT_FILE: ${{ github.workspace }}/scripts/pipeline/.gdrive_service_account.json
+        run: |
+          ARGS=""
+          TYPE_INPUT="${{ github.event.inputs.type }}"
+          if [ -n "$TYPE_INPUT" ]; then
+            ARGS="--type $TYPE_INPUT"
+          else
+            ARGS="--type all"
+          fi
+
+          if [ -n "${{ github.event.inputs.slug }}" ]; then
+            ARGS="$ARGS --slug ${{ github.event.inputs.slug }}"
+          fi
+
+          if [ "${{ github.event.inputs.dry_run }}" == "true" ]; then
+            echo "🧪 Running in DRY RUN mode"
+            ARGS="$ARGS --dry-run"
+          fi
+
+          if [ "${{ github.event.inputs.force }}" == "true" ]; then
+            echo "⚡ Force re-processing enabled"
+            ARGS="$ARGS --force"
+          fi
+
+          echo "Invoking: python3 watch_slides.py $ARGS"
+          python3 watch_slides.py $ARGS
+
+      - name: Upload pipeline logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: slide-pipeline-logs-${{ github.run_number }}
+          path: |
+            scripts/pipeline/output/_slide_processed.json
+            logs/slide_pipeline/*.md
+          retention-days: 30
+
+      - name: Commit processed files tracker
+        if: success() && github.event.inputs.dry_run != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if [ ! -f "scripts/pipeline/output/_slide_processed.json" ]; then
+            echo "No tracker file to commit"
+            exit 0
+          fi
+
+          git add -f scripts/pipeline/output/_slide_processed.json
+
+          if git diff --staged --quiet; then
+            echo "No changes to processed files tracker"
+            exit 0
+          fi
+
+          git commit -m "chore: update slide processed files tracker [skip ci]"
+
+          # Push with rebase-on-conflict retry. Tracker file is append-mostly,
+          # so an autostash+rebase+push loop is safe.
+          MAX_ATTEMPTS=5
+          attempt=1
+          while [ $attempt -le $MAX_ATTEMPTS ]; do
+            if git push origin HEAD:main; then
+              echo "Pushed tracker on attempt $attempt"
+              exit 0
+            fi
+
+            echo "Push attempt $attempt failed; rebasing onto latest origin/main and retrying"
+            git fetch origin main
+            if ! git pull --rebase --autostash origin main; then
+              echo "Rebase failed on attempt $attempt; aborting"
+              git rebase --abort || true
+              exit 1
+            fi
+
+            sleep $((RANDOM % 5 + 2))
+            attempt=$((attempt + 1))
+          done
+
+          echo "Failed to push tracker after $MAX_ATTEMPTS attempts"
+          exit 1
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Slide Pipeline Run Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Run ID**: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+
+          if [ -n "${{ github.event.inputs.type }}" ]; then
+            echo "- **Type**: ${{ github.event.inputs.type }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -n "${{ github.event.inputs.slug }}" ]; then
+            echo "- **Slug Filter**: ${{ github.event.inputs.slug }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ "${{ github.event.inputs.dry_run }}" == "true" ]; then
+            echo "- **Mode**: Dry Run (scan only)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          LATEST_LOG=$(ls -t logs/slide_pipeline/*.md 2>/dev/null | head -1)
+          if [ -n "$LATEST_LOG" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Latest Log Preview" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            head -30 "$LATEST_LOG" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
