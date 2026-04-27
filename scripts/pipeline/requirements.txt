@@ -39,6 +39,10 @@ google-genai>=1.0.0
 # PDF QA Verification
 pdfplumber>=0.10.0
 
+# PDF → HTML slide conversion (BCE-1085)
+pymupdf>=1.24.0
+Pillow>=10.0.0
+
 # Translation
 deep-translator>=1.11.4
 anthropic>=0.40.0
