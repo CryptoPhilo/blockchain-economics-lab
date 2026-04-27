@@ -16,6 +16,7 @@ import argparse
 import os
 import subprocess
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Dict
@@ -53,37 +54,60 @@ def process_type(report_type: str, dry_run: bool = False, slug: str = None, forc
           (" --force" if force else "") +
           (" --dry-run" if dry_run else ""))
 
+    # Stream subprocess stdout/stderr line-by-line so GitHub Actions logs reflect
+    # real-time progress. Previously stdout was captured silently for the entire
+    # 4-hour run, which made external cancels (BCE-1047 case: 24min cancel)
+    # impossible to diagnose because no slug/stage trace ever reached the workflow log.
+    timeout_secs = 14400  # 4 hour soft cap; workflow timeout-minutes is the hard cap
+    deadline = time.monotonic() + timeout_secs
+
     try:
-        result = subprocess.run(
+        proc = subprocess.Popen(
             cmd,
             cwd=ingest_script.parent,
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             text=True,
-            timeout=14400,  # 4 hour timeout (batch processing)
+            bufsize=1,
         )
-        if result.stdout:
-            for line in result.stdout.splitlines():
-                print(f"    {line}")
-
-        # Count results from output
-        published = result.stdout.count('published') if result.stdout else 0
-        failed = result.stdout.count('[ERROR]') + result.stdout.count('[TERMINAL]') if result.stdout else 0
-
-        if result.returncode != 0:
-            if failed == 0:
-                failed = 1
-            if result.stderr:
-                for line in result.stderr.splitlines()[-5:]:
-                    print(f"    [ERR] {line}")
-
-        return published, failed
-
-    except subprocess.TimeoutExpired:
-        print(f"    ✗ Pipeline timed out")
-        return 0, 1
     except Exception as e:
-        print(f"    ✗ Exception: {e}")
+        print(f"    ✗ Failed to launch subprocess: {e}", flush=True)
         return 0, 1
+
+    captured: List[str] = []
+    timed_out = False
+    try:
+        assert proc.stdout is not None
+        for line in proc.stdout:
+            stripped = line.rstrip('\n')
+            captured.append(stripped)
+            print(f"    {stripped}", flush=True)
+            if time.monotonic() > deadline:
+                timed_out = True
+                proc.kill()
+                break
+    except Exception as e:
+        print(f"    ✗ Stream read error: {e}", flush=True)
+        proc.kill()
+
+    try:
+        proc.wait(timeout=30)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait()
+
+    if timed_out:
+        print(f"    ✗ Pipeline timed out after {timeout_secs}s", flush=True)
+        return 0, 1
+
+    stdout_text = '\n'.join(captured)
+    published = stdout_text.count('published')
+    failed = stdout_text.count('[ERROR]') + stdout_text.count('[TERMINAL]')
+
+    if proc.returncode != 0 and failed == 0:
+        failed = 1
+
+    return published, failed
 
 
 def write_scan_log(scan_time: str, results: Dict[str, Dict]):
