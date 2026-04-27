@@ -1,0 +1,139 @@
+{
+  "generatedAt": "2026-04-27T01:15:00.857Z",
+  "source": "fixture",
+  "days": 7,
+  "summary": {
+    "total": 6,
+    "done": 2,
+    "processing": 1,
+    "stale": 0,
+    "failed": 3,
+    "successRate": 33.3,
+    "byStatus": {
+      "done": 2,
+      "processing": 1,
+      "qa_failed_major": 1,
+      "upload_done_db_error": 1,
+      "failed_timeout": 1
+    },
+    "byType": {
+      "econ": 3,
+      "mat": 1,
+      "for": 2
+    }
+  },
+  "runs": [
+    {
+      "id": "fixture-econ-001",
+      "report_type": "econ",
+      "project_slug": "ethereum",
+      "version": 4,
+      "status": "done",
+      "source_filename": "ETH ECON v4.md",
+      "retry_count": 0,
+      "started_at": "2026-04-26T22:10:00Z",
+      "completed_at": "2026-04-26T22:36:14Z",
+      "languages_completed": {
+        "en": "done",
+        "ko": "done",
+        "fr": "done",
+        "es": "done",
+        "de": "done",
+        "ja": "done",
+        "zh": "done"
+      },
+      "error_detail": null
+    },
+    {
+      "id": "fixture-econ-002",
+      "report_type": "econ",
+      "project_slug": "cosmos",
+      "version": 4,
+      "status": "done",
+      "source_filename": "ATOM ECON v4.md",
+      "retry_count": 1,
+      "started_at": "2026-04-26T18:42:00Z",
+      "completed_at": "2026-04-26T19:15:48Z",
+      "languages_completed": {
+        "en": "done",
+        "ko": "done",
+        "fr": "done",
+        "es": "done",
+        "de": "done",
+        "ja": "done",
+        "zh": "done"
+      },
+      "error_detail": null
+    },
+    {
+      "id": "fixture-mat-001",
+      "report_type": "mat",
+      "project_slug": "bitcoin",
+      "version": 2,
+      "status": "processing",
+      "source_filename": "BTC MAT v2.md",
+      "retry_count": 0,
+      "started_at": "2026-04-27T00:48:00Z",
+      "completed_at": null,
+      "languages_completed": {
+        "en": "done",
+        "ko": "done",
+        "fr": "in_progress"
+      },
+      "error_detail": null
+    },
+    {
+      "id": "fixture-for-001",
+      "report_type": "for",
+      "project_slug": "solana",
+      "version": 1,
+      "status": "qa_failed_major",
+      "source_filename": "SOL FOR v1.md",
+      "retry_count": 2,
+      "started_at": "2026-04-26T14:20:00Z",
+      "completed_at": "2026-04-26T14:38:21Z",
+      "languages_completed": {
+        "en": "done",
+        "ko": "qa_failed"
+      },
+      "error_detail": "QA verifier flagged 6 unsupported claims in section 3"
+    },
+    {
+      "id": "fixture-for-002",
+      "report_type": "for",
+      "project_slug": "polkadot",
+      "version": 1,
+      "status": "upload_done_db_error",
+      "source_filename": "DOT FOR v1.md",
+      "retry_count": 3,
+      "started_at": "2026-04-25T09:01:00Z",
+      "completed_at": "2026-04-25T09:42:18Z",
+      "languages_completed": {
+        "en": "done",
+        "ko": "done",
+        "fr": "done",
+        "es": "done",
+        "de": "done",
+        "ja": "done",
+        "zh": "done"
+      },
+      "error_detail": "Supabase publish failed: duplicate slug 'polkadot' for report_type 'for'"
+    },
+    {
+      "id": "fixture-econ-003",
+      "report_type": "econ",
+      "project_slug": "aave",
+      "version": 4,
+      "status": "failed_timeout",
+      "source_filename": "AAVE ECON v4.md",
+      "retry_count": 3,
+      "started_at": "2026-04-24T11:00:00Z",
+      "completed_at": "2026-04-24T11:40:00Z",
+      "languages_completed": {
+        "en": "done",
+        "ko": "in_progress"
+      },
+      "error_detail": "Translation worker exceeded 30m budget on language 'ko'"
+    }
+  ]
+}

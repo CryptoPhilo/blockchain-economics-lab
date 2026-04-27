@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>파이프라인 운영 스냅샷</title>
+<meta name="generator" content="BCE-882 generate-pipeline-ops-snapshot">
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; margin: 0; padding: 24px 32px; background: #0b0d10; color: #e5e7eb; }
+  h1 { margin: 0 0 4px; font-size: 24px; }
+  .subtitle { color: #9ca3af; margin-bottom: 24px; font-size: 13px; }
+  .meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: #9ca3af; margin-bottom: 24px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .card { background: #14171c; border: 1px solid #1f2937; border-radius: 8px; padding: 16px; }
+  .card .label { font-size: 11px; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.04em; }
+  .card .value { font-size: 28px; font-weight: 600; margin-top: 4px; }
+  .card.warn .value { color: #fbbf24; }
+  .card.err .value { color: #f87171; }
+  .card.ok .value { color: #34d399; }
+  h2 { font-size: 14px; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.04em; border-bottom: 1px solid #1f2937; padding-bottom: 6px; margin: 32px 0 12px; }
+  ul.kv { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+  ul.kv li { display: flex; justify-content: space-between; background: #14171c; border: 1px solid #1f2937; border-radius: 6px; padding: 8px 12px; font-size: 13px; }
+  ul.kv code { color: #93c5fd; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #1f2937; vertical-align: top; }
+  th { color: #9ca3af; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em; }
+  td.mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; color: #d1d5db; word-break: break-word; }
+  .muted { color: #6b7280; }
+  .pill { background: #1f2937; padding: 2px 8px; border-radius: 999px; font-size: 11px; }
+  .status { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-family: ui-monospace, monospace; }
+  .status.ok { background: #064e3b; color: #34d399; }
+  .status.warn { background: #78350f; color: #fbbf24; }
+  .status.err { background: #7f1d1d; color: #fca5a5; }
+  @media (prefers-color-scheme: light) {
+    body { background: #f9fafb; color: #111827; }
+    .card, ul.kv li { background: #fff; border-color: #e5e7eb; }
+    h2 { color: #6b7280; border-color: #e5e7eb; }
+    th { color: #6b7280; }
+    td.mono { color: #374151; }
+  }
+</style>
+</head>
+<body>
+  <h1>파이프라인 운영 스냅샷</h1>
+  <div class="subtitle">서버 없이 file://에서 열 수 있는 정적 대시보드</div>
+  <div class="meta">
+    <span><strong>생성 시각:</strong> 2026-04-27T01:15:00.857Z</span>
+    <span><strong>데이터 출처:</strong> Fixture (Supabase 자격증명 부재)</span>
+    <span><strong>window:</strong> 7d</span>
+  </div>
+
+  <h2>요약</h2>
+  <div class="grid">
+    <div class="card"><div class="label">총 실행</div><div class="value">6</div></div>
+    <div class="card ok"><div class="label">완료</div><div class="value">2</div></div>
+    <div class="card warn"><div class="label">처리 중</div><div class="value">1</div></div>
+    <div class="card err"><div class="label">Stale (30분 초과)</div><div class="value">0</div></div>
+    <div class="card err"><div class="label">실패/재시도</div><div class="value">3</div></div>
+    <div class="card"><div class="label">성공률</div><div class="value">33.3%</div></div>
+  </div>
+
+  <h2>유형별</h2>
+  <ul class="kv">
+    <li><code>ECON</code><span>3</span></li>
+    <li><code>MAT</code><span>1</span></li>
+    <li><code>FOR</code><span>2</span></li>
+  </ul>
+
+  <h2>상태별</h2>
+  <ul class="kv"><li><code>done</code><span>2</span></li><li><code>processing</code><span>1</span></li><li><code>qa_failed_major</code><span>1</span></li><li><code>upload_done_db_error</code><span>1</span></li><li><code>failed_timeout</code><span>1</span></li></ul>
+
+  <h2>최근 실행</h2>
+  <table>
+    <thead><tr><th>시작 시각</th><th>유형</th><th>프로젝트</th><th>버전</th><th>상태</th><th>재시도</th><th>진행 언어</th><th>오류 요약</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>2026-04-26 22:10:00 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>ethereum</td>
+        <td>4</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono">en:done, ko:done, fr:done, es:done, de:done, ja:done, zh:done</td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 18:42:00 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>cosmos</td>
+        <td>4</td>
+        <td><span class="status ok">done</span></td>
+        <td>1</td>
+        <td class="mono">en:done, ko:done, fr:done, es:done, de:done, ja:done, zh:done</td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 00:48:00 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>bitcoin</td>
+        <td>2</td>
+        <td><span class="status warn">processing</span></td>
+        <td>0</td>
+        <td class="mono">en:done, ko:done, fr:in_progress</td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 14:20:00 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>solana</td>
+        <td>1</td>
+        <td><span class="status err">qa_failed_major</span></td>
+        <td>2</td>
+        <td class="mono">en:done, ko:qa_failed</td>
+        <td class="mono">QA verifier flagged 6 unsupported claims in section 3</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 09:01:00 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>polkadot</td>
+        <td>1</td>
+        <td><span class="status err">upload_done_db_error</span></td>
+        <td>3</td>
+        <td class="mono">en:done, ko:done, fr:done, es:done, de:done, ja:done, zh:done</td>
+        <td class="mono">Supabase publish failed: duplicate slug &#39;polkadot&#39; for report_type &#39;for&#39;</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-24 11:00:00 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>aave</td>
+        <td>4</td>
+        <td><span class="status err">failed_timeout</span></td>
+        <td>3</td>
+        <td class="mono">en:done, ko:in_progress</td>
+        <td class="mono">Translation worker exceeded 30m budget on language &#39;ko&#39;</td>
+      </tr>
+    </tbody>
+  </table>
+</body>
+</html>
