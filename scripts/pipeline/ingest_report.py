@@ -459,8 +459,19 @@ def process_report(report_type: str, file_info: dict, dry_run: bool = False) -> 
             fail_names = [c.name for c in md_fails]
             print(f"  ⚠ Markdown QA FAIL: {fail_names}")
             result['md_qa_fail'] = fail_names
+            # BCE-867: section_markers FAIL means body has zero ## headings,
+            # which produces a 3-page cover-only PDF. Abort before wasting
+            # translation/PDF cycles instead of failing later in qa_verify.
+            if 'md.structure.section_markers' in fail_names:
+                raise TerminalContentError(
+                    'md.structure.section_markers FAIL — '
+                    'source markdown has no H2 sections; '
+                    'PDF body would be empty (BCE-867)'
+                )
         else:
             print(f"  ✓ Markdown QA passed")
+    except TerminalContentError:
+        raise
     except Exception as e:
         print(f"  [WARN] Markdown QA error (계속 진행): {e}")
 
