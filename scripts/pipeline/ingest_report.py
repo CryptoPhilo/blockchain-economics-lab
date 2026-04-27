@@ -155,25 +155,106 @@ def _normalize_slug_token(s: str | None) -> str:
     return re.sub(r'-+', '-', s).strip('-')
 
 
+# Korean project name → canonical English slug.
+# Mirrors the KNOWN_NAMES_KO mapping in ingest_gdoc.py. Drafts authored with
+# Korean filenames (e.g. "카르다노-프로젝트-진행률-평가-보고서_mat_v1.md") would
+# otherwise reach Supabase publish with a Korean slug that has no row in
+# tracked_projects. We translate the leading Korean term to its canonical
+# English slug before lookup.
+KO_NAME_TO_SLUG: dict[str, str] = {
+    '비트코인': 'bitcoin', '이더리움': 'ethereum', '솔라나': 'solana',
+    '카르다노': 'cardano', '리플': 'ripple', '폴카닷': 'polkadot',
+    '체인링크': 'chainlink', '아발란체': 'avalanche-2', '니어': 'near',
+    '아비트럼': 'arbitrum', '유니스왑': 'uniswap', '아베': 'aave',
+    '트론': 'tron', '도지코인': 'dogecoin', '바이낸스코인': 'binancecoin',
+    '인터넷컴퓨터': 'internet-computer', '폴리곤': 'matic-network',
+    '비트코인-캐시': 'bitcoin-cash', '비트코인캐시': 'bitcoin-cash',
+    '스텔라': 'stellar', '앱토스': 'aptos',
+    '리도-파이낸스': 'lido-dao', '리도파이낸스': 'lido-dao',
+    '알고랜드': 'algorand',
+    '플레어-네트워크': 'flare-networks', '플레어네트워크': 'flare-networks',
+    '온도-파이낸스': 'ondo-finance', '온도파이낸스': 'ondo-finance',
+    '테더': 'tether', '헤데라': 'hedera-hashgraph',
+    '모네로': 'monero', '하이퍼리퀴드': 'hyperliquid',
+    '스토리-프로토콜': 'story-protocol', '스토리프로토콜': 'story-protocol',
+    '월렛커넥트': 'walletconnect',
+    '페이팔': 'paypal-usd', '페이팔-usd': 'paypal-usd', 'pyusd': 'paypal-usd',
+    '라이트코인': 'litecoin', '메이커다오': 'maker',
+    '스카이-프로토콜': 'maker', '스카이프로토콜': 'maker',
+    '칸톤-네트워크': 'canton-network', '칸톤네트워크': 'canton-network', '칸톤': 'canton-network',
+    '월드-리버티-파이낸셜': 'world-liberty-financial',
+    '리버-프로토콜': 'river-protocol', '리버프로토콜': 'river-protocol',
+    '크로스': 'cross-crypto',
+    '맨틀-네트워크': 'mantle', '맨틀네트워크': 'mantle', '맨틀': 'mantle',
+    '테더-골드': 'tether-gold', '테더골드': 'tether-gold',
+    '크로노스': 'cronos',
+    '파이-네트워크': 'pi-network', '파이네트워크': 'pi-network',
+    '게이트체인': 'gatechain', '코스모스': 'cosmos', '카스파': 'kaspa',
+    '렌더': 'render-token', '파일코인': 'filecoin',
+    '이더리움클래식': 'ethereum-classic', '이더리움-클래식': 'ethereum-classic',
+    '비트겟': 'bitget-token', '페페': 'pepe',
+}
+
+
+def _korean_slug_to_canonical(raw_slug: str) -> str | None:
+    """Translate a slug that begins with a known Korean project name to the
+    canonical English slug. Returns None when no Korean prefix matches.
+
+    Examples:
+        "카르다노-프로젝트-진행률-평가-보고서" → "cardano"
+        "비트코인-캐시" → "bitcoin-cash"
+        "cardano" → None  (already canonical)
+    """
+    if not raw_slug:
+        return None
+    needle = unicodedata.normalize('NFC', raw_slug).lower()
+    # Longer keys first so "비트코인-캐시" wins over "비트코인".
+    for ko_name, en_slug in sorted(
+        KO_NAME_TO_SLUG.items(), key=lambda kv: -len(kv[0])
+    ):
+        ko = unicodedata.normalize('NFC', ko_name).lower()
+        if needle == ko or needle.startswith(ko + '-'):
+            return en_slug
+    return None
+
+
 def _resolve_project_slug(sb, raw_slug: str) -> tuple:
     _fields = 'id, slug, name, symbol'
     raw_slug = unicodedata.normalize('NFC', raw_slug)
-    proj = sb.table('tracked_projects').select(_fields).eq('slug', raw_slug).execute()
-    if proj.data:
-        p = proj.data[0]
-        return p['id'], p['slug'], p.get('name'), p.get('symbol')
-    symbol_candidate = raw_slug.split('-')[0].upper()
-    if symbol_candidate:
-        proj = sb.table('tracked_projects').select(_fields).eq('symbol', symbol_candidate).execute()
+
+    # Build the ordered candidate list. If the slug starts with a known Korean
+    # project name, try the canonical English slug first so MAT/ECON drafts
+    # named in Korean still resolve in Supabase tracked_projects.
+    candidates: list[str] = []
+    canonical_from_korean = _korean_slug_to_canonical(raw_slug)
+    if canonical_from_korean:
+        candidates.append(canonical_from_korean)
+    if raw_slug not in candidates:
+        candidates.append(raw_slug)
+
+    for slug_attempt in candidates:
+        proj = sb.table('tracked_projects').select(_fields).eq('slug', slug_attempt).execute()
         if proj.data:
             p = proj.data[0]
             return p['id'], p['slug'], p.get('name'), p.get('symbol')
-    name_part = raw_slug.split('-')[0]
-    if name_part:
-        proj = sb.table('tracked_projects').select(_fields).ilike('name', f'%{name_part}%').execute()
-        if proj.data:
-            p = proj.data[0]
-            return p['id'], p['slug'], p.get('name'), p.get('symbol')
+
+    for slug_attempt in candidates:
+        symbol_candidate = slug_attempt.split('-')[0].upper()
+        # Only treat ASCII tokens as ticker symbols; Korean text upper-cases
+        # to itself and would otherwise hit the DB pointlessly.
+        if symbol_candidate and re.match(r'^[A-Z0-9]+$', symbol_candidate):
+            proj = sb.table('tracked_projects').select(_fields).eq('symbol', symbol_candidate).execute()
+            if proj.data:
+                p = proj.data[0]
+                return p['id'], p['slug'], p.get('name'), p.get('symbol')
+
+    for slug_attempt in candidates:
+        name_part = slug_attempt.split('-')[0]
+        if name_part:
+            proj = sb.table('tracked_projects').select(_fields).ilike('name', f'%{name_part}%').execute()
+            if proj.data:
+                p = proj.data[0]
+                return p['id'], p['slug'], p.get('name'), p.get('symbol')
     return None, None, None, None
 
 
