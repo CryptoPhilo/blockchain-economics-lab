@@ -32,6 +32,10 @@ class FakeQuery:
         self.filters.append((field, value))
         return self
 
+    def ilike(self, field, pattern):
+        self.filters.append((field, "__ilike__", pattern))
+        return self
+
     def in_(self, field, values):
         self.filters.append((field, "__in__", tuple(values)))
         return self
@@ -120,6 +124,14 @@ class FakeSupabase:
             field, op, value = filter_item
             if op == "__in__":
                 if row.get(field) not in value:
+                    return False
+                continue
+            if op == "__ilike__":
+                cell = row.get(field)
+                if cell is None:
+                    return False
+                pattern = value.strip("%").lower()
+                if pattern not in str(cell).lower():
                     return False
                 continue
             raise AssertionError(f"Unsupported filter op: {op}")
@@ -483,6 +495,136 @@ class MainExitCodeTests(unittest.TestCase):
         self.assertEqual(len(new_files), 1)
         self.assertRegex(new_files[0], r"^ingest_for_\d{8}_\d{6}_\d{6}\.json$")
         (summary_dir / new_files[0]).unlink()
+
+
+class KoreanSlugResolutionTests(unittest.TestCase):
+    """Regression tests for BCE-1048: Korean slug → canonical English slug."""
+
+    def test_resolve_korean_prefix_slug_matches_canonical_project(self):
+        sb = FakeSupabase(
+            {
+                "tracked_projects": [
+                    {"id": "project-cardano", "slug": "cardano",
+                     "name": "Cardano", "symbol": "ADA"},
+                ],
+            }
+        )
+
+        result = ingest_report._resolve_project_slug(
+            sb, "카르다노-프로젝트-진행률-평가-보고서"
+        )
+
+        self.assertEqual(
+            result,
+            ("project-cardano", "cardano", "Cardano", "ADA"),
+        )
+
+    def test_resolve_bare_korean_name_matches_canonical_project(self):
+        sb = FakeSupabase(
+            {
+                "tracked_projects": [
+                    {"id": "project-bitcoin", "slug": "bitcoin",
+                     "name": "Bitcoin", "symbol": "BTC"},
+                ],
+            }
+        )
+
+        result = ingest_report._resolve_project_slug(sb, "비트코인")
+
+        self.assertEqual(
+            result,
+            ("project-bitcoin", "bitcoin", "Bitcoin", "BTC"),
+        )
+
+    def test_resolve_multiword_korean_prefix_prefers_longer_match(self):
+        sb = FakeSupabase(
+            {
+                "tracked_projects": [
+                    {"id": "project-bch", "slug": "bitcoin-cash",
+                     "name": "Bitcoin Cash", "symbol": "BCH"},
+                    {"id": "project-btc", "slug": "bitcoin",
+                     "name": "Bitcoin", "symbol": "BTC"},
+                ],
+            }
+        )
+
+        result = ingest_report._resolve_project_slug(sb, "비트코인-캐시-보고서")
+
+        # Longer "비트코인-캐시" must beat "비트코인" prefix.
+        self.assertEqual(result[1], "bitcoin-cash")
+
+    def test_resolve_english_slug_unchanged(self):
+        sb = FakeSupabase(
+            {
+                "tracked_projects": [
+                    {"id": "project-cardano", "slug": "cardano",
+                     "name": "Cardano", "symbol": "ADA"},
+                ],
+            }
+        )
+
+        result = ingest_report._resolve_project_slug(sb, "cardano")
+
+        self.assertEqual(
+            result,
+            ("project-cardano", "cardano", "Cardano", "ADA"),
+        )
+
+    def test_resolve_unknown_korean_slug_returns_none(self):
+        sb = FakeSupabase({"tracked_projects": []})
+
+        result = ingest_report._resolve_project_slug(sb, "알수없는-한국어-슬러그")
+
+        self.assertEqual(result, (None, None, None, None))
+
+    def test_korean_slug_to_canonical_helper(self):
+        self.assertEqual(
+            ingest_report._korean_slug_to_canonical(
+                "카르다노-프로젝트-진행률-평가-보고서"
+            ),
+            "cardano",
+        )
+        self.assertEqual(
+            ingest_report._korean_slug_to_canonical("비트코인-캐시"),
+            "bitcoin-cash",
+        )
+        self.assertIsNone(
+            ingest_report._korean_slug_to_canonical("cardano")
+        )
+        self.assertIsNone(
+            ingest_report._korean_slug_to_canonical("")
+        )
+
+    def test_publish_supabase_succeeds_with_korean_slug(self):
+        """End-to-end: publish step accepts a Korean slug and writes to DB."""
+        sb = FakeSupabase(
+            {
+                "project_reports": [],
+                "tracked_projects": [
+                    {"id": "project-cardano", "slug": "cardano",
+                     "name": "Cardano", "symbol": "ADA"},
+                ],
+                "forensic_triggers": [],
+            }
+        )
+
+        with patch.object(ingest_report, "_get_supabase_client", return_value=sb):
+            ingest_report._publish_supabase(
+                slug="카르다노-프로젝트-진행률-평가-보고서",
+                report_type="mat",
+                version=1,
+                gdrive_urls={"ko": "https://drive/ko.pdf",
+                             "en": "https://drive/en.pdf"},
+                db_report_type="maturity",
+            )
+
+        self.assertEqual(len(sb.tables["project_reports"]), 2)
+        for row in sb.tables["project_reports"]:
+            self.assertEqual(row["project_id"], "project-cardano")
+            self.assertEqual(row["status"], "published")
+        self.assertIsNotNone(
+            sb.tables["tracked_projects"][0].get("last_maturity_report_at")
+        )
 
 
 if __name__ == "__main__":
