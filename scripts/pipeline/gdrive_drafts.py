@@ -93,9 +93,21 @@ def scan_markdown_drafts(drive, folder_id: str) -> list[dict[str, Any]]:
 
 
 def download_markdown_text(drive, file_id: str, is_gdoc: bool = False) -> str:
-    """Download markdown content from Drive, exporting Google Docs when needed."""
+    """Download markdown content from Drive, exporting Google Docs when needed.
+
+    Google Docs are exported as `text/markdown` so heading styles survive as
+    `# ` / `## ` markers (BCE-867). Falls back to `text/plain` only if the
+    workspace/document does not advertise the markdown export type.
+    """
     if is_gdoc:
-        content = drive.files().export(fileId=file_id, mimeType='text/plain').execute()
+        try:
+            content = drive.files().export(
+                fileId=file_id, mimeType='text/markdown'
+            ).execute()
+        except Exception:
+            content = drive.files().export(
+                fileId=file_id, mimeType='text/plain'
+            ).execute()
         if isinstance(content, str):
             content = content.encode('utf-8')
     else:

@@ -89,7 +89,8 @@ def test_download_signature():
 
     shared_source = inspect.getsource(download_markdown_text)
     assert 'export' in shared_source, "Missing export() call for Google Docs"
-    assert 'text/plain' in shared_source, "Missing text/plain mimetype"
+    assert 'text/markdown' in shared_source, "Missing text/markdown mimetype (primary export)"
+    assert 'text/plain' in shared_source, "Missing text/plain fallback mimetype"
 
     print("✓ test_download_signature passed")
     return True
