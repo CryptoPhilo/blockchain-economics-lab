@@ -1,0 +1,256 @@
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
+
+import SlideViewer from '@/components/SlideViewer'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
+
+type ReportTypeKey = 'econ' | 'maturity'
+
+const localeMap: Record<string, string> = {
+  en: 'en-US', ko: 'ko-KR', ja: 'ja-JP', zh: 'zh-CN',
+  fr: 'fr-FR', es: 'es-ES', de: 'de-DE',
+}
+
+const themeByType: Record<ReportTypeKey, {
+  badgeBg: string
+  badgeText: string
+  badgeBorder: string
+  border: string
+  emoji: string
+}> = {
+  econ: {
+    badgeBg: 'bg-blue-500/10',
+    badgeText: 'text-blue-400',
+    badgeBorder: 'border-blue-500/30',
+    border: 'border-blue-500/20',
+    emoji: '📊',
+  },
+  maturity: {
+    badgeBg: 'bg-green-500/10',
+    badgeText: 'text-green-400',
+    badgeBorder: 'border-green-500/30',
+    border: 'border-green-500/20',
+    emoji: '🌱',
+  },
+}
+
+function resolveSlideUrl(
+  urlsByLang: Record<string, unknown> | null | undefined,
+  locale: string,
+): string | null {
+  if (!urlsByLang || typeof urlsByLang !== 'object') return null
+  const candidate = urlsByLang[locale] ?? urlsByLang['en']
+  if (typeof candidate === 'string' && candidate) return candidate
+  for (const value of Object.values(urlsByLang)) {
+    if (typeof value === 'string' && value) return value
+  }
+  return null
+}
+
+interface SlideReportPageProps {
+  locale: string
+  slug: string
+  reportType: ReportTypeKey
+}
+
+export async function SlideReportPage({ locale, slug, reportType }: SlideReportPageProps) {
+  const t = await getTranslations('slideReportDetail')
+  const supabase = await createServerSupabaseClient()
+
+  const { data: project } = await supabase
+    .from('tracked_projects')
+    .select('*')
+    .eq('slug', slug)
+    .single()
+
+  if (!project) notFound()
+
+  const { data: report } = await supabase
+    .from('project_reports')
+    .select('*')
+    .eq('project_id', project.id)
+    .eq('report_type', reportType)
+    .in('status', ['published', 'coming_soon'])
+    .order('published_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  if (!report) notFound()
+
+  const theme = themeByType[reportType]
+  const reportLabel = reportType === 'econ' ? t('econLabel') : t('maturityLabel')
+  const reportTypeName = reportType === 'econ' ? t('econTypeName') : t('maturityTypeName')
+  const allReportsHref = `/${locale}/reports?type=${reportType === 'econ' ? 'econ' : 'maturity'}`
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const cardData = report.card_data as Record<string, any> | null
+  const slideUrl = resolveSlideUrl(
+    report.slide_html_urls_by_lang as Record<string, unknown> | null,
+    locale,
+  )
+
+  const keywordsByLang = cardData?.keywords_by_lang as Record<string, string[]> | undefined
+  const localizedKeywords =
+    keywordsByLang?.[locale]
+    ?? keywordsByLang?.en
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ?? ((cardData as any)?.[`keywords_${locale}`]
+      ?? (locale === 'ko' ? (report.card_keywords ?? cardData?.keywords_ko ?? cardData?.keywords ?? []) : []))
+  const keywords: string[] =
+    localizedKeywords.length > 0
+      ? localizedKeywords
+      : (cardData?.keywords_en ?? report.card_keywords ?? [])
+
+  const summaryByLang = cardData?.summary_by_lang as Record<string, string> | undefined
+  const summary =
+    summaryByLang?.[locale]
+    || summaryByLang?.en
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    || (report as any)[`card_summary_${locale}`]
+    || report.card_summary_en
+    || cardData?.summary_ko
+    || cardData?.summary_en
+    || cardData?.summary
+    || ''
+
+  const score =
+    reportType === 'maturity'
+      ? (project.maturity_score ?? cardData?.maturity_score ?? cardData?.score ?? null)
+      : (cardData?.economy_score ?? cardData?.score ?? null)
+
+  const generatedAt = cardData?.generated_at || report.published_at || report.created_at
+
+  return (
+    <div className="min-h-screen">
+      {/* Hero header */}
+      <div className={`relative border-b ${theme.border} bg-gradient-to-b from-gray-950 via-gray-950 to-transparent`}>
+        <div className="max-w-5xl mx-auto px-6 pt-10 pb-12">
+          <div className="flex items-center gap-2 text-sm text-gray-500 mb-8">
+            <Link href={`/${locale}`} className="hover:text-indigo-400 transition-colors">
+              {t('home')}
+            </Link>
+            <span>/</span>
+            <Link href={allReportsHref} className="hover:text-indigo-400 transition-colors">
+              {reportLabel}
+            </Link>
+            <span>/</span>
+            <span className="text-gray-300">{project.name}</span>
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-3">
+                <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase ${theme.badgeBg} ${theme.badgeText} border ${theme.badgeBorder}`}>
+                  {theme.emoji} {reportLabel}
+                </span>
+                {typeof score === 'number' && (
+                  <span className={`px-3 py-1 rounded-lg text-xs font-bold ${theme.badgeBg} ${theme.badgeText} border ${theme.badgeBorder}`}>
+                    {t('scoreLabel')} {score}
+                  </span>
+                )}
+              </div>
+
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+                {project.name}
+                <span className="text-lg text-gray-500 font-normal ml-3">{project.symbol}</span>
+              </h1>
+
+              {summary && (
+                <p className="text-gray-400 text-lg leading-relaxed max-w-2xl mt-4">
+                  {summary}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-5xl mx-auto px-6 py-12">
+        {/* Slide viewer or fallback */}
+        <div className="mb-10">
+          {slideUrl ? (
+            <SlideViewer
+              htmlUrl={slideUrl}
+              title={`${project.name} ${reportLabel}`}
+              projectName={project.name}
+            />
+          ) : (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-10 text-center">
+              <p className="text-base font-semibold text-white mb-2">
+                {t('slideComingSoonTitle')}
+              </p>
+              <p className="text-sm text-gray-400">
+                {t('slideComingSoonDesc')}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Keywords */}
+        {keywords.length > 0 && (
+          <div className="mb-10">
+            <h2 className="text-xl font-bold text-white mb-4">{t('keyFindings')}</h2>
+            <div className="flex flex-wrap gap-3">
+              {keywords.map((kw, i) => (
+                <span
+                  key={`${kw}-${i}`}
+                  className={`px-4 py-2 rounded-xl text-sm font-semibold ${theme.badgeBg} ${theme.badgeText} border ${theme.badgeBorder}`}
+                >
+                  {kw}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Metadata grid */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
+          <div className="rounded-xl bg-white/[0.03] border border-white/5 p-5">
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{t('reportType')}</p>
+            <p className="text-white font-semibold">{reportTypeName}</p>
+          </div>
+          <div className="rounded-xl bg-white/[0.03] border border-white/5 p-5">
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{t('versionLabel')}</p>
+            <p className="text-white font-semibold">v{report.version || 1}</p>
+          </div>
+          <div className="rounded-xl bg-white/[0.03] border border-white/5 p-5">
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{t('analysisDate')}</p>
+            <p className="text-white font-semibold">
+              {generatedAt
+                ? new Date(generatedAt).toLocaleDateString(localeMap[locale] || 'en-US', {
+                    year: 'numeric', month: 'long', day: 'numeric',
+                  })
+                : '—'}
+            </p>
+          </div>
+          <div className="rounded-xl bg-white/[0.03] border border-white/5 p-5">
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{t('languageLabel')}</p>
+            <p className="text-white font-semibold uppercase">{locale}</p>
+          </div>
+        </div>
+
+        {/* Disclaimer */}
+        <div className="rounded-xl bg-yellow-500/5 border border-yellow-500/20 p-6">
+          <p className="text-xs text-yellow-600/80 leading-relaxed">
+            {t('disclaimer')}
+          </p>
+        </div>
+
+        {/* Back link */}
+        <div className="flex justify-center mt-10">
+          <Link
+            href={allReportsHref}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all font-medium"
+          >
+            <span>←</span>
+            <span>{t('backToReports')}</span>
+          </Link>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default SlideReportPage
