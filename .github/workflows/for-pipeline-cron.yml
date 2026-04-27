@@ -24,6 +24,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: for-pipeline-cron
+  cancel-in-progress: false
+
 jobs:
   process-for-reports:
     name: 🔍 Process FOR Reports
@@ -126,16 +130,45 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          if [ -f "scripts/pipeline/output/_for_processed.json" ]; then
-            git add -f scripts/pipeline/output/_for_processed.json
-
-            if git diff --staged --quiet; then
-              echo "No changes to processed files tracker"
-            else
-              git commit -m "chore: update FOR processed files tracker [skip ci]"
-              git push
-            fi
+          if [ ! -f "scripts/pipeline/output/_for_processed.json" ]; then
+            echo "No tracker file to commit"
+            exit 0
           fi
+
+          git add -f scripts/pipeline/output/_for_processed.json
+
+          if git diff --staged --quiet; then
+            echo "No changes to processed files tracker"
+            exit 0
+          fi
+
+          git commit -m "chore: update FOR processed files tracker [skip ci]"
+
+          # Push with rebase-on-conflict retry to avoid race with other commits to main.
+          # The tracker file is append-mostly, so an autostash+rebase+push loop is safe.
+          MAX_ATTEMPTS=5
+          attempt=1
+          while [ $attempt -le $MAX_ATTEMPTS ]; do
+            if git push origin HEAD:main; then
+              echo "Pushed tracker on attempt $attempt"
+              exit 0
+            fi
+
+            echo "Push attempt $attempt failed; rebasing onto latest origin/main and retrying"
+            git fetch origin main
+            if ! git pull --rebase --autostash origin main; then
+              echo "Rebase failed on attempt $attempt; aborting"
+              git rebase --abort || true
+              exit 1
+            fi
+
+            # Brief jitter so concurrent jobs don't collide on retry
+            sleep $((RANDOM % 5 + 2))
+            attempt=$((attempt + 1))
+          done
+
+          echo "Failed to push tracker after $MAX_ATTEMPTS attempts"
+          exit 1
 
       - name: Summary
         if: always()
