@@ -502,6 +502,7 @@ def draw_cover_econ_mat(c, doc, project_name, report_type, version, lang,
     White background, clean typography, green accents (BCE Lab branding).
     """
     c.saveState()
+    project_name = str(project_name or 'Project')
     rt = REPORT_TYPES[report_type]
     _regular, _bold, _medium = get_fonts_for_lang(lang)
     accent = C('section_divider_bg')  # BCE Lab green
@@ -605,6 +606,7 @@ def draw_cover_econ_mat(c, doc, project_name, report_type, version, lang,
 def draw_cover_forensic(c, doc, project_name, token_symbol, risk_level, trigger_reason, version, lang):
     """Red-themed cover for Forensic reports."""
     c.saveState()
+    project_name = str(project_name or 'Project')
     _regular, _bold, _medium = get_fonts_for_lang(lang)
 
     # Dark background
@@ -682,6 +684,7 @@ def make_header_footer(project_name, report_type):
     Returns a function for later-page headers/footers.
     Tiger Research style: thin top line, clean footer with page number.
     """
+    project_name = str(project_name or 'Project')
     rt = REPORT_TYPES[report_type]
     is_forensic = (report_type == 'for')
     report_label = {
