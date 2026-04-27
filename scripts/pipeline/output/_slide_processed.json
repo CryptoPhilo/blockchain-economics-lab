@@ -1,0 +1,34 @@
+{
+  "12X4k70U3ojENhMxHUpdshdDO5Ta3k9rc": {
+    "error": null,
+    "finished_at": "2026-04-27T22:58:57.122251+00:00",
+    "lang": "ko",
+    "modifiedTime": "2026-04-27T22:52:13.254Z",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/humanity-protocol/latest/ko.html",
+    "report_id": "87fcaaed-41d2-4fec-a907-1c8ba59e6767",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "humanity-protocol",
+    "started_at": "2026-04-27T22:58:48.418437+00:00",
+    "status": "published",
+    "updated_at": "2026-04-27T22:58:57.122270+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/humanity-protocol/1/ko.html"
+  },
+  "1dkUD3BKSIl0hSCLuKy0DR0k2wfFe06A9": {
+    "error": null,
+    "finished_at": "2026-04-27T22:58:48.418104+00:00",
+    "lang": "en",
+    "modifiedTime": "2026-04-27T22:52:15.466Z",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/humanity-protocol/latest/en.html",
+    "report_id": "176e11e4-d8ff-48a7-8647-ff21a0bb7ffb",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "humanity-protocol",
+    "started_at": "2026-04-27T22:58:38.170355+00:00",
+    "status": "published",
+    "updated_at": "2026-04-27T22:58:48.418119+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/humanity-protocol/1/en.html"
+  }
+}
