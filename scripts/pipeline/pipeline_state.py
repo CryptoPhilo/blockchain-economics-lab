@@ -131,20 +131,23 @@ class PipelineState:
             return True, existing
 
         status = existing.get('status', '')
-        if status in ('done', 'published'):
-            return False, existing
+        retry_count = int(existing.get('retry_count', 0) or 0)
+
         if status in TERMINAL_STATUSES:
-            return False, existing
-        if status == 'processing' and not self._is_stale(existing):
             return False, existing
         if status == 'dry_run':
             return True, existing
-        if status in RETRIABLE_STATUSES and existing.get('retry_count', 0) < MAX_RETRIES:
-            return True, existing
-        if status == 'processing' and self._is_stale(existing):
-            return True, existing
-        if existing.get('retry_count', 0) >= MAX_RETRIES:
+
+        # Retry cap applies uniformly to every non-terminal, non-dry-run path.
+        # Without this guard, stale 'processing' rows could spawn unlimited
+        # reruns because the stale-recovery branch previously skipped the cap.
+        if retry_count >= MAX_RETRIES:
             return False, existing
+
+        if status == 'processing':
+            return self._is_stale(existing), existing
+        if status in RETRIABLE_STATUSES:
+            return True, existing
         return True, existing
 
     def _is_stale(self, run: dict) -> bool:
