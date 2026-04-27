@@ -3,8 +3,8 @@
 Supabase Storage helper — BCE-1085
 
 Thin wrapper around supabase-py Storage API for the slide pipeline.
-Reads SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY from env (with fall-backs to
-the variables already used elsewhere in the pipeline).
+Reads SUPABASE_URL and SUPABASE_SERVICE_KEY from env (the repo-wide standard;
+see gdrive_storage.py / ingest_for.py / pipeline_state.py).
 
 Usage:
     client = get_supabase_storage_client()
@@ -28,16 +28,17 @@ def _env(*names: str) -> Optional[str]:
 def get_supabase_storage_client():
     """Create a Supabase client for Storage operations.
 
-    Uses SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (or falls back to
-    SUPABASE_SERVICE_KEY / NEXT_PUBLIC_SUPABASE_URL for parity with the
-    rest of the pipeline). Raises RuntimeError on missing config.
+    Uses SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) + SUPABASE_SERVICE_KEY
+    (repo-wide standard). Falls back to NEXT_PUBLIC_SUPABASE_ANON_KEY only as
+    a last resort — anon writes will fail at the bucket policy layer.
+    Raises RuntimeError on missing config.
     """
     url = _env('SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL')
-    key = _env('SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SERVICE_KEY')
+    key = _env('SUPABASE_SERVICE_KEY', 'NEXT_PUBLIC_SUPABASE_ANON_KEY')
     if not url:
         raise RuntimeError("SUPABASE_URL is not set")
     if not key:
-        raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SERVICE_KEY) is not set")
+        raise RuntimeError("SUPABASE_SERVICE_KEY is not set")
 
     from supabase import create_client
     return create_client(url, key)
