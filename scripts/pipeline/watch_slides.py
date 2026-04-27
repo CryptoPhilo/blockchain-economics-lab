@@ -200,15 +200,17 @@ def _resolve_project(sb, raw_slug: str) -> Tuple[Optional[str], Optional[str]]:
 
 
 def _find_report_for_lang(sb, project_id: str, db_type: str, lang: str) -> Tuple[Optional[str], Optional[int]]:
-    """Find the latest published project_reports row for (project, type) and infer
+    """Find the latest published project_reports row for (project, type, language) and infer
     a version for the storage path. Returns (report_id, version_or_None).
 
-    Per BCE-1085 spec: report_version is taken from `report_versions` if a row
-    exists for (report_id, language), otherwise we fall back to project_reports.version.
+    project_reports rows are scoped per (project, type, language); without the
+    language filter, the URL for one language would be merged into another
+    language's row.
     """
     rep = sb.table('project_reports').select('id, version, status, published_at') \
         .eq('project_id', project_id) \
         .eq('report_type', db_type) \
+        .eq('language', lang) \
         .in_('status', ['published', 'coming_soon']) \
         .order('published_at', desc=True) \
         .limit(1) \
