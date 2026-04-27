@@ -120,13 +120,18 @@ def generate_mat_report_card(
     en_md = _read_markdown(en_md_path)
 
     card_data = _build_base_card_data('mat', slug, project_name, symbol, ko_md, en_md)
+    # Prefer the composite/overall score over sub-scores (e.g. 개발자 성숙도 점수)
     score_text = _extract_match(
         '\n'.join([ko_md, en_md]),
         [
-            r'Maturity Score\s*:\s*([0-9]+(?:\.[0-9]+)?)',
-            r'성숙도 점수\s*:\s*([0-9]+(?:\.[0-9]+)?)',
+            r'Overall (?:Maturity )?Score\s*:?\s*([0-9]+(?:\.[0-9]+)?)\s*(?:/\s*100|%|점)?',
+            r'(?:종합|총합|총)\s*점수\s*:?\s*([0-9]+(?:\.[0-9]+)?)\s*(?:/\s*100|%|점)',
             r'final evaluation score[^0-9]{0,60}([0-9]+(?:\.[0-9]+)?)%',
             r'최종 평가 점수[^0-9]{0,60}([0-9]+(?:\.[0-9]+)?)%',
+            r'Composite Score\s*:?\s*([0-9]+(?:\.[0-9]+)?)\s*(?:/\s*100|%)?',
+            r'\*\*\s*합계\s*\*\*\s*\|[^|]*\|[^|]*\|\s*\*\*\s*([0-9]+(?:\.[0-9]+)?)\s*%?\s*\*\*',
+            r'Maturity Score\s*:\s*([0-9]+(?:\.[0-9]+)?)',
+            r'성숙도 점수\s*:\s*([0-9]+(?:\.[0-9]+)?)',
         ],
     )
     stage = _extract_match(
@@ -134,6 +139,8 @@ def generate_mat_report_card(
         [
             r'Stage\s*:\s*([A-Za-z]+)',
             r'단계\s*:\s*([가-힣A-Za-z]+)',
+            r'\*\*\s*([가-힣]+)\s*\(\s*(?:Mature|Growth|Emerging|Decline|Maturing)\s*\)\s*단계',
+            r'\(\s*(Mature|Growth|Emerging|Decline|Maturing)\s*\)\s*단계',
         ],
     )
 
