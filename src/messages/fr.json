@@ -221,5 +221,22 @@
     "risk": "Risque d'investissement",
     "thirdParty": "Liens tiers",
     "aiContent": "Contenu généré par IA"
+  },
+  "slideReportDetail": {
+    "home": "Home",
+    "econLabel": "ECON Report",
+    "maturityLabel": "MAT Report",
+    "econTypeName": "Crypto Economy Analysis",
+    "maturityTypeName": "Project Maturity Analysis",
+    "scoreLabel": "Score",
+    "keyFindings": "Key Findings",
+    "reportType": "Report Type",
+    "versionLabel": "Version",
+    "analysisDate": "Analysis Date",
+    "languageLabel": "Language",
+    "slideComingSoonTitle": "Slide deck coming soon",
+    "slideComingSoonDesc": "The report has been published, but the slide deck is still being prepared. Please check back shortly.",
+    "disclaimer": "Disclaimer: This report is generated through AI-powered analysis and market data. This is not investment advice. All investment decisions should be made at your own risk.",
+    "backToReports": "Back to all reports"
   }
 }
