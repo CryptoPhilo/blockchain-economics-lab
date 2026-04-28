@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 
 /**
@@ -85,6 +86,7 @@ export default function ScoreTableGate({
   locale,
 }: ScoreTableGateProps) {
   const isKo = locale === 'ko'
+  const router = useRouter()
 
   const [status, setStatus] = useState<GateStatus>(() => {
     if (typeof window !== 'undefined') {
@@ -130,9 +132,21 @@ export default function ScoreTableGate({
   }
 
   function renderRow(row: ScoreRow, blurred = false) {
+    const detailHref = `/${locale}/projects/${row.slug}`
+    const handleRowClick = blurred
+      ? undefined
+      : (e: React.MouseEvent<HTMLTableRowElement>) => {
+          // Respect modifier keys (cmd/ctrl/shift/alt) so users can open in a new tab via the inner <a>.
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+          // If the click already landed on an interactive element (anchor/button/input), let it handle.
+          const target = e.target as HTMLElement
+          if (target.closest('a, button, input')) return
+          router.push(detailHref)
+        }
     return (
       <tr
         key={row.rank}
+        onClick={handleRowClick}
         className={`border-b border-white/5 ${blurred ? 'select-none' : 'hover:bg-white/[0.05] transition-colors duration-150 cursor-pointer'}`}
         style={blurred ? { filter: 'blur(5px)', pointerEvents: 'none' } : undefined}
       >
