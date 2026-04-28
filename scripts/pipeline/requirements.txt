@@ -47,5 +47,6 @@ Pillow>=10.0.0
 deep-translator>=1.11.4
 anthropic>=0.40.0
 
-# Slide watcher language detection (BCE-1099)
+# Slide watcher: language detection + OCR fallback for raster PDFs (BCE-1099)
 langdetect>=1.0.9
+pytesseract>=0.3.10

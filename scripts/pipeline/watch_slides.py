@@ -10,11 +10,12 @@ viewer, uploads it to Supabase Storage, and merges the public URL into
 Identification strategy (BCE-1099):
   1. Filename keyword match against tracked_projects (name/slug/symbol)
   2. PDF first-pages text match against tracked_projects
-  3. Optional Anthropic LLM fallback (skipped if ANTHROPIC_API_KEY missing)
+  3. OCR (tesseract) on first page → text match (for raster-only NotebookLM PDFs)
 
 Language detection:
   1. PDF metadata `/Title` or `/Subject` keyword scan
   2. langdetect on extracted text
+  3. langdetect on OCR text
 
 Usage:
     python watch_slides.py                      # all types (econ, mat, for)
@@ -26,8 +27,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import base64
-import io
 import json
 import os
 import re
@@ -86,8 +85,18 @@ LOG_DIR = REPO_ROOT / 'logs' / 'slide_pipeline'
 # Pages to extract for content-based identification (cheap; first page already
 # contains the title in NotebookLM exports).
 PDF_TEXT_PAGES = 3
-# Max characters of extracted text passed to the LLM fallback.
-LLM_TEXT_BUDGET = 2000
+
+# Tesseract trained-data codes per supported language. Used both for OCR of
+# raster-only PDFs and to control which language packs to install in CI.
+TESSERACT_LANG_CODES: Dict[str, str] = {
+    'ko': 'kor',
+    'en': 'eng',
+    'fr': 'fra',
+    'es': 'spa',
+    'de': 'deu',
+    'ja': 'jpn',
+    'zh': 'chi_sim',
+}
 
 # Hints used when guessing language from PDF metadata strings.
 LANG_HINTS: List[Tuple[str, str]] = [
@@ -201,34 +210,52 @@ def _extract_pdf_meta_and_text(pdf_path: str, max_pages: int = PDF_TEXT_PAGES) -
     return meta, '\n'.join(text_parts)
 
 
-def _render_first_page_png(pdf_path: str, max_dim: int = 1280) -> Optional[bytes]:
-    """Render the first page as a PNG (downscaled). Returns None on failure.
+def _ocr_first_page_text(pdf_path: str, max_pages: int = PDF_TEXT_PAGES) -> str:
+    """Render the first pages and OCR them with tesseract. Returns "" on failure.
 
     Used for NotebookLM-style raster PDFs that have no text layer
     (see project memory: project_notebooklm_pdf_full_page_raster.md).
+    Tesseract loads all supported language packs in one pass so script
+    detection works for mixed/Asian scripts. If tesseract or pytesseract
+    is unavailable, returns "" silently.
     """
     try:
         import fitz  # pymupdf
-    except Exception:
-        return None
+        import pytesseract
+        from PIL import Image
+    except Exception as e:
+        print(f"    [WARN] OCR deps unavailable: {e}")
+        return ''
     try:
         doc = fitz.open(pdf_path)
-        if doc.page_count == 0:
-            doc.close()
-            return None
-        page = doc.load_page(0)
-        rect = page.rect
-        scale = min(max_dim / max(rect.width, rect.height, 1), 2.0)
-        pix = page.get_pixmap(matrix=fitz.Matrix(scale, scale), alpha=False)
-        png_bytes = pix.tobytes('png')
-        doc.close()
-        return png_bytes
     except Exception:
-        return None
+        return ''
+
+    pages_to_ocr = min(max_pages, doc.page_count)
+    if pages_to_ocr <= 0:
+        doc.close()
+        return ''
+
+    tess_langs = '+'.join(TESSERACT_LANG_CODES[c] for c in sorted(SUPPORTED_LANGS))
+    text_parts: List[str] = []
+    try:
+        for i in range(pages_to_ocr):
+            try:
+                page = doc.load_page(i)
+                # 200 DPI is enough for tesseract on cover-style slides
+                pix = page.get_pixmap(matrix=fitz.Matrix(2.0, 2.0), alpha=False)
+                img = Image.frombytes('RGB', (pix.width, pix.height), pix.samples)
+                text_parts.append(pytesseract.image_to_string(img, lang=tess_langs) or '')
+            except Exception as e:
+                print(f"    [WARN] OCR page {i} failed: {e}")
+                continue
+    finally:
+        doc.close()
+    return '\n'.join(text_parts)
 
 
 # ═══════════════════════════════════════════
-# Slug resolution (filename → text → LLM)
+# Slug resolution (filename → text → OCR)
 # ═══════════════════════════════════════════
 
 _TOKEN_RE = re.compile(r'[A-Za-z0-9]+')
@@ -255,16 +282,17 @@ def _load_tracked_projects(sb) -> List[Dict[str, str]]:
 
 
 def _project_signal(project: Dict[str, str]) -> List[str]:
-    """Return lowercase tokens that identify a project."""
+    """Return lowercase tokens that identify a project.
+
+    Uses only the full slug/name/symbol strings; hyphenated slug parts are
+    NOT exploded into independent tokens because generic fragments like
+    `protocol` or `network` cause cross-project false positives.
+    """
     sigs: List[str] = []
     for key in ('slug', 'name', 'symbol'):
         v = (project.get(key) or '').strip().lower()
         if v:
             sigs.append(v)
-    # also explode hyphenated slug into tokens
-    slug = (project.get('slug') or '').lower()
-    if slug:
-        sigs.extend([p for p in slug.split('-') if len(p) >= 3])
     return list({s for s in sigs if s})
 
 
@@ -294,157 +322,23 @@ def _match_project_by_text(text: str, projects: List[Dict[str, str]]) -> Optiona
     return best[1] if best else None
 
 
-def _llm_classify_project(text: str, projects: List[Dict[str, str]]) -> Optional[Dict[str, str]]:
-    """Anthropic fallback. Returns matched project dict or None."""
-    if not text:
-        return None
-    api_key = os.environ.get('ANTHROPIC_API_KEY')
-    if not api_key:
-        return None
-    try:
-        import anthropic
-    except Exception:
-        return None
-
-    candidate_lines = [
-        f"- slug={p['slug']} | name={p['name']} | symbol={p['symbol']}"
-        for p in projects if p.get('slug')
-    ]
-    prompt = (
-        "You are classifying a slide deck PDF to one project from this catalog.\n"
-        "Respond with EXACTLY one slug from the catalog, or the literal string NONE.\n"
-        "No other text.\n\n"
-        f"Catalog:\n" + '\n'.join(candidate_lines) + "\n\n"
-        f"Document text (first {LLM_TEXT_BUDGET} chars):\n"
-        f"-----\n{text[:LLM_TEXT_BUDGET]}\n-----\n"
-        "Answer:"
-    )
-    try:
-        client = anthropic.Anthropic(api_key=api_key)
-        msg = client.messages.create(
-            model=os.environ.get('ANTHROPIC_CLASSIFY_MODEL', 'claude-haiku-4-5-20251001'),
-            max_tokens=32,
-            messages=[{'role': 'user', 'content': prompt}],
-        )
-        answer = ''.join(
-            blk.text for blk in msg.content if getattr(blk, 'type', None) == 'text'
-        ).strip()
-    except Exception as e:
-        print(f"    [WARN] LLM classify failed: {e}")
-        return None
-
-    answer = answer.strip().splitlines()[0].strip().lower() if answer else ''
-    if not answer or answer == 'none':
-        return None
-    for proj in projects:
-        if proj.get('slug', '').lower() == answer:
-            return proj
-    return None
-
-
 def _resolve_slug(
     pdf_name: str,
     pdf_text: str,
+    ocr_text: str,
     projects: List[Dict[str, str]],
 ) -> Tuple[Optional[Dict[str, str]], str]:
-    """Return (project, source) where source ∈ {'filename','pdf_text','llm','none'}."""
+    """Return (project, source) where source ∈ {'filename','pdf_text','ocr','none'}."""
     proj = _match_project_by_text(pdf_name, projects)
     if proj:
         return proj, 'filename'
     proj = _match_project_by_text(pdf_text, projects)
     if proj:
         return proj, 'pdf_text'
-    proj = _llm_classify_project(pdf_text, projects)
+    proj = _match_project_by_text(ocr_text, projects)
     if proj:
-        return proj, 'llm'
+        return proj, 'ocr'
     return None, 'none'
-
-
-def _vision_classify(
-    page_png: Optional[bytes],
-    projects: List[Dict[str, str]],
-) -> Tuple[Optional[Dict[str, str]], Optional[str]]:
-    """Classify (slug, lang) from the rendered first page using a vision model.
-
-    Used as the final fallback when text extraction fails (NotebookLM raster
-    PDFs). Returns (project_or_None, lang_or_None).
-    """
-    if not page_png:
-        return None, None
-    api_key = os.environ.get('ANTHROPIC_API_KEY')
-    if not api_key:
-        return None, None
-    try:
-        import anthropic
-    except Exception:
-        return None, None
-
-    candidate_lines = [
-        f"- {p['slug']} ({p.get('name') or ''} / {p.get('symbol') or ''})"
-        for p in projects if p.get('slug')
-    ]
-    catalog = '\n'.join(candidate_lines)
-    supported = ', '.join(sorted(SUPPORTED_LANGS))
-    prompt = (
-        "You are classifying the first slide of a slide-deck PDF.\n"
-        "Identify (1) which blockchain project the deck is about and (2) the "
-        "primary language of the visible text.\n\n"
-        f"Project catalog (use the slug column, exact value):\n{catalog}\n\n"
-        f"Languages (use one ISO code, exact value): {supported}\n\n"
-        "Reply with EXACTLY one JSON object on a single line, no prose, like:\n"
-        '{"slug": "<slug-or-NONE>", "lang": "<code-or-NONE>"}\n'
-    )
-
-    try:
-        client = anthropic.Anthropic(api_key=api_key)
-        msg = client.messages.create(
-            model=os.environ.get('ANTHROPIC_VISION_MODEL', 'claude-haiku-4-5-20251001'),
-            max_tokens=128,
-            messages=[{
-                'role': 'user',
-                'content': [
-                    {
-                        'type': 'image',
-                        'source': {
-                            'type': 'base64',
-                            'media_type': 'image/png',
-                            'data': base64.b64encode(page_png).decode('ascii'),
-                        },
-                    },
-                    {'type': 'text', 'text': prompt},
-                ],
-            }],
-        )
-        answer = ''.join(
-            blk.text for blk in msg.content if getattr(blk, 'type', None) == 'text'
-        ).strip()
-    except Exception as e:
-        print(f"    [WARN] vision classify failed: {e}")
-        return None, None
-
-    parsed_slug: Optional[str] = None
-    parsed_lang: Optional[str] = None
-    try:
-        # Strip code fences/whitespace then locate the JSON object.
-        text = answer.strip().strip('`')
-        match = re.search(r'\{[^{}]*\}', text, re.DOTALL)
-        if match:
-            data = json.loads(match.group(0))
-            parsed_slug = (data.get('slug') or '').strip().lower() or None
-            parsed_lang = (data.get('lang') or '').strip().lower() or None
-    except Exception as e:
-        print(f"    [WARN] vision response parse failed ({e}): {answer[:200]!r}")
-        return None, None
-
-    project: Optional[Dict[str, str]] = None
-    if parsed_slug and parsed_slug != 'none':
-        for p in projects:
-            if (p.get('slug') or '').lower() == parsed_slug:
-                project = p
-                break
-    if parsed_lang in (None, '', 'none') or parsed_lang not in SUPPORTED_LANGS:
-        parsed_lang = None
-    return project, parsed_lang
 
 
 # ═══════════════════════════════════════════
@@ -477,13 +371,16 @@ def _lang_from_text(text: str) -> Optional[str]:
     return code if code in SUPPORTED_LANGS else None
 
 
-def _resolve_lang(meta: Dict[str, str], text: str) -> Tuple[Optional[str], str]:
+def _resolve_lang(meta: Dict[str, str], text: str, ocr_text: str) -> Tuple[Optional[str], str]:
     code = _lang_from_metadata(meta)
     if code:
         return code, 'metadata'
     code = _lang_from_text(text)
     if code:
         return code, 'langdetect'
+    code = _lang_from_text(ocr_text)
+    if code:
+        return code, 'ocr_langdetect'
     return None, 'none'
 
 
@@ -678,19 +575,19 @@ def process(
                 continue
 
             meta, pdf_text = _extract_pdf_meta_and_text(tmp_path)
-            project, slug_source = _resolve_slug(pdf['name'], pdf_text, projects)
-            lang, lang_source = _resolve_lang(meta, pdf_text)
 
-            # Vision fallback for raster-only NotebookLM PDFs (no text layer).
-            if (not project or not lang) and projects:
-                page_png = _render_first_page_png(tmp_path)
-                vision_project, vision_lang = _vision_classify(page_png, projects)
-                if not project and vision_project:
-                    project = vision_project
-                    slug_source = 'vision'
-                if not lang and vision_lang:
-                    lang = vision_lang
-                    lang_source = 'vision'
+            # Filename match alone often resolves the slug; only invoke OCR
+            # (slow) when text-layer extraction can't determine slug or lang.
+            filename_match = _match_project_by_text(pdf['name'], projects)
+            text_lang = _lang_from_metadata(meta) or _lang_from_text(pdf_text)
+            ocr_text = ''
+            if not filename_match or not text_lang:
+                pdf_text_match = _match_project_by_text(pdf_text, projects)
+                if not (filename_match or pdf_text_match) or not text_lang:
+                    ocr_text = _ocr_first_page_text(tmp_path)
+
+            project, slug_source = _resolve_slug(pdf['name'], pdf_text, ocr_text, projects)
+            lang, lang_source = _resolve_lang(meta, pdf_text, ocr_text)
 
             slug = (project or {}).get('slug')
             project_id = (project or {}).get('id')

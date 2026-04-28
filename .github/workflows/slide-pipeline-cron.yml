@@ -54,6 +54,21 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
+      - name: Install tesseract OCR (raster-PDF lang detection — BCE-1099)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            tesseract-ocr \
+            tesseract-ocr-kor \
+            tesseract-ocr-eng \
+            tesseract-ocr-fra \
+            tesseract-ocr-spa \
+            tesseract-ocr-deu \
+            tesseract-ocr-jpn \
+            tesseract-ocr-chi-sim
+          tesseract --version
+          tesseract --list-langs
+
       - name: Install Python dependencies
         run: |
           cd scripts/pipeline
@@ -76,9 +91,6 @@ jobs:
           # Google Drive
           GDRIVE_ROOT_FOLDER_ID=${{ secrets.GDRIVE_ROOT_FOLDER_ID }}
           GDRIVE_DELEGATE_EMAIL=${{ secrets.GDRIVE_DELEGATE_EMAIL }}
-
-          # Anthropic (vision/text fallback for slide identification)
-          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
 
           # App
           NEXT_PUBLIC_APP_URL=https://bcelab.xyz
