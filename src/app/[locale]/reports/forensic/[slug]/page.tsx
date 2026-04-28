@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import GatedDownloadButton from '@/components/GatedDownloadButton'
+import SlideViewer from '@/components/SlideViewer'
 import { FORENSIC_LABELS, getLabel } from '@/lib/constants/forensic'
 
 interface Props {
@@ -104,6 +105,19 @@ export default async function ForensicReportPage({ params }: Props) {
   const primaryUrl = report.file_url || report.gdrive_url || localizedUrl
   const hasReport = !!primaryUrl
   const canDownload = hasReport && !isComingSoon
+
+  // Resolve self-contained HTML slide URL with locale → en → first-available fallback.
+  const slideUrlsByLang = report.slide_html_urls_by_lang as Record<string, unknown> | null
+  const resolveSlideUrl = (urls: Record<string, unknown> | null): string | null => {
+    if (!urls || typeof urls !== 'object') return null
+    const candidate = urls[locale] ?? urls['en']
+    if (typeof candidate === 'string' && candidate) return candidate
+    for (const value of Object.values(urls)) {
+      if (typeof value === 'string' && value) return value
+    }
+    return null
+  }
+  const slideUrl = resolveSlideUrl(slideUrlsByLang)
   const previewStatusLabel =
     isComingSoon
       ? (locale === 'ko' ? '준비 중' : 'Coming soon')
@@ -118,17 +132,17 @@ export default async function ForensicReportPage({ params }: Props) {
   const previewCtaCopy =
     isComingSoon
       ? {
-          ko: '전체 포렌식 보고서는 공개 준비가 끝나는 대로 연결됩니다.',
-          en: 'The full forensic report will be linked once publishing is complete.',
+          ko: '슬라이드와 PDF 모두 공개 준비가 끝나는 대로 함께 연결됩니다.',
+          en: 'Both slides and PDF will be linked once publishing is complete.',
         }
       : pageCount
         ? {
-            ko: `이 미리보기가 유용하셨나요? 전체 PDF 보고서(${pageCount}페이지)를 받아보세요.`,
-            en: `Found this preview helpful? Get the full PDF report (${pageCount} pages).`,
+            ko: `슬라이드를 확인하셨다면, 전체 PDF 보고서(${pageCount}페이지)도 함께 받아보실 수 있습니다.`,
+            en: `Already viewed the slides? The full PDF report (${pageCount} pages) is also available.`,
           }
         : {
-            ko: '이 미리보기가 유용하셨나요? 전체 PDF 보고서를 확인해 보세요.',
-            en: 'Found this preview helpful? Get the full PDF report.',
+            ko: '슬라이드를 확인하셨다면, 전체 PDF 보고서도 함께 받아보실 수 있습니다.',
+            en: 'Already viewed the slides? The full PDF report is also available.',
           }
   const reportIntroCopy = isComingSoon
     ? {
@@ -141,20 +155,22 @@ export default async function ForensicReportPage({ params }: Props) {
       }
   const accessPanelTitle =
     locale === 'ko'
-      ? (canDownload ? '전체 보고서 열기' : '전체 보고서 공개 상태')
-      : (canDownload ? 'Open Full Report' : 'Full Report Availability')
+      ? (canDownload ? 'PDF로 받기' : 'PDF 공개 상태')
+      : (canDownload ? 'Get the PDF' : 'PDF Availability')
   const accessPanelBody = locale === 'ko' ? previewCtaCopy.ko : previewCtaCopy.en
   const accessHighlights =
     locale === 'ko'
       ? [
-          `현재 상태: ${previewStatusLabel}`,
           `보고서 분량: ${previewLengthLabel}`,
-          isComingSoon ? '공개 전까지는 핵심 신호만 미리보기로 제공합니다.' : '언어별 PDF 링크와 요약본 접근 경로를 한곳에 모았습니다.',
+          isComingSoon
+            ? '공개 전까지는 슬라이드와 핵심 신호만 미리보기로 제공합니다.'
+            : '언어별 PDF 링크와 요약본 접근 경로를 한곳에 모았습니다.',
         ]
       : [
-          `Status: ${previewStatusLabel}`,
           `Report length: ${previewLengthLabel}`,
-          isComingSoon ? 'Until publication, the preview focuses on the highest-signal findings.' : 'PDF access and alternate language links are grouped in one place.',
+          isComingSoon
+            ? 'Until publication, the preview focuses on slides and highest-signal findings.'
+            : 'PDF access and alternate language links are grouped in one place.',
         ]
   const reportCoverageTitle = locale === 'ko' ? '보고서에서 확인할 수 있는 내용' : 'What this report covers'
   const reportCoverageItems =
@@ -281,6 +297,32 @@ export default async function ForensicReportPage({ params }: Props) {
 
       {/* Content */}
       <div className="max-w-5xl mx-auto px-6 py-12">
+        {/* Slide viewer (primary content) */}
+        <div className="mb-10">
+          {slideUrl ? (
+            <SlideViewer
+              htmlUrl={slideUrl}
+              title={`${project.name} ${t('forensic')}`}
+              projectName={project.name}
+            />
+          ) : (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-10 text-center">
+              <p className="text-base font-semibold text-white mb-2">
+                {locale === 'ko' ? '슬라이드 준비 중' : 'Slides coming soon'}
+              </p>
+              <p className="text-sm text-gray-400">
+                {isComingSoon
+                  ? (locale === 'ko'
+                      ? '보고서가 공개 준비 중입니다. 슬라이드는 발행과 함께 제공될 예정입니다.'
+                      : 'The report is awaiting publication. Slides will be provided once it goes live.')
+                  : (locale === 'ko'
+                      ? '보고서는 공개되었지만 슬라이드 자료는 아직 준비 중입니다. 곧 다시 확인해 주세요.'
+                      : 'The report is published but slide assets are still being prepared. Please check back soon.')}
+              </p>
+            </div>
+          )}
+        </div>
+
         {/* Preview snapshot */}
         <div className="mb-10 rounded-[28px] border border-white/10 bg-white/[0.03] p-6 md:p-8">
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.9fr)]">
@@ -337,29 +379,29 @@ export default async function ForensicReportPage({ params }: Props) {
               </div>
             </div>
 
-            <aside className="rounded-[24px] border border-indigo-400/20 bg-[linear-gradient(160deg,rgba(99,102,241,0.18),rgba(17,24,39,0.92))] p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-indigo-200/80">
-                {locale === 'ko' ? '리포트 액세스' : 'Report Access'}
+            <aside className="rounded-[24px] border border-white/10 bg-white/[0.03] p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">
+                {locale === 'ko' ? '추가 자료' : 'Additional Materials'}
               </p>
-              <h3 className="mt-3 text-2xl font-bold text-white">
+              <h3 className="mt-3 text-lg font-semibold text-white">
                 {accessPanelTitle}
               </h3>
-              <p className="mt-2 text-sm leading-6 text-indigo-100/85">
+              <p className="mt-2 text-sm leading-6 text-gray-300">
                 {accessPanelBody}
               </p>
 
-              <div className="mt-5 space-y-2">
+              <div className="mt-4 space-y-2">
                 {accessHighlights.map((item) => (
                   <div
                     key={item}
-                    className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-gray-100"
+                    className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs text-gray-300"
                   >
                     {item}
                   </div>
                 ))}
               </div>
 
-              <div className="mt-5 flex flex-col gap-3">
+              <div className="mt-4 flex flex-col gap-2">
                 {canDownload ? (
                   <GatedDownloadButton
                     reportId={report.id}
@@ -368,9 +410,9 @@ export default async function ForensicReportPage({ params }: Props) {
                     label={
                       pageCount
                         ? (locale === 'ko'
-                            ? `전체 PDF 받기 (${pageCount}페이지)`
-                            : `Get Full PDF (${pageCount} pages)`)
-                        : (locale === 'ko' ? '전체 PDF 받기' : 'Get Full PDF')
+                            ? `PDF로 받기 (${pageCount}페이지)`
+                            : `Get PDF (${pageCount} pages)`)
+                        : (locale === 'ko' ? 'PDF로 받기' : 'Get PDF')
                     }
                   />
                 ) : (
@@ -405,7 +447,7 @@ export default async function ForensicReportPage({ params }: Props) {
 
                 {urlsByLang && Object.keys(urlsByLang).length > 1 && canDownload && (
                   <div className="flex flex-wrap gap-2">
-                    <span className="mr-1 self-center text-sm text-indigo-100/75">
+                    <span className="mr-1 self-center text-xs text-gray-400">
                       {t('otherLanguages')}
                     </span>
                     {Object.entries(urlsByLang)
