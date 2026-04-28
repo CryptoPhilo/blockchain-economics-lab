@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useTransition } from 'react'
 
 /**
@@ -143,10 +144,23 @@ export default function ScoreTableGate({
         {/* Name + Symbol */}
         <td className="py-4 pl-4 pr-3">
           <div className="flex items-center gap-3">
-            <div>
-              <div className="font-bold text-white text-base mb-0.5">{row.name}</div>
-              <div className="text-gray-500 text-xs font-medium uppercase">{row.symbol}</div>
-            </div>
+            {blurred ? (
+              <div>
+                <div className="font-bold text-white text-base mb-0.5">{row.name}</div>
+                <div className="text-gray-500 text-xs font-medium uppercase">{row.symbol}</div>
+              </div>
+            ) : (
+              <Link
+                href={`/${locale}/projects/${row.slug}`}
+                className="group inline-block"
+                title={isKo ? `${row.name} 상세 페이지` : `${row.name} project page`}
+              >
+                <div className="font-bold text-white text-base mb-0.5 group-hover:text-indigo-400 group-hover:underline transition-colors">
+                  {row.name}
+                </div>
+                <div className="text-gray-500 text-xs font-medium uppercase">{row.symbol}</div>
+              </Link>
+            )}
           </div>
         </td>
 
@@ -182,21 +196,23 @@ export default function ScoreTableGate({
           )}
         </td>
 
-        {/* Report Badges */}
+        {/* Report Status Badges (read-only — navigate via project name) */}
         <td className="py-4 px-3">
           <div className="flex gap-1 justify-end">
             {/* ECON Badge */}
             <div className="relative">
               {row.reportTypes.includes('econ') ? (
-                <a
-                  href={`/${locale}/reports/${row.slug}/econ`}
-                  className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-blue-500/15 text-blue-400 hover:bg-blue-500/30 transition-colors"
-                  title={isKo ? 'ECON 보고서 보기' : 'View ECON Report'}
+                <span
+                  className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-blue-500/15 text-blue-400"
+                  title={isKo ? 'ECON 보고서 발행됨' : 'ECON report published'}
                 >
                   ECON
-                </a>
+                </span>
               ) : (
-                <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-gray-500/10 text-gray-600 cursor-not-allowed">
+                <span
+                  className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-gray-500/10 text-gray-600"
+                  title={isKo ? 'ECON 보고서 미발행' : 'ECON report not published'}
+                >
                   ECON
                 </span>
               )}
@@ -210,15 +226,17 @@ export default function ScoreTableGate({
             {/* MAT Badge */}
             <div className="relative">
               {row.reportTypes.includes('maturity') ? (
-                <a
-                  href={`/${locale}/reports/${row.slug}/maturity`}
-                  className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-green-500/15 text-green-400 hover:bg-green-500/30 transition-colors"
-                  title={isKo ? 'MAT 보고서 보기' : 'View MAT Report'}
+                <span
+                  className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-green-500/15 text-green-400"
+                  title={isKo ? 'MAT 보고서 발행됨' : 'MAT report published'}
                 >
                   MAT
-                </a>
+                </span>
               ) : (
-                <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-gray-500/10 text-gray-600 cursor-not-allowed">
+                <span
+                  className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-gray-500/10 text-gray-600"
+                  title={isKo ? 'MAT 보고서 미발행' : 'MAT report not published'}
+                >
                   MAT
                 </span>
               )}
@@ -232,15 +250,17 @@ export default function ScoreTableGate({
             {/* FOR Badge */}
             <div className="relative">
               {row.reportTypes.includes('forensic') ? (
-                <a
-                  href={`/${locale}/reports/${row.slug}/forensic`}
-                  className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-red-500/15 text-red-400 hover:bg-red-500/30 transition-colors"
-                  title={isKo ? 'FOR 보고서 보기' : 'View FOR Report'}
+                <span
+                  className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-red-500/15 text-red-400"
+                  title={isKo ? 'FOR 보고서 발행됨' : 'FOR report published'}
                 >
                   FOR
-                </a>
+                </span>
               ) : (
-                <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-gray-500/10 text-gray-600 cursor-not-allowed">
+                <span
+                  className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-gray-500/10 text-gray-600"
+                  title={isKo ? 'FOR 보고서 미발행' : 'FOR report not published'}
+                >
                   FOR
                 </span>
               )}
