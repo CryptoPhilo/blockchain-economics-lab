@@ -15,6 +15,25 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/humanity-protocol/1/ko.html"
   },
+  "1NoW8Xj1xkzsP7goQuwV9CCALxeIqeb--": {
+    "error": null,
+    "finished_at": "2026-04-28T15:23:31.359567+00:00",
+    "lang": "ko",
+    "lang_source": "ocr_langdetect",
+    "modifiedTime": "2026-04-28T11:23:11.000Z",
+    "name": "Bitcoin_Cryptoeconomic_Architecture.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ko.html",
+    "report_id": "25124006-1834-448f-91e6-cd454dd30eac",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "bitcoin",
+    "slug_source": "filename",
+    "started_at": "2026-04-28T15:23:14.719659+00:00",
+    "status": "published",
+    "updated_at": "2026-04-28T15:23:31.359584+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/1/ko.html"
+  },
   "1dkUD3BKSIl0hSCLuKy0DR0k2wfFe06A9": {
     "error": null,
     "finished_at": "2026-04-27T22:58:48.418104+00:00",
