@@ -1,19 +1,28 @@
 #!/usr/bin/env python3
 """
-BCE Lab Report Pipeline Orchestrator — 4-Stage Architecture
+BCE Lab Report Pipeline Orchestrator — Slide-based Architecture (BCE-1081)
 
 Stage 0: Data Collection (APIs → Supabase warehouse + local enriched JSON)
 Stage 1: JSON project data → Markdown text analysis + metadata JSON
-Stage 2: Markdown + metadata → Branded graphical PDF
-Stage 3: Upload → Google Drive + register URLs in Supabase
+Stage 2: Slide PDFs (per language) → embedded HTML viewers
+Stage 3: Upload HTML viewers → slide_storage (BCE-1080) + register URLs
 
 Usage:
-    python orchestrator.py --type econ|mat|for --project <slug> --version <N> --lang <lang|all> [--data <json>] [--skip-collect] [--skip-upload]
+    python orchestrator.py --type econ|mat|for --project <slug> --version <N> --lang <lang|all>
+        [--data <json>] [--skip-collect] [--text-only]
+        [--slide-pdf <lang>:<path> ...] [--slide-dir <dir>]
 
-    python orchestrator.py --type econ --project uniswap --version 1 --lang en
-    python orchestrator.py --type mat --project heyelsaai --version 1 --lang all
-    python orchestrator.py --type for --project heyelsaai --version 1 --lang en --data data/elsa_forensic.json
-    python orchestrator.py --type econ --project uniswap --version 1 --lang en --skip-collect --skip-upload
+Examples:
+    # Text only (Stage 0+1)
+    python orchestrator.py --type econ --project uniswap --version 1 --lang en --text-only
+
+    # With per-language slide PDFs (Stage 0+1+2[+3])
+    python orchestrator.py --type econ --project uniswap --version 1 --lang all \
+        --slide-pdf en:./slides/en.pdf --slide-pdf ko:./slides/ko.pdf
+
+    # With a slide directory using convention {slug}_{type}_slide_{lang}.pdf
+    python orchestrator.py --type mat --project heyelsaai --version 1 --lang all \
+        --slide-dir ./slides
 """
 
 import argparse
@@ -25,7 +34,7 @@ from typing import List, Dict, Any, Tuple, Optional
 
 # Import configuration
 try:
-    from config import LANGUAGES, report_filename, OUTPUT_DIR
+    from config import LANGUAGES, OUTPUT_DIR
 except ImportError as e:
     print(f"Error: Failed to import config: {e}")
     sys.exit(1)
@@ -43,24 +52,15 @@ from gen_text_econ import generate_text_econ
 from gen_text_mat import generate_text_mat
 from gen_text_for import generate_text_for
 
-# Stage 2: PDF generators
-from gen_pdf_econ import generate_pdf_econ
-from gen_pdf_mat import generate_pdf_mat
-from gen_pdf_for import generate_pdf_for
+# Stage 2: PDF → HTML slide conversion
+from pdf_to_html_slides import convert_pdf_to_html_slides
 
-# Stage 1.5: Translation
+# Stage 3: Slide HTML storage (BCE-1080 — graceful skip if absent)
 try:
-    from translate_md import translate_md_file, translate_md_all_languages
-    HAS_TRANSLATE_MD = True
+    from slide_storage import get_slide_storage
+    HAS_SLIDE_STORAGE = True
 except ImportError:
-    HAS_TRANSLATE_MD = False
-
-# Stage 3: Google Drive upload
-try:
-    from gdrive_storage import get_gdrive
-    HAS_GDRIVE = True
-except ImportError:
-    HAS_GDRIVE = False
+    HAS_SLIDE_STORAGE = False
 
 
 # ─── Dispatchers ───────────────────────────────────────────────
@@ -69,12 +69,6 @@ STAGE1_GENERATORS = {
     'econ': generate_text_econ,
     'mat': generate_text_mat,
     'for': generate_text_for,
-}
-
-STAGE2_GENERATORS = {
-    'econ': generate_pdf_econ,
-    'mat': generate_pdf_mat,
-    'for': generate_pdf_for,
 }
 
 
@@ -112,11 +106,9 @@ def run_stage0(
 
     try:
         collected = collect_all_data(project_data, skip_whale=True, persist=True)
-        # Merge collected data into project_data
         project_data['_collected'] = collected
         project_data['_data_sources'] = collected.get('data_sources_available', [])
 
-        # Inject key market data into top-level for Stage 1 access
         if 'market_data' in collected:
             project_data['live_market'] = collected['market_data']
         if 'macro_global' in collected:
@@ -158,137 +150,105 @@ def run_stage1(
     return md_path, metadata
 
 
-def run_stage2(
+def run_stage2_slides(
     report_type: str,
     project_slug: str,
     version: int,
-    languages: List[str],
-    md_path: str,
-    metadata: Dict[str, Any],
+    slide_pdf_by_lang: Dict[str, str],
     output_dir: str,
-    translated_paths: Dict[str, str] = None,
-) -> List[str]:
+) -> Dict[str, str]:
     """
-    Stage 2: Generate branded PDFs from markdown.
+    Stage 2: Convert per-language slide PDFs into self-contained HTML viewers.
 
-    Args:
-        translated_paths: Dict of {lang: translated_md_path} from Stage 1.5.
-                          If provided, each language uses its translated .md file.
-                          If None, all languages use the EN master md_path.
+    Returns:
+        Dict of {lang: html_output_path}
     """
+    if not slide_pdf_by_lang:
+        print("  [Stage 2] No slide PDFs provided. Skipping.")
+        return {}
+
     print(f"\n{'='*60}")
-    print(f"  STAGE 2: PDF Generation ({report_type.upper()})")
+    print(f"  STAGE 2: Slide HTML Generation ({report_type.upper()})")
     print(f"{'='*60}")
 
-    stage2_gen = STAGE2_GENERATORS[report_type]
-    pdf_paths = []
+    html_paths: Dict[str, str] = {}
+    title = f"{project_slug} — {report_type.upper()} v{version}"
 
-    for lang in languages:
+    for lang, pdf_path in slide_pdf_by_lang.items():
+        if not os.path.exists(pdf_path):
+            print(f"  ✗ Slide PDF missing for {lang}: {pdf_path}")
+            continue
+
+        out_html = os.path.join(
+            output_dir,
+            f"{project_slug}_{report_type}_slide_{lang}.html",
+        )
         try:
-            # Use translated markdown for this language, fallback to EN master
-            lang_md = md_path
-            if translated_paths and lang in translated_paths:
-                lang_md = translated_paths[lang]
-                if lang_md != md_path:
-                    print(f"  Generating PDF for {project_slug} (v{version}, {lang}) from translated .md")
-                else:
-                    print(f"  Generating PDF for {project_slug} (v{version}, {lang})")
-            else:
-                print(f"  Generating PDF for {project_slug} (v{version}, {lang})")
-
-            out_pdf = os.path.join(output_dir, report_filename(project_slug, report_type, version, lang))
-            pdf_path = stage2_gen(
-                md_path=lang_md,
-                metadata=metadata,
+            print(f"  Converting {lang}: {pdf_path}")
+            html_path = convert_pdf_to_html_slides(
+                pdf_path=pdf_path,
+                output_path=out_html,
+                title=title,
                 lang=lang,
-                output_path=out_pdf,
             )
-            pdf_paths.append(pdf_path)
-            print(f"  ✓ PDF: {pdf_path}")
+            html_paths[lang] = html_path
+            print(f"  ✓ HTML: {html_path}")
         except Exception as e:
-            print(f"  ✗ Error generating {lang} PDF: {e}")
+            print(f"  ✗ Error converting {lang}: {e}")
             import traceback
             traceback.print_exc()
 
-    return pdf_paths
+    return html_paths
 
 
-def run_stage3(
+def run_stage3_storage(
     report_type: str,
     project_slug: str,
     version: int,
-    languages: List[str],
-    md_path: str,
-    pdf_paths: List[str],
-    skip: bool = False,
-) -> Dict[str, Dict[str, str]]:
+    html_paths_by_lang: Dict[str, str],
+) -> Dict[str, Any]:
     """
-    Stage 3: Upload to Google Drive and register URLs in Supabase.
-    Returns dict of lang -> upload_result.
+    Stage 3: Upload generated HTML viewers via slide_storage (BCE-1080).
+
+    Returns dict of {lang: storage_result}. Empty dict if slide_storage missing
+    or no HTML paths supplied.
     """
-    if skip:
-        print("\n  [Stage 3] Upload skipped by user request.")
+    if not html_paths_by_lang:
+        print("  [Stage 3] No HTML paths to upload. Skipping.")
         return {}
 
-    if not HAS_GDRIVE:
-        print("\n  [Stage 3] gdrive_storage not available. Skipping upload.")
+    if not HAS_SLIDE_STORAGE:
+        print("\n  [Stage 3] slide_storage not available (BCE-1080 pending). Skipping.")
         return {}
 
-    gd = get_gdrive()
-    if not gd.connected:
-        print("\n  [Stage 3] Google Drive not connected. Skipping upload.")
-        print("           Set GDRIVE_SERVICE_ACCOUNT_FILE and GDRIVE_ROOT_FOLDER_ID")
-        return {}
+    storage = get_slide_storage()
 
     print(f"\n{'='*60}")
-    print(f"  STAGE 3: Upload & Publish ({report_type.upper()})")
+    print(f"  STAGE 3: Slide HTML Storage ({report_type.upper()})")
     print(f"{'='*60}")
 
-    upload_results: Dict[str, Dict[str, str]] = {}
-
-    # Upload PDFs
-    for pdf_path in pdf_paths:
-        # Extract lang from filename: {slug}_{type}_v{ver}_{lang}.pdf
-        fname = Path(pdf_path).stem
-        parts = fname.split('_')
-        lang = parts[-1] if parts else 'en'
-
-        result = gd.upload_report(
-            local_path=pdf_path,
-            project_slug=project_slug,
-            report_type=report_type,
-            version=version,
-            lang=lang,
-        )
-
-        if result:
-            upload_results[lang] = result
-            print(f"  ✓ Uploaded {lang}: {result['url']}")
-
-            # Register in Supabase
-            _register_gdrive_url(
+    results: Dict[str, Any] = {}
+    for lang, html_path in html_paths_by_lang.items():
+        try:
+            result = storage.upload_slide(
+                local_path=html_path,
                 project_slug=project_slug,
                 report_type=report_type,
                 version=version,
                 lang=lang,
-                gdrive_result=result,
             )
-        else:
-            print(f"  ✗ Upload failed for {lang}")
+            if result:
+                results[lang] = result
+                url = result.get('url') if isinstance(result, dict) else result
+                print(f"  ✓ Uploaded {lang}: {url}")
+            else:
+                print(f"  ✗ Upload failed for {lang}")
+        except Exception as e:
+            print(f"  ✗ Storage error for {lang}: {e}")
+            import traceback
+            traceback.print_exc()
 
-    # Upload source markdown (internal, not public)
-    if md_path and os.path.exists(md_path):
-        md_result = gd.upload_source_markdown(
-            local_path=md_path,
-            project_slug=project_slug,
-            report_type=report_type,
-            version=version,
-            lang='en',
-        )
-        if md_result:
-            print(f"  ✓ Source MD archived: {md_result['url']}")
-
-    return upload_results
+    return results
 
 
 def _persist_maturity_score(
@@ -308,12 +268,10 @@ def _persist_maturity_score(
     print(f"  STAGE 4: Maturity Score Persistence + QA")
     print(f"{'='*60}")
 
-    # ── Extract score from metadata ──
     score = metadata.get('total_maturity_score')
     stage = metadata.get('maturity_stage')
     axes_raw = metadata.get('strategic_objectives') or metadata.get('axes') or []
 
-    # ── Fallback: extract from markdown text ──
     if not score and md_path and os.path.exists(md_path):
         import re as _re
         text = Path(md_path).read_text(encoding='utf-8')
@@ -326,7 +284,7 @@ def _persist_maturity_score(
             m = _re.search(pat, text)
             if m:
                 candidate = float(m.group(1))
-                if 0 < candidate < 100:  # Skip 100% weight matches
+                if 0 < candidate < 100:
                     score = candidate
                     break
 
@@ -334,15 +292,12 @@ def _persist_maturity_score(
         print("  [SKIP] No maturity score found in metadata or markdown")
         return
 
-    # ── QA Validation ──
     qa_errors = []
     qa_warnings = []
 
-    # QA-1: Score range check
     if not (0 <= score <= 100):
         qa_errors.append(f"Score {score} out of valid range [0, 100]")
 
-    # QA-2: Stage consistency check
     if stage:
         expected_stages = {
             (0, 25): 'nascent',
@@ -355,7 +310,6 @@ def _persist_maturity_score(
             if lo <= score < hi:
                 expected = s
                 break
-        # Allow flexible stage names (growth ≈ growing, bootstrap ≈ nascent, etc.)
         stage_aliases = {
             'growth': 'growing', 'bootstrap': 'nascent',
             'maturity': 'mature', 'mature': 'mature',
@@ -367,7 +321,6 @@ def _persist_maturity_score(
                 f"(expected '{expected}', got '{normalized}')"
             )
     else:
-        # Auto-assign stage from score
         if score < 25:
             stage = 'nascent'
         elif score < 50:
@@ -377,7 +330,6 @@ def _persist_maturity_score(
         else:
             stage = 'established'
 
-    # QA-3: Axes data validation
     valid_axes = []
     if axes_raw:
         for ax in axes_raw:
@@ -401,7 +353,6 @@ def _persist_maturity_score(
                 'achievement': round(achievement, 1),
             })
 
-    # QA-4: Cross-check — recalculate total from axes and compare
     if valid_axes:
         total_weight = sum(a['weight'] for a in valid_axes)
         if total_weight > 0:
@@ -417,7 +368,6 @@ def _persist_maturity_score(
                     f"Minor score discrepancy: recalc={recalc} vs reported={score} (diff={diff:.2f})"
                 )
 
-    # ── QA Report ──
     if qa_errors:
         for e in qa_errors:
             print(f"  ✗ QA ERROR: {e}")
@@ -429,7 +379,6 @@ def _persist_maturity_score(
 
     print(f"  ✓ QA passed — score={score}, stage={stage}, axes={len(valid_axes)}")
 
-    # ── Write to DB ──
     try:
         wh = get_warehouse()
         if not wh.connected:
@@ -452,85 +401,43 @@ def _persist_maturity_score(
         print(f"  ✗ DB write error: {e}")
 
 
-def _register_gdrive_url(
-    project_slug: str,
+def collect_slide_pdfs(
     report_type: str,
-    version: int,
-    lang: str,
-    gdrive_result: Dict[str, str],
-) -> None:
-    """Register Google Drive URL in Supabase project_reports table."""
-    if not HAS_COLLECTORS:
-        return
-    try:
-        wh = get_warehouse()
-        if not wh.connected:
-            return
-
-        wh._rpc('wh_register_report_gdrive', {
-            'p_project_slug': project_slug,
-            'p_report_type': report_type,
-            'p_version': version,
-            'p_lang': lang,
-            'p_gdrive_file_id': gdrive_result.get('id', ''),
-            'p_gdrive_url': gdrive_result.get('url', ''),
-            'p_gdrive_download_url': gdrive_result.get('download_url', ''),
-            'p_gdrive_folder_id': '',
-        })
-    except Exception as e:
-        print(f"  [Supabase] URL registration error: {e}")
-
-
-def run_stage1_5(
-    md_path: str,
+    project_slug: str,
     languages: List[str],
-    output_dir: str,
-    backend: str = 'auto',
-    skip: bool = False,
+    slide_pdf_args: Optional[List[str]],
+    slide_dir: Optional[str],
 ) -> Dict[str, str]:
     """
-    Stage 1.5: Translate EN master .md to target languages.
+    Resolve slide PDF inputs from --slide-pdf and/or --slide-dir CLI flags.
 
-    Returns:
-        Dict of {lang: translated_md_path}
+    Filters to the requested language set. Returns {lang: pdf_path}.
     """
-    translated_paths = {'en': md_path}
+    by_lang: Dict[str, str] = {}
 
-    if skip or not HAS_TRANSLATE_MD:
-        if not HAS_TRANSLATE_MD:
-            print("  [Stage 1.5] translate_md not available, skipping translation")
+    if slide_dir:
+        d = Path(slide_dir)
+        if not d.is_dir():
+            print(f"  Warning: --slide-dir not a directory: {slide_dir}")
         else:
-            print("  [Stage 1.5] Translation skipped")
-        # Copy EN path for all requested languages
-        for lang in languages:
-            translated_paths[lang] = md_path
-        return translated_paths
+            for lang in languages:
+                candidate = d / f"{project_slug}_{report_type}_slide_{lang}.pdf"
+                if candidate.exists():
+                    by_lang[lang] = str(candidate)
 
-    target_langs = [l for l in languages if l != 'en']
-    if not target_langs:
-        return translated_paths
+    if slide_pdf_args:
+        for spec in slide_pdf_args:
+            if ':' not in spec:
+                print(f"  Warning: --slide-pdf '{spec}' missing '<lang>:<path>' format. Skipping.")
+                continue
+            lang, path = spec.split(':', 1)
+            lang = lang.strip()
+            path = path.strip()
+            if lang not in languages:
+                continue
+            by_lang[lang] = path
 
-    print(f"\n{'─'*50}")
-    print(f"  STAGE 1.5: Translation → {len(target_langs)} languages")
-    print(f"{'─'*50}")
-
-    for lang in target_langs:
-        try:
-            print(f"  Translating → {lang}...")
-            path, meta = translate_md_file(
-                md_path,
-                target_lang=lang,
-                output_dir=output_dir,
-                backend=backend,
-            )
-            translated_paths[lang] = path
-            words = meta.get('word_count_target', 0)
-            print(f"  ✓ {lang}: {path} ({words} words)")
-        except Exception as e:
-            print(f"  ✗ {lang}: Translation failed: {e}")
-            translated_paths[lang] = md_path  # fallback to EN
-
-    return translated_paths
+    return by_lang
 
 
 def run_pipeline(
@@ -539,16 +446,15 @@ def run_pipeline(
     version: int,
     languages: List[str],
     project_data: Dict[str, Any],
+    slide_pdf_by_lang: Optional[Dict[str, str]] = None,
     skip_collect: bool = False,
-    skip_upload: bool = False,
-    skip_translate: bool = False,
-    translate_backend: str = 'auto',
-) -> Tuple[str, Dict[str, Any], List[str], Dict]:
+    text_only: bool = False,
+) -> Tuple[str, Dict[str, Any], Dict[str, str], Dict[str, Any]]:
     """
-    Run the full 5-stage pipeline.
+    Run the slide-based pipeline.
 
     Returns:
-        Tuple of (md_path, metadata, pdf_paths, upload_results)
+        Tuple of (md_path, metadata, html_paths_by_lang, storage_results)
     """
     project_data.setdefault('slug', project_slug)
     project_data.setdefault('version', version)
@@ -556,60 +462,58 @@ def run_pipeline(
     output_dir = OUTPUT_DIR
     os.makedirs(output_dir, exist_ok=True)
 
-    # Stage 0: Data Collection
     project_data = run_stage0(project_data, skip=skip_collect)
 
-    # Stage 1: Text Analysis (EN master)
     md_path, metadata = run_stage1(report_type, project_data, output_dir)
 
-    # Stage 1.5: Translation
-    translated_paths = run_stage1_5(
-        md_path, languages, output_dir,
-        backend=translate_backend,
-        skip=skip_translate,
-    )
+    html_paths: Dict[str, str] = {}
+    storage_results: Dict[str, Any] = {}
 
-    # Stage 2: PDF Generation (for each language, using translated .md files)
-    pdf_paths = run_stage2(
-        report_type, project_slug, version, languages,
-        md_path, metadata, output_dir,
-        translated_paths=translated_paths,
-    )
+    if text_only:
+        print("\n  [Stage 2/3] --text-only set; skipping slide and storage stages.")
+    else:
+        if slide_pdf_by_lang:
+            html_paths = run_stage2_slides(
+                report_type, project_slug, version,
+                slide_pdf_by_lang, output_dir,
+            )
+            storage_results = run_stage3_storage(
+                report_type, project_slug, version, html_paths,
+            )
+        else:
+            print("\n  [Stage 2/3] No --slide-pdf or --slide-dir input; skipping slide stages.")
 
-    # Stage 3: Upload & Publish
-    upload_results = run_stage3(
-        report_type, project_slug, version, languages,
-        md_path, pdf_paths, skip=skip_upload,
-    )
-
-    # Stage 4: Persist maturity score to tracked_projects (MAT reports only)
     if report_type in ('mat', 'maturity') and metadata:
         _persist_maturity_score(project_slug, metadata, md_path)
 
-    return md_path, metadata, pdf_paths, upload_results
+    return md_path, metadata, html_paths, storage_results
 
 
 def print_summary(
     report_type: str,
     md_path: str,
-    pdf_paths: List[str],
-    upload_results: Dict,
+    html_paths: Dict[str, str],
+    storage_results: Dict[str, Any],
 ) -> None:
     """Print pipeline completion summary."""
     print(f"\n{'='*60}")
     print(f"  PIPELINE COMPLETE — {report_type.upper()}")
     print(f"{'='*60}")
     print(f"  Stage 1 output: {md_path}")
-    print(f"  Stage 2 outputs ({len(pdf_paths)} PDF{'s' if len(pdf_paths) > 1 else ''}):")
-    for p in pdf_paths:
-        print(f"    - {p}")
-
-    if upload_results:
-        print(f"  Stage 3 uploads ({len(upload_results)} files):")
-        for lang, res in upload_results.items():
-            print(f"    - [{lang}] {res.get('url', 'N/A')}")
+    if html_paths:
+        print(f"  Stage 2 outputs ({len(html_paths)} HTML viewer{'s' if len(html_paths) > 1 else ''}):")
+        for lang, p in html_paths.items():
+            print(f"    - [{lang}] {p}")
     else:
-        print(f"  Stage 3: No uploads (skipped or not configured)")
+        print(f"  Stage 2: No slide HTML generated")
+
+    if storage_results:
+        print(f"  Stage 3 uploads ({len(storage_results)} files):")
+        for lang, res in storage_results.items():
+            url = res.get('url') if isinstance(res, dict) else res
+            print(f"    - [{lang}] {url}")
+    else:
+        print(f"  Stage 3: No uploads (skipped, no input, or slide_storage absent)")
 
     print(f"{'='*60}\n")
 
@@ -617,15 +521,15 @@ def print_summary(
 def main():
     """CLI entry point."""
     parser = argparse.ArgumentParser(
-        description='BCE Lab 4-Stage Report Pipeline',
+        description='BCE Lab Slide-based Report Pipeline',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python orchestrator.py --type econ --project uniswap --version 1 --lang en
-  python orchestrator.py --type mat  --project heyelsaai --version 1 --lang all
-  python orchestrator.py --type for  --project heyelsaai --version 1 --lang en --data data.json
-  python orchestrator.py --type econ --project uniswap --version 1 --lang en --skip-collect
-  python orchestrator.py --type econ --project uniswap --version 1 --lang en --skip-upload
+  python orchestrator.py --type econ --project uniswap --version 1 --lang en --text-only
+  python orchestrator.py --type econ --project uniswap --version 1 --lang ko \\
+      --slide-pdf ko:samples/test.pdf --skip-collect
+  python orchestrator.py --type mat --project heyelsaai --version 1 --lang all \\
+      --slide-dir ./slides
         """
     )
     parser.add_argument('--type', required=True, choices=['econ', 'mat', 'for'],
@@ -637,19 +541,23 @@ Examples:
     parser.add_argument('--data', help='Path to project data JSON')
     parser.add_argument('--skip-collect', action='store_true',
                         help='Skip Stage 0 data collection')
-    parser.add_argument('--skip-upload', action='store_true',
-                        help='Skip Stage 3 Google Drive upload')
+    parser.add_argument('--text-only', action='store_true',
+                        help='Run Stage 0+1 only; skip slide HTML and storage stages')
+    parser.add_argument('--slide-pdf', action='append', default=None,
+                        metavar='<lang>:<path>',
+                        help='Slide PDF for a language (repeatable). Example: '
+                             '--slide-pdf en:./en.pdf --slide-pdf ko:./ko.pdf')
+    parser.add_argument('--slide-dir', default=None,
+                        help='Directory containing {slug}_{type}_slide_{lang}.pdf files')
 
     args = parser.parse_args()
 
-    # Validate
     if args.lang != 'all' and args.lang not in LANGUAGES:
         print(f"Error: Invalid language '{args.lang}'. Use: {', '.join(LANGUAGES)} or 'all'")
         sys.exit(1)
 
     languages = LANGUAGES if args.lang == 'all' else [args.lang]
 
-    # Load data
     if args.data:
         project_data = load_project_data(args.data)
     else:
@@ -661,18 +569,26 @@ Examples:
             print("Use --data to specify the project data JSON file")
             sys.exit(1)
 
-    # Run pipeline
-    md_path, metadata, pdf_paths, upload_results = run_pipeline(
+    slide_pdf_by_lang = collect_slide_pdfs(
+        report_type=args.type,
+        project_slug=args.project,
+        languages=languages,
+        slide_pdf_args=args.slide_pdf,
+        slide_dir=args.slide_dir,
+    )
+
+    md_path, metadata, html_paths, storage_results = run_pipeline(
         report_type=args.type,
         project_slug=args.project,
         version=args.version,
         languages=languages,
         project_data=project_data,
+        slide_pdf_by_lang=slide_pdf_by_lang,
         skip_collect=args.skip_collect,
-        skip_upload=args.skip_upload,
+        text_only=args.text_only,
     )
 
-    print_summary(args.type, md_path, pdf_paths, upload_results)
+    print_summary(args.type, md_path, html_paths, storage_results)
 
 
 if __name__ == '__main__':
