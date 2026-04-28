@@ -58,10 +58,57 @@ def compress_slide_pdf(
     return output_path
 
 
+# NotebookLM exports place a logo (icon + "NotebookLM" text) at the bottom-right of every
+# page. Coordinates measured from sample PDFs (16:9 layout); see BCE-1095.
+NOTEBOOKLM_LOGO_BBOX = (0.90, 0.955, 1.00, 1.00)  # (x0, y0, x1, y1) as page fractions
+
+
+def _median_color(pix: fitz.Pixmap, x0: int, y0: int, x1: int, y1: int) -> tuple[int, int, int]:
+    """Return per-channel median RGB of pixels in [x0,x1)x[y0,y1) on an alpha=False pixmap."""
+    x0 = max(0, x0); y0 = max(0, y0)
+    x1 = min(pix.width, x1); y1 = min(pix.height, y1)
+    rs, gs, bs = [], [], []
+    for y in range(y0, y1):
+        for x in range(x0, x1):
+            r, g, b = pix.pixel(x, y)
+            rs.append(r); gs.append(g); bs.append(b)
+    if not rs:
+        return (0, 0, 0)
+    rs.sort(); gs.sort(); bs.sort()
+    m = len(rs) // 2
+    return (rs[m], gs[m], bs[m])
+
+
+def mask_notebooklm_logo(
+    pix: fitz.Pixmap, bbox: tuple[float, float, float, float] = NOTEBOOKLM_LOGO_BBOX,
+) -> fitz.Pixmap:
+    """Paint over the NotebookLM logo with the mean of left + above adjacent strip medians.
+    Mutates and returns the pixmap. Requires alpha=False, 3-channel RGB."""
+    if pix.alpha or pix.n != 3:
+        raise ValueError("mask_notebooklm_logo requires an alpha=False RGB pixmap")
+    W, H = pix.width, pix.height
+    fx0, fy0, fx1, fy1 = bbox
+    x0 = int(W * fx0); y0 = int(H * fy0)
+    x1 = int(W * fx1); y1 = int(H * fy1)
+    bw = x1 - x0; bh = y1 - y0
+    if bw <= 0 or bh <= 0:
+        return pix
+    left = _median_color(pix, x0 - bw, y0, x0, y1)
+    above = _median_color(pix, x0, y0 - bh, x1, y0)
+    bg = tuple((l + a) // 2 for l, a in zip(left, above))
+    pix.set_rect(fitz.IRect(x0, y0, x1, y1), bg)
+    return pix
+
+
 def extract_pages_base64(
-    pdf_path: str, dpi: int = 200, fmt: str = "jpeg", quality: int = 80,
+    pdf_path: str,
+    dpi: int = 200,
+    fmt: str = "jpeg",
+    quality: int = 80,
+    mask_logo: bool = True,
 ) -> list[tuple[str, str]]:
-    """Render each PDF page to a base64-encoded image. Returns [(mime, b64), ...]."""
+    """Render each PDF page to a base64-encoded image. Returns [(mime, b64), ...].
+    When mask_logo is True (default), paints over the NotebookLM logo at the bottom-right of each page."""
     doc = fitz.open(pdf_path)
     zoom = dpi / 72.0
     mat = fitz.Matrix(zoom, zoom)
@@ -69,6 +116,8 @@ def extract_pages_base64(
     for i in range(doc.page_count):
         page = doc[i]
         pix = page.get_pixmap(matrix=mat, alpha=False)
+        if mask_logo:
+            mask_notebooklm_logo(pix)
         if fmt == "jpeg":
             raw = pix.tobytes("jpeg", jpg_quality=quality)
             mime = "image/jpeg"
@@ -364,14 +413,16 @@ def convert_pdf_to_html_slides(
     title: str = "Slide Viewer",
     lang: str = "ko",
     dpi: int = 200,
+    mask_logo: bool = True,
 ) -> str:
     """Main entry: convert a PDF to an HTML slide viewer."""
     if output_path is None:
         stem = Path(pdf_path).stem
         output_path = str(Path(pdf_path).parent / f"{stem}_slides.html")
 
-    print(f"[1/2] Extracting pages from {pdf_path} at {dpi} DPI (JPEG)...")
-    pages = extract_pages_base64(pdf_path, dpi=dpi, fmt="jpeg", quality=80)
+    print(f"[1/2] Extracting pages from {pdf_path} at {dpi} DPI (JPEG)"
+          f"{' with NotebookLM logo masking' if mask_logo else ''}...")
+    pages = extract_pages_base64(pdf_path, dpi=dpi, fmt="jpeg", quality=80, mask_logo=mask_logo)
     print(f"  ✓ {len(pages)} pages extracted")
 
     print(f"[2/2] Building HTML viewer...")
@@ -394,6 +445,11 @@ def main():
     parser.add_argument("--title", default="Slide Viewer", help="Viewer title")
     parser.add_argument("--lang", default="ko", help="Language code")
     parser.add_argument("--dpi", type=int, default=200, help="Render DPI (default: 200)")
+    parser.add_argument(
+        "--no-mask-logo", dest="mask_logo", action="store_false",
+        help="Disable NotebookLM logo masking (use when input PDF is not from NotebookLM)",
+    )
+    parser.set_defaults(mask_logo=True)
     args = parser.parse_args()
 
     convert_pdf_to_html_slides(
@@ -402,6 +458,7 @@ def main():
         title=args.title,
         lang=args.lang,
         dpi=args.dpi,
+        mask_logo=args.mask_logo,
     )
 
 
