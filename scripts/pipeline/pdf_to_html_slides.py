@@ -27,7 +27,7 @@ import fitz  # PyMuPDF
 import numpy as np
 
 try:
-    from PIL import Image
+    from PIL import Image, ImageDraw, ImageFont
     HAS_PIL = True
 except ImportError:
     HAS_PIL = False
@@ -60,8 +60,11 @@ def compress_slide_pdf(
 
 
 # NotebookLM exports place a logo (icon + "NotebookLM" text) at the bottom-right of every
-# page. Coordinates measured from sample PDFs (16:9 layout); see BCE-1095.
-NOTEBOOKLM_LOGO_BBOX = (0.90, 0.955, 1.00, 1.00)  # (x0, y0, x1, y1) as page fractions
+# page. Coordinates extended above the logo's nominal top edge (BCE-1095 measured 0.955)
+# so the inpaint source row sits in confirmed background — anti-aliased logo edges bleed
+# 1–3 pixels above the logo body, and a tight bbox would let those bleed pixels into the
+# source row and produce vertical streaks (BCE-1701 follow-up).
+NOTEBOOKLM_LOGO_BBOX = (0.90, 0.93, 1.00, 1.00)  # (x0, y0, x1, y1) as page fractions
 
 
 def _median_color(pix: fitz.Pixmap, x0: int, y0: int, x1: int, y1: int) -> tuple[int, int, int]:
@@ -80,19 +83,99 @@ def _median_color(pix: fitz.Pixmap, x0: int, y0: int, x1: int, y1: int) -> tuple
     return (rs[m], gs[m], bs[m])
 
 
+_SOURCE_STRIP_ROWS = 3  # rows sampled above the bbox for the per-column median
+
+
+# Copyright overlay (BCE-1701 follow-up): instead of fighting to make the masked area
+# look like nothing was there, paint a small BCE Lab brand mark in the same spot.
+# Turns the masked region into intentional branding rather than a "blank patch."
+COPYRIGHT_OVERLAY_TEXT = "© BCE Lab"
+COPYRIGHT_OVERLAY_FONT_FRAC = 0.022   # font size as fraction of page height
+COPYRIGHT_OVERLAY_COLOR = (110, 110, 100)  # subtle warm gray, matches typical footer
+COPYRIGHT_OVERLAY_RIGHT_PAD_FRAC = 0.008
+_FONT_CANDIDATES = (
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+    "/System/Library/Fonts/Supplemental/Arial.ttf",
+    "/Library/Fonts/Arial.ttf",
+    "C:/Windows/Fonts/arial.ttf",
+)
+
+
+def _load_overlay_font(size: int):
+    if not HAS_PIL:
+        return None
+    for path in _FONT_CANDIDATES:
+        try:
+            return ImageFont.truetype(path, size)
+        except (OSError, IOError):
+            continue
+    return ImageFont.load_default()
+
+
+def overlay_copyright_notice(
+    pix: fitz.Pixmap,
+    bbox: tuple[float, float, float, float] = NOTEBOOKLM_LOGO_BBOX,
+    text: str = COPYRIGHT_OVERLAY_TEXT,
+    color: tuple[int, int, int] = COPYRIGHT_OVERLAY_COLOR,
+) -> fitz.Pixmap:
+    """Render a small copyright/brand text inside the logo bbox.
+
+    Run AFTER mask_notebooklm_logo so the surface is already inpainted. Right-aligned
+    within the bbox and vertically centered. No-op if PIL is unavailable.
+    Mutates and returns the pixmap. Requires alpha=False, 3-channel RGB.
+    """
+    if not HAS_PIL:
+        return pix
+    if pix.alpha or pix.n != 3:
+        raise ValueError("overlay_copyright_notice requires an alpha=False RGB pixmap")
+    W, H = pix.width, pix.height
+    fx0, fy0, fx1, fy1 = bbox
+    x0 = int(W * fx0); y0 = int(H * fy0)
+    x1 = int(W * fx1); y1 = int(H * fy1)
+    bw = x1 - x0; bh = y1 - y0
+    if bw <= 0 or bh <= 0:
+        return pix
+
+    arr = np.frombuffer(pix.samples_mv, dtype=np.uint8).reshape(H, W, pix.n)
+    img = Image.fromarray(arr.copy())
+    draw = ImageDraw.Draw(img)
+
+    font_size = max(10, int(H * COPYRIGHT_OVERLAY_FONT_FRAC))
+    font = _load_overlay_font(font_size)
+
+    tbox = draw.textbbox((0, 0), text, font=font)
+    tw, th = tbox[2] - tbox[0], tbox[3] - tbox[1]
+    pad = int(W * COPYRIGHT_OVERLAY_RIGHT_PAD_FRAC)
+    tx = max(x0, x1 - tw - pad)
+    ty = y0 + max(0, (bh - th) // 2) - tbox[1]
+    draw.text((tx, ty), text, font=font, fill=color)
+
+    arr[:] = np.array(img)
+    return pix
+
+
 def mask_notebooklm_logo(
     pix: fitz.Pixmap, bbox: tuple[float, float, float, float] = NOTEBOOKLM_LOGO_BBOX,
 ) -> fitz.Pixmap:
-    """Inpaint the NotebookLM logo by replicating the row directly above the bbox.
+    """Inpaint the NotebookLM logo by tiling a per-column median sampled just above the bbox.
 
-    For a logo pinned to the bottom-right corner, the row immediately above the logo
-    samples the local background at exactly the boundary the eye expects to see
-    extended. Tiling that row down through the bbox uses the *actual* local color
-    (not a global median estimate) and avoids duplicating distant horizontal
-    features that a multi-row copy would shift downward.
+    For each column inside the bbox, take the median value across a small strip of
+    rows directly above the bbox (`_SOURCE_STRIP_ROWS` tall). That column-wise
+    median becomes the fill color for every row in the bbox at the same column.
 
-    Falls back to the previous median-color fill when no row above is available.
-    Mutates and returns the pixmap. Requires alpha=False, 3-channel RGB.
+    Why per-column median (not single edge row):
+      A single edge row leaves the result extremely sensitive to the bbox's
+      vertical alignment with the logo. NotebookLM logo edges are anti-aliased,
+      so 1–3 rows immediately above the logo body still contain faint logo
+      pixels; copying that row tiles those faint pixels down into vertical
+      streaks (the "barcode artifact" reported in the BCE-1701 follow-up).
+      Median-of-strip filters those single-row anomalies while preserving any
+      legitimate per-column variation (e.g., footer text bleeding into the
+      corner, vertical gradient).
+
+    Falls back to the previous median-color fill when no rows above are
+    available. Mutates and returns the pixmap. Requires alpha=False, 3-channel RGB.
     """
     if pix.alpha or pix.n != 3:
         raise ValueError("mask_notebooklm_logo requires an alpha=False RGB pixmap")
@@ -106,9 +189,11 @@ def mask_notebooklm_logo(
 
     arr = np.frombuffer(pix.samples_mv, dtype=np.uint8).reshape(H, W, pix.n)
 
-    if y0 >= 1:
-        edge_row = arr[y0 - 1:y0, x0:x1]  # shape (1, bw, 3)
-        arr[y0:y1, x0:x1] = edge_row  # broadcasts across bh rows
+    strip_top = y0 - _SOURCE_STRIP_ROWS
+    if strip_top >= 0:
+        strip = arr[strip_top:y0, x0:x1]  # shape (_SOURCE_STRIP_ROWS, bw, 3)
+        src_row = np.median(strip, axis=0).astype(np.uint8)  # shape (bw, 3)
+        arr[y0:y1, x0:x1] = src_row  # broadcasts across bh rows
     else:
         left = _median_color(pix, x0 - bw, y0, x0, y1)
         pix.set_rect(fitz.IRect(x0, y0, x1, y1), left)
@@ -121,9 +206,11 @@ def extract_pages_base64(
     fmt: str = "jpeg",
     quality: int = 80,
     mask_logo: bool = True,
+    add_copyright: bool = True,
 ) -> list[tuple[str, str]]:
     """Render each PDF page to a base64-encoded image. Returns [(mime, b64), ...].
-    When mask_logo is True (default), paints over the NotebookLM logo at the bottom-right of each page."""
+    When mask_logo is True (default), paints over the NotebookLM logo at the bottom-right of each page.
+    When add_copyright is True (default), renders a BCE Lab copyright notice into the same area."""
     doc = fitz.open(pdf_path)
     zoom = dpi / 72.0
     mat = fitz.Matrix(zoom, zoom)
@@ -133,6 +220,8 @@ def extract_pages_base64(
         pix = page.get_pixmap(matrix=mat, alpha=False)
         if mask_logo:
             mask_notebooklm_logo(pix)
+            if add_copyright:
+                overlay_copyright_notice(pix)
         if fmt == "jpeg":
             raw = pix.tobytes("jpeg", jpg_quality=quality)
             mime = "image/jpeg"
