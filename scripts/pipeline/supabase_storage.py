@@ -85,7 +85,10 @@ def upload_html(
 
     file_options = {
         'content-type': content_type,
-        'cache-control': 'public, max-age=300',
+        # storage3 prepends 'max-age=' to whatever we send here; pass the bare
+        # seconds so we end up with 'max-age=300' instead of the previous
+        # mangled 'max-age=public, max-age=300' on the object metadata.
+        'cache-control': '300',
         'upsert': 'true' if upsert else 'false',
     }
 

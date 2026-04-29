@@ -21,6 +21,50 @@ export function SlideViewer({
   const containerRef = useRef<HTMLDivElement>(null)
   const [isLoaded, setIsLoaded] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [blobUrl, setBlobUrl] = useState<string | null>(null)
+  const [fetchError, setFetchError] = useState(false)
+
+  // Supabase Storage public endpoint forces Content-Type: text/plain regardless
+  // of object metadata (BCE-1696), so we fetch the HTML ourselves and rebuild a
+  // blob URL with the correct mime so the iframe renders it as a document.
+  useEffect(() => {
+    if (!htmlUrl) {
+      setBlobUrl(null)
+      setFetchError(false)
+      return
+    }
+
+    let cancelled = false
+    let createdUrl: string | null = null
+    setIsLoaded(false)
+    setFetchError(false)
+    setBlobUrl(null)
+
+    ;(async () => {
+      try {
+        const res = await fetch(htmlUrl)
+        if (!res.ok) {
+          throw new Error(`fetch failed: ${res.status}`)
+        }
+        const buf = await res.arrayBuffer()
+        if (cancelled) return
+        const blob = new Blob([buf], { type: 'text/html;charset=utf-8' })
+        createdUrl = URL.createObjectURL(blob)
+        setBlobUrl(createdUrl)
+      } catch (err) {
+        if (cancelled) return
+        console.error('[SlideViewer] failed to fetch slide HTML', err)
+        setFetchError(true)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+      if (createdUrl) {
+        URL.revokeObjectURL(createdUrl)
+      }
+    }
+  }, [htmlUrl])
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -64,7 +108,7 @@ export function SlideViewer({
         ref={containerRef}
         className="relative w-full aspect-[16/9] bg-black"
       >
-        {!isLoaded && (
+        {!isLoaded && !fetchError && (
           <div className="absolute inset-0">
             <LoadingSkeleton
               variant="custom"
@@ -73,15 +117,25 @@ export function SlideViewer({
           </div>
         )}
 
-        <iframe
-          src={htmlUrl}
-          title={title}
-          loading="lazy"
-          referrerPolicy="no-referrer"
-          sandbox="allow-scripts"
-          onLoad={() => setIsLoaded(true)}
-          className="absolute inset-0 w-full h-full border-0"
-        />
+        {fetchError && (
+          <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
+            <p className="text-sm text-white/70">
+              슬라이드를 불러오지 못했습니다.
+            </p>
+          </div>
+        )}
+
+        {blobUrl && !fetchError && (
+          <iframe
+            src={blobUrl}
+            title={title}
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            sandbox="allow-scripts"
+            onLoad={() => setIsLoaded(true)}
+            className="absolute inset-0 w-full h-full border-0"
+          />
+        )}
 
         {/* Fullscreen toggle */}
         <button
