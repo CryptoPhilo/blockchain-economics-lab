@@ -132,6 +132,8 @@ export function SlideViewer({
             loading="lazy"
             referrerPolicy="no-referrer"
             sandbox="allow-scripts"
+            allow="fullscreen"
+            allowFullScreen
             onLoad={() => setIsLoaded(true)}
             className="absolute inset-0 w-full h-full border-0"
           />
