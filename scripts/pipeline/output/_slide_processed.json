@@ -35,16 +35,23 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ethereum/latest/ja.html"
   },
   "1HjkDOfzK3A-SQuLEtqe-guosKQJLjDuL": {
-    "error": "unresolved (slug=bitcoin via filename; lang=? via none)",
-    "lang": null,
-    "lang_source": "none",
+    "error": null,
+    "finished_at": "2026-04-29T10:59:55.656581+00:00",
+    "lang": "ja",
+    "lang_source": "ocr_langdetect",
     "modifiedTime": "2026-04-29T05:29:08.000Z",
     "name": "Bitcoin_Crypto-Economy_Architecture.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ja.html",
+    "report_id": "25124006-1834-448f-91e6-cd454dd30eac",
+    "retry_count": 0,
     "rtype": "econ",
     "slug": "bitcoin",
     "slug_source": "filename",
-    "status": "unresolved",
-    "updated_at": "2026-04-29T08:39:35.067398+00:00"
+    "started_at": "2026-04-29T10:59:44.436389+00:00",
+    "status": "published",
+    "updated_at": "2026-04-29T10:59:55.656592+00:00",
+    "version": null,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ja.html"
   },
   "1NoW8Xj1xkzsP7goQuwV9CCALxeIqeb--": {
     "error": null,
