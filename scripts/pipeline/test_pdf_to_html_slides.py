@@ -72,3 +72,45 @@ class MaskNotebookLMLogoTests(TestCase):
     def test_median_color_matches_uniform_field(self):
         pix = _solid_pixmap(100, 100, (123, 45, 67))
         self.assertEqual(_median_color(pix, 0, 0, 100, 100), (123, 45, 67))
+
+    def test_logo_region_uses_exact_boundary_color(self):
+        # Edge-row tile uses the *actual* adjacent pixel value, not a median
+        # estimate, so a uniform background is reproduced byte-exact (no ±5 slop).
+        bg = (37, 91, 158)
+        logo = (250, 250, 250)
+        W, H = 400, 240
+        pix = _solid_pixmap(W, H, bg)
+        fx0, fy0, fx1, fy1 = NOTEBOOKLM_LOGO_BBOX
+        lx0 = int(W * fx0); ly0 = int(H * fy0)
+        lx1 = int(W * fx1); ly1 = int(H * fy1)
+        pix.set_rect(fitz.IRect(lx0, ly0, lx1, ly1), logo)
+
+        mask_notebooklm_logo(pix)
+
+        for y in (ly0, (ly0 + ly1) // 2, ly1 - 1):
+            for x in (lx0, (lx0 + lx1) // 2, lx1 - 1):
+                self.assertEqual(pix.pixel(x, y), bg)
+
+    def test_logo_region_does_not_duplicate_pattern_above(self):
+        # A horizontal rule sitting two rows above the bbox must NOT be duplicated
+        # inside the bbox (would happen with a multi-row strip copy). Edge-row
+        # tile only replicates the row directly above, so the rule stays put.
+        bg = (245, 245, 245)
+        rule = (20, 20, 200)
+        logo = (255, 255, 255)
+        W, H = 400, 240
+        pix = _solid_pixmap(W, H, bg)
+        fx0, fy0, fx1, fy1 = NOTEBOOKLM_LOGO_BBOX
+        lx0 = int(W * fx0); ly0 = int(H * fy0)
+        lx1 = int(W * fx1); ly1 = int(H * fy1)
+        # Rule two rows above the bbox; the row directly adjacent stays bg.
+        pix.set_rect(fitz.IRect(0, ly0 - 2, W, ly0 - 1), rule)
+        pix.set_rect(fitz.IRect(lx0, ly0, lx1, ly1), logo)
+
+        mask_notebooklm_logo(pix)
+
+        # Inside the bbox should be uniformly bg (no rule duplication).
+        for y in (ly0, ly0 + (ly1 - ly0) // 2, ly1 - 1):
+            self.assertEqual(pix.pixel((lx0 + lx1) // 2, y), bg)
+        # The original rule above the bbox is untouched.
+        self.assertEqual(pix.pixel((lx0 + lx1) // 2, ly0 - 2), rule)

@@ -24,6 +24,7 @@ import sys
 from pathlib import Path
 
 import fitz  # PyMuPDF
+import numpy as np
 
 try:
     from PIL import Image
@@ -82,8 +83,17 @@ def _median_color(pix: fitz.Pixmap, x0: int, y0: int, x1: int, y1: int) -> tuple
 def mask_notebooklm_logo(
     pix: fitz.Pixmap, bbox: tuple[float, float, float, float] = NOTEBOOKLM_LOGO_BBOX,
 ) -> fitz.Pixmap:
-    """Paint over the NotebookLM logo with the mean of left + above adjacent strip medians.
-    Mutates and returns the pixmap. Requires alpha=False, 3-channel RGB."""
+    """Inpaint the NotebookLM logo by replicating the row directly above the bbox.
+
+    For a logo pinned to the bottom-right corner, the row immediately above the logo
+    samples the local background at exactly the boundary the eye expects to see
+    extended. Tiling that row down through the bbox uses the *actual* local color
+    (not a global median estimate) and avoids duplicating distant horizontal
+    features that a multi-row copy would shift downward.
+
+    Falls back to the previous median-color fill when no row above is available.
+    Mutates and returns the pixmap. Requires alpha=False, 3-channel RGB.
+    """
     if pix.alpha or pix.n != 3:
         raise ValueError("mask_notebooklm_logo requires an alpha=False RGB pixmap")
     W, H = pix.width, pix.height
@@ -93,10 +103,15 @@ def mask_notebooklm_logo(
     bw = x1 - x0; bh = y1 - y0
     if bw <= 0 or bh <= 0:
         return pix
-    left = _median_color(pix, x0 - bw, y0, x0, y1)
-    above = _median_color(pix, x0, y0 - bh, x1, y0)
-    bg = tuple((l + a) // 2 for l, a in zip(left, above))
-    pix.set_rect(fitz.IRect(x0, y0, x1, y1), bg)
+
+    arr = np.frombuffer(pix.samples_mv, dtype=np.uint8).reshape(H, W, pix.n)
+
+    if y0 >= 1:
+        edge_row = arr[y0 - 1:y0, x0:x1]  # shape (1, bw, 3)
+        arr[y0:y1, x0:x1] = edge_row  # broadcasts across bh rows
+    else:
+        left = _median_color(pix, x0 - bw, y0, x0, y1)
+        pix.set_rect(fitz.IRect(x0, y0, x1, y1), left)
     return pix
 
 
