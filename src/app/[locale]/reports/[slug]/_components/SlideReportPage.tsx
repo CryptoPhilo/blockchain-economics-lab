@@ -66,17 +66,67 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
 
   if (!project) notFound()
 
-  const { data: report } = await supabase
+  // project_reports rows are scoped per (project, type, language). Pick the
+  // locale-matching row for hero text, falling back to English, then any
+  // published row.
+  let { data: report } = await supabase
     .from('project_reports')
     .select('*')
     .eq('project_id', project.id)
     .eq('report_type', reportType)
+    .eq('language', locale)
     .in('status', ['published', 'coming_soon'])
     .order('published_at', { ascending: false })
     .limit(1)
-    .single()
+    .maybeSingle()
+
+  if (!report && locale !== 'en') {
+    const { data: enRow } = await supabase
+      .from('project_reports')
+      .select('*')
+      .eq('project_id', project.id)
+      .eq('report_type', reportType)
+      .eq('language', 'en')
+      .in('status', ['published', 'coming_soon'])
+      .order('published_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    report = enRow
+  }
+
+  if (!report) {
+    const { data: anyRow } = await supabase
+      .from('project_reports')
+      .select('*')
+      .eq('project_id', project.id)
+      .eq('report_type', reportType)
+      .in('status', ['published', 'coming_soon'])
+      .order('published_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    report = anyRow
+  }
 
   if (!report) notFound()
+
+  // Merge slide URLs across every language row so the locale fallback chain
+  // (locale → en → any) can resolve a URL that lives on a different row.
+  const { data: allRows } = await supabase
+    .from('project_reports')
+    .select('slide_html_urls_by_lang')
+    .eq('project_id', project.id)
+    .eq('report_type', reportType)
+    .in('status', ['published', 'coming_soon'])
+
+  const mergedSlideUrls: Record<string, string> = {}
+  for (const row of allRows ?? []) {
+    const urls = row?.slide_html_urls_by_lang as Record<string, unknown> | null | undefined
+    if (urls && typeof urls === 'object') {
+      for (const [k, v] of Object.entries(urls)) {
+        if (typeof v === 'string' && v && !mergedSlideUrls[k]) mergedSlideUrls[k] = v
+      }
+    }
+  }
 
   const theme = themeByType[reportType]
   const reportLabel = reportType === 'econ' ? t('econLabel') : t('maturityLabel')
@@ -85,10 +135,7 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cardData = report.card_data as Record<string, any> | null
-  const slideUrl = resolveSlideUrl(
-    report.slide_html_urls_by_lang as Record<string, unknown> | null,
-    locale,
-  )
+  const slideUrl = resolveSlideUrl(mergedSlideUrls, locale)
 
   const keywordsByLang = cardData?.keywords_by_lang as Record<string, string[]> | undefined
   const localizedKeywords =
