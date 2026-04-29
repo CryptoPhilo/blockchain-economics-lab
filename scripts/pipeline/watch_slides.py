@@ -422,9 +422,40 @@ def _lang_from_metadata(meta: Dict[str, str]) -> Optional[str]:
     return None
 
 
+def _cjk_script_signature(text: str) -> Optional[str]:
+    """High-confidence CJK script detection by Unicode block counts.
+
+    Hiragana/katakana uniquely identify Japanese, hangul uniquely identifies
+    Korean, and han-only text (no kana/hangul) is treated as Chinese. This
+    runs before langdetect because short OCR text with mixed scripts
+    (image-heavy slides where OCR yields a brief title) often gets
+    misclassified by statistical detectors — e.g. a Japanese cover slide
+    fingerprinted as English.
+    """
+    if not text:
+        return None
+    sample = text[:8000]
+    hiragana_katakana = sum(
+        1 for ch in sample if '぀' <= ch <= 'ヿ'
+    )
+    hangul = sum(1 for ch in sample if '가' <= ch <= '힯')
+    han = sum(1 for ch in sample if '一' <= ch <= '鿿')
+    if hiragana_katakana >= 4:
+        return 'ja'
+    if hangul >= 4:
+        return 'ko'
+    if han >= 10 and hiragana_katakana == 0 and hangul == 0:
+        return 'zh'
+    return None
+
+
 def _lang_from_text(text: str) -> Optional[str]:
     if not text or len(text.strip()) < 30:
-        return None
+        # Even on short text, kana/hangul presence is decisive enough.
+        return _cjk_script_signature(text or '')
+    cjk = _cjk_script_signature(text)
+    if cjk:
+        return cjk
     try:
         from langdetect import detect, DetectorFactory
         DetectorFactory.seed = 0
