@@ -488,6 +488,23 @@ def _find_report_for_lang(sb, project_id: str, db_type: str, lang: str) -> Tuple
     return report_id, version
 
 
+def _find_any_report_id(sb, project_id: str, db_type: str) -> Optional[str]:
+    """Fallback row when no (project, type, language) match exists.
+
+    The frontend merges `slide_html_urls_by_lang` across every language row of
+    the same (project, type), so writing the URL into any sibling row keeps the
+    new language available via the cross-row fallback chain.
+    """
+    rep = sb.table('project_reports').select('id') \
+        .eq('project_id', project_id) \
+        .eq('report_type', db_type) \
+        .in_('status', ['published', 'coming_soon']) \
+        .order('published_at', desc=True) \
+        .limit(1) \
+        .execute()
+    return rep.data[0]['id'] if rep.data else None
+
+
 def _merge_slide_url(sb, report_id: str, lang: str, public_url: str) -> None:
     current = sb.table('project_reports').select('slide_html_urls_by_lang') \
         .eq('id', report_id).single().execute()
@@ -758,10 +775,20 @@ def process(
                     _merge_slide_url(sb, report_id, lang, public_url)
                     print(f"    ✓ DB merged: project_reports[{report_id}].slide_html_urls_by_lang.{lang}")
                 else:
-                    print(
-                        f"    [WARN] No project_reports row for ({slug}, {db_type}, {lang}); "
-                        f"URL uploaded but DB not updated"
-                    )
+                    fallback_id = _find_any_report_id(sb, project_id, db_type)
+                    if fallback_id:
+                        _merge_slide_url(sb, fallback_id, lang, public_url)
+                        report_id = fallback_id
+                        print(
+                            f"    ✓ DB merged (cross-lang fallback): "
+                            f"project_reports[{fallback_id}].slide_html_urls_by_lang.{lang} "
+                            f"(no row for {slug}/{db_type}/{lang}; using sibling row)"
+                        )
+                    else:
+                        print(
+                            f"    [WARN] No project_reports row for ({slug}, {db_type}, *); "
+                            f"URL uploaded but DB not updated"
+                        )
 
                 manifest[file_id].update({
                     'status': 'published',
