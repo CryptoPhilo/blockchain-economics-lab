@@ -341,6 +341,71 @@ def _resolve_slug(
     return None, 'none'
 
 
+def _score_project_in_text(text: str, proj: Dict[str, str]) -> int:
+    """Return the per-project match score used by _match_project_by_text."""
+    if not text:
+        return 0
+    t = text.lower()
+    tokens = set(_tokenize(text))
+    score = 0
+    for sig in _project_signal(proj):
+        if not sig:
+            continue
+        if ' ' in sig or '-' in sig:
+            if sig in t:
+                score = max(score, len(sig) * 2)
+        else:
+            if sig in tokens:
+                score = max(score, len(sig) * 2)
+            elif len(sig) >= 4 and sig in t:
+                score = max(score, len(sig))
+    return score
+
+
+def _detect_slug_content_mismatch(
+    resolved_project: Optional[Dict[str, str]],
+    pdf_text: str,
+    ocr_text: str,
+    projects: List[Dict[str, str]],
+) -> Optional[Dict[str, Any]]:
+    """Publish guard — flag PDFs whose body contradicts the filename-resolved slug.
+
+    Catches cases like a Bittensor PDF saved as bitcoin_*.pdf, where filename
+    matching alone would mis-publish content under the wrong project. Returns
+    a mismatch descriptor if body content matches a *different* project with
+    a meaningfully higher score than the resolved slug; returns None otherwise.
+
+    Heuristic: only blocks when (a) the body has an interpretable text layer,
+    (b) some other project's score is at least 12 (covers most slug/name
+    tokens >=6 chars), and (c) that score is strictly higher than the resolved
+    project's body score. Empty-text-layer PDFs (e.g. NotebookLM raster) are
+    skipped to avoid false positives.
+    """
+    if resolved_project is None:
+        return None
+    body = (pdf_text or '') + '\n' + (ocr_text or '')
+    if len(body.strip()) < 200:
+        return None  # not enough body text to decide reliably
+    expected_score = _score_project_in_text(body, resolved_project)
+    expected_slug = (resolved_project.get('slug') or '').lower()
+    best_other: Optional[Tuple[int, Dict[str, str]]] = None
+    for proj in projects:
+        if (proj.get('slug') or '').lower() == expected_slug:
+            continue
+        score = _score_project_in_text(body, proj)
+        if score >= 12 and (best_other is None or score > best_other[0]):
+            best_other = (score, proj)
+    if best_other and best_other[0] > expected_score:
+        other_slug = (best_other[1].get('slug') or '').lower()
+        return {
+            'expected_slug': expected_slug,
+            'expected_score': expected_score,
+            'detected_slug': other_slug,
+            'detected_score': best_other[0],
+        }
+    return None
+
+
 # ═══════════════════════════════════════════
 # Language resolution
 # ═══════════════════════════════════════════
@@ -620,6 +685,36 @@ def process(
                 _save_manifest(manifest)
                 processed.append({**record, 'status': 'unresolved', 'error': msg})
                 continue
+
+            # Publish guard (BCE-1699): when slug came from filename, sanity-check
+            # that the PDF body doesn't strongly identify a *different* project.
+            # Prevents Bittensor-content-saved-as-bitcoin_*.pdf style contamination.
+            if slug_source == 'filename':
+                mismatch = _detect_slug_content_mismatch(project, pdf_text, ocr_text, projects)
+                if mismatch:
+                    msg = (
+                        f"slug/content mismatch — filename resolved '{mismatch['expected_slug']}' "
+                        f"(body score {mismatch['expected_score']}) but body strongly matches "
+                        f"'{mismatch['detected_slug']}' (score {mismatch['detected_score']})"
+                    )
+                    print(f"  [BLOCKED] {rtype}/{pdf['name']}: {msg}")
+                    manifest[file_id] = {
+                        **prev,
+                        'rtype': rtype,
+                        'name': pdf['name'],
+                        'modifiedTime': modified,
+                        'status': 'mismatch',
+                        'slug': slug,
+                        'lang': lang,
+                        'slug_source': slug_source,
+                        'lang_source': lang_source,
+                        'error': msg,
+                        'mismatch': mismatch,
+                        'updated_at': datetime.now(timezone.utc).isoformat(),
+                    }
+                    _save_manifest(manifest)
+                    processed.append({**record, 'status': 'mismatch', 'error': msg})
+                    continue
 
             print(
                 f"\n  [PROCESS] {rtype}/{pdf['name']} "
