@@ -15,6 +15,25 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/humanity-protocol/1/ko.html"
   },
+  "19PrpQpSPgbZiv4rUODsLEN96FfdPdYN3": {
+    "error": null,
+    "finished_at": "2026-04-30T10:30:31.301207+00:00",
+    "lang": "ko",
+    "lang_source": "ocr_langdetect",
+    "modifiedTime": "2026-04-30T06:57:28.000Z",
+    "name": "BNB_2026_Economic_Nexus.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/binancecoin/latest/ko.html",
+    "report_id": "86ffd522-b06f-4288-a2e7-d0d3d983e5d9",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "binancecoin",
+    "slug_source": "filename",
+    "started_at": "2026-04-30T10:30:19.315802+00:00",
+    "status": "published",
+    "updated_at": "2026-04-30T10:30:31.301221+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/binancecoin/1/ko.html"
+  },
   "1C5Qi-yVtajfzFCFzY3VQ0YffmdGEqsEj": {
     "error": null,
     "finished_at": "2026-04-30T06:31:09.130370+00:00",
@@ -50,7 +69,7 @@
     "slug": "tether",
     "slug_source": "filename",
     "status": "mismatch",
-    "updated_at": "2026-04-30T06:30:46.783754+00:00"
+    "updated_at": "2026-04-30T10:32:26.316664+00:00"
   },
   "1DU7UyCwF-QUF664v3F42XRo7Z-X2UOXK": {
     "error": null,
@@ -147,6 +166,25 @@
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pancakeswap/latest/ja.html"
   },
+  "1OgwiC2qpJfppjWLYhgSohk4Zm5SwYBoj": {
+    "error": null,
+    "finished_at": "2026-04-30T10:31:33.589761+00:00",
+    "lang": "ja",
+    "lang_source": "ocr_langdetect",
+    "modifiedTime": "2026-04-30T06:56:52.000Z",
+    "name": "XRPL_Institutional_Architecture.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/cross-crypto/latest/ja.html",
+    "report_id": "61239e69-fd16-46b7-8d64-40503533b4a8",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "cross-crypto",
+    "slug_source": "ocr",
+    "started_at": "2026-04-30T10:31:23.892378+00:00",
+    "status": "published",
+    "updated_at": "2026-04-30T10:31:33.589769+00:00",
+    "version": null,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/cross-crypto/latest/ja.html"
+  },
   "1OyFlAW6fQKJhgHfBYCPe_Z_sd7dtCJSL": {
     "error": null,
     "finished_at": "2026-04-30T06:31:39.405739+00:00",
@@ -165,6 +203,24 @@
     "updated_at": "2026-04-30T06:31:39.405755+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pancakeswap/latest/en.html"
+  },
+  "1UTg8MORcPQmYqjXGgDAADF-9uer-MxeN": {
+    "error": "slug/content mismatch — filename resolved 'binancecoin' (body score 6) but body strongly matches 'ethereum' (score 16)",
+    "lang": "en",
+    "lang_source": "ocr_langdetect",
+    "mismatch": {
+      "detected_score": 16,
+      "detected_slug": "ethereum",
+      "expected_score": 6,
+      "expected_slug": "binancecoin"
+    },
+    "modifiedTime": "2026-04-30T07:10:00.000Z",
+    "name": "BNB_Chain_2026_Strategic_Blueprint.pdf",
+    "rtype": "econ",
+    "slug": "binancecoin",
+    "slug_source": "filename",
+    "status": "mismatch",
+    "updated_at": "2026-04-30T10:29:29.551445+00:00"
   },
   "1X40I_HzVFQVQpv6uR9lT1PEai-QXrFIi": {
     "error": null,
@@ -185,6 +241,25 @@
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/tether/latest/en.html"
   },
+  "1ctUff0fbCrg4Us37NSRJfj1e-tR0A7xq": {
+    "error": null,
+    "finished_at": "2026-04-30T10:31:04.928400+00:00",
+    "lang": "ja",
+    "lang_source": "ocr_langdetect",
+    "modifiedTime": "2026-04-30T06:57:00.000Z",
+    "name": "XRPL_Institutional_Economic_Analysis.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ripple/latest/ja.html",
+    "report_id": "54b0e7ed-d6af-41d3-ae19-c9474c55b4d9",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "ripple",
+    "slug_source": "ocr",
+    "started_at": "2026-04-30T10:30:54.829830+00:00",
+    "status": "published",
+    "updated_at": "2026-04-30T10:31:04.928416+00:00",
+    "version": null,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ripple/latest/ja.html"
+  },
   "1dkUD3BKSIl0hSCLuKy0DR0k2wfFe06A9": {
     "error": null,
     "finished_at": "2026-04-27T22:58:48.418104+00:00",
@@ -200,6 +275,25 @@
     "updated_at": "2026-04-27T22:58:48.418119+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/humanity-protocol/1/en.html"
+  },
+  "1e7JEz0YZ1d90IQJuGZ7KbVYgAZCPohvq": {
+    "error": null,
+    "finished_at": "2026-04-30T10:30:02.156409+00:00",
+    "lang": "en",
+    "lang_source": "ocr_langdetect",
+    "modifiedTime": "2026-04-30T07:09:27.000Z",
+    "name": "XRPL_Cryptoeconomic_Blueprint.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ripple/latest/en.html",
+    "report_id": "54b0e7ed-d6af-41d3-ae19-c9474c55b4d9",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "ripple",
+    "slug_source": "ocr",
+    "started_at": "2026-04-30T10:29:49.982057+00:00",
+    "status": "published",
+    "updated_at": "2026-04-30T10:30:02.156417+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ripple/1/en.html"
   },
   "1hxEZEs60XUhrm0XFCpZ0jz_CU5GkIHeu": {
     "error": null,
@@ -314,6 +408,25 @@
     "updated_at": "2026-04-29T06:28:22.823412+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ja.html"
+  },
+  "1wZaGAuoHOMt29wNRFwqBO873z8EvpD6w": {
+    "error": null,
+    "finished_at": "2026-04-30T10:32:03.390429+00:00",
+    "lang": "ko",
+    "lang_source": "ocr_langdetect",
+    "modifiedTime": "2026-04-30T06:56:39.000Z",
+    "name": "XRPL_Economic_Blueprint.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ripple/latest/ko.html",
+    "report_id": "23072cc6-eb13-4d49-94e8-1e68910dd441",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "ripple",
+    "slug_source": "ocr",
+    "started_at": "2026-04-30T10:31:52.952584+00:00",
+    "status": "published",
+    "updated_at": "2026-04-30T10:32:03.390439+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ripple/1/ko.html"
   },
   "1yYj03c03BqcKfip-PNMewzd0qD_U6Sd5": {
     "error": null,
