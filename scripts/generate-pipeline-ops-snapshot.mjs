@@ -28,6 +28,9 @@ const ENV_PATH = path.join(REPO_ROOT, '.env.local');
 const DAYS_DEFAULT = 7;
 const STALE_MINUTES = 30;
 const TERMINAL = new Set(['done', 'published', 'content_failed_terminal']);
+const SCHEDULE_PIPELINE_NAME = 'slide-pipeline';
+const SCHEDULE_INTERVAL_MIN = 5;
+const SCHEDULE_INTERVAL_MAX = 1440;
 
 function loadDotEnv() {
   if (!fs.existsSync(ENV_PATH)) return;
@@ -128,6 +131,30 @@ const STRINGS = {
     runsTitle: '최근 실행',
     cols: ['시작 시각', '유형', '프로젝트', '버전', '상태', '재시도', '진행 언어', '오류 요약'],
     none: '데이터 없음',
+    scheduleTitle: '슬라이드 파이프라인 작동 주기',
+    configMissing: 'Supabase 공개 자격증명이 빌드 시점에 인라인되지 않아 컨트롤 패널을 사용할 수 없습니다. NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY 를 설정 후 다시 생성하세요.',
+    authPrompt: '관리자 이메일로 매직 링크를 받아 로그인하세요. 로그인 후 작동 주기를 변경할 수 있습니다.',
+    emailPlaceholder: '관리자 이메일',
+    sendMagicLink: '매직 링크 받기',
+    magicLinkSent: '매직 링크를 전송했습니다. 이메일을 확인하세요.',
+    magicLinkError: '매직 링크 전송 실패',
+    signOut: '로그아웃',
+    loggedInAs: '로그인',
+    roleAdmin: '관리자 — 작동 주기 변경 가능',
+    roleViewer: '권한 없음 — 보기 전용 (관리자 이메일이 아닙니다)',
+    pipelineName: '파이프라인',
+    intervalMinutes: '실행 주기 (분)',
+    intervalHint: `5–1440 분 사이`,
+    enabled: '활성화',
+    lastRunAt: '최근 실행',
+    updatedAt: '마지막 변경',
+    updatedBy: '변경자',
+    save: '저장',
+    saving: '저장 중...',
+    saveSuccess: '저장 완료',
+    saveError: '저장 실패',
+    loadError: '작동 주기 조회 실패',
+    never: '아직 없음',
   },
   en: {
     title: 'Pipeline Operations Snapshot',
@@ -148,6 +175,30 @@ const STRINGS = {
     runsTitle: 'Recent runs',
     cols: ['Started', 'Type', 'Project', 'Version', 'Status', 'Retries', 'Languages', 'Error'],
     none: 'No data',
+    scheduleTitle: 'Slide pipeline schedule',
+    configMissing: 'Supabase public credentials were not inlined at build time, so the control panel is disabled. Set NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY and regenerate.',
+    authPrompt: 'Sign in with an admin email via magic link to change the schedule.',
+    emailPlaceholder: 'admin email',
+    sendMagicLink: 'Send magic link',
+    magicLinkSent: 'Magic link sent — check your email.',
+    magicLinkError: 'Failed to send magic link',
+    signOut: 'Sign out',
+    loggedInAs: 'Signed in as',
+    roleAdmin: 'Admin — can update schedule',
+    roleViewer: 'Read-only — not on admin allowlist',
+    pipelineName: 'Pipeline',
+    intervalMinutes: 'Interval (minutes)',
+    intervalHint: 'Between 5 and 1440 minutes',
+    enabled: 'Enabled',
+    lastRunAt: 'Last run',
+    updatedAt: 'Last updated',
+    updatedBy: 'Updated by',
+    save: 'Save',
+    saving: 'Saving...',
+    saveSuccess: 'Saved',
+    saveError: 'Save failed',
+    loadError: 'Failed to load schedule',
+    never: 'never',
   },
 };
 
@@ -183,7 +234,258 @@ function statusClass(status) {
   return 'err';
 }
 
-function renderHtml({ summary, runs, locale, source, generatedAt, days }) {
+function renderSchedulePanel(locale, supabaseConfig) {
+  const t = STRINGS[locale];
+  if (!supabaseConfig.url || !supabaseConfig.anonKey) {
+    return `
+  <h2>${t.scheduleTitle}</h2>
+  <section class="panel" data-schedule-panel>
+    <div class="panel-banner err">${escapeHtml(t.configMissing)}</div>
+  </section>`;
+  }
+
+  return `
+  <h2>${t.scheduleTitle}</h2>
+  <section class="panel" data-schedule-panel hidden>
+    <div class="panel-banner err" data-panel-error hidden></div>
+    <div data-panel-signed-out hidden>
+      <p class="panel-prompt">${escapeHtml(t.authPrompt)}</p>
+      <form class="panel-form" data-magic-link-form>
+        <input type="email" required placeholder="${escapeHtml(t.emailPlaceholder)}" data-magic-link-email />
+        <button type="submit" class="btn primary">${escapeHtml(t.sendMagicLink)}</button>
+      </form>
+      <div class="panel-toast" data-magic-link-toast hidden></div>
+    </div>
+    <div data-panel-signed-in hidden>
+      <div class="panel-userline">
+        <span class="muted">${escapeHtml(t.loggedInAs)}:</span>
+        <strong data-user-email></strong>
+        <button type="button" class="btn ghost" data-sign-out>${escapeHtml(t.signOut)}</button>
+      </div>
+      <div class="panel-rolebanner" data-role-banner></div>
+      <table class="schedule-table">
+        <tbody>
+          <tr><th>${escapeHtml(t.pipelineName)}</th><td><code>${SCHEDULE_PIPELINE_NAME}</code></td></tr>
+          <tr>
+            <th>${escapeHtml(t.intervalMinutes)}</th>
+            <td>
+              <input type="number" min="${SCHEDULE_INTERVAL_MIN}" max="${SCHEDULE_INTERVAL_MAX}" step="1" data-field-interval disabled />
+              <span class="muted hint">${escapeHtml(t.intervalHint)}</span>
+            </td>
+          </tr>
+          <tr>
+            <th>${escapeHtml(t.enabled)}</th>
+            <td><label class="switch"><input type="checkbox" data-field-enabled disabled /><span></span></label></td>
+          </tr>
+          <tr><th>${escapeHtml(t.lastRunAt)}</th><td data-field-last-run class="mono"></td></tr>
+          <tr><th>${escapeHtml(t.updatedAt)}</th><td data-field-updated-at class="mono"></td></tr>
+          <tr><th>${escapeHtml(t.updatedBy)}</th><td data-field-updated-by class="mono"></td></tr>
+        </tbody>
+      </table>
+      <div class="panel-actions">
+        <button type="button" class="btn primary" data-save disabled>${escapeHtml(t.save)}</button>
+        <span class="panel-toast inline" data-save-toast hidden></span>
+      </div>
+    </div>
+  </section>`;
+}
+
+function renderScheduleScript(locale, supabaseConfig) {
+  if (!supabaseConfig.url || !supabaseConfig.anonKey) return '';
+  const t = STRINGS[locale];
+  const payload = {
+    locale,
+    supabaseUrl: supabaseConfig.url,
+    supabaseAnonKey: supabaseConfig.anonKey,
+    pipelineName: SCHEDULE_PIPELINE_NAME,
+    minInterval: SCHEDULE_INTERVAL_MIN,
+    maxInterval: SCHEDULE_INTERVAL_MAX,
+    strings: {
+      magicLinkSent: t.magicLinkSent,
+      magicLinkError: t.magicLinkError,
+      roleAdmin: t.roleAdmin,
+      roleViewer: t.roleViewer,
+      saving: t.saving,
+      saveSuccess: t.saveSuccess,
+      saveError: t.saveError,
+      loadError: t.loadError,
+      never: t.never,
+    },
+  };
+  // Encode safely for inclusion inside a <script> tag — escape </ to avoid breaking the tag.
+  const json = JSON.stringify(payload).replace(/<\/(script)/gi, '<\\/$1');
+  return `
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+  const CFG = ${json};
+  const sb = createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, {
+    auth: { detectSessionInUrl: true, persistSession: true, autoRefreshToken: true },
+  });
+
+  const panel = document.querySelector('[data-schedule-panel]');
+  const errEl = panel.querySelector('[data-panel-error]');
+  const outBlock = panel.querySelector('[data-panel-signed-out]');
+  const inBlock = panel.querySelector('[data-panel-signed-in]');
+  const userEmailEl = panel.querySelector('[data-user-email]');
+  const roleBanner = panel.querySelector('[data-role-banner]');
+  const intervalEl = panel.querySelector('[data-field-interval]');
+  const enabledEl = panel.querySelector('[data-field-enabled]');
+  const lastRunEl = panel.querySelector('[data-field-last-run]');
+  const updatedAtEl = panel.querySelector('[data-field-updated-at]');
+  const updatedByEl = panel.querySelector('[data-field-updated-by]');
+  const saveBtn = panel.querySelector('[data-save]');
+  const saveToast = panel.querySelector('[data-save-toast]');
+  const linkForm = panel.querySelector('[data-magic-link-form]');
+  const linkEmail = panel.querySelector('[data-magic-link-email]');
+  const linkToast = panel.querySelector('[data-magic-link-toast]');
+
+  let isAdmin = false;
+  let originalRow = null;
+
+  panel.hidden = false;
+
+  function fmtDate(value) {
+    if (!value) return CFG.strings.never;
+    try {
+      return new Date(value).toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
+    } catch (e) {
+      return String(value);
+    }
+  }
+
+  function showError(msg) {
+    if (!msg) { errEl.hidden = true; errEl.textContent = ''; return; }
+    errEl.textContent = msg;
+    errEl.hidden = false;
+  }
+
+  function showToast(el, msg, kind) {
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'panel-toast' + (el.classList.contains('inline') ? ' inline' : '') + ' ' + (kind || '');
+    el.hidden = false;
+    if (kind !== 'err') {
+      setTimeout(() => { el.hidden = true; }, 4000);
+    }
+  }
+
+  async function checkAdmin(email) {
+    const { data, error } = await sb
+      .from('admin_emails')
+      .select('email')
+      .ilike('email', email)
+      .maybeSingle();
+    if (error) return false;
+    return Boolean(data);
+  }
+
+  async function loadSchedule() {
+    const { data, error } = await sb
+      .from('pipeline_schedules')
+      .select('pipeline_name, interval_minutes, enabled, last_run_at, updated_at, updated_by')
+      .eq('pipeline_name', CFG.pipelineName)
+      .maybeSingle();
+    if (error) {
+      showError(CFG.strings.loadError + ': ' + error.message);
+      return;
+    }
+    if (!data) {
+      showError(CFG.strings.loadError + ' (no row for ' + CFG.pipelineName + ')');
+      return;
+    }
+    originalRow = data;
+    intervalEl.value = data.interval_minutes;
+    enabledEl.checked = !!data.enabled;
+    lastRunEl.textContent = fmtDate(data.last_run_at);
+    updatedAtEl.textContent = fmtDate(data.updated_at);
+    updatedByEl.textContent = data.updated_by || '';
+  }
+
+  function applyRole(adminFlag) {
+    isAdmin = adminFlag;
+    roleBanner.textContent = adminFlag ? CFG.strings.roleAdmin : CFG.strings.roleViewer;
+    roleBanner.className = 'panel-rolebanner ' + (adminFlag ? 'ok' : 'warn');
+    intervalEl.disabled = !adminFlag;
+    enabledEl.disabled = !adminFlag;
+    saveBtn.disabled = !adminFlag;
+  }
+
+  async function renderSession(session) {
+    showError('');
+    if (!session) {
+      outBlock.hidden = false;
+      inBlock.hidden = true;
+      return;
+    }
+    outBlock.hidden = true;
+    inBlock.hidden = false;
+    userEmailEl.textContent = session.user?.email || '';
+    applyRole(false);
+    await loadSchedule();
+    const adminFlag = await checkAdmin(session.user?.email || '');
+    applyRole(adminFlag);
+  }
+
+  linkForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = (linkEmail.value || '').trim();
+    if (!email) return;
+    showToast(linkToast, '...', '');
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.href },
+    });
+    if (error) {
+      showToast(linkToast, CFG.strings.magicLinkError + ': ' + error.message, 'err');
+    } else {
+      showToast(linkToast, CFG.strings.magicLinkSent, 'ok');
+    }
+  });
+
+  panel.querySelector('[data-sign-out]').addEventListener('click', async () => {
+    await sb.auth.signOut();
+  });
+
+  saveBtn.addEventListener('click', async () => {
+    if (!isAdmin) return;
+    const interval = Number(intervalEl.value);
+    if (!Number.isInteger(interval) || interval < CFG.minInterval || interval > CFG.maxInterval) {
+      showToast(saveToast, CFG.strings.saveError + ': interval ' + CFG.minInterval + '–' + CFG.maxInterval, 'err');
+      return;
+    }
+    const enabled = !!enabledEl.checked;
+    const session = (await sb.auth.getSession()).data.session;
+    const updatedBy = session?.user?.email || 'unknown';
+    saveBtn.disabled = true;
+    showToast(saveToast, CFG.strings.saving, '');
+    const { data, error } = await sb
+      .from('pipeline_schedules')
+      .update({ interval_minutes: interval, enabled, updated_by: updatedBy })
+      .eq('pipeline_name', CFG.pipelineName)
+      .select('pipeline_name, interval_minutes, enabled, last_run_at, updated_at, updated_by')
+      .maybeSingle();
+    saveBtn.disabled = false;
+    if (error) {
+      showToast(saveToast, CFG.strings.saveError + ': ' + error.message, 'err');
+      return;
+    }
+    if (data) {
+      originalRow = data;
+      intervalEl.value = data.interval_minutes;
+      enabledEl.checked = !!data.enabled;
+      lastRunEl.textContent = fmtDate(data.last_run_at);
+      updatedAtEl.textContent = fmtDate(data.updated_at);
+      updatedByEl.textContent = data.updated_by || '';
+    }
+    showToast(saveToast, CFG.strings.saveSuccess, 'ok');
+  });
+
+  sb.auth.onAuthStateChange((_event, session) => { renderSession(session); });
+  sb.auth.getSession().then(({ data }) => renderSession(data.session));
+</script>`;
+}
+
+function renderHtml({ summary, runs, locale, source, generatedAt, days, supabaseConfig }) {
   const t = STRINGS[locale];
   const sourceLabel = source === 'supabase' ? t.sourceSupabase : t.sourceFixture;
   const rows = runs.length === 0
@@ -239,12 +541,41 @@ function renderHtml({ summary, runs, locale, source, generatedAt, days }) {
   .status.ok { background: #064e3b; color: #34d399; }
   .status.warn { background: #78350f; color: #fbbf24; }
   .status.err { background: #7f1d1d; color: #fca5a5; }
+  .panel { background: #14171c; border: 1px solid #1f2937; border-radius: 8px; padding: 16px 20px; margin-bottom: 24px; font-size: 13px; }
+  .panel-banner { padding: 10px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; }
+  .panel-banner.err { background: #7f1d1d; color: #fecaca; }
+  .panel-prompt { color: #d1d5db; font-size: 13px; margin: 0 0 10px; }
+  .panel-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .panel-form input[type=email] { flex: 1 1 240px; min-width: 200px; padding: 8px 10px; background: #0b0d10; color: inherit; border: 1px solid #374151; border-radius: 6px; font-size: 13px; }
+  .panel-userline { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+  .panel-rolebanner { padding: 6px 10px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; display: inline-block; }
+  .panel-rolebanner.ok { background: #064e3b; color: #34d399; }
+  .panel-rolebanner.warn { background: #78350f; color: #fbbf24; }
+  .panel-actions { display: flex; gap: 12px; align-items: center; margin-top: 12px; }
+  .schedule-table { width: auto; min-width: 320px; }
+  .schedule-table th { width: 40%; text-transform: none; font-size: 13px; color: #9ca3af; font-weight: 500; }
+  .schedule-table td { font-size: 13px; }
+  .schedule-table input[type=number] { width: 100px; padding: 6px 8px; background: #0b0d10; color: inherit; border: 1px solid #374151; border-radius: 6px; font-size: 13px; }
+  .schedule-table .hint { margin-left: 8px; font-size: 11px; }
+  .switch input { accent-color: #34d399; transform: scale(1.2); }
+  .btn { padding: 8px 14px; border-radius: 6px; border: 1px solid #374151; background: #1f2937; color: #e5e7eb; font-size: 13px; cursor: pointer; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn.primary { background: #2563eb; border-color: #2563eb; color: #fff; }
+  .btn.primary:disabled { background: #1e3a8a; border-color: #1e3a8a; }
+  .btn.ghost { background: transparent; }
+  .panel-toast { display: block; margin-top: 8px; padding: 6px 10px; border-radius: 6px; font-size: 12px; background: #1f2937; }
+  .panel-toast.inline { display: inline-block; margin: 0; }
+  .panel-toast.ok { background: #064e3b; color: #34d399; }
+  .panel-toast.err { background: #7f1d1d; color: #fca5a5; }
   @media (prefers-color-scheme: light) {
     body { background: #f9fafb; color: #111827; }
-    .card, ul.kv li { background: #fff; border-color: #e5e7eb; }
+    .card, ul.kv li, .panel { background: #fff; border-color: #e5e7eb; }
     h2 { color: #6b7280; border-color: #e5e7eb; }
     th { color: #6b7280; }
     td.mono { color: #374151; }
+    .panel-form input[type=email], .schedule-table input[type=number] { background: #fff; color: #111827; border-color: #d1d5db; }
+    .btn { background: #f3f4f6; border-color: #d1d5db; color: #111827; }
+    .panel-toast { background: #f3f4f6; color: #374151; }
   }
 </style>
 </head>
@@ -256,6 +587,7 @@ function renderHtml({ summary, runs, locale, source, generatedAt, days }) {
     <span><strong>${t.source}:</strong> ${escapeHtml(sourceLabel)}</span>
     <span><strong>window:</strong> ${escapeHtml(days)}d</span>
   </div>
+${renderSchedulePanel(locale, supabaseConfig)}
 
   <h2>${t.summaryTitle}</h2>
   <div class="grid">
@@ -282,13 +614,24 @@ function renderHtml({ summary, runs, locale, source, generatedAt, days }) {
     <thead><tr>${t.cols.map((c) => `<th>${c}</th>`).join('')}</tr></thead>
     <tbody>${rows}</tbody>
   </table>
+${renderScheduleScript(locale, supabaseConfig)}
 </body>
 </html>`;
+}
+
+function loadSupabasePublicConfig() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+  return { url, anonKey };
 }
 
 async function main() {
   loadDotEnv();
   const { days } = parseArgs();
+  const supabaseConfig = loadSupabasePublicConfig();
+  if (!supabaseConfig.url || !supabaseConfig.anonKey) {
+    console.warn('[snapshot] NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY missing — schedule control panel will render in disabled state.');
+  }
   let runs;
   let source;
   try {
@@ -310,11 +653,11 @@ async function main() {
   );
   fs.writeFileSync(
     path.join(OUTPUT_DIR, 'pipeline-ops-dashboard.ko.html'),
-    renderHtml({ summary, runs, locale: 'ko', source, generatedAt, days }),
+    renderHtml({ summary, runs, locale: 'ko', source, generatedAt, days, supabaseConfig }),
   );
   fs.writeFileSync(
     path.join(OUTPUT_DIR, 'pipeline-ops-dashboard.en.html'),
-    renderHtml({ summary, runs, locale: 'en', source, generatedAt, days }),
+    renderHtml({ summary, runs, locale: 'en', source, generatedAt, days, supabaseConfig }),
   );
 
   console.log(`[snapshot] source=${source} runs=${runs.length} done=${summary.done} stale=${summary.stale}`);

@@ -31,12 +31,41 @@
   .status.ok { background: #064e3b; color: #34d399; }
   .status.warn { background: #78350f; color: #fbbf24; }
   .status.err { background: #7f1d1d; color: #fca5a5; }
+  .panel { background: #14171c; border: 1px solid #1f2937; border-radius: 8px; padding: 16px 20px; margin-bottom: 24px; font-size: 13px; }
+  .panel-banner { padding: 10px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; }
+  .panel-banner.err { background: #7f1d1d; color: #fecaca; }
+  .panel-prompt { color: #d1d5db; font-size: 13px; margin: 0 0 10px; }
+  .panel-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .panel-form input[type=email] { flex: 1 1 240px; min-width: 200px; padding: 8px 10px; background: #0b0d10; color: inherit; border: 1px solid #374151; border-radius: 6px; font-size: 13px; }
+  .panel-userline { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+  .panel-rolebanner { padding: 6px 10px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; display: inline-block; }
+  .panel-rolebanner.ok { background: #064e3b; color: #34d399; }
+  .panel-rolebanner.warn { background: #78350f; color: #fbbf24; }
+  .panel-actions { display: flex; gap: 12px; align-items: center; margin-top: 12px; }
+  .schedule-table { width: auto; min-width: 320px; }
+  .schedule-table th { width: 40%; text-transform: none; font-size: 13px; color: #9ca3af; font-weight: 500; }
+  .schedule-table td { font-size: 13px; }
+  .schedule-table input[type=number] { width: 100px; padding: 6px 8px; background: #0b0d10; color: inherit; border: 1px solid #374151; border-radius: 6px; font-size: 13px; }
+  .schedule-table .hint { margin-left: 8px; font-size: 11px; }
+  .switch input { accent-color: #34d399; transform: scale(1.2); }
+  .btn { padding: 8px 14px; border-radius: 6px; border: 1px solid #374151; background: #1f2937; color: #e5e7eb; font-size: 13px; cursor: pointer; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn.primary { background: #2563eb; border-color: #2563eb; color: #fff; }
+  .btn.primary:disabled { background: #1e3a8a; border-color: #1e3a8a; }
+  .btn.ghost { background: transparent; }
+  .panel-toast { display: block; margin-top: 8px; padding: 6px 10px; border-radius: 6px; font-size: 12px; background: #1f2937; }
+  .panel-toast.inline { display: inline-block; margin: 0; }
+  .panel-toast.ok { background: #064e3b; color: #34d399; }
+  .panel-toast.err { background: #7f1d1d; color: #fca5a5; }
   @media (prefers-color-scheme: light) {
     body { background: #f9fafb; color: #111827; }
-    .card, ul.kv li { background: #fff; border-color: #e5e7eb; }
+    .card, ul.kv li, .panel { background: #fff; border-color: #e5e7eb; }
     h2 { color: #6b7280; border-color: #e5e7eb; }
     th { color: #6b7280; }
     td.mono { color: #374151; }
+    .panel-form input[type=email], .schedule-table input[type=number] { background: #fff; color: #111827; border-color: #d1d5db; }
+    .btn { background: #f3f4f6; border-color: #d1d5db; color: #111827; }
+    .panel-toast { background: #f3f4f6; color: #374151; }
   }
 </style>
 </head>
@@ -44,101 +73,5187 @@
   <h1>Pipeline Operations Snapshot</h1>
   <div class="subtitle">Static dashboard openable via file:// — no server required</div>
   <div class="meta">
-    <span><strong>Generated at:</strong> 2026-04-27T01:15:00.857Z</span>
-    <span><strong>Data source:</strong> Fixture (no Supabase credentials)</span>
+    <span><strong>Generated at:</strong> 2026-04-30T09:49:13.687Z</span>
+    <span><strong>Data source:</strong> Supabase pipeline_runs</span>
     <span><strong>window:</strong> 7d</span>
   </div>
 
+  <h2>Slide pipeline schedule</h2>
+  <section class="panel" data-schedule-panel hidden>
+    <div class="panel-banner err" data-panel-error hidden></div>
+    <div data-panel-signed-out hidden>
+      <p class="panel-prompt">Sign in with an admin email via magic link to change the schedule.</p>
+      <form class="panel-form" data-magic-link-form>
+        <input type="email" required placeholder="admin email" data-magic-link-email />
+        <button type="submit" class="btn primary">Send magic link</button>
+      </form>
+      <div class="panel-toast" data-magic-link-toast hidden></div>
+    </div>
+    <div data-panel-signed-in hidden>
+      <div class="panel-userline">
+        <span class="muted">Signed in as:</span>
+        <strong data-user-email></strong>
+        <button type="button" class="btn ghost" data-sign-out>Sign out</button>
+      </div>
+      <div class="panel-rolebanner" data-role-banner></div>
+      <table class="schedule-table">
+        <tbody>
+          <tr><th>Pipeline</th><td><code>slide-pipeline</code></td></tr>
+          <tr>
+            <th>Interval (minutes)</th>
+            <td>
+              <input type="number" min="5" max="1440" step="1" data-field-interval disabled />
+              <span class="muted hint">Between 5 and 1440 minutes</span>
+            </td>
+          </tr>
+          <tr>
+            <th>Enabled</th>
+            <td><label class="switch"><input type="checkbox" data-field-enabled disabled /><span></span></label></td>
+          </tr>
+          <tr><th>Last run</th><td data-field-last-run class="mono"></td></tr>
+          <tr><th>Last updated</th><td data-field-updated-at class="mono"></td></tr>
+          <tr><th>Updated by</th><td data-field-updated-by class="mono"></td></tr>
+        </tbody>
+      </table>
+      <div class="panel-actions">
+        <button type="button" class="btn primary" data-save disabled>Save</button>
+        <span class="panel-toast inline" data-save-toast hidden></span>
+      </div>
+    </div>
+  </section>
+
   <h2>Summary</h2>
   <div class="grid">
-    <div class="card"><div class="label">Total runs</div><div class="value">6</div></div>
-    <div class="card ok"><div class="label">Done</div><div class="value">2</div></div>
-    <div class="card warn"><div class="label">Processing</div><div class="value">1</div></div>
-    <div class="card err"><div class="label">Stale (>30m)</div><div class="value">0</div></div>
-    <div class="card err"><div class="label">Failed / retrying</div><div class="value">3</div></div>
-    <div class="card"><div class="label">Success rate</div><div class="value">33.3%</div></div>
+    <div class="card"><div class="label">Total runs</div><div class="value">449</div></div>
+    <div class="card ok"><div class="label">Done</div><div class="value">133</div></div>
+    <div class="card warn"><div class="label">Processing</div><div class="value">34</div></div>
+    <div class="card err"><div class="label">Stale (>30m)</div><div class="value">34</div></div>
+    <div class="card err"><div class="label">Failed / retrying</div><div class="value">77</div></div>
+    <div class="card"><div class="label">Success rate</div><div class="value">29.6%</div></div>
   </div>
 
   <h2>By type</h2>
   <ul class="kv">
-    <li><code>ECON</code><span>3</span></li>
-    <li><code>MAT</code><span>1</span></li>
-    <li><code>FOR</code><span>2</span></li>
+    <li><code>ECON</code><span>315</span></li>
+    <li><code>MAT</code><span>55</span></li>
+    <li><code>FOR</code><span>79</span></li>
   </ul>
 
   <h2>By status</h2>
-  <ul class="kv"><li><code>done</code><span>2</span></li><li><code>processing</code><span>1</span></li><li><code>qa_failed_major</code><span>1</span></li><li><code>upload_done_db_error</code><span>1</span></li><li><code>failed_timeout</code><span>1</span></li></ul>
+  <ul class="kv"><li><code>content_failed_terminal</code><span>205</span></li><li><code>done</code><span>133</span></li><li><code>dry_run</code><span>47</span></li><li><code>processing</code><span>34</span></li><li><code>processing_error</code><span>20</span></li><li><code>upload_done_db_error</code><span>10</span></li></ul>
 
   <h2>Recent runs</h2>
   <table>
     <thead><tr><th>Started</th><th>Type</th><th>Project</th><th>Version</th><th>Status</th><th>Retries</th><th>Languages</th><th>Error</th></tr></thead>
     <tbody>
       <tr>
-        <td>2026-04-26 22:10:00 UTC</td>
-        <td><span class="pill">ECON</span></td>
-        <td>ethereum</td>
-        <td>4</td>
-        <td><span class="status ok">done</span></td>
-        <td>0</td>
-        <td class="mono">en:done, ko:done, fr:done, es:done, de:done, ja:done, zh:done</td>
-        <td class="mono"></td>
-      </tr>
-    
-      <tr>
-        <td>2026-04-26 18:42:00 UTC</td>
-        <td><span class="pill">ECON</span></td>
-        <td>cosmos</td>
-        <td>4</td>
-        <td><span class="status ok">done</span></td>
-        <td>1</td>
-        <td class="mono">en:done, ko:done, fr:done, es:done, de:done, ja:done, zh:done</td>
-        <td class="mono"></td>
-      </tr>
-    
-      <tr>
-        <td>2026-04-27 00:48:00 UTC</td>
+        <td>2026-04-30 07:23:15 UTC</td>
         <td><span class="pill">MAT</span></td>
         <td>bitcoin</td>
-        <td>2</td>
-        <td><span class="status warn">processing</span></td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
         <td>0</td>
-        <td class="mono">en:done, ko:done, fr:in_progress</td>
+        <td class="mono"></td>
         <td class="mono"></td>
       </tr>
     
       <tr>
-        <td>2026-04-26 14:20:00 UTC</td>
-        <td><span class="pill">FOR</span></td>
-        <td>solana</td>
+        <td>2026-04-30 07:08:22 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>bitcoin-cash</td>
         <td>1</td>
-        <td><span class="status err">qa_failed_major</span></td>
+        <td><span class="status ok">done</span></td>
         <td>2</td>
-        <td class="mono">en:done, ko:qa_failed</td>
-        <td class="mono">QA verifier flagged 6 unsupported claims in section 3</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
       </tr>
     
       <tr>
-        <td>2026-04-25 09:01:00 UTC</td>
+        <td>2026-04-30 06:38:43 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>humanity-protocol</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 17:15:37 UTC</td>
         <td><span class="pill">FOR</span></td>
-        <td>polkadot</td>
+        <td>ravedao</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 17:09:18 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>stable</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 16:53:37 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>enjin-coin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 16:38:53 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>midnight-network</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 16:23:13 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>buildon</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 15:58:38 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>skyai</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 15:45:15 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>plasma-xpl</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 15:27:57 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>myx-finance</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 15:13:52 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>siren-bsc</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 14:46:29 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>humanity-protocol</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 14:29:59 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>humanity-protocol</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 14:15:24 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>siren-bsc</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 13:57:33 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>river</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 13:43:04 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>edgex</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 13:28:49 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>bianrensheng</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 13:21:09 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>lido-dao</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 13:05:29 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>dexe</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 12:55:40 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>just</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 12:44:46 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>chiliz</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 12:24:31 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>humanity-protocol</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 12:01:04 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>raydium</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 11:33:37 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>apecoin-ape</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 11:12:01 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>usd-ai</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 10:53:00 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>official-trump</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">QA FAIL blocked upload: en — artefact.literal **bold** markdown</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 10:28:40 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>리버-프로토콜river-protocol의-체인-추상화-및-크립토-이코노미-설계-분석-보고서</td>
         <td>1</td>
         <td><span class="status err">upload_done_db_error</span></td>
         <td>3</td>
-        <td class="mono">en:done, ko:done, fr:done, es:done, de:done, ja:done, zh:done</td>
-        <td class="mono">Supabase publish failed: duplicate slug &#39;polkadot&#39; for report_type &#39;for&#39;</td>
+        <td class="mono"></td>
+        <td class="mono">Project not found: 리버-프로토콜river-protocol의-체인-추상화-및-크립토-이코노미-설계-분석-보고서</td>
       </tr>
     
       <tr>
-        <td>2026-04-24 11:00:00 UTC</td>
+        <td>2026-04-27 10:06:03 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>humanity-protocol</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 09:46:51 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>arweave</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 09:20:06 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>request</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 09:06:05 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>layerzero</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 08:48:21 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>aave</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 08:32:05 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>글로벌-달러-네트워크의-크립토이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">upload_done_db_error</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Project not found: 글로벌-달러-네트워크의-크립토이코노미-분석-보고서</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 08:20:18 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>degen-base</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 08:10:25 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>cross-crypto</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 07:46:59 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>리버-프로토콜river-protocol의-체인-추상화-및-크립토-이코노미-설계-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">upload_done_db_error</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Project not found: 리버-프로토콜river-protocol의-체인-추상화-및-크립토-이코노미-설계-분석-보고서</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 07:36:56 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>monero</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 07:21:18 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>walletconnect</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 07:12:27 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>chutesai-bittensor-subnet-64-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">upload_done_db_error</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Project not found: chutesai-bittensor-subnet-64-크립토-이코노미-심층-분석-보고서</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 06:57:57 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>월드-리버티-파이낸셜world-liberty-financial-wlfi-심층-분석-및-리서치-보고서</td>
+        <td>1</td>
+        <td><span class="status err">upload_done_db_error</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Project not found: 월드-리버티-파이낸셜world-liberty-financial-wlfi-심층-분석-및-리서치-보고서</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 06:47:13 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>헤데라hedera-네트워크-크립토-이코노미-심층-분석-및-설계-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">upload_done_db_error</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Project not found: 헤데라hedera-네트워크-크립토-이코노미-심층-분석-및-설계-평가-보고서</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 06:28:14 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>edgex</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 06:09:18 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>aave</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 05:59:59 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>spx6900</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 05:45:46 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>sonic</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 05:29:14 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>orca</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 05:01:00 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>buildon</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 04:45:20 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>스텔라-크립토-이코노미-성숙도-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">processing_error</span></td>
+        <td>8</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 04:38:05 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>글로벌-달러-네트워크의-크립토이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">processing_error</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 04:29:30 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>near</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 04:14:25 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>unitas-protocol</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 04:04:34 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>크로스-크립토-이코노미-분석-보고서-생성</td>
+        <td>1</td>
+        <td><span class="status err">processing_error</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 03:41:18 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>리버-프로토콜river-protocol의-체인-추상화-및-크립토-이코노미-설계-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">processing_error</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 03:27:17 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>kaito-ai</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 03:17:17 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>모네로-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">processing_error</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 03:01:41 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>월렛커넥트-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">processing_error</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 02:53:09 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>chutesai-bittensor-subnet-64-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">processing_error</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 02:52:11 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>edgex</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 02:38:46 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>월드-리버티-파이낸셜world-liberty-financial-wlfi-심층-분석-및-리서치-보고서</td>
+        <td>1</td>
+        <td><span class="status err">processing_error</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 02:28:10 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>헤데라hedera-네트워크-크립토-이코노미-심층-분석-및-설계-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">processing_error</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 02:24:03 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>asi-크립토-이코노미-설계-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">upload_done_db_error</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Project not found: asi-크립토-이코노미-설계-분석-보고서</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 02:14:15 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>degen-base</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 02:02:47 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>chutes-ai</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 01:52:56 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>크로스-크립토-이코노미-분석-보고서-생성</td>
+        <td>1</td>
+        <td><span class="status err">processing_error</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 01:29:40 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>리버-프로토콜river-protocol의-체인-추상화-및-크립토-이코노미-설계-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">processing_error</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 01:28:12 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>stellar</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>7</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 01:19:55 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>spacecoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 01:12:33 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>yearn-finance</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 01:07:39 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>bitcoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 00:58:32 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>ethereum</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 00:52:16 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>bitcoin-cash</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 00:42:56 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>월렛커넥트-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">processing_error</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 00:34:24 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>chutesai-bittensor-subnet-64-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">processing_error</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 00:28:45 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>글로벌-달러-네트워크의-크립토이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">upload_done_db_error</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Project not found: 글로벌-달러-네트워크의-크립토이코노미-분석-보고서</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 00:20:00 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>월드-리버티-파이낸셜world-liberty-financial-wlfi-심층-분석-및-리서치-보고서</td>
+        <td>1</td>
+        <td><span class="status err">processing_error</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 00:18:29 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>글로벌-달러-네트워크의-크립토이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">QA FAIL blocked upload: ko — structure.pages; lang.ko_hangul</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-27 00:09:20 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>헤데라hedera-네트워크-크립토-이코노미-심층-분석-및-설계-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">processing_error</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 23:57:28 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>테더tether-프로젝트-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 23:42:21 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>오피셜-트럼프trump-생태계-및-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 23:30:54 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>orderly-network</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 23:19:33 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>온도-파이낸스ondo-finance-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 23:04:53 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>플레어-네트워크flare-network-경제-모델-및-지속-가능성-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 22:55:41 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>algorandalgo-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 22:41:43 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>폴리곤-네트워크polygon-20-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 22:40:21 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>bitcoin-cash</td>
+        <td>1</td>
+        <td><span class="status err">processing_error</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Manual cleanup (BCE-1047): runner cancelled 22:55Z; cancelled-at-stage stale row</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 22:27:23 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>아비트럼arbitrum-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 22:24:27 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>kaito-ai</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 22:14:37 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>모네로-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 22:13:27 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>soon-network</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 22:03:25 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>모네로-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 21:59:06 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>월렛커넥트-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 21:49:54 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>synfutures</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 21:47:51 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>월렛커넥트-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 21:41:22 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>chutesai-bittensor-subnet-64-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 21:38:01 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>synfutures</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 21:29:29 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>chutesai-bittensor-subnet-64-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 21:26:58 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>월드-리버티-파이낸셜world-liberty-financial-wlfi-심층-분석-및-리서치-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 21:16:18 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>헤데라hedera-네트워크-크립토-이코노미-심층-분석-및-설계-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 21:15:05 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>월드-리버티-파이낸셜world-liberty-financial-wlfi-심층-분석-및-리서치-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 21:04:26 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>테더tether-프로젝트-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 21:04:25 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>헤데라hedera-네트워크-크립토-이코노미-심층-분석-및-설계-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 20:52:33 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>테더tether-프로젝트-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 20:49:14 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>오피셜-트럼프trump-생태계-및-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 20:37:54 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>온도-파이낸스ondo-finance-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 20:37:21 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>오피셜-트럼프trump-생태계-및-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 20:26:02 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>온도-파이낸스ondo-finance-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 20:23:14 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>플레어-네트워크flare-network-경제-모델-및-지속-가능성-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 20:14:02 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>algorandalgo-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 20:11:19 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>플레어-네트워크flare-network-경제-모델-및-지속-가능성-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 20:02:05 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>algorandalgo-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 20:00:07 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>폴리곤-네트워크polygon-20-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 19:48:05 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>폴리곤-네트워크polygon-20-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 19:40:14 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>cardano</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 19:27:31 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>cardano</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 19:25:50 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>아비트럼arbitrum-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 19:13:05 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>아비트럼arbitrum-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 19:06:06 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>앱토스aptos-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 18:53:18 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>앱토스aptos-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 18:51:43 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>리도-파이낸스lido-finance-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 18:38:28 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>리도-파이낸스lido-finance-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 18:30:47 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>bitcoin-cash</td>
+        <td>1</td>
+        <td><span class="status err">processing_error</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Manual cleanup (BCE-1047): runner cancelled 22:55Z; cancelled-at-stage stale row</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 18:27:15 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>팬케이크스왑-크립토-이코노미-설계-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 18:12:59 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>orderly-network</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 18:01:38 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>온도-파이낸스ondo-finance-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 17:46:59 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>플레어-네트워크flare-network-경제-모델-및-지속-가능성-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 17:37:46 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>algorandalgo-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 17:23:51 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>폴리곤-네트워크polygon-20-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 17:10:06 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>tron</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 16:55:43 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>아비트럼arbitrum-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 16:35:58 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>앱토스aptos-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 16:21:34 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>리도-파이낸스lido-finance-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 16:02:47 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>유니스왑-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 15:46:54 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>sui</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 15:30:14 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>스텔라stellar-네트워크-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 15:19:42 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>스토리-프로토콜-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 15:05:10 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>하이퍼리퀴드hyperliquid-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 14:51:19 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>비트코인-캐시bitcoin-cash-bch-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 14:26:51 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>팬케이크스왑-크립토-이코노미-설계-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 14:14:00 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>cardano</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 13:55:19 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>ethena</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 13:35:34 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>앱토스aptos-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 13:21:10 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>리도-파이낸스lido-finance-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 13:02:24 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>유니스왑-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 12:46:30 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>sui</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 12:31:33 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>bitcoin</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 12:29:50 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>스텔라stellar-네트워크-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 12:19:18 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>스토리-프로토콜-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 12:09:23 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>bitcoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 12:05:56 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>bitcoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 12:04:53 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>bitcoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 12:04:47 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>하이퍼리퀴드hyperliquid-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 11:50:54 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>비트코인-캐시bitcoin-cash-bch-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 11:38:39 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>체인링크chainlink-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 11:34:06 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>bitcoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 11:33:17 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>bitcoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 11:32:37 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>bitcoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 11:31:21 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>bitcoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 11:28:52 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>bitcoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 11:16:15 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>파일코인-크립토이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>6</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 10:51:43 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>팬케이크스왑-크립토-이코노미-설계-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 10:45:35 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>bitcoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 10:44:57 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>bitcoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 10:42:23 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>bitcoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 10:41:46 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>bitcoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 10:39:26 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>bitcoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 10:25:55 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>asi-크립토-이코노미-설계-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 10:11:13 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>아비트럼arbitrum-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 09:51:28 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>앱토스aptos-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 09:37:05 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>리도-파이낸스lido-finance-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 09:18:18 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>유니스왑-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 09:02:24 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>sui</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 08:53:41 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>파일코인-크립토이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>5</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 08:45:44 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>스텔라stellar-네트워크-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 08:42:03 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>vechain</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 08:35:12 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>스토리-프로토콜-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 08:32:46 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>이더리움-크립토-프로젝트-진행률-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 08:24:21 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>midnight-network</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 08:20:40 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>하이퍼리퀴드hyperliquid-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 08:12:15 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>테더-크립토-이코노미-진행률-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 08:06:48 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>비트코인-캐시bitcoin-cash-bch-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 08:00:25 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>비트코인-프로젝트-진행률-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 07:54:32 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>체인링크chainlink-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 07:54:25 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>주피터-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>8</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 07:52:45 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>ripple</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 07:45:04 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>도지코인dogecoin-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 07:43:31 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>binancecoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 07:38:35 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>글로벌-달러-네트워크의-크립토이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">QA FAIL blocked upload: ko — structure.pages; lang.ko_hangul</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 07:36:50 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>카르다노-프로젝트-진행률-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">upload_done_db_error</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Project not found: 카르다노-프로젝트-진행률-평가-보고서</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 07:34:30 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>xdc-network</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 07:33:23 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>usd-coin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 07:27:04 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>비트코인-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 07:26:06 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>bitcoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 07:23:03 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>솔라나-크립토-프로젝트-진행률-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 07:17:41 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>pump-fun</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 07:14:46 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>tron</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 07:14:25 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>이더리움-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 07:04:38 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>도지코인-프로젝트-진행률-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 07:00:50 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>bitcoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 06:57:51 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>bitcoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 06:57:20 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>게이트체인-크립토-프로젝트-진행률-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 06:54:26 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>pudgy-penguins</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 06:52:02 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>파일코인-크립토이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>5</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 06:46:45 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>near</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 06:33:05 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>hyperliquid</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 06:26:42 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>trueusd</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 06:26:13 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>asi-크립토-이코노미-설계-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 06:22:27 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>leo-token</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 06:17:47 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>글로벌-달러-네트워크의-크립토이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 06:16:19 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>카르다노-프로젝트-진행률-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 06:15:15 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>비트코인캐시-프로젝트-진행률-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 06:08:04 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>모네로-프로젝트-진행률-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 06:02:14 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>팬케이크스왑-크립토-이코노미-설계-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 06:00:20 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>체인링크-프로젝트-진행률-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 05:54:36 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>asi-크립토-이코노미-설계-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 05:54:27 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>스텔라-크립토-이코노미-성숙도-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>6</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 05:48:04 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>카르다노-프로젝트-진행률-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 05:44:24 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>bitcoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 05:44:06 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>bitcoin</td>
+        <td>1</td>
+        <td><span class="status err">upload_done_db_error</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">no state</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 05:43:11 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>edgex</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 05:30:37 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>솔라나-크립토-이코노미-성숙도-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 05:17:10 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>asi-크립토-이코노미-설계-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 05:15:36 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>스텔라-크립토-이코노미-성숙도-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>5</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 05:12:58 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>ripple</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 05:04:18 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>파일코인-크립토이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>4</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 05:03:43 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>binancecoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 05:02:06 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>체인링크chainlink-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 04:53:32 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>usd-coin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 04:52:40 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>vechain</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 04:52:35 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>도지코인dogecoin-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 04:43:12 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>솔라나-크립토-프로젝트-진행률-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 04:34:56 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>midnight-network</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 04:34:45 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>tron</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 04:34:35 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>비트코인-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 04:24:21 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>도지코인-프로젝트-진행률-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 04:21:05 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>이더리움-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 04:17:29 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>게이트체인-크립토-프로젝트-진행률-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 04:11:29 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>솔라나-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 04:06:50 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>near</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 04:04:36 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>주피터-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>7</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 04:02:01 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>칸톤-네트워크-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 03:53:09 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>hyperliquid</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 03:47:52 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>라이트코인-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 03:44:41 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>xdc-network</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 03:42:48 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>leo-token</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 03:40:17 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>페이팔-usd-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 03:35:37 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>비트코인캐시-프로젝트-진행률-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 03:32:35 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>sonic</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 03:29:13 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>아발란체-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 03:28:17 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>모네로-프로젝트-진행률-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 03:27:51 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>pump-fun</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 03:20:34 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>체인링크-프로젝트-진행률-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 03:17:33 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>크로노스-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 03:12:23 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>카르다노-프로젝트-진행률-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 03:08:18 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>카르다노-프로젝트-진행률-평가-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 03:04:45 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>pudgy-penguins</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 02:59:04 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>유니스왑-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 02:54:50 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>솔라나-크립토-이코노미-성숙도-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 02:50:51 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>솔라나-크립토-이코노미-성숙도-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 02:43:11 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>sui</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 02:37:17 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>스텔라-크립토-이코노미-성숙도-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>4</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 02:37:04 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>trueusd</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 02:35:50 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>스텔라-크립토-이코노미-성숙도-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 02:26:31 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>스텔라stellar-네트워크-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 02:15:51 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>스토리-프로토콜-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 02:01:24 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>하이퍼리퀴드hyperliquid-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 01:51:33 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>zcash</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 01:37:41 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>비트코인-캐시bitcoin-cash-bch-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 01:28:13 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>도지코인dogecoin-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 01:18:09 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>trueusd</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 01:10:13 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>비트코인-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 00:57:38 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>이더리움-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 00:46:49 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>usd-coin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 00:37:14 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>솔라나-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 00:27:45 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>칸톤-네트워크-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 00:14:01 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>라이트코인-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-26 00:06:26 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>페이팔-usd-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 23:55:21 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>아발란체-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 23:43:38 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>크로노스-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 23:31:06 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>테더-골드-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 23:16:06 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>맨틀-네트워크-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 23:09:35 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>체인링크chainlink-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 23:00:07 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>도지코인dogecoin-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 22:42:07 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>비트코인-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 22:29:32 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>이더리움-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 22:20:09 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>ripple</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 22:05:05 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>binancecoin</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 21:55:29 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>솔라나-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 21:46:01 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>칸톤-네트워크-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 21:32:17 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>라이트코인-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 21:24:42 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>페이팔-usd-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 21:13:37 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>아발란체-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 21:01:54 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>크로노스-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 20:49:21 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>테더-골드-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 20:34:17 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>맨틀-네트워크-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 20:20:57 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>폴카닷polkadot-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 20:07:29 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>파이-네트워크-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 19:56:09 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>heyelsaelsa-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 19:44:09 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>테더-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 19:30:10 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>이더리움클래식-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 19:15:50 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>kcc-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 19:11:41 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>usd-coin</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 19:02:05 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>솔라나-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 18:52:42 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>칸톤-네트워크-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 18:39:13 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>leo-token</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 18:23:57 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>sky</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 18:10:13 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>라이트코인-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 18:02:38 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>페이팔-usd-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 17:51:37 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>아발란체-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 17:33:30 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>memecore</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 17:20:58 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>테더-골드-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 17:05:53 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>맨틀-네트워크-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 16:52:39 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>폴카닷polkadot-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 16:40:07 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>okx</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 16:26:39 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>파이-네트워크-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 16:15:19 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>heyelsaelsa-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 16:03:19 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>테더-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 15:49:19 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>이더리움클래식-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 15:34:55 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>kcc-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 15:26:24 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>카스파-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 15:16:03 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>코스모스-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 15:07:11 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>크로노스-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 14:54:39 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>테더-골드-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 14:39:32 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>맨틀-네트워크-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 14:30:45 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>usdg</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 14:17:25 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>폴카닷polkadot-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 14:03:57 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>파이-네트워크-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 13:52:36 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>heyelsaelsa-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 13:40:36 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>테더-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 13:26:37 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>이더리움클래식-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 13:12:12 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>kcc-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 13:03:40 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>카스파-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 12:53:17 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>코스모스-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 12:43:41 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>게이트체인-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 12:28:21 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>빗텐서-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 12:06:01 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>파일코인-크립토이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>3</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 11:42:54 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>pudgy-penguins</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 11:15:06 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>trueusd</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 11:01:32 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>okx</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 10:48:04 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>파이-네트워크-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 10:36:44 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>heyelsaelsa-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 10:24:49 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>테더-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 10:18:11 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>폴카닷polkadot-크립토-이코노미-심층-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 10:12:39 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>ravedao</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 10:05:39 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>okx</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 09:59:17 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>aster</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 09:52:11 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>파이-네트워크-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 09:46:35 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>usdd</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 09:40:51 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>heyelsaelsa-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 09:37:02 UTC</td>
         <td><span class="pill">ECON</span></td>
         <td>aave</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 09:28:57 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>테더-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 09:25:16 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>pepe</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 09:16:47 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>ravedao</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 09:12:27 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>internet-computer</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 09:03:24 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>aster</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 09:02:18 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>bitget-token</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 08:53:05 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>ripple-usd</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 08:50:42 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>usdd</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 08:41:09 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>aave</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 08:39:05 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>이더리움클래식-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 08:29:24 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>pepe</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 08:24:46 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>kcc-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 08:16:34 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>internet-computer</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 08:11:16 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>audiera</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 08:06:24 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>bitget-token</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 08:02:45 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>카스파-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 07:57:07 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>ripple-usd</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 07:53:08 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>게이트체인-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 07:43:07 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>이더리움클래식-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 07:37:50 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>빗텐서-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 07:28:42 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>kcc-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 07:20:11 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>카스파-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 07:15:29 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>파일코인-크립토이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 07:09:47 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>코스모스-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 07:00:11 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>게이트체인-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 06:44:53 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>빗텐서-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 06:22:32 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>파일코인-크립토이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 06:11:44 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>audiera</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 06:00:09 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>quant</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 05:51:00 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>render</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 05:42:27 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>카스파-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 05:32:05 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>코스모스-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 05:22:28 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>게이트체인-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 05:15:47 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>morpho</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">QA FAIL blocked upload: ko — structure.pages; lang.ko_hangul</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 05:10:20 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>filecoin</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">QA FAIL blocked upload: ko — structure.pages; lang.ko_hangul</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 05:05:40 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>dexe</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">QA FAIL blocked upload: ko — structure.pages; lang.ko_hangul</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 04:50:22 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>빗텐서-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 04:21:59 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>just</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 03:59:38 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>파일코인-크립토이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 03:47:58 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>vechain</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 03:30:09 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>midnight-network</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:59:56 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>주피터-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">content_failed_terminal</span></td>
+        <td>6</td>
+        <td class="mono"></td>
+        <td class="mono">Publish blocked: incomplete language set after translation/QA. missing=ko,en [BCE-1046: slug resolution fix pending; reset to terminal to stop retry loop]</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:39:56 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>xdc-network</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:22:58 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>pump-fun</td>
+        <td>1</td>
+        <td><span class="status ok">done</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:17:29 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>ravedao</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:17:27 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>stable</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:17:26 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>enjin-coin</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:17:24 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>midnight-network</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:17:22 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>buildon</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:17:21 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>skyai</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:17:19 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>plasma-xpl</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:17:18 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>myx-finance</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:17:17 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>siren-bsc</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:17:15 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>river</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:17:14 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>edgex</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:17:12 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>bianrensheng</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:17:11 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>lido-dao</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:17:09 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>dexe</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:17:08 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>just</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:17:06 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>chiliz</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:17:05 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>humanity-protocol</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:17:03 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>arweave</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:17:02 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>request</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:17:00 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>layerzero</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:16:58 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>aave</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:16:56 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>spx6900</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:16:55 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>sonic</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:11:24 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>ravedao</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:11:23 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>stable</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:11:21 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>enjin-coin</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:11:19 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>midnight-network</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:11:18 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>buildon</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:11:17 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>skyai</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:11:15 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>plasma-xpl</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:11:14 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>myx-finance</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:11:13 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>siren-bsc</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:11:12 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>river</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:11:11 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>edgex</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:11:09 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>bianrensheng</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:11:08 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>lido-dao</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:11:07 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>dexe</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:11:05 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>just</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:11:04 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>chiliz</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:11:02 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>humanity-protocol</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:11:01 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>arweave</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:11:00 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>request</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:10:58 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>layerzero</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:10:56 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>aave</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:10:55 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>spx6900</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 02:10:53 UTC</td>
+        <td><span class="pill">FOR</span></td>
+        <td>sonic</td>
+        <td>1</td>
+        <td><span class="status err">dry_run</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 00:41:37 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>주피터-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>5</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 00:41:32 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>스텔라-크립토-이코노미-성숙도-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 00:36:36 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>스텔라-크립토-이코노미-성숙도-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">processing_error</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono">Interrupted by SIGTERM</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 00:35:32 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>주피터-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">processing_error</span></td>
         <td>4</td>
-        <td><span class="status err">failed_timeout</span></td>
+        <td class="mono"></td>
+        <td class="mono">Interrupted by SIGTERM</td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 00:34:05 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>주피터-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
         <td>3</td>
-        <td class="mono">en:done, ko:in_progress</td>
-        <td class="mono">Translation worker exceeded 30m budget on language &#39;ko&#39;</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 00:33:38 UTC</td>
+        <td><span class="pill">MAT</span></td>
+        <td>스텔라-크립토-이코노미-성숙도-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 00:33:38 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>주피터-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>2</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 00:30:43 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>주피터-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status warn">processing (stale)</span></td>
+        <td>1</td>
+        <td class="mono"></td>
+        <td class="mono"></td>
+      </tr>
+    
+      <tr>
+        <td>2026-04-25 00:28:58 UTC</td>
+        <td><span class="pill">ECON</span></td>
+        <td>주피터-크립토-이코노미-분석-보고서</td>
+        <td>1</td>
+        <td><span class="status err">processing_error</span></td>
+        <td>0</td>
+        <td class="mono"></td>
+        <td class="mono">Interrupted by SIGTERM</td>
       </tr>
     </tbody>
   </table>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+  const CFG = {"locale":"en","supabaseUrl":"https://wbqponoiyoeqlepxogcb.supabase.co","supabaseAnonKey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndicXBvbm9peW9lcWxlcHhvZ2NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NTg3MDAsImV4cCI6MjA5MTIzNDcwMH0.Fkf5XOg2pGkCwSELznG3binebAfxsTDEXF_KbRSvO2I","pipelineName":"slide-pipeline","minInterval":5,"maxInterval":1440,"strings":{"magicLinkSent":"Magic link sent — check your email.","magicLinkError":"Failed to send magic link","roleAdmin":"Admin — can update schedule","roleViewer":"Read-only — not on admin allowlist","saving":"Saving...","saveSuccess":"Saved","saveError":"Save failed","loadError":"Failed to load schedule","never":"never"}};
+  const sb = createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, {
+    auth: { detectSessionInUrl: true, persistSession: true, autoRefreshToken: true },
+  });
+
+  const panel = document.querySelector('[data-schedule-panel]');
+  const errEl = panel.querySelector('[data-panel-error]');
+  const outBlock = panel.querySelector('[data-panel-signed-out]');
+  const inBlock = panel.querySelector('[data-panel-signed-in]');
+  const userEmailEl = panel.querySelector('[data-user-email]');
+  const roleBanner = panel.querySelector('[data-role-banner]');
+  const intervalEl = panel.querySelector('[data-field-interval]');
+  const enabledEl = panel.querySelector('[data-field-enabled]');
+  const lastRunEl = panel.querySelector('[data-field-last-run]');
+  const updatedAtEl = panel.querySelector('[data-field-updated-at]');
+  const updatedByEl = panel.querySelector('[data-field-updated-by]');
+  const saveBtn = panel.querySelector('[data-save]');
+  const saveToast = panel.querySelector('[data-save-toast]');
+  const linkForm = panel.querySelector('[data-magic-link-form]');
+  const linkEmail = panel.querySelector('[data-magic-link-email]');
+  const linkToast = panel.querySelector('[data-magic-link-toast]');
+
+  let isAdmin = false;
+  let originalRow = null;
+
+  panel.hidden = false;
+
+  function fmtDate(value) {
+    if (!value) return CFG.strings.never;
+    try {
+      return new Date(value).toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
+    } catch (e) {
+      return String(value);
+    }
+  }
+
+  function showError(msg) {
+    if (!msg) { errEl.hidden = true; errEl.textContent = ''; return; }
+    errEl.textContent = msg;
+    errEl.hidden = false;
+  }
+
+  function showToast(el, msg, kind) {
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'panel-toast' + (el.classList.contains('inline') ? ' inline' : '') + ' ' + (kind || '');
+    el.hidden = false;
+    if (kind !== 'err') {
+      setTimeout(() => { el.hidden = true; }, 4000);
+    }
+  }
+
+  async function checkAdmin(email) {
+    const { data, error } = await sb
+      .from('admin_emails')
+      .select('email')
+      .ilike('email', email)
+      .maybeSingle();
+    if (error) return false;
+    return Boolean(data);
+  }
+
+  async function loadSchedule() {
+    const { data, error } = await sb
+      .from('pipeline_schedules')
+      .select('pipeline_name, interval_minutes, enabled, last_run_at, updated_at, updated_by')
+      .eq('pipeline_name', CFG.pipelineName)
+      .maybeSingle();
+    if (error) {
+      showError(CFG.strings.loadError + ': ' + error.message);
+      return;
+    }
+    if (!data) {
+      showError(CFG.strings.loadError + ' (no row for ' + CFG.pipelineName + ')');
+      return;
+    }
+    originalRow = data;
+    intervalEl.value = data.interval_minutes;
+    enabledEl.checked = !!data.enabled;
+    lastRunEl.textContent = fmtDate(data.last_run_at);
+    updatedAtEl.textContent = fmtDate(data.updated_at);
+    updatedByEl.textContent = data.updated_by || '';
+  }
+
+  function applyRole(adminFlag) {
+    isAdmin = adminFlag;
+    roleBanner.textContent = adminFlag ? CFG.strings.roleAdmin : CFG.strings.roleViewer;
+    roleBanner.className = 'panel-rolebanner ' + (adminFlag ? 'ok' : 'warn');
+    intervalEl.disabled = !adminFlag;
+    enabledEl.disabled = !adminFlag;
+    saveBtn.disabled = !adminFlag;
+  }
+
+  async function renderSession(session) {
+    showError('');
+    if (!session) {
+      outBlock.hidden = false;
+      inBlock.hidden = true;
+      return;
+    }
+    outBlock.hidden = true;
+    inBlock.hidden = false;
+    userEmailEl.textContent = session.user?.email || '';
+    applyRole(false);
+    await loadSchedule();
+    const adminFlag = await checkAdmin(session.user?.email || '');
+    applyRole(adminFlag);
+  }
+
+  linkForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = (linkEmail.value || '').trim();
+    if (!email) return;
+    showToast(linkToast, '...', '');
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.href },
+    });
+    if (error) {
+      showToast(linkToast, CFG.strings.magicLinkError + ': ' + error.message, 'err');
+    } else {
+      showToast(linkToast, CFG.strings.magicLinkSent, 'ok');
+    }
+  });
+
+  panel.querySelector('[data-sign-out]').addEventListener('click', async () => {
+    await sb.auth.signOut();
+  });
+
+  saveBtn.addEventListener('click', async () => {
+    if (!isAdmin) return;
+    const interval = Number(intervalEl.value);
+    if (!Number.isInteger(interval) || interval < CFG.minInterval || interval > CFG.maxInterval) {
+      showToast(saveToast, CFG.strings.saveError + ': interval ' + CFG.minInterval + '–' + CFG.maxInterval, 'err');
+      return;
+    }
+    const enabled = !!enabledEl.checked;
+    const session = (await sb.auth.getSession()).data.session;
+    const updatedBy = session?.user?.email || 'unknown';
+    saveBtn.disabled = true;
+    showToast(saveToast, CFG.strings.saving, '');
+    const { data, error } = await sb
+      .from('pipeline_schedules')
+      .update({ interval_minutes: interval, enabled, updated_by: updatedBy })
+      .eq('pipeline_name', CFG.pipelineName)
+      .select('pipeline_name, interval_minutes, enabled, last_run_at, updated_at, updated_by')
+      .maybeSingle();
+    saveBtn.disabled = false;
+    if (error) {
+      showToast(saveToast, CFG.strings.saveError + ': ' + error.message, 'err');
+      return;
+    }
+    if (data) {
+      originalRow = data;
+      intervalEl.value = data.interval_minutes;
+      enabledEl.checked = !!data.enabled;
+      lastRunEl.textContent = fmtDate(data.last_run_at);
+      updatedAtEl.textContent = fmtDate(data.updated_at);
+      updatedByEl.textContent = data.updated_by || '';
+    }
+    showToast(saveToast, CFG.strings.saveSuccess, 'ok');
+  });
+
+  sb.auth.onAuthStateChange((_event, session) => { renderSession(session); });
+  sb.auth.getSession().then(({ data }) => renderSession(data.session));
+</script>
 </body>
 </html>
