@@ -1,4 +1,23 @@
 {
+  "10P4cGxCLUAyvKDA_hpcTcbxMbnMIP6gL": {
+    "error": null,
+    "finished_at": "2026-04-30T22:11:40.880619+00:00",
+    "lang": "ja",
+    "lang_source": "ocr_langdetect",
+    "modifiedTime": "2026-04-30T21:33:59.000Z",
+    "name": "Hyperliquid_Economic_Intelligence_jp.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/hyperliquid/latest/ja.html",
+    "report_id": "04abeb7b-6be8-4b1e-80bf-d6eef2e625ce",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "hyperliquid",
+    "slug_source": "filename",
+    "started_at": "2026-04-30T22:11:31.384647+00:00",
+    "status": "published",
+    "updated_at": "2026-04-30T22:11:40.880639+00:00",
+    "version": null,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/hyperliquid/latest/ja.html"
+  },
   "12X4k70U3ojENhMxHUpdshdDO5Ta3k9rc": {
     "error": null,
     "finished_at": "2026-04-27T22:58:57.122251+00:00",
@@ -14,6 +33,25 @@
     "updated_at": "2026-04-27T22:58:57.122270+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/humanity-protocol/1/ko.html"
+  },
+  "16-9v-inchOknQlUjB0qkDRWaVmVooBz5": {
+    "error": null,
+    "finished_at": "2026-04-30T22:14:08.280197+00:00",
+    "lang": "ja",
+    "lang_source": "ocr_langdetect",
+    "modifiedTime": "2026-04-30T21:29:39.000Z",
+    "name": "Dogecoin_Economic_Blueprint.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/dogecoin/latest/ja.html",
+    "report_id": "fc5f8343-8d07-47bd-9c37-9e7c5c321a3d",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "dogecoin",
+    "slug_source": "filename",
+    "started_at": "2026-04-30T22:13:57.891940+00:00",
+    "status": "published",
+    "updated_at": "2026-04-30T22:14:08.280217+00:00",
+    "version": null,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/dogecoin/latest/ja.html"
   },
   "199zAACv3IjVpXdVMqqxHW24WIPcimron": {
     "error": null,
@@ -53,6 +91,25 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/binancecoin/1/ko.html"
   },
+  "1BjzaOuEtkdsB479916QlnI0Szr1KwR8k": {
+    "error": null,
+    "finished_at": "2026-04-30T22:13:35.747372+00:00",
+    "lang": "zh",
+    "lang_source": "ocr_langdetect",
+    "modifiedTime": "2026-04-30T21:29:47.000Z",
+    "name": "DOGE_Protocol_Economics.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/dogecoin/latest/zh.html",
+    "report_id": "fc5f8343-8d07-47bd-9c37-9e7c5c321a3d",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "dogecoin",
+    "slug_source": "filename",
+    "started_at": "2026-04-30T22:13:24.301820+00:00",
+    "status": "published",
+    "updated_at": "2026-04-30T22:13:35.747390+00:00",
+    "version": null,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/dogecoin/latest/zh.html"
+  },
   "1C5Qi-yVtajfzFCFzY3VQ0YffmdGEqsEj": {
     "error": null,
     "finished_at": "2026-04-30T06:31:09.130370+00:00",
@@ -88,7 +145,7 @@
     "slug": "tether",
     "slug_source": "filename",
     "status": "mismatch",
-    "updated_at": "2026-04-30T21:19:54.350654+00:00"
+    "updated_at": "2026-04-30T22:16:32.742205+00:00"
   },
   "1DU7UyCwF-QUF664v3F42XRo7Z-X2UOXK": {
     "error": null,
@@ -353,7 +410,7 @@
     "slug": "binancecoin",
     "slug_source": "filename",
     "status": "mismatch",
-    "updated_at": "2026-04-30T21:19:31.022961+00:00"
+    "updated_at": "2026-04-30T22:16:08.208398+00:00"
   },
   "1W0CHRmsAetZMQx0soNN-qXv2wAgDBfK1": {
     "error": null,
@@ -393,6 +450,25 @@
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/tether/latest/en.html"
   },
+  "1XXaybvxpGWIziFIaygXf3k8rx09-nT-n": {
+    "error": null,
+    "finished_at": "2026-04-30T22:12:10.257666+00:00",
+    "lang": "ko",
+    "lang_source": "ocr_langdetect",
+    "modifiedTime": "2026-04-30T21:33:36.000Z",
+    "name": "Hyperliquid_Economic_Blueprint_ko.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/hyperliquid/latest/ko.html",
+    "report_id": "abfbad16-f0e8-42e3-be03-a0ca68063ede",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "hyperliquid",
+    "slug_source": "filename",
+    "started_at": "2026-04-30T22:11:58.496544+00:00",
+    "status": "published",
+    "updated_at": "2026-04-30T22:12:10.257683+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/hyperliquid/1/ko.html"
+  },
   "1ZuaOwLAdQb7c9Yy5dqZ7GUnrK3VKQCjb": {
     "error": null,
     "finished_at": "2026-04-30T21:16:43.969597+00:00",
@@ -430,6 +506,25 @@
     "updated_at": "2026-04-30T21:17:29.005373+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/binancecoin/latest/ja.html"
+  },
+  "1aKFEepKCpVzBiO3vtatnW9U6jm7QNzfq": {
+    "error": null,
+    "finished_at": "2026-04-30T22:14:31.837331+00:00",
+    "lang": "en",
+    "lang_source": "ocr_langdetect",
+    "modifiedTime": "2026-04-30T21:29:31.000Z",
+    "name": "Dogecoin_Institutional_Analysis.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/dogecoin/latest/en.html",
+    "report_id": "fc5f8343-8d07-47bd-9c37-9e7c5c321a3d",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "dogecoin",
+    "slug_source": "filename",
+    "started_at": "2026-04-30T22:14:22.542031+00:00",
+    "status": "published",
+    "updated_at": "2026-04-30T22:14:31.837350+00:00",
+    "version": null,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/dogecoin/latest/en.html"
   },
   "1ctUff0fbCrg4Us37NSRJfj1e-tR0A7xq": {
     "error": null,
@@ -485,6 +580,44 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ripple/1/en.html"
   },
+  "1elfejitRyZmbVvPLzJjP4ba7X-7FthZ4": {
+    "error": null,
+    "finished_at": "2026-04-30T22:13:03.617813+00:00",
+    "lang": "en",
+    "lang_source": "ocr_langdetect",
+    "modifiedTime": "2026-04-30T21:32:48.000Z",
+    "name": "Hyperliquid_Economic_Engine_en.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/hyperliquid/latest/en.html",
+    "report_id": "04abeb7b-6be8-4b1e-80bf-d6eef2e625ce",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "hyperliquid",
+    "slug_source": "filename",
+    "started_at": "2026-04-30T22:12:50.512626+00:00",
+    "status": "published",
+    "updated_at": "2026-04-30T22:13:03.617832+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/hyperliquid/1/en.html"
+  },
+  "1ghpx1znmcLobwz0QezrlCvuzPuYFiy7Y": {
+    "error": null,
+    "finished_at": "2026-04-30T22:15:02.271640+00:00",
+    "lang": "ko",
+    "lang_source": "ocr_langdetect",
+    "modifiedTime": "2026-04-30T21:29:23.000Z",
+    "name": "Dogecoin_Economic_Architecture.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/dogecoin/latest/ko.html",
+    "report_id": "fc5f8343-8d07-47bd-9c37-9e7c5c321a3d",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "dogecoin",
+    "slug_source": "filename",
+    "started_at": "2026-04-30T22:14:49.772485+00:00",
+    "status": "published",
+    "updated_at": "2026-04-30T22:15:02.271658+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/dogecoin/1/ko.html"
+  },
   "1hxEZEs60XUhrm0XFCpZ0jz_CU5GkIHeu": {
     "error": null,
     "finished_at": "2026-04-30T06:33:27.411214+00:00",
@@ -520,7 +653,7 @@
     "slug": "usd-coin",
     "slug_source": "filename",
     "status": "mismatch",
-    "updated_at": "2026-04-30T21:18:31.570300+00:00"
+    "updated_at": "2026-04-30T22:15:53.007817+00:00"
   },
   "1ie8UtNIB47Csbjqu9LyPP5llmA2SLq03": {
     "error": "slug/content mismatch — filename resolved 'tron' (body score 8) but body strongly matches 'avalanche-2' (score 18)",
@@ -538,7 +671,7 @@
     "slug": "tron",
     "slug_source": "filename",
     "status": "mismatch",
-    "updated_at": "2026-04-30T21:15:27.545667+00:00"
+    "updated_at": "2026-04-30T22:15:23.577044+00:00"
   },
   "1jVQZacYknRoplHb6jMpbgPG6Nr99wUyy": {
     "error": null,
@@ -577,6 +710,25 @@
     "updated_at": "2026-04-29T06:28:43.900724+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/en.html"
+  },
+  "1lL-PGKq6-69Piomr8XmwQ5x5UhZfqfDJ": {
+    "error": null,
+    "finished_at": "2026-04-30T22:12:36.970366+00:00",
+    "lang": "zh",
+    "lang_source": "ocr_langdetect",
+    "modifiedTime": "2026-04-30T21:33:12.000Z",
+    "name": "Hyperliquid_Economic_Blueprint_cn.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/hyperliquid/latest/zh.html",
+    "report_id": "04abeb7b-6be8-4b1e-80bf-d6eef2e625ce",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "hyperliquid",
+    "slug_source": "filename",
+    "started_at": "2026-04-30T22:12:27.169654+00:00",
+    "status": "published",
+    "updated_at": "2026-04-30T22:12:36.970384+00:00",
+    "version": null,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/hyperliquid/latest/zh.html"
   },
   "1nIdxDFVHAHpUQ4TcK5anz7bNYKy2d-hV": {
     "error": null,
@@ -683,7 +835,7 @@
     "slug": "usd-coin",
     "slug_source": "filename",
     "status": "unresolved",
-    "updated_at": "2026-04-30T21:18:14.759845+00:00"
+    "updated_at": "2026-04-30T22:15:37.803782+00:00"
   },
   "1yYj03c03BqcKfip-PNMewzd0qD_U6Sd5": {
     "error": null,
