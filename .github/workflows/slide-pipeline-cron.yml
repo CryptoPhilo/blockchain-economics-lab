@@ -2,8 +2,9 @@ name: Slide Pipeline - Automated Processing
 
 on:
   schedule:
-    # Run every 30 minutes
-    - cron: '*/30 * * * *'
+    # Tick every 5 minutes; actual cadence is gated by the
+    # pipeline_schedules row (BCE-1711 / BCE-1713).
+    - cron: '*/5 * * * *'
   workflow_dispatch:
     inputs:
       type:
@@ -45,16 +46,76 @@ jobs:
     timeout-minutes: 240
 
     steps:
+      - name: Schedule gate (BCE-1711)
+        id: gate
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          set -uo pipefail
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Manual dispatch — bypassing schedule gate"
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          ROW=$(curl -fsSL --max-time 15 \
+            "${SUPABASE_URL}/rest/v1/pipeline_schedules?pipeline_name=eq.slide-pipeline&select=enabled,interval_minutes,last_run_at" \
+            -H "apikey: ${SUPABASE_SERVICE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_KEY}") || {
+              echo "::warning::pipeline_schedules query failed — fail-closed and skipping (use workflow_dispatch to override)"
+              echo "should_run=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            }
+
+          enabled=$(echo "$ROW" | jq -r '.[0].enabled // empty')
+          interval=$(echo "$ROW" | jq -r '.[0].interval_minutes // empty')
+          last_run=$(echo "$ROW" | jq -r '.[0].last_run_at // empty')
+
+          if [ -z "$enabled" ]; then
+            echo "::warning::pipeline_schedules row missing for slide-pipeline — skipping"
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "$enabled" != "true" ]; then
+            echo "Pipeline disabled (enabled=$enabled) — skipping"
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ -z "$last_run" ] || [ "$last_run" = "null" ]; then
+            echo "No prior run recorded — proceeding"
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          last_epoch=$(date -u -d "$last_run" +%s)
+          now_epoch=$(date -u +%s)
+          elapsed_min=$(( (now_epoch - last_epoch) / 60 ))
+
+          if [ "$elapsed_min" -lt "$interval" ]; then
+            echo "Cooldown active (elapsed=${elapsed_min}min < interval=${interval}min) — skipping"
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Cooldown expired (elapsed=${elapsed_min}min >= interval=${interval}min) — proceeding"
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout repository
+        if: steps.gate.outputs.should_run == 'true'
         uses: actions/checkout@v4
 
       - name: Set up Python
+        if: steps.gate.outputs.should_run == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
 
       - name: Install tesseract OCR (raster-PDF lang detection — BCE-1099)
+        if: steps.gate.outputs.should_run == 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
@@ -70,6 +131,7 @@ jobs:
           tesseract --list-langs
 
       - name: Install Python dependencies
+        if: steps.gate.outputs.should_run == 'true'
         run: |
           cd scripts/pipeline
           if [ -f requirements.txt ]; then
@@ -80,6 +142,7 @@ jobs:
           fi
 
       - name: Create .env.local from secrets
+        if: steps.gate.outputs.should_run == 'true'
         run: |
           cat > .env.local << EOF
           # Supabase
@@ -97,10 +160,12 @@ jobs:
           EOF
 
       - name: Create Google Drive service account credentials
+        if: steps.gate.outputs.should_run == 'true'
         run: |
           echo '${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}' > scripts/pipeline/.gdrive_service_account.json
 
       - name: Run slide pipeline
+        if: steps.gate.outputs.should_run == 'true'
         working-directory: scripts/pipeline
         env:
           GDRIVE_SERVICE_ACCOUNT_FILE: ${{ github.workspace }}/scripts/pipeline/.gdrive_service_account.json
@@ -131,7 +196,7 @@ jobs:
           python3 watch_slides.py $ARGS
 
       - name: Upload pipeline logs
-        if: always()
+        if: always() && steps.gate.outputs.should_run == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: slide-pipeline-logs-${{ github.run_number }}
@@ -141,7 +206,7 @@ jobs:
           retention-days: 30
 
       - name: Commit processed files tracker
-        if: success() && github.event.inputs.dry_run != 'true'
+        if: success() && steps.gate.outputs.should_run == 'true' && github.event.inputs.dry_run != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -185,12 +250,31 @@ jobs:
           echo "Failed to push tracker after $MAX_ATTEMPTS attempts"
           exit 1
 
+      - name: Update last_run_at (BCE-1711)
+        if: always() && steps.gate.outputs.should_run == 'true'
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          set -uo pipefail
+          NOW=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          curl -fsSL --max-time 15 -X PATCH \
+            "${SUPABASE_URL}/rest/v1/pipeline_schedules?pipeline_name=eq.slide-pipeline" \
+            -H "apikey: ${SUPABASE_SERVICE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_KEY}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=minimal" \
+            -d "{\"last_run_at\":\"${NOW}\",\"updated_by\":\"cron\"}" \
+            && echo "last_run_at updated to ${NOW}" \
+            || echo "::warning::failed to update last_run_at"
+
       - name: Summary
         if: always()
         run: |
           echo "## Slide Pipeline Run Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Gate decision**: should_run=${{ steps.gate.outputs.should_run }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Run ID**: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Timestamp**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
 
