@@ -107,6 +107,25 @@
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/en.html"
   },
+  "1nIdxDFVHAHpUQ4TcK5anz7bNYKy2d-hV": {
+    "error": null,
+    "finished_at": "2026-04-30T03:40:27.470496+00:00",
+    "lang": "zh",
+    "lang_source": "ocr_langdetect",
+    "modifiedTime": "2026-04-30T03:34:34.000Z",
+    "name": "Ethereum_Cryptoeconomic_Architecture_cn.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ethereum/latest/zh.html",
+    "report_id": "1c099fcd-ec1c-4a6a-b5a7-1b3e2355eb0d",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "ethereum",
+    "slug_source": "filename",
+    "started_at": "2026-04-30T03:40:16.114052+00:00",
+    "status": "published",
+    "updated_at": "2026-04-30T03:40:27.470513+00:00",
+    "version": null,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ethereum/latest/zh.html"
+  },
   "1oV_QtsmdbF0nL9eGZ0aDSnAtQFOOuABi": {
     "error": null,
     "finished_at": "2026-04-29T09:03:11.905275+00:00",
