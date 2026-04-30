@@ -485,6 +485,10 @@ def process_report(report_type: str, file_info: dict, dry_run: bool = False) -> 
     print(f"[2/6] 번역 ({master_lang} → {', '.join(target_langs)}) — parallel mode...")
     translated = {master_lang: md_path}
     google_request_count_total = 0
+    translated_words: dict[str, int] = {}
+    google_requests_per_lang: dict[str, int] = {}
+    translation_durations: dict[str, float] = {}
+    source_word_count: int | None = None
 
     from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 
@@ -514,10 +518,19 @@ def process_report(report_type: str, file_info: dict, dry_run: bool = False) -> 
                     try:
                         lang, out_path, meta, elapsed = future.result()
                         translated[lang] = out_path
-                        google_request_count_total += int(meta.get('google_request_count', 0) or 0)
-                        words = meta.get('word_count_target', '?')
                         google_requests = int(meta.get('google_request_count', 0) or 0)
-                        print(f"  ✓ {lang}: {words} words ({elapsed:.1f}s, google_requests={google_requests})")
+                        google_request_count_total += google_requests
+                        words = meta.get('word_count_target')
+                        if isinstance(words, int):
+                            translated_words[lang] = words
+                        google_requests_per_lang[lang] = google_requests
+                        translation_durations[lang] = round(elapsed, 1)
+                        if source_word_count is None:
+                            src = meta.get('word_count_source')
+                            if isinstance(src, int):
+                                source_word_count = src
+                        words_display = words if words is not None else '?'
+                        print(f"  ✓ {lang}: {words_display} words ({elapsed:.1f}s, google_requests={google_requests})")
                     except Exception as e:
                         print(f"  ✗ {lang}: {e}")
         except BaseException:
@@ -529,7 +542,17 @@ def process_report(report_type: str, file_info: dict, dry_run: bool = False) -> 
         lang for lang in target_langs if lang not in translated
     ]
     result['google_request_count_total'] = google_request_count_total
+    result['translated_words'] = translated_words
+    result['translated_words_total'] = sum(translated_words.values())
+    result['google_requests_per_lang'] = google_requests_per_lang
+    result['translation_durations'] = translation_durations
+    result['translation_backend'] = 'google_cloud'
+    if source_word_count is not None:
+        result['source_word_count'] = source_word_count
     print(f"  ✓ 번역 Google 요청 합계: {google_request_count_total}")
+    if translated_words:
+        print(f"  ✓ 번역 단어수 합계 (유료 API 통과): {result['translated_words_total']:,} words "
+              f"across {len(translated_words)} languages")
 
     # 3. PDF generation
     print(f"[3/6] PDF 생성...")
