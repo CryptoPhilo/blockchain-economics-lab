@@ -749,5 +749,96 @@ class KoreanSlugResolutionTests(unittest.TestCase):
         )
 
 
+class ResolveProjectSlugTests(unittest.TestCase):
+    """BCE-1049: ASCII token fallback for Korean ECON draft slugs.
+
+    Production tracker rows use English canonical slugs even when drafts are
+    authored with Korean filenames like `온도-파이낸스ondo-finance-크립토-...`.
+    The resolver must mine the embedded ASCII tokens to land on the correct
+    tracked_projects row instead of letting the publish gate fail with
+    `missing=ko,en`.
+    """
+
+    @staticmethod
+    def _build_sb():
+        return FakeSupabase(
+            {
+                "tracked_projects": [
+                    {"id": "p-cardano", "slug": "cardano", "name": "Cardano", "symbol": "ADA"},
+                    {"id": "p-ondo", "slug": "ondo-finance", "name": "Ondo Finance", "symbol": "ONDO"},
+                    {"id": "p-arbitrum", "slug": "arbitrum", "name": "Arbitrum", "symbol": "ARB"},
+                    {"id": "p-aptos", "slug": "aptos", "name": "Aptos", "symbol": "APT"},
+                    {"id": "p-tether", "slug": "tether", "name": "Tether", "symbol": "USDT"},
+                    {"id": "p-lido", "slug": "lido-dao", "name": "Lido DAO", "symbol": "LDO"},
+                    {"id": "p-hedera", "slug": "hedera-hashgraph", "name": "Hedera", "symbol": "HBAR"},
+                    {"id": "p-trump", "slug": "official-trump", "name": "Official Trump", "symbol": "TRUMP"},
+                    {
+                        "id": "p-wlfi",
+                        "slug": "world-liberty-financial",
+                        "name": "World Liberty Financial",
+                        "symbol": "WLFI",
+                    },
+                    {"id": "p-algorand", "slug": "algorand", "name": "Algorand", "symbol": "ALGO"},
+                ]
+            }
+        )
+
+    def _resolve(self, raw_slug):
+        return ingest_report._resolve_project_slug(self._build_sb(), raw_slug)
+
+    def test_legacy_exact_slug_still_resolves(self):
+        result = self._resolve("cardano")
+        self.assertEqual(result, ("p-cardano", "cardano", "Cardano", "ADA"))
+
+    def test_korean_canonical_path_still_resolves(self):
+        # KO_NAME_TO_SLUG maps "카르다노-..." → "cardano" before ASCII fallback.
+        result = self._resolve("카르다노-프로젝트-진행률-평가-보고서")
+        self.assertEqual(result[1], "cardano")
+
+    def test_ascii_token_exact_slug_resolves_ondo_finance(self):
+        result = self._resolve("온도-파이낸스ondo-finance-크립토-이코노미-심층-분석-보고서")
+        self.assertEqual(result[1], "ondo-finance")
+
+    def test_ascii_token_exact_slug_resolves_arbitrum(self):
+        result = self._resolve("아비트럼arbitrum-크립토-이코노미-심층-분석-보고서")
+        self.assertEqual(result[1], "arbitrum")
+
+    def test_ascii_token_exact_slug_resolves_aptos(self):
+        result = self._resolve("앱토스aptos-크립토-이코노미-분석-보고서")
+        self.assertEqual(result[1], "aptos")
+
+    def test_ascii_token_exact_slug_resolves_tether(self):
+        result = self._resolve("테더tether-프로젝트-크립토-이코노미-심층-분석-보고서")
+        self.assertEqual(result[1], "tether")
+
+    def test_progressive_prefix_ilike_resolves_lido_dao(self):
+        # token=lido-finance: no exact slug, no LIDO symbol; falls through to
+        # `slug ilike 'lido%'` which matches `lido-dao`.
+        result = self._resolve("리도-파이낸스lido-finance-크립토-이코노미-심층-분석-보고서")
+        self.assertEqual(result[1], "lido-dao")
+
+    def test_progressive_prefix_ilike_resolves_hedera_hashgraph(self):
+        # symbol HBAR can't be reached from "hedera"; ilike 'hedera%' wins.
+        result = self._resolve("헤데라hedera-네트워크-크립토-이코노미-심층-분석-보고서")
+        self.assertEqual(result[1], "hedera-hashgraph")
+
+    def test_symbol_exact_match_resolves_official_trump(self):
+        # token=trump → uppercased TRUMP exact-matches symbol on official-trump.
+        result = self._resolve("오피셜-트럼프trump-생태계-및-크립토-이코노미-심층-분석-보고서")
+        self.assertEqual(result[1], "official-trump")
+
+    def test_progressive_prefix_resolves_world_liberty_financial(self):
+        # token=world-liberty-financial-wlfi → progressive prefix lands on
+        # `world-liberty-financial` exact slug.
+        result = self._resolve(
+            "월드-리버티-파이낸셜world-liberty-financial-wlfi-심층-분석-및-리서치-보고서"
+        )
+        self.assertEqual(result[1], "world-liberty-financial")
+
+    def test_unregistered_project_returns_none(self):
+        result = self._resolve("chutesai-bittensor-subnet-64-크립토-이코노미-심층-분석-보고서")
+        self.assertEqual(result, (None, None, None, None))
+
+
 if __name__ == "__main__":
     unittest.main()

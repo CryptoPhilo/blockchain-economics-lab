@@ -218,7 +218,22 @@ def _korean_slug_to_canonical(raw_slug: str) -> str | None:
     return None
 
 
+_ASCII_TOKEN_RE = re.compile(r'[a-z0-9]+(?:-[a-z0-9]+)*')
 _HANGUL_RE = re.compile(r'[가-힣]')
+
+
+def _ascii_tokens(raw_slug: str) -> list[str]:
+    """Extract ASCII token clusters (length ≥ 2) from a mixed Korean/ASCII slug.
+
+    Returned longest-first (with stable order on ties) so compound matches like
+    "world-liberty-financial-wlfi" are tried before bare prefixes.
+    """
+    found = _ASCII_TOKEN_RE.findall(raw_slug.lower())
+    seen: list[str] = []
+    for tok in found:
+        if len(tok) >= 2 and tok not in seen:
+            seen.append(tok)
+    return sorted(seen, key=lambda t: (-len(t), seen.index(t)))
 
 
 def _korean_alias_candidates(raw_slug: str) -> list[str]:
@@ -237,12 +252,29 @@ def _korean_alias_candidates(raw_slug: str) -> list[str]:
 
 
 def _resolve_project_slug(sb, raw_slug: str) -> tuple:
+    """Resolve a raw_slug parsed from an ECON/MAT/FOR draft filename.
+
+    Match order (BCE-1050 alias resolver plus BCE-1049 ASCII-token fallback):
+      1. Korean-canonical slug (KO_NAME_TO_SLUG) → exact slug match
+      2. raw_slug → exact slug match
+      3. Korean alias overlap (tracked_projects.aliases)
+      4. ASCII token (longest first) → exact slug match
+      5. ASCII token progressive prefix shrinking → exact slug match
+      6. raw_slug first segment → exact symbol match (uppercased ASCII only)
+      7. ASCII token (longest first) → exact symbol match (uppercased)
+      8. ASCII token progressive prefix shrinking → slug ilike '<prefix>%'
+      9. raw_slug first segment → name ilike '%<segment>%' (legacy fallback)
+
+    Drafts authored with mixed Korean+English filenames such as
+    `온도-파이낸스ondo-finance-...` previously fell through every step and
+    landed in publish-gate failures because the raw_slug stayed Korean.
+    """
     _fields = 'id, slug, name, symbol, aliases'
     raw_slug = unicodedata.normalize('NFC', raw_slug)
 
-    # Build the ordered candidate list. If the slug starts with a known Korean
-    # project name, try the canonical English slug first so MAT/ECON drafts
-    # named in Korean still resolve in Supabase tracked_projects.
+    def _hit(p):
+        return p['id'], p['slug'], p.get('name'), p.get('symbol')
+
     candidates: list[str] = []
     canonical_from_korean = _korean_slug_to_canonical(raw_slug)
     if canonical_from_korean:
@@ -254,8 +286,7 @@ def _resolve_project_slug(sb, raw_slug: str) -> tuple:
     for slug_attempt in candidates:
         proj = sb.table('tracked_projects').select(_fields).eq('slug', slug_attempt).execute()
         if proj.data:
-            p = proj.data[0]
-            return p['id'], p['slug'], p.get('name'), p.get('symbol')
+            return _hit(proj.data[0])
 
     # Phase 1.5 (BCE-1050): tracked_projects.aliases array overlap. Catches
     # Korean drafts whose leading project name is not in the static
@@ -283,23 +314,66 @@ def _resolve_project_slug(sb, raw_slug: str) -> tuple:
                         best_row = row
                         best_alias_len = len(alias)
             if best_row is not None:
-                return (
-                    best_row['id'],
-                    best_row['slug'],
-                    best_row.get('name'),
-                    best_row.get('symbol'),
-                )
+                return _hit(best_row)
+
+    tokens = _ascii_tokens(raw_slug)
+    tried_slugs: set[str] = set(candidates)
+
+    for token in tokens:
+        if token in tried_slugs:
+            continue
+        tried_slugs.add(token)
+        proj = sb.table('tracked_projects').select(_fields).eq('slug', token).execute()
+        if proj.data:
+            return _hit(proj.data[0])
+
+    for token in tokens:
+        parts = token.split('-')
+        if len(parts) <= 1:
+            continue
+        for i in range(len(parts) - 1, 0, -1):
+            candidate = '-'.join(parts[:i])
+            if candidate in tried_slugs:
+                continue
+            tried_slugs.add(candidate)
+            proj = sb.table('tracked_projects').select(_fields).eq('slug', candidate).execute()
+            if proj.data:
+                return _hit(proj.data[0])
 
     # Phase 2: ASCII-only symbol fallback.
+    tried_symbols: set[str] = set()
     for slug_attempt in candidates:
         symbol_candidate = slug_attempt.split('-')[0].upper()
         # Only treat ASCII tokens as ticker symbols; Korean text upper-cases
         # to itself and would otherwise hit the DB pointlessly.
         if symbol_candidate and re.match(r'^[A-Z0-9]+$', symbol_candidate):
+            if symbol_candidate in tried_symbols:
+                continue
+            tried_symbols.add(symbol_candidate)
             proj = sb.table('tracked_projects').select(_fields).eq('symbol', symbol_candidate).execute()
             if proj.data:
-                p = proj.data[0]
-                return p['id'], p['slug'], p.get('name'), p.get('symbol')
+                return _hit(proj.data[0])
+
+    for token in tokens:
+        sym = token.upper()
+        if sym in tried_symbols:
+            continue
+        tried_symbols.add(sym)
+        proj = sb.table('tracked_projects').select(_fields).eq('symbol', sym).execute()
+        if proj.data:
+            return _hit(proj.data[0])
+
+    tried_ilike: set[str] = set()
+    for token in tokens:
+        parts = token.split('-')
+        for i in range(len(parts), 0, -1):
+            candidate = '-'.join(parts[:i])
+            if len(candidate) < 3 or candidate in tried_ilike:
+                continue
+            tried_ilike.add(candidate)
+            proj = sb.table('tracked_projects').select(_fields).ilike('slug', f'{candidate}%').execute()
+            if proj.data:
+                return _hit(proj.data[0])
 
     # Phase 3: name prefix substring match.
     for slug_attempt in candidates:
@@ -307,8 +381,7 @@ def _resolve_project_slug(sb, raw_slug: str) -> tuple:
         if name_part:
             proj = sb.table('tracked_projects').select(_fields).ilike('name', f'%{name_part}%').execute()
             if proj.data:
-                p = proj.data[0]
-                return p['id'], p['slug'], p.get('name'), p.get('symbol')
+                return _hit(proj.data[0])
     return None, None, None, None
 
 
