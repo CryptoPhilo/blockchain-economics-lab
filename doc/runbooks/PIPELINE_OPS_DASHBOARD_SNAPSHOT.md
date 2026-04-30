@@ -1,6 +1,7 @@
 # Pipeline Ops Dashboard Snapshot Runbook
 
 **Issue**: [BCE-882](/BCE/issues/BCE-882) — 메모리 부족 환경에서 `next dev`/`next start` 없이 운영 대시보드 확인
+**관련 이슈**: [BCE-1711](/BCE/issues/BCE-1711) (작동 주기 컨트롤), [BCE-1712](/BCE/issues/BCE-1712) (DB 스키마), [BCE-1713](/BCE/issues/BCE-1713) (워크플로 게이트), [BCE-1714](/BCE/issues/BCE-1714) (컨트롤 패널 UI)
 **Owner**: CTO
 
 ## 목적
@@ -84,9 +85,69 @@ languages_completed, error_detail
     SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 ```
 
+## 슬라이드 파이프라인 작동 주기 컨트롤 (BCE-1711)
+
+대시보드 상단의 **"Schedule control"** 패널에서 슬라이드 파이프라인의 cron 작동 주기를 admin이 직접 조절한다. 정적 HTML이지만 임베드된 JS가 Supabase JS SDK로 `pipeline_schedules` 테이블을 직접 read/write 한다 — 별도 백엔드 없음.
+
+### 동작 모델
+
+GitHub Actions cron(`*/5 * * * *`)은 항상 빈번하게 트리거되지만, 첫 step `Schedule gate (BCE-1711)`가 다음 조건을 평가한다:
+
+1. `enabled=false` → 즉시 `exit 0` (정상 종료)
+2. `last_run_at IS NULL` 또는 `now() - last_run_at >= interval_minutes` → 정상 실행
+3. cooldown 안이면 즉시 `exit 0`
+4. `workflow_dispatch`(수동) 트리거는 게이트 우회
+
+처리 종료 시 `last_run_at = now()`, `updated_by='cron'`으로 UPDATE.
+
+### Admin 사용 절차
+
+1. 정적 대시보드를 연다 (`open public/snapshots/pipeline-ops-dashboard.ko.html` 또는 영문 버전)
+2. **Schedule control** 패널의 이메일 입력란에 admin 이메일 입력 → **Send magic link**
+3. 메일함에서 magic link 클릭 → 동일 HTML로 복귀, 세션 복원
+4. 권한 배너가 **Admin** 으로 바뀌면 행이 활성화됨
+   - 비-admin 이메일은 **Read-only** 표시 + 컨트롤 비활성
+5. `Interval (min)` 변경 또는 `Enabled` 토글 후 **Save**
+6. 저장 성공 토스트 확인 → 다음 cron tick(최대 5분 이내)부터 새 cadence 적용
+
+### admin allowlist 관리
+
+`admin_emails` 테이블에 row를 추가/제거한다. 1차 시드:
+
+```sql
+SELECT email, note FROM admin_emails;
+-- philoskor@gmail.com | BCE Lab founder / C-level (BCE-1712)
+```
+
+추가 시 (service_role 또는 직접 SQL):
+
+```sql
+INSERT INTO admin_emails (email, note) VALUES ('newadmin@example.com', '담당자 이름 / 역할');
+```
+
+### 트러블슈팅
+
+| 증상 | 원인 | 조치 |
+|---|---|---|
+| 마이크 링크 전송은 되는데 권한이 **Read-only** | 이메일이 `admin_emails`에 없음 | 위 SQL로 row 추가 |
+| 패널에 "Loading…"만 표시 | Supabase URL/ANON_KEY 누락 | `.env.local` 설정 후 생성기 재실행 |
+| Save 시 403 | RLS UPDATE 정책 fail (admin allowlist 외) | `admin_emails`에 본인 이메일 있는지 확인, JWT의 email claim과 대소문자 무관하게 일치하는지 확인 |
+| cron이 자주/드물게 도는데 interval 변경이 안 보임 | GH Actions schedule cron은 best-effort, 실제 cadence는 `interval_minutes` 또는 GH 스케줄러 latency 중 큰 값 | `gh run list --workflow=slide-pipeline-cron.yml` 로 실제 트리거 확인 |
+| 즉시 한 번 돌리고 싶음 | `workflow_dispatch`가 게이트 우회 | Actions UI > "Slide Pipeline - Automated Processing" > Run workflow |
+
+### 검증 (BCE-1711 Stage 4 완료 시)
+
+- ✅ DB 라이브 row 존재: `pipeline_schedules('slide-pipeline', 30, true, ...)`
+- ✅ `admin_emails`에 `philoskor@gmail.com` 시드
+- ✅ 워크플로 마지막 실행이 `last_run_at`을 갱신함 (e.g. `updated_by='cron'`)
+- ✅ 게이트 step이 cron 트리거에서 cooldown 평가 후 `should_run` 출력
+- ✅ 정적 HTML(ko/en)에 schedule panel + magic link 폼 + Supabase SDK 임베드
+
 ## 관련 파일
 
-- `scripts/generate-pipeline-ops-snapshot.mjs` — 생성기
+- `scripts/generate-pipeline-ops-snapshot.mjs` — 생성기 (Schedule control 패널 포함)
 - `src/lib/fixtures/pipeline-ops-dashboard-snapshot.json` — fallback fixture
 - `scripts/pipeline/pipeline_state.py` — 데이터 소스 (`pipeline_runs` 테이블 스키마 정의)
 - `scripts/pipeline/daily_pipeline_report.py` — 일일 보드 보고서 (보고용, 대시보드와 별개)
+- `supabase/migrations/20260430_add_pipeline_schedules.sql` — `pipeline_schedules` + `admin_emails` 스키마/RLS
+- `.github/workflows/slide-pipeline-cron.yml` — DB 게이트 + last_run_at 갱신 step
