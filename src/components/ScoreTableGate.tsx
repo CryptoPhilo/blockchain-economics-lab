@@ -8,7 +8,7 @@ import { useState, useTransition } from 'react'
  * CMC-Style Market Cap Ranking Table with Email Gate
  *
  * Displays a CoinMarketCap-style ranking table with:
- * - Rank, Name/Symbol, Price, 24h Change, Market Cap, BCE Score, Report Badges
+ * - Rank, Name/Symbol, 24h Change, Market Cap, BCE Score, Report Badges
  * - Sorted by market cap
  * - Top N rows visible, rest behind email gate
  * - Responsive: hides some columns on mobile
@@ -19,7 +19,6 @@ interface ScoreRow {
   name: string
   symbol: string
   slug: string
-  price: number | null
   change24h: number | null
   marketCap: number
   score: number | null
@@ -39,16 +38,6 @@ interface ScoreTableGateProps {
 }
 
 type GateStatus = 'locked' | 'submitting' | 'unlocked' | 'error'
-
-function formatPrice(value: number): string {
-  if (value >= 1) {
-    return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-  }
-  if (value >= 0.01) {
-    return `$${value.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`
-  }
-  return `$${value.toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 })}`
-}
 
 function formatMarketCap(value: number): string {
   if (value >= 1e12) return `$${(value / 1e12).toFixed(2)}T`
@@ -183,11 +172,6 @@ export default function ScoreTableGate({
           {row.marketCap > 0 ? formatMarketCap(row.marketCap) : '-'}
         </td>
 
-        {/* Price */}
-        <td className="py-4 px-3 text-right text-sm text-white font-mono hidden sm:table-cell">
-          {row.price != null ? formatPrice(row.price) : '-'}
-        </td>
-
         {/* 24h Change */}
         <td className="py-4 px-3 text-right text-sm font-mono hidden sm:table-cell">
           {row.change24h != null ? (
@@ -305,9 +289,6 @@ export default function ScoreTableGate({
               </th>
               <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase">
                 {isKo ? '시가총액' : 'Market Cap'}
-              </th>
-              <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">
-                {isKo ? '가격' : 'Price'}
               </th>
               <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">
                 24h

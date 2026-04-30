@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { getLocalizedField, formatPrice, type Product, type Locale } from '@/lib/types'
+import { getLocalizedField, type Product, type Locale } from '@/lib/types'
 
 interface Props {
   product: Product
@@ -68,16 +68,9 @@ export default function ProductCard({ product, locale }: Props) {
         </div>
       )}
 
-      {/* Price */}
+      {/* Card affordance */}
       <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
-        <span className="text-xl font-bold text-indigo-400">
-          {formatPrice(product.price_usd_cents)}
-        </span>
-        {product.type === 'subscription' && (
-          <span className="text-sm text-gray-500">
-            {product.subscription_interval === 'monthly' ? t('perMonth') : t('perYear')}
-          </span>
-        )}
+        <span className="text-sm text-gray-500">{locale === 'ko' ? '자세히 보기' : 'View details'}</span>
         {product.type === 'single_report' && (
           <span className="text-sm text-indigo-400 group-hover:translate-x-1 transition-transform">→</span>
         )}

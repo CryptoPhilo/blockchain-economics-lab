@@ -118,17 +118,17 @@ export default async function ForensicReportPage({ params }: Props) {
   const previewCtaCopy =
     isComingSoon
       ? {
-          ko: '전체 포렌식 보고서는 공개 준비가 끝나는 대로 연결됩니다.',
-          en: 'The full forensic report will be linked once publishing is complete.',
+          ko: '포렌식 보고서는 공개 준비가 끝나는 대로 무료 접근 경로가 연결됩니다.',
+          en: 'Free access to the forensic report will be linked once publishing is complete.',
         }
       : pageCount
         ? {
-            ko: `이 미리보기가 유용하셨나요? 전체 PDF 보고서(${pageCount}페이지)를 받아보세요.`,
-            en: `Found this preview helpful? Get the full PDF report (${pageCount} pages).`,
+            ko: `이 미리보기가 유용하셨나요? 무료 PDF 보고서(${pageCount}페이지)를 확인해 보세요.`,
+            en: `Found this preview helpful? Open the free PDF report (${pageCount} pages).`,
           }
         : {
-            ko: '이 미리보기가 유용하셨나요? 전체 PDF 보고서를 확인해 보세요.',
-            en: 'Found this preview helpful? Get the full PDF report.',
+            ko: '이 미리보기가 유용하셨나요? 무료 PDF 보고서를 확인해 보세요.',
+            en: 'Found this preview helpful? Open the free PDF report.',
           }
   const reportIntroCopy = isComingSoon
     ? {
@@ -141,8 +141,8 @@ export default async function ForensicReportPage({ params }: Props) {
       }
   const accessPanelTitle =
     locale === 'ko'
-      ? (canDownload ? '전체 보고서 열기' : '전체 보고서 공개 상태')
-      : (canDownload ? 'Open Full Report' : 'Full Report Availability')
+      ? (canDownload ? '무료 PDF 열기' : '무료 PDF 공개 상태')
+      : (canDownload ? 'Open Free PDF' : 'Free PDF Availability')
   const accessPanelBody = locale === 'ko' ? previewCtaCopy.ko : previewCtaCopy.en
   const accessHighlights =
     locale === 'ko'
@@ -368,9 +368,9 @@ export default async function ForensicReportPage({ params }: Props) {
                     label={
                       pageCount
                         ? (locale === 'ko'
-                            ? `전체 PDF 받기 (${pageCount}페이지)`
-                            : `Get Full PDF (${pageCount} pages)`)
-                        : (locale === 'ko' ? '전체 PDF 받기' : 'Get Full PDF')
+                            ? `무료 PDF 받기 (${pageCount}페이지)`
+                            : `Get Free PDF (${pageCount} pages)`)
+                        : (locale === 'ko' ? '무료 PDF 받기' : 'Get Free PDF')
                     }
                   />
                 ) : (
@@ -378,11 +378,11 @@ export default async function ForensicReportPage({ params }: Props) {
                     <p>
                       {isComingSoon
                         ? (locale === 'ko'
-                            ? '전체 보고서는 아직 공개되지 않았습니다.'
-                            : 'The full report is not public yet.')
+                            ? '무료 PDF 보고서는 아직 공개되지 않았습니다.'
+                            : 'The free PDF report is not public yet.')
                         : (locale === 'ko'
-                            ? '전체 PDF 링크는 아직 연결되지 않았습니다.'
-                            : 'The full PDF link is not attached yet.')}
+                            ? '무료 PDF 링크는 아직 연결되지 않았습니다.'
+                            : 'The free PDF link is not attached yet.')}
                     </p>
                     <p className="mt-2 text-gray-400">
                       {isComingSoon ? t('comingSoonDesc') : (locale === 'ko'
