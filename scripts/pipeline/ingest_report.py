@@ -155,25 +155,160 @@ def _normalize_slug_token(s: str | None) -> str:
     return re.sub(r'-+', '-', s).strip('-')
 
 
+# Korean project name → canonical English slug.
+# Mirrors the KNOWN_NAMES_KO mapping in ingest_gdoc.py. Drafts authored with
+# Korean filenames (e.g. "카르다노-프로젝트-진행률-평가-보고서_mat_v1.md") would
+# otherwise reach Supabase publish with a Korean slug that has no row in
+# tracked_projects. We translate the leading Korean term to its canonical
+# English slug before lookup.
+KO_NAME_TO_SLUG: dict[str, str] = {
+    '비트코인': 'bitcoin', '이더리움': 'ethereum', '솔라나': 'solana',
+    '카르다노': 'cardano', '리플': 'ripple', '폴카닷': 'polkadot',
+    '체인링크': 'chainlink', '아발란체': 'avalanche-2', '니어': 'near',
+    '아비트럼': 'arbitrum', '유니스왑': 'uniswap', '아베': 'aave',
+    '트론': 'tron', '도지코인': 'dogecoin', '바이낸스코인': 'binancecoin',
+    '인터넷컴퓨터': 'internet-computer', '폴리곤': 'matic-network',
+    '비트코인-캐시': 'bitcoin-cash', '비트코인캐시': 'bitcoin-cash',
+    '스텔라': 'stellar', '앱토스': 'aptos',
+    '리도-파이낸스': 'lido-dao', '리도파이낸스': 'lido-dao',
+    '알고랜드': 'algorand',
+    '플레어-네트워크': 'flare-networks', '플레어네트워크': 'flare-networks',
+    '온도-파이낸스': 'ondo-finance', '온도파이낸스': 'ondo-finance',
+    '테더': 'tether', '헤데라': 'hedera-hashgraph',
+    '모네로': 'monero', '하이퍼리퀴드': 'hyperliquid',
+    '스토리-프로토콜': 'story-protocol', '스토리프로토콜': 'story-protocol',
+    '월렛커넥트': 'walletconnect',
+    '페이팔': 'paypal-usd', '페이팔-usd': 'paypal-usd', 'pyusd': 'paypal-usd',
+    '라이트코인': 'litecoin', '메이커다오': 'maker',
+    '스카이-프로토콜': 'maker', '스카이프로토콜': 'maker',
+    '칸톤-네트워크': 'canton-network', '칸톤네트워크': 'canton-network', '칸톤': 'canton-network',
+    '월드-리버티-파이낸셜': 'world-liberty-financial',
+    '리버-프로토콜': 'river-protocol', '리버프로토콜': 'river-protocol',
+    '크로스': 'cross-crypto',
+    '맨틀-네트워크': 'mantle', '맨틀네트워크': 'mantle', '맨틀': 'mantle',
+    '테더-골드': 'tether-gold', '테더골드': 'tether-gold',
+    '크로노스': 'cronos',
+    '파이-네트워크': 'pi-network', '파이네트워크': 'pi-network',
+    '게이트체인': 'gatechain', '코스모스': 'cosmos', '카스파': 'kaspa',
+    '렌더': 'render-token', '파일코인': 'filecoin',
+    '이더리움클래식': 'ethereum-classic', '이더리움-클래식': 'ethereum-classic',
+    '비트겟': 'bitget-token', '페페': 'pepe',
+}
+
+
+def _korean_slug_to_canonical(raw_slug: str) -> str | None:
+    """Translate a slug that begins with a known Korean project name to the
+    canonical English slug. Returns None when no Korean prefix matches.
+
+    Examples:
+        "카르다노-프로젝트-진행률-평가-보고서" → "cardano"
+        "비트코인-캐시" → "bitcoin-cash"
+        "cardano" → None  (already canonical)
+    """
+    if not raw_slug:
+        return None
+    needle = unicodedata.normalize('NFC', raw_slug).lower()
+    # Longer keys first so "비트코인-캐시" wins over "비트코인".
+    for ko_name, en_slug in sorted(
+        KO_NAME_TO_SLUG.items(), key=lambda kv: -len(kv[0])
+    ):
+        ko = unicodedata.normalize('NFC', ko_name).lower()
+        if needle == ko or needle.startswith(ko + '-'):
+            return en_slug
+    return None
+
+
+_HANGUL_RE = re.compile(r'[가-힣]')
+
+
+def _korean_alias_candidates(raw_slug: str) -> list[str]:
+    """Hyphen-separated Korean prefixes of `raw_slug`, longest first.
+
+    Used as overlap candidates against tracked_projects.aliases. ASCII-only
+    prefixes are skipped — the symbol / name fallbacks already cover them.
+    """
+    parts = [p for p in raw_slug.split('-') if p]
+    out: list[str] = []
+    for end in range(len(parts), 0, -1):
+        prefix = '-'.join(parts[:end])
+        if _HANGUL_RE.search(prefix):
+            out.append(prefix)
+    return out
+
+
 def _resolve_project_slug(sb, raw_slug: str) -> tuple:
-    _fields = 'id, slug, name, symbol'
+    _fields = 'id, slug, name, symbol, aliases'
     raw_slug = unicodedata.normalize('NFC', raw_slug)
-    proj = sb.table('tracked_projects').select(_fields).eq('slug', raw_slug).execute()
-    if proj.data:
-        p = proj.data[0]
-        return p['id'], p['slug'], p.get('name'), p.get('symbol')
-    symbol_candidate = raw_slug.split('-')[0].upper()
-    if symbol_candidate:
-        proj = sb.table('tracked_projects').select(_fields).eq('symbol', symbol_candidate).execute()
+
+    # Build the ordered candidate list. If the slug starts with a known Korean
+    # project name, try the canonical English slug first so MAT/ECON drafts
+    # named in Korean still resolve in Supabase tracked_projects.
+    candidates: list[str] = []
+    canonical_from_korean = _korean_slug_to_canonical(raw_slug)
+    if canonical_from_korean:
+        candidates.append(canonical_from_korean)
+    if raw_slug not in candidates:
+        candidates.append(raw_slug)
+
+    # Phase 1: direct slug match.
+    for slug_attempt in candidates:
+        proj = sb.table('tracked_projects').select(_fields).eq('slug', slug_attempt).execute()
         if proj.data:
             p = proj.data[0]
             return p['id'], p['slug'], p.get('name'), p.get('symbol')
-    name_part = raw_slug.split('-')[0]
-    if name_part:
-        proj = sb.table('tracked_projects').select(_fields).ilike('name', f'%{name_part}%').execute()
-        if proj.data:
-            p = proj.data[0]
-            return p['id'], p['slug'], p.get('name'), p.get('symbol')
+
+    # Phase 1.5 (BCE-1050): tracked_projects.aliases array overlap. Catches
+    # Korean drafts whose leading project name is not in the static
+    # KO_NAME_TO_SLUG map. Among multiple matching rows, prefer the row whose
+    # alias is the longest match against raw_slug — disambiguates overlaps
+    # like "비트코인-캐시" vs "비트코인".
+    alias_tokens = _korean_alias_candidates(raw_slug)
+    if alias_tokens:
+        try:
+            proj = (
+                sb.table('tracked_projects')
+                .select(_fields)
+                .overlaps('aliases', alias_tokens)
+                .execute()
+            )
+        except Exception as exc:
+            print(f"    [WARN] alias overlap query failed: {exc}")
+            proj = None
+        if proj and proj.data:
+            best_row = None
+            best_alias_len = -1
+            for row in proj.data:
+                for alias in (row.get('aliases') or []):
+                    if alias in alias_tokens and len(alias) > best_alias_len:
+                        best_row = row
+                        best_alias_len = len(alias)
+            if best_row is not None:
+                return (
+                    best_row['id'],
+                    best_row['slug'],
+                    best_row.get('name'),
+                    best_row.get('symbol'),
+                )
+
+    # Phase 2: ASCII-only symbol fallback.
+    for slug_attempt in candidates:
+        symbol_candidate = slug_attempt.split('-')[0].upper()
+        # Only treat ASCII tokens as ticker symbols; Korean text upper-cases
+        # to itself and would otherwise hit the DB pointlessly.
+        if symbol_candidate and re.match(r'^[A-Z0-9]+$', symbol_candidate):
+            proj = sb.table('tracked_projects').select(_fields).eq('symbol', symbol_candidate).execute()
+            if proj.data:
+                p = proj.data[0]
+                return p['id'], p['slug'], p.get('name'), p.get('symbol')
+
+    # Phase 3: name prefix substring match.
+    for slug_attempt in candidates:
+        name_part = slug_attempt.split('-')[0]
+        if name_part:
+            proj = sb.table('tracked_projects').select(_fields).ilike('name', f'%{name_part}%').execute()
+            if proj.data:
+                p = proj.data[0]
+                return p['id'], p['slug'], p.get('name'), p.get('symbol')
     return None, None, None, None
 
 
@@ -378,8 +513,19 @@ def process_report(report_type: str, file_info: dict, dry_run: bool = False) -> 
             fail_names = [c.name for c in md_fails]
             print(f"  ⚠ Markdown QA FAIL: {fail_names}")
             result['md_qa_fail'] = fail_names
+            # BCE-867: section_markers FAIL means body has zero ## headings,
+            # which produces a 3-page cover-only PDF. Abort before wasting
+            # translation/PDF cycles instead of failing later in qa_verify.
+            if 'md.structure.section_markers' in fail_names:
+                raise TerminalContentError(
+                    'md.structure.section_markers FAIL — '
+                    'source markdown has no H2 sections; '
+                    'PDF body would be empty (BCE-867)'
+                )
         else:
             print(f"  ✓ Markdown QA passed")
+    except TerminalContentError:
+        raise
     except Exception as e:
         print(f"  [WARN] Markdown QA error (계속 진행): {e}")
 
@@ -393,6 +539,10 @@ def process_report(report_type: str, file_info: dict, dry_run: bool = False) -> 
     print(f"[2/6] 번역 ({master_lang} → {', '.join(target_langs)}) — parallel mode...")
     translated = {master_lang: md_path}
     google_request_count_total = 0
+    translated_words: dict[str, int] = {}
+    google_requests_per_lang: dict[str, int] = {}
+    translation_durations: dict[str, float] = {}
+    source_word_count: int | None = None
 
     from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 
@@ -422,10 +572,19 @@ def process_report(report_type: str, file_info: dict, dry_run: bool = False) -> 
                     try:
                         lang, out_path, meta, elapsed = future.result()
                         translated[lang] = out_path
-                        google_request_count_total += int(meta.get('google_request_count', 0) or 0)
-                        words = meta.get('word_count_target', '?')
                         google_requests = int(meta.get('google_request_count', 0) or 0)
-                        print(f"  ✓ {lang}: {words} words ({elapsed:.1f}s, google_requests={google_requests})")
+                        google_request_count_total += google_requests
+                        words = meta.get('word_count_target')
+                        if isinstance(words, int):
+                            translated_words[lang] = words
+                        google_requests_per_lang[lang] = google_requests
+                        translation_durations[lang] = round(elapsed, 1)
+                        if source_word_count is None:
+                            src = meta.get('word_count_source')
+                            if isinstance(src, int):
+                                source_word_count = src
+                        words_display = words if words is not None else '?'
+                        print(f"  ✓ {lang}: {words_display} words ({elapsed:.1f}s, google_requests={google_requests})")
                     except Exception as e:
                         print(f"  ✗ {lang}: {e}")
         except BaseException:
@@ -437,7 +596,17 @@ def process_report(report_type: str, file_info: dict, dry_run: bool = False) -> 
         lang for lang in target_langs if lang not in translated
     ]
     result['google_request_count_total'] = google_request_count_total
+    result['translated_words'] = translated_words
+    result['translated_words_total'] = sum(translated_words.values())
+    result['google_requests_per_lang'] = google_requests_per_lang
+    result['translation_durations'] = translation_durations
+    result['translation_backend'] = 'google_cloud'
+    if source_word_count is not None:
+        result['source_word_count'] = source_word_count
     print(f"  ✓ 번역 Google 요청 합계: {google_request_count_total}")
+    if translated_words:
+        print(f"  ✓ 번역 단어수 합계 (유료 API 통과): {result['translated_words_total']:,} words "
+              f"across {len(translated_words)} languages")
 
     # 3. PDF generation
     print(f"[3/6] PDF 생성...")

@@ -1,9 +1,8 @@
 import { getTranslations } from 'next-intl/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { getLocalizedField, formatPrice, type Locale } from '@/lib/types'
+import { getLocalizedField, type Locale } from '@/lib/types'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import CheckoutButton from '@/components/CheckoutButton'
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>
@@ -53,6 +52,19 @@ export default async function ProductDetailPage({ params }: Props) {
   const reportType = product.report_type as keyof typeof REPORT_TYPE_CONFIG | null
   const reportTypeConfig = reportType ? REPORT_TYPE_CONFIG[reportType] : null
   const version = product.report_version as number | null
+  const newsletterCopy = locale === 'ko'
+    ? {
+        title: '무료 뉴스레터로 업데이트 받기',
+        body: '새 리포트 공개와 핵심 프로젝트 인사이트를 이메일로 받아보세요.',
+        cta: '무료 뉴스레터 구독',
+        note: '리포트 접근 안내는 뉴스레터를 통해 업데이트됩니다.',
+      }
+    : {
+        title: 'Get updates through the free newsletter',
+        body: 'Receive new report releases and concise project intelligence by email.',
+        cta: 'Subscribe free',
+        note: 'Report access updates are shared through the newsletter.',
+      }
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-12">
@@ -132,7 +144,6 @@ export default async function ProductDetailPage({ params }: Props) {
                   <div key={item.id} className="flex items-center gap-3 p-4 rounded-lg bg-white/5 border border-white/5">
                     <span className="text-green-400">✓</span>
                     <span>{getLocalizedField(item.product, 'title', locale as Locale)}</span>
-                    <span className="ml-auto text-sm text-gray-500">{formatPrice(item.product.price_usd_cents)}</span>
                   </div>
                 ))}
               </div>
@@ -140,30 +151,18 @@ export default async function ProductDetailPage({ params }: Props) {
           )}
         </div>
 
-        {/* Purchase Card */}
+        {/* Newsletter Card */}
         <div className="lg:col-span-1">
           <div className="sticky top-24 p-6 rounded-2xl bg-white/5 border border-white/10">
-            <div className="text-3xl font-bold text-indigo-400 mb-1">
-              {formatPrice(product.price_usd_cents)}
-              {product.type === 'subscription' && (
-                <span className="text-base font-normal text-gray-500">
-                  {product.subscription_interval === 'monthly' ? t('products.perMonth') : t('products.perYear')}
-                </span>
-              )}
-            </div>
-
-            {product.type === 'bundle' && (
-              <p className="text-sm text-green-400 mb-4">🎉 {t('products.savePercent', { percent: '25' })}</p>
-            )}
-
-            <CheckoutButton product={product} locale={locale} />
-
-            <div className="mt-6 pt-6 border-t border-white/10">
-              <p className="text-xs text-gray-500 text-center">Secure crypto payment — BTC, ETH, USDT, USDC</p>
-              <div className="flex justify-center gap-3 mt-3 text-lg">
-                <span>₿</span><span>Ξ</span><span>₮</span><span>💲</span>
-              </div>
-            </div>
+            <h2 className="text-xl font-bold text-white mb-3">{newsletterCopy.title}</h2>
+            <p className="text-sm text-gray-400 leading-6 mb-5">{newsletterCopy.body}</p>
+            <Link
+              href={`/${locale}#newsletter`}
+              className="inline-flex w-full items-center justify-center rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-indigo-500"
+            >
+              {newsletterCopy.cta}
+            </Link>
+            <p className="mt-4 text-xs text-gray-500 text-center">{newsletterCopy.note}</p>
           </div>
         </div>
       </div>

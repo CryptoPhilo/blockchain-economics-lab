@@ -80,7 +80,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 type: t('home.econType'),
                 title: t('home.econTitle'),
                 desc: t('home.econDesc'),
-                price: '$49',
                 color: 'from-blue-500/10 to-blue-600/5 border-blue-500/20',
               },
               {
@@ -88,7 +87,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 type: t('home.matType'),
                 title: t('home.matTitle'),
                 desc: t('home.matDesc'),
-                price: '$39',
                 color: 'from-green-500/10 to-green-600/5 border-green-500/20',
               },
               {
@@ -96,7 +94,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 type: t('home.forType'),
                 title: t('home.forTitle'),
                 desc: t('home.forDesc'),
-                price: '$29',
                 color: 'from-red-500/10 to-red-600/5 border-red-500/20',
               },
             ].map((report) => (
@@ -108,7 +105,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 <div className="text-xs font-mono text-gray-500 mt-2">{report.type}</div>
                 <h3 className="font-bold text-white mt-2">{report.title}</h3>
                 <p className="text-xs text-gray-400 mt-2">{report.desc}</p>
-                <p className="text-lg font-bold text-indigo-400 mt-3">{report.price}</p>
               </div>
             ))}
           </div>
@@ -158,7 +154,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       )}
 
       {/* Newsletter CTA */}
-      <section className="max-w-6xl mx-auto px-6 pb-20">
+      <section id="newsletter" className="max-w-6xl mx-auto px-6 pb-20">
         <div className="rounded-2xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 p-10 text-center">
           <h3 className="text-2xl font-bold mb-4">
             {t('home.newsletterTitle')}
@@ -179,20 +175,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <span>📊 {t('home.weeklyPulse')}</span>
             <span>🔍 {t('home.deepDive')}</span>
             <span>🚨 {t('home.forensicAlerts')}</span>
-          </div>
-        </div>
-      </section>
-
-      {/* Crypto Payment Banner */}
-      <section className="max-w-6xl mx-auto px-6 pb-20">
-        <div className="rounded-2xl bg-gradient-to-r from-green-500/5 to-emerald-500/5 border border-green-500/10 p-8 text-center">
-          <h3 className="text-xl font-bold mb-3">{t('home.cryptoPayments')}</h3>
-          <p className="text-gray-400 text-sm mb-4">{t('home.cryptoPaymentDesc')}</p>
-          <div className="flex justify-center gap-6 text-3xl">
-            <span title="Bitcoin">₿</span>
-            <span title="Ethereum">Ξ</span>
-            <span title="USDT">₮</span>
-            <span title="USDC">💲</span>
           </div>
         </div>
       </section>

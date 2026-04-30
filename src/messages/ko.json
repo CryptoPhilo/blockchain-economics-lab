@@ -193,6 +193,23 @@
     "disclaimer": "면책 조항: 이 포렌식 분석은 AI 기반 온체인 데이터 분석과 시장 패턴 감지를 통해 생성되었습니다. 투자 조언이 아니며, 모든 투자 결정은 본인의 책임 하에 이루어져야 합니다. 과거의 패턴이 미래의 결과를 보장하지 않습니다.",
     "allForensicReports": "전체 포렌식 보고서"
   },
+  "slideReportDetail": {
+    "home": "홈",
+    "econLabel": "ECON 보고서",
+    "maturityLabel": "MAT 보고서",
+    "econTypeName": "크립토 이코노미 분석",
+    "maturityTypeName": "프로젝트 성숙도 분석",
+    "scoreLabel": "점수",
+    "keyFindings": "주요 발견 키워드",
+    "reportType": "보고서 유형",
+    "versionLabel": "버전",
+    "analysisDate": "분석 일시",
+    "languageLabel": "언어",
+    "slideComingSoonTitle": "슬라이드 준비 중",
+    "slideComingSoonDesc": "보고서가 발행되었지만 슬라이드 자료는 아직 준비 중입니다. 곧 다시 확인해 주세요.",
+    "disclaimer": "면책 조항: 이 보고서는 AI 기반 분석과 시장 데이터로 생성되었습니다. 투자 조언이 아니며, 모든 투자 결정은 본인의 책임 하에 이루어져야 합니다.",
+    "backToReports": "전체 보고서 목록으로"
+  },
   "home": {
     "maturityScoreTitle": "BCE Maturity Score™",
     "maturityScoreSubtitle": "추적 프로젝트 실시간 성숙도 점수",

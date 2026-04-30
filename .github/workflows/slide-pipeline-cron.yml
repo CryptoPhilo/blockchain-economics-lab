@@ -1,0 +1,298 @@
+name: Slide Pipeline - Automated Processing
+
+on:
+  schedule:
+    # Tick every 5 minutes; actual cadence is gated by the
+    # pipeline_schedules row (BCE-1711 / BCE-1713).
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+    inputs:
+      type:
+        description: 'Report type filter'
+        required: false
+        type: choice
+        default: 'all'
+        options:
+          - all
+          - econ
+          - mat
+          - for
+      slug:
+        description: 'Process specific project slug only (optional)'
+        required: false
+        type: string
+      dry_run:
+        description: 'Dry run mode (scan only, no upload)'
+        required: false
+        type: boolean
+        default: false
+      force:
+        description: 'Force re-process even if manifest is up-to-date'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: slide-pipeline-cron
+  cancel-in-progress: false
+
+jobs:
+  process-slides:
+    name: 🎬 Process Slide Decks
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+
+    steps:
+      - name: Schedule gate (BCE-1711)
+        id: gate
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          set -uo pipefail
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Manual dispatch — bypassing schedule gate"
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          ROW=$(curl -fsSL --max-time 15 \
+            "${SUPABASE_URL}/rest/v1/pipeline_schedules?pipeline_name=eq.slide-pipeline&select=enabled,interval_minutes,last_run_at" \
+            -H "apikey: ${SUPABASE_SERVICE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_KEY}") || {
+              echo "::warning::pipeline_schedules query failed — fail-closed and skipping (use workflow_dispatch to override)"
+              echo "should_run=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            }
+
+          enabled=$(echo "$ROW" | jq -r '.[0].enabled // empty')
+          interval=$(echo "$ROW" | jq -r '.[0].interval_minutes // empty')
+          last_run=$(echo "$ROW" | jq -r '.[0].last_run_at // empty')
+
+          if [ -z "$enabled" ]; then
+            echo "::warning::pipeline_schedules row missing for slide-pipeline — skipping"
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "$enabled" != "true" ]; then
+            echo "Pipeline disabled (enabled=$enabled) — skipping"
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ -z "$last_run" ] || [ "$last_run" = "null" ]; then
+            echo "No prior run recorded — proceeding"
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          last_epoch=$(date -u -d "$last_run" +%s)
+          now_epoch=$(date -u +%s)
+          elapsed_min=$(( (now_epoch - last_epoch) / 60 ))
+
+          if [ "$elapsed_min" -lt "$interval" ]; then
+            echo "Cooldown active (elapsed=${elapsed_min}min < interval=${interval}min) — skipping"
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Cooldown expired (elapsed=${elapsed_min}min >= interval=${interval}min) — proceeding"
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout repository
+        if: steps.gate.outputs.should_run == 'true'
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        if: steps.gate.outputs.should_run == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install tesseract OCR (raster-PDF lang detection — BCE-1099)
+        if: steps.gate.outputs.should_run == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            tesseract-ocr \
+            tesseract-ocr-kor \
+            tesseract-ocr-eng \
+            tesseract-ocr-fra \
+            tesseract-ocr-spa \
+            tesseract-ocr-deu \
+            tesseract-ocr-jpn \
+            tesseract-ocr-chi-sim
+          tesseract --version
+          tesseract --list-langs
+
+      - name: Install Python dependencies
+        if: steps.gate.outputs.should_run == 'true'
+        run: |
+          cd scripts/pipeline
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
+            pip install supabase requests python-dotenv pymupdf pillow
+          fi
+
+      - name: Create .env.local from secrets
+        if: steps.gate.outputs.should_run == 'true'
+        run: |
+          cat > .env.local << EOF
+          # Supabase
+          NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
+
+          # Google Drive
+          GDRIVE_ROOT_FOLDER_ID=${{ secrets.GDRIVE_ROOT_FOLDER_ID }}
+          GDRIVE_DELEGATE_EMAIL=${{ secrets.GDRIVE_DELEGATE_EMAIL }}
+
+          # App
+          NEXT_PUBLIC_APP_URL=https://bcelab.xyz
+          EOF
+
+      - name: Create Google Drive service account credentials
+        if: steps.gate.outputs.should_run == 'true'
+        run: |
+          echo '${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}' > scripts/pipeline/.gdrive_service_account.json
+
+      - name: Run slide pipeline
+        if: steps.gate.outputs.should_run == 'true'
+        working-directory: scripts/pipeline
+        env:
+          GDRIVE_SERVICE_ACCOUNT_FILE: ${{ github.workspace }}/scripts/pipeline/.gdrive_service_account.json
+        run: |
+          ARGS=""
+          TYPE_INPUT="${{ github.event.inputs.type }}"
+          if [ -n "$TYPE_INPUT" ]; then
+            ARGS="--type $TYPE_INPUT"
+          else
+            ARGS="--type all"
+          fi
+
+          if [ -n "${{ github.event.inputs.slug }}" ]; then
+            ARGS="$ARGS --slug ${{ github.event.inputs.slug }}"
+          fi
+
+          if [ "${{ github.event.inputs.dry_run }}" == "true" ]; then
+            echo "🧪 Running in DRY RUN mode"
+            ARGS="$ARGS --dry-run"
+          fi
+
+          if [ "${{ github.event.inputs.force }}" == "true" ]; then
+            echo "⚡ Force re-processing enabled"
+            ARGS="$ARGS --force"
+          fi
+
+          echo "Invoking: python3 watch_slides.py $ARGS"
+          python3 watch_slides.py $ARGS
+
+      - name: Upload pipeline logs
+        if: always() && steps.gate.outputs.should_run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: slide-pipeline-logs-${{ github.run_number }}
+          path: |
+            scripts/pipeline/output/_slide_processed.json
+            logs/slide_pipeline/*.md
+          retention-days: 30
+
+      - name: Commit processed files tracker
+        if: success() && steps.gate.outputs.should_run == 'true' && github.event.inputs.dry_run != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if [ ! -f "scripts/pipeline/output/_slide_processed.json" ]; then
+            echo "No tracker file to commit"
+            exit 0
+          fi
+
+          git add -f scripts/pipeline/output/_slide_processed.json
+
+          if git diff --staged --quiet; then
+            echo "No changes to processed files tracker"
+            exit 0
+          fi
+
+          git commit -m "chore: update slide processed files tracker [skip ci]"
+
+          # Push with rebase-on-conflict retry. Tracker file is append-mostly,
+          # so an autostash+rebase+push loop is safe.
+          MAX_ATTEMPTS=5
+          attempt=1
+          while [ $attempt -le $MAX_ATTEMPTS ]; do
+            if git push origin HEAD:main; then
+              echo "Pushed tracker on attempt $attempt"
+              exit 0
+            fi
+
+            echo "Push attempt $attempt failed; rebasing onto latest origin/main and retrying"
+            git fetch origin main
+            if ! git pull --rebase --autostash origin main; then
+              echo "Rebase failed on attempt $attempt; aborting"
+              git rebase --abort || true
+              exit 1
+            fi
+
+            sleep $((RANDOM % 5 + 2))
+            attempt=$((attempt + 1))
+          done
+
+          echo "Failed to push tracker after $MAX_ATTEMPTS attempts"
+          exit 1
+
+      - name: Update last_run_at (BCE-1711)
+        if: always() && steps.gate.outputs.should_run == 'true'
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          set -uo pipefail
+          NOW=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          curl -fsSL --max-time 15 -X PATCH \
+            "${SUPABASE_URL}/rest/v1/pipeline_schedules?pipeline_name=eq.slide-pipeline" \
+            -H "apikey: ${SUPABASE_SERVICE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_KEY}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=minimal" \
+            -d "{\"last_run_at\":\"${NOW}\",\"updated_by\":\"cron\"}" \
+            && echo "last_run_at updated to ${NOW}" \
+            || echo "::warning::failed to update last_run_at"
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Slide Pipeline Run Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Gate decision**: should_run=${{ steps.gate.outputs.should_run }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Run ID**: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+
+          if [ -n "${{ github.event.inputs.type }}" ]; then
+            echo "- **Type**: ${{ github.event.inputs.type }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -n "${{ github.event.inputs.slug }}" ]; then
+            echo "- **Slug Filter**: ${{ github.event.inputs.slug }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ "${{ github.event.inputs.dry_run }}" == "true" ]; then
+            echo "- **Mode**: Dry Run (scan only)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          LATEST_LOG=$(ls -t logs/slide_pipeline/*.md 2>/dev/null | head -1)
+          if [ -n "$LATEST_LOG" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Latest Log Preview" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            head -30 "$LATEST_LOG" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi

@@ -1,12 +1,14 @@
 'use client'
 
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 
 /**
  * CMC-Style Market Cap Ranking Table with Email Gate
  *
  * Displays a CoinMarketCap-style ranking table with:
- * - Rank, Name/Symbol, Price, 24h Change, Market Cap, BCE Score, Report Badges
+ * - Rank, Name/Symbol, 24h Change, Market Cap, BCE Score, Report Badges
  * - Sorted by market cap
  * - Top N rows visible, rest behind email gate
  * - Responsive: hides some columns on mobile
@@ -17,7 +19,6 @@ interface ScoreRow {
   name: string
   symbol: string
   slug: string
-  price: number | null
   change24h: number | null
   marketCap: number
   score: number | null
@@ -37,16 +38,6 @@ interface ScoreTableGateProps {
 }
 
 type GateStatus = 'locked' | 'submitting' | 'unlocked' | 'error'
-
-function formatPrice(value: number): string {
-  if (value >= 1) {
-    return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-  }
-  if (value >= 0.01) {
-    return `$${value.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`
-  }
-  return `$${value.toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 })}`
-}
 
 function formatMarketCap(value: number): string {
   if (value >= 1e12) return `$${(value / 1e12).toFixed(2)}T`
@@ -84,6 +75,7 @@ export default function ScoreTableGate({
   locale,
 }: ScoreTableGateProps) {
   const isKo = locale === 'ko'
+  const router = useRouter()
 
   const [status, setStatus] = useState<GateStatus>(() => {
     if (typeof window !== 'undefined') {
@@ -129,9 +121,21 @@ export default function ScoreTableGate({
   }
 
   function renderRow(row: ScoreRow, blurred = false) {
+    const detailHref = `/${locale}/projects/${row.slug}`
+    const handleRowClick = blurred
+      ? undefined
+      : (e: React.MouseEvent<HTMLTableRowElement>) => {
+          // Respect modifier keys (cmd/ctrl/shift/alt) so users can open in a new tab via the inner <a>.
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+          // If the click already landed on an interactive element (anchor/button/input), let it handle.
+          const target = e.target as HTMLElement
+          if (target.closest('a, button, input')) return
+          router.push(detailHref)
+        }
     return (
       <tr
         key={row.rank}
+        onClick={handleRowClick}
         className={`border-b border-white/5 ${blurred ? 'select-none' : 'hover:bg-white/[0.05] transition-colors duration-150 cursor-pointer'}`}
         style={blurred ? { filter: 'blur(5px)', pointerEvents: 'none' } : undefined}
       >
@@ -143,21 +147,29 @@ export default function ScoreTableGate({
         {/* Name + Symbol */}
         <td className="py-4 pl-4 pr-3">
           <div className="flex items-center gap-3">
-            <div>
-              <div className="font-bold text-white text-base mb-0.5">{row.name}</div>
-              <div className="text-gray-500 text-xs font-medium uppercase">{row.symbol}</div>
-            </div>
+            {blurred ? (
+              <div>
+                <div className="font-bold text-white text-base mb-0.5">{row.name}</div>
+                <div className="text-gray-500 text-xs font-medium uppercase">{row.symbol}</div>
+              </div>
+            ) : (
+              <Link
+                href={`/${locale}/projects/${row.slug}`}
+                className="group inline-block"
+                title={isKo ? `${row.name} 상세 페이지` : `${row.name} project page`}
+              >
+                <div className="font-bold text-white text-base mb-0.5 group-hover:text-indigo-400 group-hover:underline transition-colors">
+                  {row.name}
+                </div>
+                <div className="text-gray-500 text-xs font-medium uppercase">{row.symbol}</div>
+              </Link>
+            )}
           </div>
         </td>
 
         {/* Market Cap */}
         <td className="py-4 px-3 text-right text-sm text-white font-mono">
           {row.marketCap > 0 ? formatMarketCap(row.marketCap) : '-'}
-        </td>
-
-        {/* Price */}
-        <td className="py-4 px-3 text-right text-sm text-white font-mono hidden sm:table-cell">
-          {row.price != null ? formatPrice(row.price) : '-'}
         </td>
 
         {/* 24h Change */}
@@ -182,21 +194,23 @@ export default function ScoreTableGate({
           )}
         </td>
 
-        {/* Report Badges */}
+        {/* Report Status Badges (read-only — navigate via project name) */}
         <td className="py-4 px-3">
           <div className="flex gap-1 justify-end">
             {/* ECON Badge */}
             <div className="relative">
               {row.reportTypes.includes('econ') ? (
-                <a
-                  href={`/${locale}/reports/${row.slug}/econ`}
-                  className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-blue-500/15 text-blue-400 hover:bg-blue-500/30 transition-colors"
-                  title={isKo ? 'ECON 보고서 보기' : 'View ECON Report'}
+                <span
+                  className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-blue-500/15 text-blue-400"
+                  title={isKo ? 'ECON 보고서 발행됨' : 'ECON report published'}
                 >
                   ECON
-                </a>
+                </span>
               ) : (
-                <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-gray-500/10 text-gray-600 cursor-not-allowed">
+                <span
+                  className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-gray-500/10 text-gray-600"
+                  title={isKo ? 'ECON 보고서 미발행' : 'ECON report not published'}
+                >
                   ECON
                 </span>
               )}
@@ -210,15 +224,17 @@ export default function ScoreTableGate({
             {/* MAT Badge */}
             <div className="relative">
               {row.reportTypes.includes('maturity') ? (
-                <a
-                  href={`/${locale}/reports/${row.slug}/maturity`}
-                  className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-green-500/15 text-green-400 hover:bg-green-500/30 transition-colors"
-                  title={isKo ? 'MAT 보고서 보기' : 'View MAT Report'}
+                <span
+                  className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-green-500/15 text-green-400"
+                  title={isKo ? 'MAT 보고서 발행됨' : 'MAT report published'}
                 >
                   MAT
-                </a>
+                </span>
               ) : (
-                <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-gray-500/10 text-gray-600 cursor-not-allowed">
+                <span
+                  className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-gray-500/10 text-gray-600"
+                  title={isKo ? 'MAT 보고서 미발행' : 'MAT report not published'}
+                >
                   MAT
                 </span>
               )}
@@ -232,15 +248,17 @@ export default function ScoreTableGate({
             {/* FOR Badge */}
             <div className="relative">
               {row.reportTypes.includes('forensic') ? (
-                <a
-                  href={`/${locale}/reports/${row.slug}/forensic`}
-                  className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-red-500/15 text-red-400 hover:bg-red-500/30 transition-colors"
-                  title={isKo ? 'FOR 보고서 보기' : 'View FOR Report'}
+                <span
+                  className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-red-500/15 text-red-400"
+                  title={isKo ? 'FOR 보고서 발행됨' : 'FOR report published'}
                 >
                   FOR
-                </a>
+                </span>
               ) : (
-                <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-gray-500/10 text-gray-600 cursor-not-allowed">
+                <span
+                  className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-gray-500/10 text-gray-600"
+                  title={isKo ? 'FOR 보고서 미발행' : 'FOR report not published'}
+                >
                   FOR
                 </span>
               )}
@@ -271,9 +289,6 @@ export default function ScoreTableGate({
               </th>
               <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase">
                 {isKo ? '시가총액' : 'Market Cap'}
-              </th>
-              <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">
-                {isKo ? '가격' : 'Price'}
               </th>
               <th className="py-3 px-3 text-right text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">
                 24h

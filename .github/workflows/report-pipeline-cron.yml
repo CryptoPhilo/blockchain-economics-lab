@@ -1,9 +1,10 @@
-name: Report Pipeline - Automated Processing (BCE-732)
+name: Report Pipeline - Automated Processing (deprecated, BCE-732)
 
+# Schedule disabled (BCE-1089): legacy .md→translate→PDF pipeline retired in
+# favor of slide-based pipeline (slide-pipeline-cron.yml). Manual dispatch
+# retained as a temporary fallback while legacy code is moved to _legacy/
+# under BCE-1082.
 on:
-  schedule:
-    # Run every 30 minutes
-    - cron: '*/30 * * * *'
   workflow_dispatch:
     inputs:
       qa_strict:
