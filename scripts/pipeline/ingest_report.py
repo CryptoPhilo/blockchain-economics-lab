@@ -219,6 +219,7 @@ def _korean_slug_to_canonical(raw_slug: str) -> str | None:
 
 
 _ASCII_TOKEN_RE = re.compile(r'[a-z0-9]+(?:-[a-z0-9]+)*')
+_HANGUL_RE = re.compile(r'[가-힣]')
 
 
 def _ascii_tokens(raw_slug: str) -> list[str]:
@@ -235,24 +236,40 @@ def _ascii_tokens(raw_slug: str) -> list[str]:
     return sorted(seen, key=lambda t: (-len(t), seen.index(t)))
 
 
+def _korean_alias_candidates(raw_slug: str) -> list[str]:
+    """Hyphen-separated Korean prefixes of `raw_slug`, longest first.
+
+    Used as overlap candidates against tracked_projects.aliases. ASCII-only
+    prefixes are skipped — the symbol / name fallbacks already cover them.
+    """
+    parts = [p for p in raw_slug.split('-') if p]
+    out: list[str] = []
+    for end in range(len(parts), 0, -1):
+        prefix = '-'.join(parts[:end])
+        if _HANGUL_RE.search(prefix):
+            out.append(prefix)
+    return out
+
+
 def _resolve_project_slug(sb, raw_slug: str) -> tuple:
     """Resolve a raw_slug parsed from an ECON/MAT/FOR draft filename.
 
-    Match order (BCE-1049 ASCII-token fallback layered on the legacy path):
+    Match order (BCE-1050 alias resolver plus BCE-1049 ASCII-token fallback):
       1. Korean-canonical slug (KO_NAME_TO_SLUG) → exact slug match
       2. raw_slug → exact slug match
-      3. ASCII token (longest first) → exact slug match
-      4. ASCII token progressive prefix shrinking → exact slug match
-      5. raw_slug first segment → exact symbol match (uppercased ASCII only)
-      6. ASCII token (longest first) → exact symbol match (uppercased)
-      7. ASCII token progressive prefix shrinking → slug ilike '<prefix>%'
-      8. raw_slug first segment → name ilike '%<segment>%' (legacy fallback)
+      3. Korean alias overlap (tracked_projects.aliases)
+      4. ASCII token (longest first) → exact slug match
+      5. ASCII token progressive prefix shrinking → exact slug match
+      6. raw_slug first segment → exact symbol match (uppercased ASCII only)
+      7. ASCII token (longest first) → exact symbol match (uppercased)
+      8. ASCII token progressive prefix shrinking → slug ilike '<prefix>%'
+      9. raw_slug first segment → name ilike '%<segment>%' (legacy fallback)
 
     Drafts authored with mixed Korean+English filenames such as
     `온도-파이낸스ondo-finance-...` previously fell through every step and
     landed in publish-gate failures because the raw_slug stayed Korean.
     """
-    _fields = 'id, slug, name, symbol'
+    _fields = 'id, slug, name, symbol, aliases'
     raw_slug = unicodedata.normalize('NFC', raw_slug)
 
     def _hit(p):
@@ -265,10 +282,39 @@ def _resolve_project_slug(sb, raw_slug: str) -> tuple:
     if raw_slug not in candidates:
         candidates.append(raw_slug)
 
+    # Phase 1: direct slug match.
     for slug_attempt in candidates:
         proj = sb.table('tracked_projects').select(_fields).eq('slug', slug_attempt).execute()
         if proj.data:
             return _hit(proj.data[0])
+
+    # Phase 1.5 (BCE-1050): tracked_projects.aliases array overlap. Catches
+    # Korean drafts whose leading project name is not in the static
+    # KO_NAME_TO_SLUG map. Among multiple matching rows, prefer the row whose
+    # alias is the longest match against raw_slug — disambiguates overlaps
+    # like "비트코인-캐시" vs "비트코인".
+    alias_tokens = _korean_alias_candidates(raw_slug)
+    if alias_tokens:
+        try:
+            proj = (
+                sb.table('tracked_projects')
+                .select(_fields)
+                .overlaps('aliases', alias_tokens)
+                .execute()
+            )
+        except Exception as exc:
+            print(f"    [WARN] alias overlap query failed: {exc}")
+            proj = None
+        if proj and proj.data:
+            best_row = None
+            best_alias_len = -1
+            for row in proj.data:
+                for alias in (row.get('aliases') or []):
+                    if alias in alias_tokens and len(alias) > best_alias_len:
+                        best_row = row
+                        best_alias_len = len(alias)
+            if best_row is not None:
+                return _hit(best_row)
 
     tokens = _ascii_tokens(raw_slug)
     tried_slugs: set[str] = set(candidates)
@@ -294,6 +340,7 @@ def _resolve_project_slug(sb, raw_slug: str) -> tuple:
             if proj.data:
                 return _hit(proj.data[0])
 
+    # Phase 2: ASCII-only symbol fallback.
     tried_symbols: set[str] = set()
     for slug_attempt in candidates:
         symbol_candidate = slug_attempt.split('-')[0].upper()
@@ -328,6 +375,7 @@ def _resolve_project_slug(sb, raw_slug: str) -> tuple:
             if proj.data:
                 return _hit(proj.data[0])
 
+    # Phase 3: name prefix substring match.
     for slug_attempt in candidates:
         name_part = slug_attempt.split('-')[0]
         if name_part:
@@ -538,8 +586,19 @@ def process_report(report_type: str, file_info: dict, dry_run: bool = False) -> 
             fail_names = [c.name for c in md_fails]
             print(f"  ⚠ Markdown QA FAIL: {fail_names}")
             result['md_qa_fail'] = fail_names
+            # BCE-867: section_markers FAIL means body has zero ## headings,
+            # which produces a 3-page cover-only PDF. Abort before wasting
+            # translation/PDF cycles instead of failing later in qa_verify.
+            if 'md.structure.section_markers' in fail_names:
+                raise TerminalContentError(
+                    'md.structure.section_markers FAIL — '
+                    'source markdown has no H2 sections; '
+                    'PDF body would be empty (BCE-867)'
+                )
         else:
             print(f"  ✓ Markdown QA passed")
+    except TerminalContentError:
+        raise
     except Exception as e:
         print(f"  [WARN] Markdown QA error (계속 진행): {e}")
 
@@ -553,6 +612,10 @@ def process_report(report_type: str, file_info: dict, dry_run: bool = False) -> 
     print(f"[2/6] 번역 ({master_lang} → {', '.join(target_langs)}) — parallel mode...")
     translated = {master_lang: md_path}
     google_request_count_total = 0
+    translated_words: dict[str, int] = {}
+    google_requests_per_lang: dict[str, int] = {}
+    translation_durations: dict[str, float] = {}
+    source_word_count: int | None = None
 
     from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 
@@ -582,10 +645,19 @@ def process_report(report_type: str, file_info: dict, dry_run: bool = False) -> 
                     try:
                         lang, out_path, meta, elapsed = future.result()
                         translated[lang] = out_path
-                        google_request_count_total += int(meta.get('google_request_count', 0) or 0)
-                        words = meta.get('word_count_target', '?')
                         google_requests = int(meta.get('google_request_count', 0) or 0)
-                        print(f"  ✓ {lang}: {words} words ({elapsed:.1f}s, google_requests={google_requests})")
+                        google_request_count_total += google_requests
+                        words = meta.get('word_count_target')
+                        if isinstance(words, int):
+                            translated_words[lang] = words
+                        google_requests_per_lang[lang] = google_requests
+                        translation_durations[lang] = round(elapsed, 1)
+                        if source_word_count is None:
+                            src = meta.get('word_count_source')
+                            if isinstance(src, int):
+                                source_word_count = src
+                        words_display = words if words is not None else '?'
+                        print(f"  ✓ {lang}: {words_display} words ({elapsed:.1f}s, google_requests={google_requests})")
                     except Exception as e:
                         print(f"  ✗ {lang}: {e}")
         except BaseException:
@@ -597,7 +669,17 @@ def process_report(report_type: str, file_info: dict, dry_run: bool = False) -> 
         lang for lang in target_langs if lang not in translated
     ]
     result['google_request_count_total'] = google_request_count_total
+    result['translated_words'] = translated_words
+    result['translated_words_total'] = sum(translated_words.values())
+    result['google_requests_per_lang'] = google_requests_per_lang
+    result['translation_durations'] = translation_durations
+    result['translation_backend'] = 'google_cloud'
+    if source_word_count is not None:
+        result['source_word_count'] = source_word_count
     print(f"  ✓ 번역 Google 요청 합계: {google_request_count_total}")
+    if translated_words:
+        print(f"  ✓ 번역 단어수 합계 (유료 API 통과): {result['translated_words_total']:,} words "
+              f"across {len(translated_words)} languages")
 
     # 3. PDF generation
     print(f"[3/6] PDF 생성...")

@@ -35,6 +35,9 @@ from typing import Dict, List, Optional, Tuple
 PIPELINE_DIR = Path(__file__).resolve().parent
 PROCESSED_FILE = PIPELINE_DIR / 'output' / '_for_processed.json'
 
+# Per-run ingest summaries (BCE-812: translation metrics)
+INGEST_SUMMARY_DIR = PIPELINE_DIR / 'output'
+
 # Report output
 REPORT_DIR = PIPELINE_DIR.parent.parent / 'doc' / 'board-reports'
 REPORT_DIR.mkdir(parents=True, exist_ok=True)
@@ -177,6 +180,117 @@ def _calculate_elapsed_minutes(started_at: Optional[str]) -> int:
         return 0
 
 
+def load_translation_metrics(days: int = 1) -> List[Dict]:
+    """Load per-report translation metrics from ingest_*.json summaries (BCE-812).
+
+    Each ingest run writes `output/ingest_{type}_{ts}.json` with `results[*]` containing
+    `translated_words`, `translated_words_total`, `google_request_count_total`,
+    `google_requests_per_lang`, and `source_word_count`.
+
+    Returns a flat list of per-report metric dicts (one per published/failed slug)
+    inside the cutoff window.
+    """
+    if not INGEST_SUMMARY_DIR.exists():
+        return []
+
+    cutoff_time = datetime.now(timezone.utc) - timedelta(days=days)
+    metrics: List[Dict] = []
+    seen_keys: set = set()
+
+    for summary_file in sorted(INGEST_SUMMARY_DIR.glob('ingest_*.json')):
+        try:
+            ts_dt = datetime.fromtimestamp(summary_file.stat().st_mtime, tz=timezone.utc)
+            if ts_dt < cutoff_time:
+                continue
+            with open(summary_file, 'r', encoding='utf-8') as fp:
+                payload = json.load(fp)
+        except Exception:
+            continue
+
+        report_type = payload.get('report_type', 'unknown')
+        for entry in payload.get('results', []) or []:
+            translated_words = entry.get('translated_words') or {}
+            if not translated_words:
+                continue
+            slug = entry.get('slug') or entry.get('project_slug') or entry.get('name') or 'unknown'
+            key = (report_type, slug, payload.get('timestamp') or summary_file.name)
+            if key in seen_keys:
+                continue
+            seen_keys.add(key)
+            metrics.append({
+                'report_type': report_type,
+                'slug': slug,
+                'status': entry.get('status', 'unknown'),
+                'source_word_count': entry.get('source_word_count'),
+                'translated_words': translated_words,
+                'translated_words_total': entry.get('translated_words_total')
+                    or sum(translated_words.values()),
+                'google_request_count_total': entry.get('google_request_count_total', 0),
+                'google_requests_per_lang': entry.get('google_requests_per_lang') or {},
+                'translation_durations': entry.get('translation_durations') or {},
+                'translation_backend': entry.get('translation_backend', 'google_cloud'),
+                'timestamp': payload.get('timestamp') or ts_dt.isoformat(),
+            })
+
+    return metrics
+
+
+def summarize_translation_metrics(metrics: List[Dict]) -> Dict:
+    """Aggregate translation metrics across reports for the dashboard section."""
+    if not metrics:
+        return {
+            'report_count': 0,
+            'total_translated_words': 0,
+            'total_google_requests': 0,
+            'avg_words_per_report': 0,
+            'avg_requests_per_report': 0,
+            'by_lang': {},
+            'by_type': {},
+        }
+
+    by_lang_words: Dict[str, int] = defaultdict(int)
+    by_lang_requests: Dict[str, int] = defaultdict(int)
+    by_type_words: Dict[str, int] = defaultdict(int)
+    by_type_count: Dict[str, int] = defaultdict(int)
+    total_words = 0
+    total_requests = 0
+
+    for m in metrics:
+        total_words += m['translated_words_total']
+        total_requests += m['google_request_count_total']
+        by_type_words[m['report_type']] += m['translated_words_total']
+        by_type_count[m['report_type']] += 1
+        for lang, words in m['translated_words'].items():
+            by_lang_words[lang] += int(words or 0)
+        for lang, reqs in m['google_requests_per_lang'].items():
+            by_lang_requests[lang] += int(reqs or 0)
+
+    n = len(metrics)
+    return {
+        'report_count': n,
+        'total_translated_words': total_words,
+        'total_google_requests': total_requests,
+        'avg_words_per_report': total_words // n if n else 0,
+        'avg_requests_per_report': total_requests // n if n else 0,
+        'by_lang': {
+            lang: {
+                'words': by_lang_words[lang],
+                'requests': by_lang_requests.get(lang, 0),
+            }
+            for lang in sorted(by_lang_words)
+        },
+        'by_type': {
+            rt: {
+                'reports': by_type_count[rt],
+                'words': by_type_words[rt],
+                'avg_words_per_report': (by_type_words[rt] // by_type_count[rt])
+                    if by_type_count[rt] else 0,
+            }
+            for rt in sorted(by_type_count)
+        },
+    }
+
+
 def load_recent_logs(days: int = 1) -> List[Path]:
     """Load recent pipeline log files."""
     if not LOG_DIR.exists():
@@ -209,6 +323,7 @@ def generate_report(
     stale_processing: List,
     recent_successes: List,
     days: int = 1,
+    translation_metrics: Optional[List[Dict]] = None,
 ) -> str:
     """Generate markdown report content."""
 
@@ -241,6 +356,56 @@ def generate_report(
 - 📊 **성공률**: {success_rate:.1f}%
 
 """
+
+    # Translation pipeline metrics (BCE-812)
+    if translation_metrics:
+        agg = summarize_translation_metrics(translation_metrics)
+        report += f"""
+## 번역 파이프라인 지표 ({report_period})
+
+**유료 번역 API**: Google Cloud Translation v3 (`projects.locations.translateText`)
+
+| 지표 | 값 |
+|------|-----|
+| 처리 보고서 수 | {agg['report_count']}건 |
+| 유료 API 통과 단어 합계 | **{agg['total_translated_words']:,}** words |
+| 보고서 1건당 평균 단어 | {agg['avg_words_per_report']:,} words |
+| Google 요청 합계 | {agg['total_google_requests']:,} 회 |
+| 보고서 1건당 평균 요청 | {agg['avg_requests_per_report']} 회 |
+
+### 언어별 번역량 (target=언어, source=ko)
+
+| 언어 | 단어 수 | Google 요청 |
+|------|---------|------------|
+"""
+        for lang, stats in agg['by_lang'].items():
+            report += f"| {lang} | {stats['words']:,} | {stats['requests']:,} |\n"
+
+        if agg['by_type']:
+            report += """
+### 보고서 유형별 번역량
+
+| 유형 | 보고서 수 | 단어 합계 | 평균 단어/건 |
+|------|----------|-----------|------------|
+"""
+            for rt, stats in agg['by_type'].items():
+                report += (
+                    f"| {rt.upper()} | {stats['reports']} | "
+                    f"{stats['words']:,} | {stats['avg_words_per_report']:,} |\n"
+                )
+
+        report += "\n### 보고서별 상세 (상위 10건)\n\n"
+        report += "| 시각 | 유형 | 슬러그 | 상태 | 단어수 | Google 요청 |\n"
+        report += "|------|------|--------|------|--------|-------------|\n"
+        for m in sorted(translation_metrics, key=lambda x: x['timestamp'], reverse=True)[:10]:
+            slug_short = m['slug'][:40] + ('…' if len(m['slug']) > 40 else '')
+            ts_short = m['timestamp'][:16].replace('T', ' ')
+            report += (
+                f"| {ts_short} | {m['report_type']} | `{slug_short}` | "
+                f"{m['status']} | {m['translated_words_total']:,} | "
+                f"{m['google_request_count_total']} |\n"
+            )
+        report += "\n"
 
     # Failures by category
     if total_failures > 0 or total_stale > 0:
@@ -425,6 +590,16 @@ def main():
     print(f"  ✓ Stale processing: {len(stale_processing)}")
     print(f"  ✓ Recent successes: {len(recent_successes)}")
 
+    # Step 2.5: Load translation metrics from per-run ingest summaries (BCE-812)
+    print("\n[2.5/4] Aggregating translation metrics...")
+    translation_metrics = load_translation_metrics(days=args.days)
+    if translation_metrics:
+        agg = summarize_translation_metrics(translation_metrics)
+        print(f"  ✓ Reports with translation data: {agg['report_count']}")
+        print(f"  ✓ Total billed words (Google Cloud Translation): {agg['total_translated_words']:,}")
+    else:
+        print("  ✓ No translation metrics in window")
+
     # Step 3: Generate report
     print("\n[3/4] Generating report...")
     report_content = generate_report(
@@ -433,6 +608,7 @@ def main():
         stale_processing,
         recent_successes,
         days=args.days,
+        translation_metrics=translation_metrics,
     )
 
     # Step 4: Save report
