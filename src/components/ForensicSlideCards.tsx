@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 
+import { cleanCardSummary } from '@/lib/report-summary'
+
 /**
  * ForensicSlideCards — Auto-scrolling carousel of forensic report thumbnails.
  *
@@ -49,15 +51,13 @@ function SlideCard({ report, locale }: { report: any; locale: string }) {
   const level = (report.risk_level || cardData?.risk_level || 'elevated').toLowerCase()
   const config = riskConfig[level] || riskConfig.elevated
   const riskScore = report.card_risk_score ?? cardData?.risk_score ?? 0
-  const isKo = locale === 'ko'
-
   // Multilingual: pick keywords by locale (7 languages)
   const keywordsByLang = cardData?.keywords_by_lang as Record<string, string[]> | undefined
+  const localizedKeywords = keywordsByLang?.[locale] ?? cardData?.[`keywords_${locale}`]
+  const sourceKeywords = report.language === locale ? (report.card_keywords ?? cardData?.keywords) : undefined
+  const englishKeywords = locale === 'en' ? (cardData?.keywords_en ?? report.card_keywords) : undefined
   const keywords: string[] =
-    keywordsByLang?.[locale] ??
-    (isKo
-      ? (report.card_keywords ?? cardData?.keywords ?? [])
-      : (cardData?.keywords_en ?? report.card_keywords ?? []))
+    localizedKeywords ?? sourceKeywords ?? englishKeywords ?? []
 
   // Multilingual: pick summary by locale (7 languages)
   const summaryByLang = cardData?.summary_by_lang as Record<string, string> | undefined
@@ -67,10 +67,12 @@ function SlideCard({ report, locale }: { report: any; locale: string }) {
     fr: 'Analyse forensique en cours...', es: 'Análisis forense en curso...',
     de: 'Forensische Analyse läuft...',
   }
-  const summary =
-    summaryByLang?.[locale] ??
-    ((isKo ? (report.card_summary_ko || report.card_summary_en || '') : (report.card_summary_en || '')) ||
-    (defaultSummary[locale] || defaultSummary.en))
+  const localizedSummary = summaryByLang?.[locale] || report[`card_summary_${locale}`]
+  const sourceSummary = report.language === locale ? (cardData?.summary || report.card_summary_en || '') : ''
+  const englishSummary = locale === 'en' ? (summaryByLang?.en || report.card_summary_en || '') : ''
+  const summary = cleanCardSummary(
+    localizedSummary || sourceSummary || englishSummary || (defaultSummary[locale] || defaultSummary.en),
+  )
 
   const change24h = cardData?.price_change_24h ?? cardData?.change_24h ?? 0
   const slug = tp?.slug ?? ''

@@ -1,8 +1,10 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+import { cleanCardSummary } from '@/lib/report-summary'
+import { pickLocaleReport, reportSupportsLocale } from '@/lib/report-locale'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import type { ProjectReport, ReportType, SupportedLanguage, TrackedProject } from '@/lib/types'
+import type { ProjectReport, ReportType, TrackedProject } from '@/lib/types'
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>
@@ -79,7 +81,7 @@ function formatMarketCap(value: number | null | undefined): string | null {
 function pickLocalizedTitle(report: ProjectReport, locale: string, symbol: string): string {
   const direct = report[`title_${locale}` as keyof ProjectReport] as string | undefined
   if (direct) return direct
-  if (report.title_en) return report.title_en
+  if (locale === 'en' && report.title_en) return report.title_en
   const fallback = REPORT_TYPE_DEFAULT_LABEL[report.report_type]
   const label = locale === 'ko' ? fallback.ko : fallback.en
   return `${symbol} ${label}`
@@ -87,14 +89,15 @@ function pickLocalizedTitle(report: ProjectReport, locale: string, symbol: strin
 
 function pickLocalizedSummary(report: ProjectReport, locale: string): string | null {
   const direct = report[`card_summary_${locale}` as keyof ProjectReport] as string | undefined
-  if (direct) return direct
-  if (report.card_summary_en) return report.card_summary_en
+  if (direct) return cleanCardSummary(direct)
+  if (locale === 'en' && report.card_summary_en) return cleanCardSummary(report.card_summary_en)
   return null
 }
 
 /**
- * Pick one report row per (report_type) using the language-scoped row strategy from BCE-1080.
- * Order of preference: current locale → en → ko → any other language.
+ * Pick one report row per report type. Language-scoped slide rows must not
+ * fall back to English on non-English pages; shared URL maps can exist on
+ * sibling rows and are not proof that row content matches the route locale.
  */
 function selectReportsByType(
   reports: ProjectReport[],
@@ -107,15 +110,10 @@ function selectReportsByType(
     byType.set(report.report_type, list)
   }
 
-  const fallbackOrder: SupportedLanguage[] = [locale as SupportedLanguage, 'en', 'ko']
   const selected = new Map<ReportType, ProjectReport>()
   for (const [type, list] of byType.entries()) {
-    let pick: ProjectReport | undefined
-    for (const lang of fallbackOrder) {
-      pick = list.find((r) => r.language === lang)
-      if (pick) break
-    }
-    if (!pick) pick = list[0]
+    const eligible = list.filter((report) => reportSupportsLocale(report, locale))
+    const pick = pickLocaleReport(eligible, locale)
     if (pick) selected.set(type, pick)
   }
   return selected

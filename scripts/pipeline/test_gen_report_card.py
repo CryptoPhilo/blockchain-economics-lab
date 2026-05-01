@@ -6,6 +6,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import gen_report_card
+from gen_for_card import extract_summary
 
 
 def test_generate_econ_report_card_sets_rating():
@@ -49,10 +50,42 @@ def test_generate_mat_report_card_sets_maturity_score():
     assert result["card_data"]["report_type"] == "mat"
 
 
+def test_extract_summary_drops_subsection_headings_and_tables():
+    md = (
+        "## 1. 프로젝트 개요\n"
+        "솔라나 네트워크의 경제 시스템을 구성하는 핵심 개념들은 온체인 상태와 긴밀하게 연결되어 있다. "
+        "각 프로그램은 네트워크의 자원 관리와 가치 분배를 담당한다.\n\n"
+        "### 1.1 프로젝트 기본 정보\n"
+        "| 항목 | 상세 내용 |\n"
+        "| :---- | :---- |\n"
+        "| 프로젝트 이름 | 솔라나 (Solana) |\n"
+    )
+    summary = extract_summary(md, lang='ko')
+    assert '###' not in summary
+    assert '|' not in summary
+    assert '솔라나 네트워크의 경제 시스템' in summary
+    assert summary.endswith('.') or summary.endswith('...')
+
+
+def test_extract_summary_strips_inline_citations_and_markdown():
+    md = (
+        "## Executive Summary\n"
+        "Solana is a **high-throughput** L1 with PoH [1]. "
+        "Its design draws from [Anatoly's whitepaper](https://example.com).\n"
+    )
+    summary = extract_summary(md, lang='en')
+    assert '[1]' not in summary
+    assert '**' not in summary
+    assert '](' not in summary
+    assert 'high-throughput' in summary
+
+
 def run_all_tests():
     tests = [
         test_generate_econ_report_card_sets_rating,
         test_generate_mat_report_card_sets_maturity_score,
+        test_extract_summary_drops_subsection_headings_and_tables,
+        test_extract_summary_strips_inline_citations_and_markdown,
     ]
     passed = 0
     failed = 0

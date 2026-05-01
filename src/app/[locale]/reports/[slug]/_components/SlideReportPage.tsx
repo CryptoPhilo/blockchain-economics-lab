@@ -3,9 +3,18 @@ import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 
 import SlideViewer from '@/components/SlideViewer'
+import { cleanCardSummary } from '@/lib/report-summary'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { resolveSlideUrl } from './slide-report-utils'
 
 type ReportTypeKey = 'econ' | 'maturity'
+
+type CardDataRecord = Record<string, unknown>
+type ReportRecord = Record<string, unknown> & {
+  card_keywords?: string[] | null
+  card_summary_en?: string | null
+  language?: string | null
+}
 
 const localeMap: Record<string, string> = {
   en: 'en-US', ko: 'ko-KR', ja: 'ja-JP', zh: 'zh-CN',
@@ -35,17 +44,69 @@ const themeByType: Record<ReportTypeKey, {
   },
 }
 
-function resolveSlideUrl(
-  urlsByLang: Record<string, unknown> | null | undefined,
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0
+}
+
+function asStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  return value.filter(isNonEmptyString)
+}
+
+function getLocalizedSummary(
   locale: string,
-): string | null {
-  if (!urlsByLang || typeof urlsByLang !== 'object') return null
-  const candidate = urlsByLang[locale] ?? urlsByLang['en']
-  if (typeof candidate === 'string' && candidate) return candidate
-  for (const value of Object.values(urlsByLang)) {
-    if (typeof value === 'string' && value) return value
+  report: ReportRecord,
+  cardData: CardDataRecord | null,
+): string {
+  const summaryByLang = cardData?.summary_by_lang as Record<string, unknown> | undefined
+  const localeSummary =
+    summaryByLang?.[locale]
+    ?? report[`card_summary_${locale}`]
+    ?? cardData?.[`summary_${locale}`]
+
+  if (isNonEmptyString(localeSummary)) return localeSummary
+
+  if (report.language === locale && isNonEmptyString(cardData?.summary)) {
+    return cardData.summary
   }
-  return null
+
+  if (locale !== 'en') return ''
+
+  const englishSummary =
+    summaryByLang?.en
+    ?? report.card_summary_en
+    ?? cardData?.summary_en
+    ?? cardData?.summary
+
+  return isNonEmptyString(englishSummary) ? englishSummary : ''
+}
+
+function getLocalizedKeywords(
+  locale: string,
+  report: ReportRecord,
+  cardData: CardDataRecord | null,
+): string[] {
+  const keywordsByLang = cardData?.keywords_by_lang as Record<string, unknown> | undefined
+  const localeKeywords = asStringArray(
+    keywordsByLang?.[locale]
+    ?? cardData?.[`keywords_${locale}`],
+  )
+
+  if (localeKeywords.length > 0) return localeKeywords
+
+  if (report.language === locale) {
+    const genericKeywords = asStringArray(cardData?.keywords ?? report.card_keywords)
+    if (genericKeywords.length > 0) return genericKeywords
+  }
+
+  if (locale !== 'en') return []
+
+  return asStringArray(
+    keywordsByLang?.en
+    ?? cardData?.keywords_en
+    ?? report.card_keywords
+    ?? cardData?.keywords,
+  )
 }
 
 interface SlideReportPageProps {
@@ -66,10 +127,10 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
 
   if (!project) notFound()
 
-  // project_reports rows are scoped per (project, type, language). Pick the
-  // locale-matching row for hero text, falling back to English, then any
-  // published row.
-  let { data: report } = await supabase
+  // project_reports rows are scoped per (project, type, language). Do not
+  // fall back to another language here; otherwise Korean routes can render an
+  // English report row when only shared URL metadata exists.
+  const { data: report } = await supabase
     .from('project_reports')
     .select('*')
     .eq('project_id', project.id)
@@ -80,37 +141,10 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
     .limit(1)
     .maybeSingle()
 
-  if (!report && locale !== 'en') {
-    const { data: enRow } = await supabase
-      .from('project_reports')
-      .select('*')
-      .eq('project_id', project.id)
-      .eq('report_type', reportType)
-      .eq('language', 'en')
-      .in('status', ['published', 'coming_soon'])
-      .order('published_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-    report = enRow
-  }
-
-  if (!report) {
-    const { data: anyRow } = await supabase
-      .from('project_reports')
-      .select('*')
-      .eq('project_id', project.id)
-      .eq('report_type', reportType)
-      .in('status', ['published', 'coming_soon'])
-      .order('published_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-    report = anyRow
-  }
-
   if (!report) notFound()
 
-  // Merge slide URLs across every language row so the locale fallback chain
-  // (locale → en → any) can resolve a URL that lives on a different row.
+  // Merge slide URLs across every language row so an exact locale URL can be
+  // found even when the pipeline stored it on a sibling report row.
   const { data: allRows } = await supabase
     .from('project_reports')
     .select('slide_html_urls_by_lang')
@@ -133,33 +167,11 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
   const reportTypeName = reportType === 'econ' ? t('econTypeName') : t('maturityTypeName')
   const allReportsHref = `/${locale}/reports?type=${reportType === 'econ' ? 'econ' : 'maturity'}`
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const cardData = report.card_data as Record<string, any> | null
+  const cardData = report.card_data as CardDataRecord | null
   const slideUrl = resolveSlideUrl(mergedSlideUrls, locale)
 
-  const keywordsByLang = cardData?.keywords_by_lang as Record<string, string[]> | undefined
-  const localizedKeywords =
-    keywordsByLang?.[locale]
-    ?? keywordsByLang?.en
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ?? ((cardData as any)?.[`keywords_${locale}`]
-      ?? (locale === 'ko' ? (report.card_keywords ?? cardData?.keywords_ko ?? cardData?.keywords ?? []) : []))
-  const keywords: string[] =
-    localizedKeywords.length > 0
-      ? localizedKeywords
-      : (cardData?.keywords_en ?? report.card_keywords ?? [])
-
-  const summaryByLang = cardData?.summary_by_lang as Record<string, string> | undefined
-  const summary =
-    summaryByLang?.[locale]
-    || summaryByLang?.en
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    || (report as any)[`card_summary_${locale}`]
-    || report.card_summary_en
-    || cardData?.summary_ko
-    || cardData?.summary_en
-    || cardData?.summary
-    || ''
+  const keywords = getLocalizedKeywords(locale, report, cardData)
+  const summary = cleanCardSummary(getLocalizedSummary(locale, report, cardData))
 
   const score =
     reportType === 'maturity'

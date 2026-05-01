@@ -1,4 +1,5 @@
 import type { ProjectReport } from '@/lib/types'
+import { reportSupportsLocale } from '@/lib/report-locale'
 
 function getEffectiveTimestamp(report: Pick<ProjectReport, 'published_at' | 'created_at'>): number {
   const source = report.published_at || report.created_at
@@ -76,14 +77,16 @@ export function dedupeLatestReportsByProject(reports: ProjectReport[]): ProjectR
 
 export function prepareRapidChangeReports(args: {
   reports: ProjectReport[]
+  locale: string
   page: number
   pageSize: number
   searchQuery?: string
 }) {
   const normalizedQuery = args.searchQuery?.trim().toLowerCase() || ''
+  const localizedReports = args.reports.filter((report) => reportSupportsLocale(report, args.locale))
   const filteredReports = normalizedQuery
-    ? args.reports.filter((report) => getSearchableText(report).includes(normalizedQuery))
-    : args.reports
+    ? localizedReports.filter((report) => getSearchableText(report).includes(normalizedQuery))
+    : localizedReports
 
   const dedupedReports = dedupeLatestReportsByProject(filteredReports)
   const totalCount = dedupedReports.length
