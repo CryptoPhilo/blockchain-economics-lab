@@ -1,9 +1,7 @@
 import { execFileSync } from 'node:child_process'
-import fs from 'node:fs'
 import path from 'node:path'
 
-const policyScript = path.join(process.cwd(), 'scripts/pipeline/report_runner_policy.py')
-const workflowFile = path.join(process.cwd(), '.github/workflows/report-pipeline-cron.yml')
+const policyScript = path.join(process.cwd(), '_legacy/pipeline/report_runner_policy.py')
 
 type RunnerPolicy = {
   report_type: string
@@ -79,13 +77,5 @@ describe('report_runner_policy', () => {
 
     expect(policy.long_runner_required).toBe('false')
     expect(policy.runner_labels).toEqual(['ubuntu-latest'])
-  })
-
-  it('is wired into the workflow definition', () => {
-    const workflow = fs.readFileSync(workflowFile, 'utf8')
-
-    expect(workflow).toContain('resolve-runner:')
-    expect(workflow).toContain('scripts/pipeline/report_runner_policy.py')
-    expect(workflow).toContain('needs.resolve-runner.outputs.runner_labels')
   })
 })

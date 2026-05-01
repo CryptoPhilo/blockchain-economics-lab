@@ -3,8 +3,8 @@
 Supabase Storage helper — BCE-1085
 
 Thin wrapper around supabase-py Storage API for the slide pipeline.
-Reads SUPABASE_URL and SUPABASE_SERVICE_KEY from env (the repo-wide standard;
-see gdrive_storage.py / ingest_for.py / pipeline_state.py).
+Reads SUPABASE_URL and SUPABASE_SERVICE_KEY from env, matching the repo-wide
+runtime convention.
 
 Usage:
     client = get_supabase_storage_client()
