@@ -44,6 +44,10 @@ class FakeQuery:
         self.filters.append((field, "__overlaps__", tuple(values)))
         return self
 
+    def contains(self, field, values):
+        self.filters.append((field, "__contains__", tuple(values)))
+        return self
+
     def limit(self, count):
         self.limit_count = count
         return self
@@ -140,7 +144,12 @@ class FakeSupabase:
                 continue
             if op == "__overlaps__":
                 cell = row.get(field) or []
-                if not set(cell).intersection(value):
+                if not any(v in cell for v in value):
+                    return False
+                continue
+            if op == "__contains__":
+                cell = row.get(field) or []
+                if not all(v in cell for v in value):
                     return False
                 continue
             raise AssertionError(f"Unsupported filter op: {op}")
@@ -586,6 +595,110 @@ class KoreanSlugResolutionTests(unittest.TestCase):
 
         self.assertEqual(result, (None, None, None, None))
 
+    # BCE-1050 — tracked_projects.aliases overlap matching.
+
+    def test_resolve_korean_alias_matches_canonical_project(self):
+        """Korean prefix not in KO_NAME_TO_SLUG resolves via aliases column."""
+        sb = FakeSupabase(
+            {
+                "tracked_projects": [
+                    {"id": "project-pancake", "slug": "pancakeswap",
+                     "name": "PancakeSwap", "symbol": "CAKE",
+                     "aliases": ["팬케이크스왑"]},
+                ],
+            }
+        )
+
+        result = ingest_report._resolve_project_slug(
+            sb, "팬케이크스왑-크립토-이코노미-설계-분석-보고서"
+        )
+
+        self.assertEqual(
+            result,
+            ("project-pancake", "pancakeswap", "PancakeSwap", "CAKE"),
+        )
+
+    def test_resolve_korean_alias_prefers_longest_match(self):
+        """When two aliases share a prefix, the longer alias wins."""
+        sb = FakeSupabase(
+            {
+                "tracked_projects": [
+                    {"id": "project-trump", "slug": "official-trump",
+                     "name": "OFFICIAL TRUMP", "symbol": "TRUMP",
+                     "aliases": ["오피셜-트럼프", "트럼프"]},
+                    {"id": "project-other", "slug": "other-trump",
+                     "name": "Other Trump", "symbol": "OTRUMP",
+                     "aliases": ["트럼프"]},
+                ],
+            }
+        )
+
+        result = ingest_report._resolve_project_slug(
+            sb, "오피셜-트럼프-크립토-이코노미"
+        )
+
+        self.assertEqual(result[1], "official-trump")
+
+    def test_resolve_korean_alias_skipped_when_static_map_resolves(self):
+        """KO_NAME_TO_SLUG match short-circuits before alias overlap query."""
+        sb = FakeSupabase(
+            {
+                "tracked_projects": [
+                    # Static map says 비트코인 -> bitcoin. If aliases ran first
+                    # we'd also see this row; either path returns bitcoin so the
+                    # contract is the same. Asserting the result is enough.
+                    {"id": "project-btc", "slug": "bitcoin",
+                     "name": "Bitcoin", "symbol": "BTC",
+                     "aliases": ["비트코인"]},
+                ],
+            }
+        )
+
+        result = ingest_report._resolve_project_slug(sb, "비트코인-크립토-이코노미")
+
+        self.assertEqual(result[1], "bitcoin")
+
+    def test_resolve_korean_alias_falls_through_to_symbol_for_ascii(self):
+        """ASCII raw_slug bypasses the alias-overlap path entirely."""
+        sb = FakeSupabase(
+            {
+                "tracked_projects": [
+                    {"id": "project-ada", "slug": "cardano",
+                     "name": "Cardano", "symbol": "ADA",
+                     "aliases": ["카르다노"]},
+                ],
+            }
+        )
+
+        # ASCII slug — alias overlap candidates list is empty, falls through
+        # to symbol fallback (ADA).
+        result = ingest_report._resolve_project_slug(sb, "ada")
+
+        self.assertEqual(result[1], "cardano")
+
+    def test_korean_alias_candidates_helper(self):
+        self.assertEqual(
+            ingest_report._korean_alias_candidates(
+                "오피셜-트럼프-크립토-이코노미"
+            ),
+            [
+                "오피셜-트럼프-크립토-이코노미",
+                "오피셜-트럼프-크립토",
+                "오피셜-트럼프",
+                "오피셜",
+            ],
+        )
+        # Pure-ASCII prefixes are filtered out.
+        self.assertEqual(
+            ingest_report._korean_alias_candidates("ada-staking-report"),
+            [],
+        )
+        # Mixed: only the prefixes that contain Hangul are kept, longest first.
+        self.assertEqual(
+            ingest_report._korean_alias_candidates("월렛커넥트-v2"),
+            ["월렛커넥트-v2", "월렛커넥트"],
+        )
+
     def test_korean_slug_to_canonical_helper(self):
         self.assertEqual(
             ingest_report._korean_slug_to_canonical(
@@ -694,6 +807,97 @@ class KoreanSlugResolutionTests(unittest.TestCase):
         self.assertIsNotNone(
             sb.tables["tracked_projects"][0].get("last_maturity_report_at")
         )
+
+
+class ResolveProjectSlugTests(unittest.TestCase):
+    """BCE-1049: ASCII token fallback for Korean ECON draft slugs.
+
+    Production tracker rows use English canonical slugs even when drafts are
+    authored with Korean filenames like `온도-파이낸스ondo-finance-크립토-...`.
+    The resolver must mine the embedded ASCII tokens to land on the correct
+    tracked_projects row instead of letting the publish gate fail with
+    `missing=ko,en`.
+    """
+
+    @staticmethod
+    def _build_sb():
+        return FakeSupabase(
+            {
+                "tracked_projects": [
+                    {"id": "p-cardano", "slug": "cardano", "name": "Cardano", "symbol": "ADA"},
+                    {"id": "p-ondo", "slug": "ondo-finance", "name": "Ondo Finance", "symbol": "ONDO"},
+                    {"id": "p-arbitrum", "slug": "arbitrum", "name": "Arbitrum", "symbol": "ARB"},
+                    {"id": "p-aptos", "slug": "aptos", "name": "Aptos", "symbol": "APT"},
+                    {"id": "p-tether", "slug": "tether", "name": "Tether", "symbol": "USDT"},
+                    {"id": "p-lido", "slug": "lido-dao", "name": "Lido DAO", "symbol": "LDO"},
+                    {"id": "p-hedera", "slug": "hedera-hashgraph", "name": "Hedera", "symbol": "HBAR"},
+                    {"id": "p-trump", "slug": "official-trump", "name": "Official Trump", "symbol": "TRUMP"},
+                    {
+                        "id": "p-wlfi",
+                        "slug": "world-liberty-financial",
+                        "name": "World Liberty Financial",
+                        "symbol": "WLFI",
+                    },
+                    {"id": "p-algorand", "slug": "algorand", "name": "Algorand", "symbol": "ALGO"},
+                ]
+            }
+        )
+
+    def _resolve(self, raw_slug):
+        return ingest_report._resolve_project_slug(self._build_sb(), raw_slug)
+
+    def test_legacy_exact_slug_still_resolves(self):
+        result = self._resolve("cardano")
+        self.assertEqual(result, ("p-cardano", "cardano", "Cardano", "ADA"))
+
+    def test_korean_canonical_path_still_resolves(self):
+        # KO_NAME_TO_SLUG maps "카르다노-..." → "cardano" before ASCII fallback.
+        result = self._resolve("카르다노-프로젝트-진행률-평가-보고서")
+        self.assertEqual(result[1], "cardano")
+
+    def test_ascii_token_exact_slug_resolves_ondo_finance(self):
+        result = self._resolve("온도-파이낸스ondo-finance-크립토-이코노미-심층-분석-보고서")
+        self.assertEqual(result[1], "ondo-finance")
+
+    def test_ascii_token_exact_slug_resolves_arbitrum(self):
+        result = self._resolve("아비트럼arbitrum-크립토-이코노미-심층-분석-보고서")
+        self.assertEqual(result[1], "arbitrum")
+
+    def test_ascii_token_exact_slug_resolves_aptos(self):
+        result = self._resolve("앱토스aptos-크립토-이코노미-분석-보고서")
+        self.assertEqual(result[1], "aptos")
+
+    def test_ascii_token_exact_slug_resolves_tether(self):
+        result = self._resolve("테더tether-프로젝트-크립토-이코노미-심층-분석-보고서")
+        self.assertEqual(result[1], "tether")
+
+    def test_progressive_prefix_ilike_resolves_lido_dao(self):
+        # token=lido-finance: no exact slug, no LIDO symbol; falls through to
+        # `slug ilike 'lido%'` which matches `lido-dao`.
+        result = self._resolve("리도-파이낸스lido-finance-크립토-이코노미-심층-분석-보고서")
+        self.assertEqual(result[1], "lido-dao")
+
+    def test_progressive_prefix_ilike_resolves_hedera_hashgraph(self):
+        # symbol HBAR can't be reached from "hedera"; ilike 'hedera%' wins.
+        result = self._resolve("헤데라hedera-네트워크-크립토-이코노미-심층-분석-보고서")
+        self.assertEqual(result[1], "hedera-hashgraph")
+
+    def test_symbol_exact_match_resolves_official_trump(self):
+        # token=trump → uppercased TRUMP exact-matches symbol on official-trump.
+        result = self._resolve("오피셜-트럼프trump-생태계-및-크립토-이코노미-심층-분석-보고서")
+        self.assertEqual(result[1], "official-trump")
+
+    def test_progressive_prefix_resolves_world_liberty_financial(self):
+        # token=world-liberty-financial-wlfi → progressive prefix lands on
+        # `world-liberty-financial` exact slug.
+        result = self._resolve(
+            "월드-리버티-파이낸셜world-liberty-financial-wlfi-심층-분석-및-리서치-보고서"
+        )
+        self.assertEqual(result[1], "world-liberty-financial")
+
+    def test_unregistered_project_returns_none(self):
+        result = self._resolve("chutesai-bittensor-subnet-64-크립토-이코노미-심층-분석-보고서")
+        self.assertEqual(result, (None, None, None, None))
 
 
 if __name__ == "__main__":
