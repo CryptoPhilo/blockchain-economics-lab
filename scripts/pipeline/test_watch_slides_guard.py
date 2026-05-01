@@ -2,6 +2,7 @@
 
 import importlib.util
 from pathlib import Path
+import tempfile
 
 import pytest
 
@@ -108,3 +109,158 @@ def test_allows_japanese_body_resolved_as_japanese(ws):
 )
 def test_resolves_explicit_filename_language_hints(ws, filename, expected):
     assert ws._lang_from_filename(filename) == expected
+
+
+def test_iter_targets_yields_root_and_subfolder_pdfs(ws, monkeypatch):
+    monkeypatch.setattr(ws, 'TYPE_FOLDER_IDS', {'econ': 'root-econ'})
+    pdfs_by_parent = {
+        'root-econ': [{'id': 'root-slide', 'name': 'bitcoin-root.pdf', 'modifiedTime': 't0'}],
+        'folder-bitcoin': [{'id': 'slide-pdf', 'name': 'bitcoin-slide.pdf', 'modifiedTime': 't1'}],
+    }
+    folders_by_parent = {
+        'root-econ': [{'id': 'folder-bitcoin', 'name': 'bitcoin'}],
+        'folder-bitcoin': [],
+    }
+    monkeypatch.setattr(ws, '_list_pdfs_direct', lambda _service, parent_id: pdfs_by_parent.get(parent_id, []))
+    monkeypatch.setattr(ws, '_list_child_folders', lambda _service, parent_id: folders_by_parent.get(parent_id, []))
+
+    targets = list(ws._iter_targets(object(), ['econ']))
+
+    assert [(rtype, pdf['id']) for rtype, pdf in targets] == [
+        ('econ', 'root-slide'),
+        ('econ', 'slide-pdf'),
+    ]
+    assert targets[0][1]['source_path'] == 'Slide/econ/bitcoin-root.pdf'
+    assert targets[0][1]['parent_folder_id'] == 'root-econ'
+    assert targets[0][1]['source_depth'] == 0
+    assert targets[1][1]['source_path'] == 'Slide/econ/bitcoin/bitcoin-slide.pdf'
+    assert targets[1][1]['parent_folder_id'] == 'folder-bitcoin'
+    assert targets[1][1]['source_depth'] == 1
+
+
+def test_iter_targets_recurses_nested_folders(ws, monkeypatch):
+    monkeypatch.setattr(ws, 'TYPE_FOLDER_IDS', {'econ': 'root-econ'})
+    pdfs_by_parent = {
+        'folder-lang': [{'id': 'nested-slide', 'name': 'bitcoin-ko.pdf', 'modifiedTime': 't1'}],
+    }
+    folders_by_parent = {
+        'root-econ': [{'id': 'folder-bitcoin', 'name': 'bitcoin'}],
+        'folder-bitcoin': [{'id': 'folder-lang', 'name': 'ko'}],
+        'folder-lang': [],
+    }
+    monkeypatch.setattr(ws, '_list_pdfs_direct', lambda _service, parent_id: pdfs_by_parent.get(parent_id, []))
+    monkeypatch.setattr(ws, '_list_child_folders', lambda _service, parent_id: folders_by_parent.get(parent_id, []))
+
+    targets = list(ws._iter_targets(object(), ['econ']))
+
+    assert [(rtype, pdf['id']) for rtype, pdf in targets] == [('econ', 'nested-slide')]
+    assert targets[0][1]['source_path'] == 'Slide/econ/bitcoin/ko/bitcoin-ko.pdf'
+    assert targets[0][1]['source_depth'] == 2
+
+
+def _write_blank_pdf(width, height):
+    import fitz
+
+    handle = tempfile.NamedTemporaryFile(suffix='.pdf', delete=False)
+    handle.close()
+    doc = fitz.open()
+    doc.new_page(width=width, height=height)
+    doc.save(handle.name)
+    doc.close()
+    return Path(handle.name)
+
+
+def test_pdf_page_profile_accepts_landscape_slide(ws):
+    path = _write_blank_pdf(1376, 768)
+    try:
+        profile = ws._pdf_page_profile(str(path))
+    finally:
+        path.unlink(missing_ok=True)
+
+    assert profile['is_landscape_slide'] is True
+    assert profile['aspect_ratio'] > 1.7
+
+
+def test_pdf_page_profile_rejects_portrait_report(ws):
+    path = _write_blank_pdf(595, 842)
+    try:
+        profile = ws._pdf_page_profile(str(path))
+    finally:
+        path.unlink(missing_ok=True)
+
+    assert profile['is_landscape_slide'] is False
+    assert profile['aspect_ratio'] < 1.0
+
+
+class _FakeExecuteResult:
+    def __init__(self, data):
+        self.data = data
+
+
+class _FakeProjectReportsTable:
+    def __init__(self, row):
+        self.row = row
+        self.patch = None
+
+    def select(self, *_args):
+        return self
+
+    def update(self, patch):
+        self.patch = patch
+        return self
+
+    def eq(self, *_args):
+        return self
+
+    def single(self):
+        return self
+
+    def execute(self):
+        if self.patch is not None:
+            self.row.update(self.patch)
+            return _FakeExecuteResult([self.row])
+        return _FakeExecuteResult(self.row)
+
+
+class _FakeSupabase:
+    def __init__(self, row):
+        self.project_reports = _FakeProjectReportsTable(row)
+
+    def table(self, name):
+        assert name == 'project_reports'
+        return self.project_reports
+
+
+def test_remove_slide_url_if_matches_only_removes_exact_legacy_url(ws):
+    row = {
+        'slide_html_urls_by_lang': {
+            'ko': 'https://storage/legacy-root.html',
+            'en': 'https://storage/current-en.html',
+        }
+    }
+    sb = _FakeSupabase(row)
+
+    removed = ws._remove_slide_url_if_matches(
+        sb,
+        'report-1',
+        'ko',
+        'https://storage/legacy-root.html',
+    )
+
+    assert removed is True
+    assert row['slide_html_urls_by_lang'] == {'en': 'https://storage/current-en.html'}
+
+
+def test_remove_slide_url_if_matches_keeps_newer_url(ws):
+    row = {'slide_html_urls_by_lang': {'ko': 'https://storage/new-slide.html'}}
+    sb = _FakeSupabase(row)
+
+    removed = ws._remove_slide_url_if_matches(
+        sb,
+        'report-1',
+        'ko',
+        'https://storage/legacy-root.html',
+    )
+
+    assert removed is False
+    assert row['slide_html_urls_by_lang'] == {'ko': 'https://storage/new-slide.html'}

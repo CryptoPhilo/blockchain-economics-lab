@@ -2,7 +2,7 @@
 """
 Slide Pipeline Watcher — BCE-1085 / BCE-1099
 
-Scans `Slide/{TYPE}/` for PDF files (no subfolders, no filename convention),
+Scans `Slide/{TYPE}/` and child folders for landscape slide PDFs,
 identifies (slug, lang) from PDF content, converts to a self-contained HTML
 viewer, uploads it to Supabase Storage, and merges the public URL into
 `project_reports.slide_html_urls_by_lang`.
@@ -86,6 +86,10 @@ LOG_DIR = REPO_ROOT / 'logs' / 'slide_pipeline'
 # contains the title in NotebookLM exports).
 PDF_TEXT_PAGES = 3
 
+# NotebookLM slide decks are 16:9 landscape. Legacy PDF reports are portrait
+# documents and must not be published as slide HTML.
+MIN_SLIDE_ASPECT_RATIO = 1.25
+
 # Tesseract trained-data codes per supported language. Used both for OCR of
 # raster-only PDFs and to control which language packs to install in CI.
 TESSERACT_LANG_CODES: Dict[str, str] = {
@@ -139,6 +143,9 @@ def _get_drive_service():
     return build('drive', 'v3', credentials=creds)
 
 
+GDRIVE_FOLDER_MIME = 'application/vnd.google-apps.folder'
+
+
 def _list_pdfs_direct(service, parent_id: str) -> List[Dict]:
     """List PDFs in `parent_id` only (no subfolder traversal)."""
     query = (
@@ -152,6 +159,29 @@ def _list_pdfs_direct(service, parent_id: str) -> List[Dict]:
         resp = service.files().list(
             q=query,
             fields='nextPageToken, files(id, name, modifiedTime, size)',
+            pageToken=page_token,
+            pageSize=1000,
+        ).execute()
+        out.extend(resp.get('files', []))
+        page_token = resp.get('nextPageToken')
+        if not page_token:
+            break
+    return out
+
+
+def _list_child_folders(service, parent_id: str) -> List[Dict]:
+    """List immediate child folders in `parent_id`."""
+    query = (
+        f"'{parent_id}' in parents "
+        f"and mimeType = '{GDRIVE_FOLDER_MIME}' "
+        f"and trashed = false"
+    )
+    out: List[Dict] = []
+    page_token = None
+    while True:
+        resp = service.files().list(
+            q=query,
+            fields='nextPageToken, files(id, name)',
             pageToken=page_token,
             pageSize=1000,
         ).execute()
@@ -218,6 +248,31 @@ def _extract_pdf_meta_and_text(pdf_path: str, max_pages: int = PDF_TEXT_PAGES) -
     finally:
         doc.close()
     return meta, '\n'.join(text_parts)
+
+
+def _pdf_page_profile(pdf_path: str) -> Dict[str, float | int | bool]:
+    """Return basic first-page dimensions used to reject legacy portrait reports."""
+    try:
+        import fitz  # pymupdf
+        doc = fitz.open(pdf_path)
+    except Exception:
+        return {'page_count': 0, 'width': 0.0, 'height': 0.0, 'aspect_ratio': 0.0, 'is_landscape_slide': False}
+    try:
+        if doc.page_count <= 0:
+            return {'page_count': 0, 'width': 0.0, 'height': 0.0, 'aspect_ratio': 0.0, 'is_landscape_slide': False}
+        rect = doc.load_page(0).rect
+        width = float(rect.width)
+        height = float(rect.height)
+        aspect = width / height if height else 0.0
+        return {
+            'page_count': doc.page_count,
+            'width': width,
+            'height': height,
+            'aspect_ratio': aspect,
+            'is_landscape_slide': aspect >= MIN_SLIDE_ASPECT_RATIO,
+        }
+    finally:
+        doc.close()
 
 
 def _ocr_first_page_text(pdf_path: str, max_pages: int = PDF_TEXT_PAGES) -> str:
@@ -613,6 +668,24 @@ def _merge_slide_url(sb, report_id: str, lang: str, public_url: str) -> None:
     }).eq('id', report_id).execute()
 
 
+def _remove_slide_url_if_matches(sb, report_id: str, lang: str, public_url: str) -> bool:
+    """Remove a stale slide URL only when DB still points at that exact object."""
+    if not report_id or not lang or not public_url:
+        return False
+    current = sb.table('project_reports').select('slide_html_urls_by_lang') \
+        .eq('id', report_id).single().execute()
+    urls = (current.data or {}).get('slide_html_urls_by_lang') or {}
+    if not isinstance(urls, dict) or urls.get(lang) != public_url:
+        return False
+    updated = dict(urls)
+    updated.pop(lang, None)
+    sb.table('project_reports').update({
+        'slide_html_urls_by_lang': updated,
+        'updated_at': datetime.now(timezone.utc).isoformat(),
+    }).eq('id', report_id).execute()
+    return True
+
+
 # ═══════════════════════════════════════════
 # Conversion + upload
 # ═══════════════════════════════════════════
@@ -659,14 +732,52 @@ def _convert_and_upload(
 # Scan + processing
 # ═══════════════════════════════════════════
 
+def _with_source_metadata(pdf: Dict, *, parent_folder: Dict, source_path: str, depth: int) -> Dict:
+    return {
+        **pdf,
+        'parent_folder_id': parent_folder.get('id'),
+        'parent_folder_name': parent_folder.get('name'),
+        'source_path': f"{source_path}/{pdf.get('name', '')}",
+        'source_depth': depth,
+    }
+
+
 def _iter_targets(service, types: Iterable[str]):
-    """Yield (rtype, pdf_info) for every direct-child PDF of Slide/<TYPE>/."""
+    """Yield (rtype, pdf_info) for root and nested PDFs under Slide/<TYPE>/."""
     for rtype in types:
         type_folder = TYPE_FOLDER_IDS.get(rtype)
         if not type_folder:
             continue
+        root_folder = {'id': type_folder, 'name': rtype}
         for pdf in _list_pdfs_direct(service, type_folder):
-            yield rtype, pdf
+            yield rtype, _with_source_metadata(
+                pdf,
+                parent_folder=root_folder,
+                source_path=f"Slide/{rtype}",
+                depth=0,
+            )
+        stack: List[Tuple[Dict, str, int]] = [
+            (folder, f"Slide/{rtype}/{folder.get('name', '')}", 1)
+            for folder in _list_child_folders(service, type_folder)
+        ]
+        seen: set[str] = set()
+        while stack:
+            folder, source_path, depth = stack.pop(0)
+            folder_id = folder.get('id')
+            if not folder_id or folder_id in seen:
+                continue
+            seen.add(folder_id)
+
+            for pdf in _list_pdfs_direct(service, folder_id):
+                yield rtype, _with_source_metadata(
+                    pdf,
+                    parent_folder=folder,
+                    source_path=source_path,
+                    depth=depth,
+                )
+
+            for child in _list_child_folders(service, folder_id):
+                stack.append((child, f"{source_path}/{child.get('name', '')}", depth + 1))
 
 
 def process(
@@ -715,6 +826,10 @@ def process(
             'name': pdf['name'],
             'modifiedTime': modified,
             'size': pdf.get('size'),
+            'parent_folder_id': pdf.get('parent_folder_id'),
+            'parent_folder_name': pdf.get('parent_folder_name'),
+            'source_path': pdf.get('source_path'),
+            'source_depth': pdf.get('source_depth'),
         }
 
         prev = manifest.get(file_id) or {}
@@ -723,7 +838,42 @@ def process(
             and prev.get('status') == 'published'
             and prev.get('modifiedTime') == modified
         ):
-            scanned.append({**record, 'slug': prev.get('slug'), 'lang': prev.get('lang')})
+            if not dry_run:
+                report_id = prev.get('report_id')
+                public_url = prev.get('public_url')
+                lang = prev.get('lang')
+                slug = prev.get('slug')
+                should_repair = not filter_slug or slug == filter_slug
+                if should_repair and public_url and lang:
+                    try:
+                        if not report_id:
+                            project = _match_project_by_text(slug or '', projects)
+                            project_id = (project or {}).get('id')
+                            if project_id:
+                                report_id, _ = _find_report_for_lang(
+                                    sb, project_id, DB_REPORT_TYPE[rtype], lang
+                                )
+                                if not report_id:
+                                    report_id = _find_any_report_id(sb, project_id, DB_REPORT_TYPE[rtype])
+                        if report_id:
+                            _merge_slide_url(sb, report_id, lang, public_url)
+                            print(
+                                f"    ✓ DB repaired from manifest: "
+                                f"project_reports[{report_id}].slide_html_urls_by_lang.{lang}"
+                            )
+                    except Exception as e:
+                        print(f"    [WARN] DB repair from unchanged manifest failed: {e}")
+                manifest[file_id] = {
+                    **prev,
+                    'report_id': report_id,
+                    'parent_folder_id': pdf.get('parent_folder_id'),
+                    'parent_folder_name': pdf.get('parent_folder_name'),
+                    'source_path': pdf.get('source_path'),
+                    'source_depth': pdf.get('source_depth'),
+                    'updated_at': datetime.now(timezone.utc).isoformat(),
+                }
+                _save_manifest(manifest)
+            scanned.append({**record, 'slug': prev.get('slug'), 'lang': prev.get('lang'), 'status': 'unchanged'})
             print(f"  [SKIP] {rtype}/{pdf['name']}: unchanged since {modified}")
             continue
 
@@ -741,6 +891,11 @@ def process(
                 manifest[file_id] = {
                     **prev,
                     'rtype': rtype,
+                    'name': pdf['name'],
+                    'parent_folder_id': pdf.get('parent_folder_id'),
+                    'parent_folder_name': pdf.get('parent_folder_name'),
+                    'source_path': pdf.get('source_path'),
+                    'source_depth': pdf.get('source_depth'),
                     'status': 'failed',
                     'error': err[:300],
                     'modifiedTime': modified,
@@ -749,6 +904,54 @@ def process(
                 _save_manifest(manifest)
                 scanned.append({**record, 'slug': None, 'lang': None})
                 processed.append({**record, 'slug': None, 'lang': None, 'status': 'failed', 'error': err})
+                continue
+
+            page_profile = _pdf_page_profile(tmp_path)
+            if not page_profile.get('is_landscape_slide'):
+                removed_stale_url = False
+                if not dry_run and prev.get('status') == 'published':
+                    try:
+                        removed_stale_url = _remove_slide_url_if_matches(
+                            sb,
+                            prev.get('report_id'),
+                            prev.get('lang'),
+                            prev.get('public_url'),
+                        )
+                        if removed_stale_url:
+                            print(
+                                f"    [REPAIR] removed stale portrait URL for "
+                                f"{prev.get('slug')}/{prev.get('lang')}"
+                            )
+                    except Exception as e:
+                        print(f"    [WARN] stale portrait URL cleanup failed: {e}")
+                msg = (
+                    "legacy portrait PDF is not publishable as slide HTML "
+                    f"(aspect={page_profile.get('aspect_ratio', 0):.3f})"
+                )
+                pdf_path_label = pdf.get('source_path') or f"{rtype}/{pdf['name']}"
+                print(f"  [SKIP] {pdf_path_label}: {msg}")
+                manifest[file_id] = {
+                    **prev,
+                    'rtype': rtype,
+                    'name': pdf['name'],
+                    'modifiedTime': modified,
+                    'parent_folder_id': pdf.get('parent_folder_id'),
+                    'parent_folder_name': pdf.get('parent_folder_name'),
+                    'source_path': pdf.get('source_path'),
+                    'source_depth': pdf.get('source_depth'),
+                    'page_profile': page_profile,
+                    'status': 'skipped_legacy_portrait_pdf',
+                    'error': msg,
+                    'stale_url_removed': removed_stale_url,
+                    'updated_at': datetime.now(timezone.utc).isoformat(),
+                }
+                _save_manifest(manifest)
+                scanned.append({
+                    **record,
+                    'slug': prev.get('slug'),
+                    'lang': prev.get('lang'),
+                    'status': 'skipped_legacy_portrait_pdf',
+                })
                 continue
 
             meta, pdf_text = _extract_pdf_meta_and_text(tmp_path)
@@ -775,6 +978,9 @@ def process(
                 and not ocr_text
             ):
                 ocr_text = _ocr_first_page_text(tmp_path)
+            if not lang and prev.get('lang') and prev.get('modifiedTime') == modified:
+                lang = prev.get('lang')
+                lang_source = 'manifest'
 
             slug = (project or {}).get('slug')
             project_id = (project or {}).get('id')
@@ -796,6 +1002,10 @@ def process(
                     'rtype': rtype,
                     'name': pdf['name'],
                     'modifiedTime': modified,
+                    'parent_folder_id': pdf.get('parent_folder_id'),
+                    'parent_folder_name': pdf.get('parent_folder_name'),
+                    'source_path': pdf.get('source_path'),
+                    'source_depth': pdf.get('source_depth'),
                     'status': 'unresolved',
                     'slug': slug,
                     'lang': lang,
@@ -851,6 +1061,10 @@ def process(
                         'rtype': rtype,
                         'name': pdf['name'],
                         'modifiedTime': modified,
+                        'parent_folder_id': pdf.get('parent_folder_id'),
+                        'parent_folder_name': pdf.get('parent_folder_name'),
+                        'source_path': pdf.get('source_path'),
+                        'source_depth': pdf.get('source_depth'),
                         'status': 'mismatch',
                         'slug': slug,
                         'lang': lang,
@@ -882,6 +1096,11 @@ def process(
                 'lang_source': lang_source,
                 'name': pdf['name'],
                 'modifiedTime': modified,
+                'parent_folder_id': pdf.get('parent_folder_id'),
+                'parent_folder_name': pdf.get('parent_folder_name'),
+                'source_path': pdf.get('source_path'),
+                'source_depth': pdf.get('source_depth'),
+                'page_profile': page_profile,
                 'status': 'processing',
                 'started_at': datetime.now(timezone.utc).isoformat(),
                 'retry_count': prev.get('retry_count', 0) + (1 if prev.get('status') == 'processing' else 0),
@@ -969,7 +1188,8 @@ def write_run_log(
     log_file = LOG_DIR / f'{timestamp}.md'
 
     published = sum(1 for r in processed if r.get('status') == 'published')
-    skipped_unchanged = len(scanned) - len(processed)
+    skipped_unchanged = sum(1 for r in scanned if r.get('status') == 'unchanged')
+    skipped_legacy = sum(1 for r in scanned if r.get('status') == 'skipped_legacy_portrait_pdf')
     failed = sum(1 for r in processed if r.get('status') == 'failed')
     unresolved = sum(1 for r in processed if r.get('status') == 'unresolved')
 
@@ -979,6 +1199,7 @@ def write_run_log(
         f"- Types: {', '.join(types)}",
         f"- Files scanned: {len(scanned)}",
         f"- Skipped (unchanged): {skipped_unchanged}",
+        f"- Skipped (legacy portrait PDFs): {skipped_legacy}",
         f"- Processed: {len(processed)}",
         f"- Published: {published}",
         f"- Unresolved: {unresolved}",
@@ -989,8 +1210,10 @@ def write_run_log(
     ]
     if scanned:
         for r in scanned:
+            status = r.get('status') or 'target'
+            path = r.get('source_path') or f"{r['rtype']}/{r['name']}"
             lines.append(
-                f"- `{r['rtype']}/{r['name']}` "
+                f"- [{status}] `{path}` "
                 f"(slug={r.get('slug')}, lang={r.get('lang')}, modified={r['modifiedTime']})"
             )
     else:
