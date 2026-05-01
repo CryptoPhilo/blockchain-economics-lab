@@ -1,8 +1,5 @@
 import type { ProjectReport } from '@/lib/types'
-
-type TranslationState = 'completed' | 'published'
-
-const COMPLETED_TRANSLATION_STATES = new Set<TranslationState>(['completed', 'published'])
+import { reportSupportsLocale } from '@/lib/report-locale'
 
 function getEffectiveTimestamp(report: Pick<ProjectReport, 'published_at' | 'created_at'>): number {
   const source = report.published_at || report.created_at
@@ -62,58 +59,6 @@ function getSearchableText(report: ProjectReport): string {
   return fields.filter((value): value is string => typeof value === 'string' && value.length > 0)
     .join(' ')
     .toLowerCase()
-}
-
-function hasNonEmptyValue(value: unknown): boolean {
-  if (typeof value === 'string') {
-    return value.trim().length > 0
-  }
-
-  if (Array.isArray(value)) {
-    return value.some(hasNonEmptyValue)
-  }
-
-  return false
-}
-
-function hasLocalizedUrl(report: ProjectReport, locale: string): boolean {
-  const gdriveUrls = report.gdrive_urls_by_lang as Record<string, unknown> | undefined
-  const fileUrls = report.file_urls_by_lang as Record<string, unknown> | undefined
-
-  return hasUrlEntry(gdriveUrls?.[locale]) || hasUrlEntry(fileUrls?.[locale])
-}
-
-function hasUrlEntry(value: unknown): boolean {
-  if (typeof value === 'string') {
-    return value.trim().length > 0
-  }
-
-  if (!value || typeof value !== 'object') {
-    return false
-  }
-
-  const entry = value as { url?: unknown; download_url?: unknown }
-  return hasNonEmptyValue(entry.url) || hasNonEmptyValue(entry.download_url)
-}
-
-function hasCompletedTranslation(report: ProjectReport, locale: string): boolean {
-  const translationStatus = report.translation_status as Record<string, unknown> | undefined
-  const status = translationStatus?.[locale]
-
-  return typeof status === 'string' && COMPLETED_TRANSLATION_STATES.has(status as TranslationState)
-}
-
-export function reportSupportsLocale(report: ProjectReport, locale: string): boolean {
-  if (!locale) {
-    return true
-  }
-
-  if (report.language === locale) {
-    return true
-  }
-
-  return hasLocalizedUrl(report, locale)
-    || hasCompletedTranslation(report, locale)
 }
 
 export function dedupeLatestReportsByProject(reports: ProjectReport[]): ProjectReport[] {

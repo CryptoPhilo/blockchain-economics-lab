@@ -127,10 +127,10 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
 
   if (!project) notFound()
 
-  // project_reports rows are scoped per (project, type, language). Pick the
-  // locale-matching row for hero text, falling back to English, then any
-  // published row.
-  let { data: report } = await supabase
+  // project_reports rows are scoped per (project, type, language). Do not
+  // fall back to another language here; otherwise Korean routes can render an
+  // English report row when only shared URL metadata exists.
+  const { data: report } = await supabase
     .from('project_reports')
     .select('*')
     .eq('project_id', project.id)
@@ -140,33 +140,6 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
     .order('published_at', { ascending: false })
     .limit(1)
     .maybeSingle()
-
-  if (!report && locale !== 'en') {
-    const { data: enRow } = await supabase
-      .from('project_reports')
-      .select('*')
-      .eq('project_id', project.id)
-      .eq('report_type', reportType)
-      .eq('language', 'en')
-      .in('status', ['published', 'coming_soon'])
-      .order('published_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-    report = enRow
-  }
-
-  if (!report) {
-    const { data: anyRow } = await supabase
-      .from('project_reports')
-      .select('*')
-      .eq('project_id', project.id)
-      .eq('report_type', reportType)
-      .in('status', ['published', 'coming_soon'])
-      .order('published_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-    report = anyRow
-  }
 
   if (!report) notFound()
 

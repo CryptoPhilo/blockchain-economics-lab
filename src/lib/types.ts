@@ -211,6 +211,7 @@ export interface ProjectReport {
   gdrive_url?: string
   gdrive_download_url?: string
   gdrive_urls_by_lang?: Record<string, GDriveUrlEntry | string>
+  slide_html_urls_by_lang?: Record<string, string>
   page_count?: number
   task_id?: string
   title_en?: string

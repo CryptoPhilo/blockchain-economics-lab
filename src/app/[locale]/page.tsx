@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getLocalizedField, type Locale } from '@/lib/types'
+import { reportSupportsLocale } from '@/lib/report-locale'
 import ProductCard from '@/components/ProductCard'
 import DisclaimerBanner from '@/components/DisclaimerBanner'
 import SubscribeForm from '@/components/SubscribeForm'
@@ -43,7 +44,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     ])
     featuredProducts = productsRes.data || []
     categories = categoriesRes.data || []
-    forensicReports = forensicRes.data || []
+    forensicReports = (forensicRes.data || []).filter((report) => reportSupportsLocale(report, locale))
   } catch (e) {
     console.error('Failed to fetch data:', e)
   }
