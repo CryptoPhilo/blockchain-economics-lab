@@ -1,4 +1,23 @@
 {
+  "1-6sJWpMAX7bx6CRrSR3lEpEG_b1XN-Os": {
+    "error": null,
+    "finished_at": "2026-05-01T06:46:47.312798+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-01T05:58:24.000Z",
+    "name": "Chainlink_Institutional_Blueprint_en.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/chainlink/latest/en.html",
+    "report_id": "28cd1ba2-a43e-4ae5-90b1-2eb76044a525",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "chainlink",
+    "slug_source": "filename",
+    "started_at": "2026-05-01T06:46:34.642553+00:00",
+    "status": "published",
+    "updated_at": "2026-05-01T06:46:47.312816+00:00",
+    "version": null,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/chainlink/latest/en.html"
+  },
   "10P4cGxCLUAyvKDA_hpcTcbxMbnMIP6gL": {
     "error": null,
     "finished_at": "2026-04-30T22:11:40.880619+00:00",
@@ -34,6 +53,25 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/humanity-protocol/1/ko.html"
   },
+  "146aVc9YbH-dFwyM4p66K8sB0VZ-WkEb_": {
+    "error": null,
+    "finished_at": "2026-05-01T06:49:06.616623+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-01T05:36:13.000Z",
+    "name": "Canton_Network_Institutional_Blueprint_ko.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/canton-network/latest/ko.html",
+    "report_id": "a58515f6-6c7a-4d0a-80a2-b8d40ade8a23",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "canton-network",
+    "slug_source": "filename",
+    "started_at": "2026-05-01T06:48:51.616004+00:00",
+    "status": "published",
+    "updated_at": "2026-05-01T06:49:06.616636+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/canton-network/1/ko.html"
+  },
   "16-9v-inchOknQlUjB0qkDRWaVmVooBz5": {
     "error": null,
     "finished_at": "2026-04-30T22:14:08.280197+00:00",
@@ -52,6 +90,25 @@
     "updated_at": "2026-04-30T22:14:08.280217+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/dogecoin/latest/ja.html"
+  },
+  "16H7y4WSLJz35MZS4gf3sRlZ_7JiDKd3E": {
+    "error": null,
+    "finished_at": "2026-05-01T06:49:30.860345+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-01T05:35:50.000Z",
+    "name": "Canton_Institutional_Blueprint_en.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/canton-network/latest/en.html",
+    "report_id": "a58515f6-6c7a-4d0a-80a2-b8d40ade8a23",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "canton-network",
+    "slug_source": "filename",
+    "started_at": "2026-05-01T06:49:18.236756+00:00",
+    "status": "published",
+    "updated_at": "2026-05-01T06:49:30.860360+00:00",
+    "version": null,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/canton-network/latest/en.html"
   },
   "199zAACv3IjVpXdVMqqxHW24WIPcimron": {
     "error": null,
@@ -145,7 +202,26 @@
     "slug": "tether",
     "slug_source": "filename",
     "status": "mismatch",
-    "updated_at": "2026-05-01T04:15:53.254818+00:00"
+    "updated_at": "2026-05-01T06:54:45.874049+00:00"
+  },
+  "1CnTijmdjnoQnKzdbEtaQyukk_Pn0IZzV": {
+    "error": null,
+    "finished_at": "2026-05-01T06:50:50.266652+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-01T05:34:04.000Z",
+    "name": "Monero_Economic_Blueprint_cn.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/monero/latest/zh.html",
+    "report_id": "5e8ab7e0-b66b-40ab-a75a-8878b580a1e2",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "monero",
+    "slug_source": "filename",
+    "started_at": "2026-05-01T06:50:40.138739+00:00",
+    "status": "published",
+    "updated_at": "2026-05-01T06:50:50.266669+00:00",
+    "version": null,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/monero/latest/zh.html"
   },
   "1DU7UyCwF-QUF664v3F42XRo7Z-X2UOXK": {
     "error": null,
@@ -166,6 +242,25 @@
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ethereum/latest/ja.html"
   },
+  "1DmLASKIWYt7iFfGhBMjiRBz01L4A62Re": {
+    "error": null,
+    "finished_at": "2026-05-01T06:52:22.823208+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-01T05:32:49.000Z",
+    "name": "Monero_Cryptographic_Blueprint_ko.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/monero/latest/ko.html",
+    "report_id": "6e742949-7706-4d8c-9bfd-b3adc8083810",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "monero",
+    "slug_source": "filename",
+    "started_at": "2026-05-01T06:52:08.029491+00:00",
+    "status": "published",
+    "updated_at": "2026-05-01T06:52:22.823226+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/monero/1/ko.html"
+  },
   "1DpPV0QQJCm5GQZAPQ6Y2uUmfxMzl-YXq": {
     "error": null,
     "finished_at": "2026-04-30T21:15:58.375213+00:00",
@@ -185,10 +280,28 @@
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/solana/latest/ja.html"
   },
+  "1FVpQJB0wRpZtNuGLagI8L9zDhZth4Yt8": {
+    "error": "slug/content mismatch — filename resolved 'monero' (body score 12) but body strongly matches 'bitcoin' (score 14)",
+    "lang": "ja",
+    "lang_source": "filename",
+    "mismatch": {
+      "detected_score": 14,
+      "detected_slug": "bitcoin",
+      "expected_score": 12,
+      "expected_slug": "monero"
+    },
+    "modifiedTime": "2026-05-01T05:33:16.000Z",
+    "name": "Monero_Design_Blueprint_jp.pdf",
+    "rtype": "econ",
+    "slug": "monero",
+    "slug_source": "filename",
+    "status": "mismatch",
+    "updated_at": "2026-05-01T06:51:45.232310+00:00"
+  },
   "1Fn8jjtQrWkUYcX_bLo7Y4b9z-tK-ELVL": {
     "error": "slug/content mismatch — filename resolved 'leo-token' (body score 6) but body strongly matches 'ethereum' (score 16)",
     "lang": "ja",
-    "lang_source": "ocr_langdetect",
+    "lang_source": "filename",
     "mismatch": {
       "detected_score": 16,
       "detected_slug": "ethereum",
@@ -201,7 +314,45 @@
     "slug": "leo-token",
     "slug_source": "filename",
     "status": "mismatch",
-    "updated_at": "2026-05-01T04:12:57.661086+00:00"
+    "updated_at": "2026-05-01T06:52:38.221982+00:00"
+  },
+  "1Fr2CG99Rkb_Jc9KZHE4D_gbLqI8KRtYM": {
+    "error": null,
+    "finished_at": "2026-05-01T06:48:27.005208+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-01T05:57:15.000Z",
+    "name": "Chainlink_Trustless_Economy_Blueprint_jp.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/chainlink/latest/ja.html",
+    "report_id": "28cd1ba2-a43e-4ae5-90b1-2eb76044a525",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "chainlink",
+    "slug_source": "filename",
+    "started_at": "2026-05-01T06:48:13.952330+00:00",
+    "status": "published",
+    "updated_at": "2026-05-01T06:48:27.005223+00:00",
+    "version": null,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/chainlink/latest/ja.html"
+  },
+  "1Gl9YyfVmcu5cXFRrBE3vu7OF2xG-vez-": {
+    "error": null,
+    "finished_at": "2026-05-01T06:49:55.651883+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-01T05:35:26.000Z",
+    "name": "Canton_Network_Institutional_Blueprint_cn.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/canton-network/latest/zh.html",
+    "report_id": "a58515f6-6c7a-4d0a-80a2-b8d40ade8a23",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "canton-network",
+    "slug_source": "filename",
+    "started_at": "2026-05-01T06:49:45.854560+00:00",
+    "status": "published",
+    "updated_at": "2026-05-01T06:49:55.651893+00:00",
+    "version": null,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/canton-network/latest/zh.html"
   },
   "1HjkDOfzK3A-SQuLEtqe-guosKQJLjDuL": {
     "error": null,
@@ -240,6 +391,25 @@
     "updated_at": "2026-04-30T21:16:24.770992+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/solana/latest/ja.html"
+  },
+  "1JFztD7U3trgMC-jOSjyTgmN2kDvXW2D3": {
+    "error": null,
+    "finished_at": "2026-05-01T06:47:54.223454+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-01T05:57:42.000Z",
+    "name": "The_Chainlink_Trust_Blueprint_cn.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/chainlink/latest/zh.html",
+    "report_id": "28cd1ba2-a43e-4ae5-90b1-2eb76044a525",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "chainlink",
+    "slug_source": "filename",
+    "started_at": "2026-05-01T06:47:41.504066+00:00",
+    "status": "published",
+    "updated_at": "2026-05-01T06:47:54.223472+00:00",
+    "version": null,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/chainlink/latest/zh.html"
   },
   "1KgJVdOIM0yZzMPwqFh6LQajg199U_Sh6": {
     "error": null,
@@ -297,6 +467,25 @@
     "updated_at": "2026-04-30T21:18:01.805945+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/binancecoin/1/en.html"
+  },
+  "1MpQTbEjh0jFLr2CsTqQwbXpB2KcXbEj-": {
+    "error": null,
+    "finished_at": "2026-05-01T06:50:22.876576+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-01T05:35:03.000Z",
+    "name": "Canton_Network_Blueprint_jp.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/canton-network/latest/ja.html",
+    "report_id": "a58515f6-6c7a-4d0a-80a2-b8d40ade8a23",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "canton-network",
+    "slug_source": "filename",
+    "started_at": "2026-05-01T06:50:11.785642+00:00",
+    "status": "published",
+    "updated_at": "2026-05-01T06:50:22.876589+00:00",
+    "version": null,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/canton-network/latest/ja.html"
   },
   "1N1WQNFHeTtB8hWHh6p8MXYtYjnUq9-N9": {
     "error": null,
@@ -374,6 +563,25 @@
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pancakeswap/latest/ja.html"
   },
+  "1ORJsIzmHJMaI2_wZ_OQZKDJLg9r5IgBa": {
+    "error": null,
+    "finished_at": "2026-05-01T06:51:18.790110+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-01T05:33:42.000Z",
+    "name": "Monero_Protocol_Blueprint_en.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/monero/latest/en.html",
+    "report_id": "5e8ab7e0-b66b-40ab-a75a-8878b580a1e2",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "monero",
+    "slug_source": "filename",
+    "started_at": "2026-05-01T06:51:03.341053+00:00",
+    "status": "published",
+    "updated_at": "2026-05-01T06:51:18.790127+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/monero/1/en.html"
+  },
   "1OgwiC2qpJfppjWLYhgSohk4Zm5SwYBoj": {
     "error": null,
     "finished_at": "2026-04-30T10:31:33.589761+00:00",
@@ -447,7 +655,7 @@
     "slug": "binancecoin",
     "slug_source": "filename",
     "status": "mismatch",
-    "updated_at": "2026-05-01T04:15:28.650251+00:00"
+    "updated_at": "2026-05-01T06:54:21.694771+00:00"
   },
   "1W0CHRmsAetZMQx0soNN-qXv2wAgDBfK1": {
     "error": null,
@@ -582,6 +790,25 @@
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/dogecoin/latest/en.html"
   },
+  "1b2IargeLYT18LQgpHm7xFSZeJH1tO_G3": {
+    "error": null,
+    "finished_at": "2026-05-01T06:47:22.059253+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-01T05:58:04.000Z",
+    "name": "Chainlink_Strategic_Analysis_ko.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/chainlink/latest/ko.html",
+    "report_id": "28cd1ba2-a43e-4ae5-90b1-2eb76044a525",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "chainlink",
+    "slug_source": "filename",
+    "started_at": "2026-05-01T06:47:05.443586+00:00",
+    "status": "published",
+    "updated_at": "2026-05-01T06:47:22.059270+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/chainlink/1/ko.html"
+  },
   "1ctUff0fbCrg4Us37NSRJfj1e-tR0A7xq": {
     "error": null,
     "finished_at": "2026-04-30T10:31:04.928400+00:00",
@@ -709,12 +936,12 @@
     "slug": "usd-coin",
     "slug_source": "filename",
     "status": "mismatch",
-    "updated_at": "2026-05-01T04:15:12.907192+00:00"
+    "updated_at": "2026-05-01T06:54:07.149363+00:00"
   },
   "1ie8UtNIB47Csbjqu9LyPP5llmA2SLq03": {
     "error": "slug/content mismatch — filename resolved 'tron' (body score 8) but body strongly matches 'avalanche-2' (score 18)",
-    "lang": "en",
-    "lang_source": "ocr_langdetect",
+    "lang": "zh",
+    "lang_source": "filename",
     "mismatch": {
       "detected_score": 18,
       "detected_slug": "avalanche-2",
@@ -727,7 +954,7 @@
     "slug": "tron",
     "slug_source": "filename",
     "status": "mismatch",
-    "updated_at": "2026-05-01T04:14:38.322974+00:00"
+    "updated_at": "2026-05-01T06:53:32.332415+00:00"
   },
   "1jVQZacYknRoplHb6jMpbgPG6Nr99wUyy": {
     "error": null,
@@ -749,16 +976,23 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/tron/latest/ja.html"
   },
   "1jVyYq-nzVdr2Ubrqwnp9StF3KpF_tCp7": {
-    "error": "unresolved (slug=leo-token via filename; lang=? via none)",
-    "lang": null,
-    "lang_source": "none",
+    "error": null,
+    "finished_at": "2026-05-01T06:53:08.118523+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
     "modifiedTime": "2026-05-01T04:10:45.000Z",
     "name": "LEO_Economic_Blueprint_cn.pdf",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/leo-token/latest/zh.html",
+    "report_id": "a9441154-44ec-44b7-b3b3-fb70c059edbc",
+    "retry_count": 0,
     "rtype": "econ",
     "slug": "leo-token",
     "slug_source": "filename",
-    "status": "unresolved",
-    "updated_at": "2026-05-01T04:13:44.193078+00:00"
+    "started_at": "2026-05-01T06:52:56.459645+00:00",
+    "status": "published",
+    "updated_at": "2026-05-01T06:53:08.118543+00:00",
+    "version": null,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/leo-token/latest/zh.html"
   },
   "1kXnOOcO6TiHyvXl2NgPl4u678YFSlJ3y": {
     "error": null,
@@ -903,7 +1137,7 @@
     "slug": "usd-coin",
     "slug_source": "filename",
     "status": "unresolved",
-    "updated_at": "2026-05-01T04:14:54.281341+00:00"
+    "updated_at": "2026-05-01T06:53:47.534202+00:00"
   },
   "1yYj03c03BqcKfip-PNMewzd0qD_U6Sd5": {
     "error": null,
