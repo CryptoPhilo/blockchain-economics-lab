@@ -236,6 +236,9 @@
     "languageLabel": "Language",
     "slideComingSoonTitle": "Slide deck coming soon",
     "slideComingSoonDesc": "The report has been published, but the slide deck is still being prepared. Please check back shortly.",
+    "localePendingTitle": "This language report is being prepared",
+    "localePendingDesc": "The {locale} report and slide deck are not available yet. Other language rows are not shown here to avoid mixing report content.",
+    "localePendingHeroDesc": "The {locale} version is still being prepared. We will show the localized report here once it is published.",
     "disclaimer": "Disclaimer: This report is generated through AI-powered analysis and market data. This is not investment advice. All investment decisions should be made at your own risk.",
     "backToReports": "Back to all reports"
   }
