@@ -79,6 +79,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
   const { data: rawReports } = await dataQuery
   const { reports, totalCount, totalPages, currentPage: activePage } = prepareRapidChangeReports({
     reports: (rawReports || []) as ProjectReport[],
+    locale,
     page: currentPage,
     pageSize: PAGE_SIZE,
     searchQuery,

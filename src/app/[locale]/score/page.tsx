@@ -4,7 +4,6 @@ import { fetchCoinGeckoPrices } from '@/lib/coingecko'
 import { fetchCMCPricesByIds } from '@/lib/coinmarketcap'
 import ScoreTableGate from '@/components/ScoreTableGate'
 import SubscribeForm from '@/components/SubscribeForm'
-import Link from 'next/link'
 
 /**
  * CMC-Style Market Cap Ranking Page + Report Badges (BCE-379)
@@ -139,7 +138,14 @@ export default async function ScorePage({
 
       {/* Market cap ranking table with email gate */}
       {rows.length > 0 ? (
-        <ScoreTableGate rows={rows} freeLimit={200} locale={locale} />
+        <ScoreTableGate
+          rows={rows}
+          freeLimit={200}
+          locale={locale}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          className="max-h-[clamp(320px,calc(100dvh-18rem),640px)] overflow-auto overscroll-contain pr-1"
+        />
       ) : (
         <div className="text-center py-20">
           <p className="text-gray-500 text-lg">
@@ -149,43 +155,6 @@ export default async function ScorePage({
             {isKo ? '프로젝트가 등록되면 여기에 표시됩니다.' : 'Rankings will appear here once projects are tracked.'}
           </p>
         </div>
-      )}
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <nav className="flex items-center justify-center gap-4 mt-8">
-          {currentPage > 1 && (
-            <Link
-              href={`/${locale}/score?page=${currentPage - 1}`}
-              className="px-6 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white text-sm font-medium transition-colors"
-            >
-              ← {isKo ? '이전 (1-100위)' : 'Previous (1-100)'}
-            </Link>
-          )}
-          <div className="flex gap-2">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <Link
-                key={page}
-                href={`/${locale}/score?page=${page}`}
-                className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                  page === currentPage
-                    ? 'bg-indigo-500 text-white'
-                    : 'bg-white/5 hover:bg-white/10 text-gray-400'
-                }`}
-              >
-                {page}
-              </Link>
-            ))}
-          </div>
-          {currentPage < totalPages && (
-            <Link
-              href={`/${locale}/score?page=${currentPage + 1}`}
-              className="px-6 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white text-sm font-medium transition-colors"
-            >
-              {isKo ? '다음 (101-200위)' : 'Next (101-200)'} →
-            </Link>
-          )}
-        </nav>
       )}
 
       {/* Newsletter CTA */}

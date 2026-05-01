@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import GatedDownloadButton from '@/components/GatedDownloadButton'
 import { FORENSIC_LABELS, getLabel } from '@/lib/constants/forensic'
+import { cleanCardSummary } from '@/lib/report-summary'
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>
@@ -72,7 +73,7 @@ export default async function ForensicReportPage({ params }: Props) {
       : (cardData?.keywords_en ?? report.card_keywords ?? [])
 
   const summaryByLang = cardData?.summary_by_lang as Record<string, string> | undefined
-  const summary =
+  const summary = cleanCardSummary(
     summaryByLang?.[locale]
     || summaryByLang?.en
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -82,7 +83,8 @@ export default async function ForensicReportPage({ params }: Props) {
     || cardData?.summary_en
     || cardData?.summary
     || getLabel(FORENSIC_LABELS.defaultSummary, locale)
-    || ''
+    || '',
+  )
 
   const change24h = cardData?.price_change_24h ?? cardData?.change_24h ?? 0
   const direction = cardData?.direction ?? (change24h >= 0 ? 'up' : 'down')

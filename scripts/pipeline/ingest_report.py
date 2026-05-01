@@ -218,8 +218,26 @@ def _korean_slug_to_canonical(raw_slug: str) -> str | None:
     return None
 
 
+_HANGUL_RE = re.compile(r'[가-힣]')
+
+
+def _korean_alias_candidates(raw_slug: str) -> list[str]:
+    """Hyphen-separated Korean prefixes of `raw_slug`, longest first.
+
+    Used as overlap candidates against tracked_projects.aliases. ASCII-only
+    prefixes are skipped — the symbol / name fallbacks already cover them.
+    """
+    parts = [p for p in raw_slug.split('-') if p]
+    out: list[str] = []
+    for end in range(len(parts), 0, -1):
+        prefix = '-'.join(parts[:end])
+        if _HANGUL_RE.search(prefix):
+            out.append(prefix)
+    return out
+
+
 def _resolve_project_slug(sb, raw_slug: str) -> tuple:
-    _fields = 'id, slug, name, symbol'
+    _fields = 'id, slug, name, symbol, aliases'
     raw_slug = unicodedata.normalize('NFC', raw_slug)
 
     # Build the ordered candidate list. If the slug starts with a known Korean
@@ -238,6 +256,40 @@ def _resolve_project_slug(sb, raw_slug: str) -> tuple:
             p = proj.data[0]
             return p['id'], p['slug'], p.get('name'), p.get('symbol')
 
+    # Phase 1.5 (BCE-1050): tracked_projects.aliases array overlap. Catches
+    # Korean drafts whose leading project name is not in the static
+    # KO_NAME_TO_SLUG map. Among multiple matching rows, prefer the row whose
+    # alias is the longest match against raw_slug — disambiguates overlaps
+    # like "비트코인-캐시" vs "비트코인".
+    alias_tokens = _korean_alias_candidates(raw_slug)
+    if alias_tokens:
+        try:
+            proj = (
+                sb.table('tracked_projects')
+                .select(_fields)
+                .overlaps('aliases', alias_tokens)
+                .execute()
+            )
+        except Exception as exc:
+            print(f"    [WARN] alias overlap query failed: {exc}")
+            proj = None
+        if proj and proj.data:
+            best_row = None
+            best_alias_len = -1
+            for row in proj.data:
+                for alias in (row.get('aliases') or []):
+                    if alias in alias_tokens and len(alias) > best_alias_len:
+                        best_row = row
+                        best_alias_len = len(alias)
+            if best_row is not None:
+                return (
+                    best_row['id'],
+                    best_row['slug'],
+                    best_row.get('name'),
+                    best_row.get('symbol'),
+                )
+
+    # Phase 2: ASCII-only symbol fallback.
     for slug_attempt in candidates:
         symbol_candidate = slug_attempt.split('-')[0].upper()
         # Only treat ASCII tokens as ticker symbols; Korean text upper-cases
@@ -248,6 +300,7 @@ def _resolve_project_slug(sb, raw_slug: str) -> tuple:
                 p = proj.data[0]
                 return p['id'], p['slug'], p.get('name'), p.get('symbol')
 
+    # Phase 3: name prefix substring match.
     for slug_attempt in candidates:
         name_part = slug_attempt.split('-')[0]
         if name_part:

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+import { cleanCardSummary } from '@/lib/report-summary'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import type { ProjectReport, ReportType, SupportedLanguage, TrackedProject } from '@/lib/types'
 
@@ -87,8 +88,8 @@ function pickLocalizedTitle(report: ProjectReport, locale: string, symbol: strin
 
 function pickLocalizedSummary(report: ProjectReport, locale: string): string | null {
   const direct = report[`card_summary_${locale}` as keyof ProjectReport] as string | undefined
-  if (direct) return direct
-  if (report.card_summary_en) return report.card_summary_en
+  if (direct) return cleanCardSummary(direct)
+  if (report.card_summary_en) return cleanCardSummary(report.card_summary_en)
   return null
 }
 

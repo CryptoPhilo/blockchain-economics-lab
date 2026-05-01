@@ -244,16 +244,40 @@ def extract_summary(md_text: str, lang: str = 'ko', max_chars: int = 200) -> str
 
     # Remove header line
     lines = exec_text.strip().split('\n')
-    prose = '\n'.join(lines[1:]).strip()
+    prose_lines = lines[1:]
 
-    # Remove markdown formatting
+    # Drop structural markdown lines (subsection headings, table rows/separators,
+    # list bullets) before joining. These leak into the summary when the picked
+    # section bundles its own subsections (econ Section 1 contains "### 1.1
+    # 프로젝트 기본 정보" with a key-value table immediately after the lead-in
+    # paragraph). Keeping them in produces "## prose. ### 1.1 ... | foo | bar |"
+    # in the rendered card, which is the BCE-1731 quality complaint.
+    cleaned_lines: list[str] = []
+    for line in prose_lines:
+        stripped = line.strip()
+        if not stripped:
+            cleaned_lines.append('')
+            continue
+        if re.match(r'^#{1,6}\s', stripped):
+            continue
+        if stripped.startswith('|'):
+            continue
+        if re.match(r'^[-*]\s', stripped):
+            continue
+        cleaned_lines.append(line)
+    prose = '\n'.join(cleaned_lines).strip()
+
+    # Strip inline markdown formatting that survives at sentence level.
     prose = re.sub(r'\*\*(.*?)\*\*', r'\1', prose)
+    prose = re.sub(r'(?<!\*)\*([^*\n]+)\*(?!\*)', r'\1', prose)
     prose = re.sub(r'\[(.*?)\]\(.*?\)', r'\1', prose)
+    prose = re.sub(r'\s*\[\d+\]', '', prose)
     prose = re.sub(r'[\d]+\s*$', '', prose, flags=re.MULTILINE)
 
     # Get first 2 sentences
     sentences = re.split(r'(?<=[.。])\s+', prose)
     summary = ' '.join(sentences[:2]).strip()
+    summary = re.sub(r'\s+', ' ', summary)
 
     if len(summary) > max_chars:
         summary = summary[:max_chars - 3] + '...'

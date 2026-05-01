@@ -35,6 +35,9 @@ interface ScoreTableGateProps {
   rows: ScoreRow[]
   freeLimit?: number
   locale: string
+  className?: string
+  currentPage?: number
+  totalPages?: number
 }
 
 type GateStatus = 'locked' | 'submitting' | 'unlocked' | 'error'
@@ -73,6 +76,9 @@ export default function ScoreTableGate({
   rows,
   freeLimit = 20,
   locale,
+  className,
+  currentPage = 1,
+  totalPages = 1,
 }: ScoreTableGateProps) {
   const isKo = locale === 'ko'
   const router = useRouter()
@@ -275,9 +281,9 @@ export default function ScoreTableGate({
   }
 
   return (
-    <div>
+    <div className={className}>
       {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-white/5">
+      <div className="rounded-xl border border-white/5">
         <table className="w-full">
           <thead>
             <tr className="bg-white/[0.08] border-b border-white/20 sticky top-0 z-10">
@@ -372,6 +378,41 @@ export default function ScoreTableGate({
             </div>
           )}
         </div>
+      )}
+      {totalPages > 1 && (
+        <nav className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 mt-8 pb-1">
+          {currentPage > 1 && (
+            <Link
+              href={`/${locale}/score?page=${currentPage - 1}`}
+              className="px-4 sm:px-6 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white text-sm font-medium transition-colors whitespace-nowrap"
+            >
+              ← {isKo ? '이전 (1-100위)' : 'Previous (1-100)'}
+            </Link>
+          )}
+          <div className="flex gap-2">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <Link
+                key={page}
+                href={`/${locale}/score?page=${page}`}
+                className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                  page === currentPage
+                    ? 'bg-indigo-500 text-white'
+                    : 'bg-white/5 hover:bg-white/10 text-gray-400'
+                }`}
+              >
+                {page}
+              </Link>
+            ))}
+          </div>
+          {currentPage < totalPages && (
+            <Link
+              href={`/${locale}/score?page=${currentPage + 1}`}
+              className="px-4 sm:px-6 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white text-sm font-medium transition-colors whitespace-nowrap"
+            >
+              {isKo ? '다음 (101-200위)' : 'Next (101-200)'} →
+            </Link>
+          )}
+        </nav>
       )}
     </div>
   )

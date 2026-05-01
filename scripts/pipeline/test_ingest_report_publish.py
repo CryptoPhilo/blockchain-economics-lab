@@ -40,6 +40,10 @@ class FakeQuery:
         self.filters.append((field, "__in__", tuple(values)))
         return self
 
+    def overlaps(self, field, values):
+        self.filters.append((field, "__overlaps__", tuple(values)))
+        return self
+
     def limit(self, count):
         self.limit_count = count
         return self
@@ -132,6 +136,11 @@ class FakeSupabase:
                     return False
                 pattern = value.strip("%").lower()
                 if pattern not in str(cell).lower():
+                    return False
+                continue
+            if op == "__overlaps__":
+                cell = row.get(field) or []
+                if not set(cell).intersection(value):
                     return False
                 continue
             raise AssertionError(f"Unsupported filter op: {op}")
@@ -594,6 +603,66 @@ class KoreanSlugResolutionTests(unittest.TestCase):
         self.assertIsNone(
             ingest_report._korean_slug_to_canonical("")
         )
+
+    # BCE-1050 — tracked_projects.aliases overlap matching.
+
+    def test_resolve_korean_alias_matches_canonical_project(self):
+        """Korean prefix not in KO_NAME_TO_SLUG resolves via aliases column."""
+        sb = FakeSupabase(
+            {
+                "tracked_projects": [
+                    {"id": "project-pancake", "slug": "pancakeswap",
+                     "name": "PancakeSwap", "symbol": "CAKE",
+                     "aliases": ["팬케이크스왑"]},
+                ],
+            }
+        )
+
+        result = ingest_report._resolve_project_slug(
+            sb, "팬케이크스왑-크립토-이코노미-설계-분석-보고서"
+        )
+
+        self.assertEqual(
+            result,
+            ("project-pancake", "pancakeswap", "PancakeSwap", "CAKE"),
+        )
+
+    def test_resolve_korean_alias_prefers_longest_match(self):
+        """When two aliases share a prefix, the longer alias wins."""
+        sb = FakeSupabase(
+            {
+                "tracked_projects": [
+                    {"id": "project-trump", "slug": "official-trump",
+                     "name": "OFFICIAL TRUMP", "symbol": "TRUMP",
+                     "aliases": ["오피셜-트럼프", "트럼프"]},
+                    {"id": "project-other", "slug": "other-trump",
+                     "name": "Other Trump", "symbol": "OTRUMP",
+                     "aliases": ["트럼프"]},
+                ],
+            }
+        )
+
+        result = ingest_report._resolve_project_slug(
+            sb, "오피셜-트럼프-크립토-이코노미"
+        )
+
+        self.assertEqual(result[1], "official-trump")
+
+    def test_resolve_korean_alias_skipped_when_static_map_resolves(self):
+        """KO_NAME_TO_SLUG match short-circuits before alias overlap query."""
+        sb = FakeSupabase(
+            {
+                "tracked_projects": [
+                    {"id": "project-btc", "slug": "bitcoin",
+                     "name": "Bitcoin", "symbol": "BTC",
+                     "aliases": ["비트코인"]},
+                ],
+            }
+        )
+
+        result = ingest_report._resolve_project_slug(sb, "비트코인-크립토-이코노미")
+
+        self.assertEqual(result[1], "bitcoin")
 
     def test_publish_supabase_succeeds_with_korean_slug(self):
         """End-to-end: publish step accepts a Korean slug and writes to DB."""

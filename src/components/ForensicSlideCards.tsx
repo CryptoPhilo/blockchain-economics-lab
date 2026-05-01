@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 
+import { cleanCardSummary } from '@/lib/report-summary'
+
 /**
  * ForensicSlideCards — Auto-scrolling carousel of forensic report thumbnails.
  *
@@ -67,10 +69,11 @@ function SlideCard({ report, locale }: { report: any; locale: string }) {
     fr: 'Analyse forensique en cours...', es: 'Análisis forense en curso...',
     de: 'Forensische Analyse läuft...',
   }
-  const summary =
+  const summary = cleanCardSummary(
     summaryByLang?.[locale] ??
     ((isKo ? (report.card_summary_ko || report.card_summary_en || '') : (report.card_summary_en || '')) ||
-    (defaultSummary[locale] || defaultSummary.en))
+    (defaultSummary[locale] || defaultSummary.en)),
+  )
 
   const change24h = cardData?.price_change_24h ?? cardData?.change_24h ?? 0
   const slug = tp?.slug ?? ''
