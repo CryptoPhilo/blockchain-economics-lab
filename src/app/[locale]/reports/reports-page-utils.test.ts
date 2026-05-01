@@ -121,6 +121,7 @@ describe('rapid change report list helpers', () => {
         project_id: 'alpha',
         language: 'ko',
         title_ko: 'Alpha 한국어 보고서',
+        gdrive_urls_by_lang: { ko: { url: 'https://example.com/ko.pdf' } },
         created_at: '2026-04-24T10:00:00.000Z',
       }),
     ]
@@ -136,7 +137,7 @@ describe('rapid change report list helpers', () => {
     expect(result.reports.map((report) => report.id)).toEqual(['alpha-ko-old'])
   })
 
-  it('excludes Chinese-only reports from the Korean rapid change list when no Korean version exists', () => {
+  it('excludes Chinese-only reports from the Korean rapid change list when no Korean report asset exists', () => {
     const reports = [
       createReport({
         id: 'alpha-zh',
@@ -152,6 +153,7 @@ describe('rapid change report list helpers', () => {
         project_id: 'beta',
         language: 'en',
         title_ko: 'Beta 한국어 보고서',
+        translation_status: { ko: 'completed' } as ProjectReport['translation_status'],
         created_at: '2026-04-24T11:00:00.000Z',
       }),
     ]
@@ -204,6 +206,7 @@ describe('rapid change report list helpers', () => {
         project_id: 'gamma',
         language: 'en',
         title_ko: 'Gamma 한국어 보고서',
+        gdrive_urls_by_lang: { ko: { url: 'https://example.com/ko.pdf' } },
         created_at: '2026-04-24T10:00:00.000Z',
       }),
     ]
@@ -217,5 +220,60 @@ describe('rapid change report list helpers', () => {
 
     expect(result.totalCount).toBe(1)
     expect(result.reports.map((report) => report.id)).toEqual(['gamma-ko'])
+  })
+
+  it('excludes Chinese reports from the English rapid change list when only English title metadata exists', () => {
+    const reports = [
+      createReport({
+        id: 'alpha-zh-with-en-title',
+        project_id: 'alpha',
+        language: 'zh',
+        title_en: 'Alpha English metadata title',
+        title_zh: 'Alpha 中文报告',
+        card_summary_en: 'English card metadata is not enough to expose the report.',
+        created_at: '2026-04-24T12:00:00.000Z',
+      }),
+      createReport({
+        id: 'beta-en',
+        project_id: 'beta',
+        language: 'en',
+        title_en: 'Beta English report',
+        created_at: '2026-04-24T11:00:00.000Z',
+      }),
+    ]
+
+    const result = prepareRapidChangeReports({
+      reports,
+      locale: 'en',
+      page: 1,
+      pageSize: 20,
+    })
+
+    expect(result.totalCount).toBe(1)
+    expect(result.reports.map((report) => report.id)).toEqual(['beta-en'])
+  })
+
+  it('includes a translated Chinese report on the English rapid change list when an English asset exists', () => {
+    const reports = [
+      createReport({
+        id: 'alpha-zh-en-asset',
+        project_id: 'alpha',
+        language: 'zh',
+        title_en: 'Alpha English report',
+        title_zh: 'Alpha 中文报告',
+        gdrive_urls_by_lang: { en: { url: 'https://example.com/en.pdf' } },
+        created_at: '2026-04-24T12:00:00.000Z',
+      }),
+    ]
+
+    const result = prepareRapidChangeReports({
+      reports,
+      locale: 'en',
+      page: 1,
+      pageSize: 20,
+    })
+
+    expect(result.totalCount).toBe(1)
+    expect(result.reports.map((report) => report.id)).toEqual(['alpha-zh-en-asset'])
   })
 })

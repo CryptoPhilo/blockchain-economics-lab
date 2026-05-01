@@ -76,20 +76,11 @@ function hasNonEmptyValue(value: unknown): boolean {
   return false
 }
 
-function hasLocalizedField(report: ProjectReport, locale: string, fieldPrefix: string): boolean {
-  return hasNonEmptyValue((report as unknown as Partial<Record<string, unknown>>)[`${fieldPrefix}_${locale}`])
-}
-
 function hasLocalizedUrl(report: ProjectReport, locale: string): boolean {
   const gdriveUrls = report.gdrive_urls_by_lang as Record<string, unknown> | undefined
   const fileUrls = report.file_urls_by_lang as Record<string, unknown> | undefined
 
   return hasUrlEntry(gdriveUrls?.[locale]) || hasUrlEntry(fileUrls?.[locale])
-}
-
-function hasLocalizedCardData(report: ProjectReport, locale: string): boolean {
-  return hasNonEmptyValue(report.card_data?.summary_by_lang?.[locale])
-    || hasNonEmptyValue(report.card_data?.keywords_by_lang?.[locale])
 }
 
 function hasUrlEntry(value: unknown): boolean {
@@ -121,10 +112,7 @@ export function reportSupportsLocale(report: ProjectReport, locale: string): boo
     return true
   }
 
-  return hasLocalizedField(report, locale, 'title')
-    || hasLocalizedField(report, locale, 'card_summary')
-    || hasLocalizedUrl(report, locale)
-    || hasLocalizedCardData(report, locale)
+  return hasLocalizedUrl(report, locale)
     || hasCompletedTranslation(report, locale)
 }
 
