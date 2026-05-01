@@ -1,8 +1,6 @@
 import type { ProjectReport } from './types'
 
-type TranslationState = 'completed' | 'published'
-
-const COMPLETED_TRANSLATION_STATES = new Set<TranslationState>(['completed', 'published'])
+const ENGLISH_ASSET_FALLBACK_LOCALES = new Set(['de', 'es', 'fr'])
 
 function hasNonEmptyValue(value: unknown): boolean {
   if (typeof value === 'string') {
@@ -29,7 +27,7 @@ function hasUrlEntry(value: unknown): boolean {
   return hasNonEmptyValue(entry.url) || hasNonEmptyValue(entry.download_url)
 }
 
-function hasLocalizedAsset(report: ProjectReport, locale: string): boolean {
+function hasLocalizedAsset(report: Partial<ProjectReport>, locale: string): boolean {
   const gdriveUrls = report.gdrive_urls_by_lang as Record<string, unknown> | undefined
   const fileUrls = report.file_urls_by_lang as Record<string, unknown> | undefined
   const slideUrls = report.slide_html_urls_by_lang as Record<string, unknown> | undefined
@@ -39,15 +37,16 @@ function hasLocalizedAsset(report: ProjectReport, locale: string): boolean {
     || hasNonEmptyValue(slideUrls?.[locale])
 }
 
-function hasCompletedTranslation(report: ProjectReport, locale: string): boolean {
-  const translationStatus = report.translation_status as Record<string, unknown> | undefined
-  const status = translationStatus?.[locale]
-
-  return typeof status === 'string' && COMPLETED_TRANSLATION_STATES.has(status as TranslationState)
-}
-
 export function reportSupportsLocale(report: ProjectReport, locale: string): boolean {
   if (!locale) {
+    return true
+  }
+
+  if (hasLocalizedAsset(report, locale)) {
+    return true
+  }
+
+  if (ENGLISH_ASSET_FALLBACK_LOCALES.has(locale) && hasLocalizedAsset(report, 'en')) {
     return true
   }
 
@@ -55,11 +54,17 @@ export function reportSupportsLocale(report: ProjectReport, locale: string): boo
     return report.language === locale
   }
 
-  return hasLocalizedAsset(report, locale)
-    || hasCompletedTranslation(report, locale)
+  return false
 }
 
-export function pickLocaleReport<T extends Pick<ProjectReport, 'language'>>(reports: T[], locale: string): T | undefined {
+export function pickLocaleReport<T extends Pick<ProjectReport, 'language'> & Partial<ProjectReport>>(
+  reports: T[],
+  locale: string,
+): T | undefined {
   return reports.find((report) => report.language === locale)
+    || reports.find((report) => hasLocalizedAsset(report, locale))
+    || (ENGLISH_ASSET_FALLBACK_LOCALES.has(locale)
+      ? reports.find((report) => hasLocalizedAsset(report, 'en'))
+      : undefined)
     || reports.find((report) => !report.language)
 }

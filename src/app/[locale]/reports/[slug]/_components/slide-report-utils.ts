@@ -8,6 +8,7 @@ export type SummaryReportRecord = Record<string, unknown> & {
 }
 
 const SUPPORTED_SLIDE_LOCALES = new Set(['ko', 'en', 'fr', 'es', 'de', 'ja', 'zh'])
+const ENGLISH_ASSET_FALLBACK_LOCALES = new Set(['de', 'es', 'fr'])
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0
@@ -29,18 +30,31 @@ function getLocaleFromSlideUrl(url: string): string | null {
   }
 }
 
+function resolveSlideUrlForLocale(
+  urlsByLang: Record<string, unknown> | null | undefined,
+  locale: string,
+  includeEnglishFallback: boolean,
+): string | null {
+  if (!urlsByLang || typeof urlsByLang !== 'object') return null
+
+  const resolveCandidate = (candidateLocale: string): string | null => {
+    const candidate = urlsByLang[candidateLocale]
+    if (typeof candidate === 'string' && candidate) {
+      const urlLocale = getLocaleFromSlideUrl(candidate)
+      if (urlLocale && urlLocale !== candidateLocale) return null
+      return candidate
+    }
+    return null
+  }
+
+  return resolveCandidate(locale) ?? (includeEnglishFallback ? resolveCandidate('en') : null)
+}
+
 export function resolveSlideUrl(
   urlsByLang: Record<string, unknown> | null | undefined,
   locale: string,
 ): string | null {
-  if (!urlsByLang || typeof urlsByLang !== 'object') return null
-  const candidate = urlsByLang[locale]
-  if (typeof candidate === 'string' && candidate) {
-    const urlLocale = getLocaleFromSlideUrl(candidate)
-    if (urlLocale && urlLocale !== locale) return null
-    return candidate
-  }
-  return null
+  return resolveSlideUrlForLocale(urlsByLang, locale, ENGLISH_ASSET_FALLBACK_LOCALES.has(locale))
 }
 
 export function getLocalizedSummary(
@@ -53,7 +67,7 @@ export function getLocalizedSummary(
   // Summary copy is resolved only from DB metadata, never from slide HTML/PDF
   // artifacts. Keep this order aligned with the project_reports contract:
   // summary_by_lang[locale] -> card_summary_<locale> -> card_data.summary_<locale>
-  // -> same-locale generic card_data.summary -> English fallback only on /en.
+  // -> same-locale generic card_data.summary -> explicit English fallback.
   const localeSummary =
     summaryByLang?.[locale]
     ?? report[`card_summary_${locale}`]
@@ -65,13 +79,11 @@ export function getLocalizedSummary(
     return cardData.summary
   }
 
-  if (locale !== 'en') return ''
-
   const englishSummary =
     summaryByLang?.en
     ?? report.card_summary_en
     ?? cardData?.summary_en
-    ?? cardData?.summary
+    ?? (report.language === 'en' ? cardData?.summary : undefined)
 
   return isNonEmptyString(englishSummary) ? englishSummary : ''
 }
@@ -97,11 +109,20 @@ export function getLocaleReportState<T extends {
     return { status: 'available', report: localeReport }
   }
 
-  const slideReport = reports.find((report) => (
-    resolveSlideUrl(report.slide_html_urls_by_lang, locale) !== null
+  const localeSlideReport = reports.find((report) => (
+    resolveSlideUrlForLocale(report.slide_html_urls_by_lang, locale, false) !== null
   ))
-  if (slideReport) {
-    return { status: 'available', report: slideReport }
+  if (localeSlideReport) {
+    return { status: 'available', report: localeSlideReport }
+  }
+
+  if (ENGLISH_ASSET_FALLBACK_LOCALES.has(locale)) {
+    const englishSlideReport = reports.find((report) => (
+      resolveSlideUrlForLocale(report.slide_html_urls_by_lang, 'en', false) !== null
+    ))
+    if (englishSlideReport) {
+      return { status: 'available', report: englishSlideReport }
+    }
   }
 
   return { status: 'locale_pending' }

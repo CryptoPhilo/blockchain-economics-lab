@@ -95,11 +95,11 @@ function pickLocalizedSummary(report: ProjectReport, locale: string): string | n
 }
 
 /**
- * Pick one report row per report type. Language-scoped slide rows must not
- * fall back to English on non-English pages; shared URL maps can exist on
- * sibling rows and are not proof that row content matches the route locale.
+ * Pick one report row per report type. Language-scoped slide rows use real
+ * locale assets first, then canonical English assets for locales whose report
+ * catalog intentionally falls back to English.
  */
-function selectReportsByType(
+export function selectReportsByType(
   reports: ProjectReport[],
   locale: string,
 ): Map<ReportType, ProjectReport> {

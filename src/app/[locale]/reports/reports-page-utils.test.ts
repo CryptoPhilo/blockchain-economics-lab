@@ -137,7 +137,7 @@ describe('rapid change report list helpers', () => {
     expect(result.reports.map((report) => report.id)).toEqual(['alpha-ko-old'])
   })
 
-  it('excludes non-Korean rows from the Korean rapid change list even when shared metadata lists Korean assets', () => {
+  it('includes language-scoped rows in another locale when that locale has a real asset', () => {
     const reports = [
       createReport({
         id: 'alpha-zh',
@@ -149,7 +149,7 @@ describe('rapid change report list helpers', () => {
         created_at: '2026-04-24T12:00:00.000Z',
       }),
       createReport({
-        id: 'beta-en-shared-ko-metadata',
+        id: 'beta-en-ko-asset',
         project_id: 'beta',
         language: 'en',
         title_ko: 'Beta 한국어 보고서',
@@ -173,8 +173,38 @@ describe('rapid change report list helpers', () => {
       pageSize: 20,
     })
 
+    expect(result.totalCount).toBe(2)
+    expect(result.reports.map((report) => report.id)).toEqual(['beta-en-ko-asset', 'gamma-ko'])
+  })
+
+  it('does not include language-scoped rows in another locale from translation status alone', () => {
+    const reports = [
+      createReport({
+        id: 'alpha-en-stale-ko-status',
+        project_id: 'alpha',
+        language: 'en',
+        title_en: 'Alpha English report',
+        translation_status: { ko: 'completed' } as ProjectReport['translation_status'],
+        created_at: '2026-04-24T12:00:00.000Z',
+      }),
+      createReport({
+        id: 'beta-ko',
+        project_id: 'beta',
+        language: 'ko',
+        title_ko: 'Beta 한국어 보고서',
+        created_at: '2026-04-24T11:00:00.000Z',
+      }),
+    ]
+
+    const result = prepareRapidChangeReports({
+      reports,
+      locale: 'ko',
+      page: 1,
+      pageSize: 20,
+    })
+
     expect(result.totalCount).toBe(1)
-    expect(result.reports.map((report) => report.id)).toEqual(['gamma-ko'])
+    expect(result.reports.map((report) => report.id)).toEqual(['beta-ko'])
   })
 
   it('does not treat empty Korean card arrays or empty URL entries as Korean availability', () => {

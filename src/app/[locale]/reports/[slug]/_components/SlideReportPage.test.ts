@@ -67,36 +67,46 @@ describe('SlideReportPage locale availability', () => {
     jest.clearAllMocks()
   })
 
-  it('renders without notFound when the requested locale row is missing but another language report exists', async () => {
-    mockReportQueries(
-      { id: 'project-1', slug: 'usd-coin', name: 'USD Coin', symbol: 'USDC' },
-      [
-        {
-          id: 'report-en',
-          language: 'en',
-          report_type: 'econ',
-          status: 'published',
-          version: 1,
-          card_data: {
-            summary: 'English content must not be reused for Japanese.',
-            keywords: ['english-only'],
+  it.each(['de', 'es', 'fr'])(
+    'renders the English fallback slide on the %s route when the requested locale asset is missing',
+    async (locale) => {
+      mockReportQueries(
+        { id: 'project-1', slug: 'usd-coin', name: 'USD Coin', symbol: 'USDC' },
+        [
+          {
+            id: 'report-en',
+            language: 'en',
+            report_type: 'econ',
+            status: 'published',
+            version: 1,
+            card_data: {
+              summary: 'English content must not be reused for Japanese.',
+              keywords: ['english-only'],
+              summary_en: 'English fallback summary.',
+              keywords_en: ['English fallback keyword'],
+            },
+            slide_html_urls_by_lang: {
+              en: 'https://example.test/en.html',
+            },
           },
-          slide_html_urls_by_lang: {
-            en: 'https://example.test/en.html',
-          },
-        },
-      ],
-    )
+        ],
+      )
 
-    const page = await SlideReportPage({ locale: 'ja', slug: 'usd-coin', reportType: 'econ' })
-    render(page)
+      const page = await SlideReportPage({ locale, slug: 'usd-coin', reportType: 'econ' })
+      render(page)
 
-    expect(mockNotFound).not.toHaveBeenCalled()
-    expect(screen.getByText('localePendingTitle')).toBeTruthy()
-    expect(screen.getByText('localePendingDesc:JA')).toBeTruthy()
-  })
+      expect(mockNotFound).not.toHaveBeenCalled()
+      expect(screen.getByTestId('slide-viewer').getAttribute('data-url')).toBe(
+        'https://example.test/en.html',
+      )
+      expect(screen.getByText('English fallback summary.')).toBeTruthy()
+      expect(screen.getByText('English fallback keyword')).toBeTruthy()
+      expect(screen.getByText(locale)).toBeTruthy()
+      expect(screen.queryByText('localePendingTitle')).toBeNull()
+    },
+  )
 
-  it('renders a sibling-row slide URL without exposing English summary on the requested locale route', async () => {
+  it('renders a sibling-row slide URL before falling back to English on the requested locale route', async () => {
     mockReportQueries(
       { id: 'project-1', slug: 'usd-coin', name: 'USD Coin', symbol: 'USDC' },
       [
@@ -126,8 +136,8 @@ describe('SlideReportPage locale availability', () => {
     expect(screen.getByTestId('slide-viewer').getAttribute('data-url')).toBe(
       'https://example.supabase.co/storage/v1/object/public/slides/econ/usd-coin/latest/ja.html',
     )
-    expect(screen.queryByText('English content must not be reused for Japanese.')).toBeNull()
-    expect(screen.queryByText('english-only')).toBeNull()
+    expect(screen.getByText('English content must not be reused for Japanese.')).toBeTruthy()
+    expect(screen.getByText('english-only')).toBeTruthy()
   })
 
   it('keeps the project-missing path as notFound', async () => {
@@ -164,7 +174,7 @@ describe('getLocalizedSummary', () => {
     )
   })
 
-  it('falls back to English summary metadata only on English routes', () => {
+  it('falls back to English summary metadata when locale copy is missing', () => {
     const report = {
       language: 'en',
       card_summary_en: 'English row summary',
@@ -174,7 +184,7 @@ describe('getLocalizedSummary', () => {
       summary: 'Generic English source summary',
     }
 
-    expect(getLocalizedSummary('ja', report, cardData)).toBe('')
+    expect(getLocalizedSummary('ja', report, cardData)).toBe('English row summary')
     expect(getLocalizedSummary('en', report, cardData)).toBe('English row summary')
   })
 })
@@ -198,8 +208,22 @@ describe('resolveSlideUrl', () => {
     ).toBeNull()
   })
 
+  it.each(['de', 'es', 'fr'])('falls back from %s to the canonical English slide', (locale) => {
+    expect(
+      resolveSlideUrl(
+        {
+          en: 'https://example.com/en.html',
+          zh: 'https://example.com/zh.html',
+        },
+        locale,
+      ),
+    ).toBe('https://example.com/en.html')
+  })
+
   it('ignores empty and non-string locale entries', () => {
-    expect(resolveSlideUrl({ ko: '', en: 'https://example.com/en.html' }, 'ko')).toBeNull()
+    expect(resolveSlideUrl({ de: '', en: 'https://example.com/en.html' }, 'de')).toBe(
+      'https://example.com/en.html',
+    )
     expect(resolveSlideUrl({ ko: { url: 'https://example.com/ko.html' } }, 'ko')).toBeNull()
   })
 
@@ -254,6 +278,26 @@ describe('getLocaleReportState', () => {
       getLocaleReportState([report], 'ja'),
     ).toEqual({ status: 'available', report })
   })
+
+  it.each(['de', 'es', 'fr'])(
+    'returns an available sibling report for %s when only the English slide URL exists',
+    (locale) => {
+      const report = {
+        id: 'report-btc',
+        language: 'ko',
+        slide_html_urls_by_lang: {
+          en: 'https://example.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/en.html',
+          ja: 'https://example.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ja.html',
+          ko: 'https://example.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ko.html',
+          zh: 'https://example.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/zh.html',
+        },
+      }
+
+      expect(
+        getLocaleReportState([report], locale),
+      ).toEqual({ status: 'available', report })
+    },
+  )
 
   it('does not treat a mismatched sibling slide URL as available', () => {
     expect(

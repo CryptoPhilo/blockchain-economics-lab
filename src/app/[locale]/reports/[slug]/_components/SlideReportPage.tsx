@@ -75,13 +75,11 @@ function getLocalizedKeywords(
     if (genericKeywords.length > 0) return genericKeywords
   }
 
-  if (locale !== 'en') return []
-
   return asStringArray(
     keywordsByLang?.en
     ?? cardData?.keywords_en
-    ?? report.card_keywords
-    ?? cardData?.keywords,
+    ?? (report.language === 'en' ? report.card_keywords : undefined)
+    ?? (report.language === 'en' ? cardData?.keywords : undefined),
   )
 }
 
