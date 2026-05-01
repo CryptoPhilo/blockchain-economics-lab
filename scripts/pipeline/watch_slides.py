@@ -505,6 +505,16 @@ def _lang_from_filename(pdf_name: str) -> Optional[str]:
     return None
 
 
+def _cjk_script_counts(text: str) -> Dict[str, int]:
+    """Count CJK script families in a bounded sample."""
+    sample = (text or '')[:8000]
+    return {
+        'kana': sum(1 for ch in sample if '぀' <= ch <= 'ヿ'),
+        'hangul': sum(1 for ch in sample if '가' <= ch <= '힯'),
+        'han': sum(1 for ch in sample if '一' <= ch <= '鿿'),
+    }
+
+
 def _cjk_script_signature(text: str) -> Optional[str]:
     """High-confidence CJK script detection by Unicode block counts.
 
@@ -515,14 +525,10 @@ def _cjk_script_signature(text: str) -> Optional[str]:
     misclassified by statistical detectors — e.g. a Japanese cover slide
     fingerprinted as English.
     """
-    if not text:
-        return None
-    sample = text[:8000]
-    hiragana_katakana = sum(
-        1 for ch in sample if '぀' <= ch <= 'ヿ'
-    )
-    hangul = sum(1 for ch in sample if '가' <= ch <= '힯')
-    han = sum(1 for ch in sample if '一' <= ch <= '鿿')
+    counts = _cjk_script_counts(text)
+    hiragana_katakana = counts['kana']
+    hangul = counts['hangul']
+    han = counts['han']
     if hiragana_katakana >= 4:
         return 'ja'
     if hangul >= 4:
@@ -587,6 +593,37 @@ def _detect_language_content_mismatch(
         return None
 
     for source, text in (('text', pdf_text), ('ocr', ocr_text)):
+        counts = _cjk_script_counts(text or '')
+        if resolved_lang == 'ja' and counts['hangul'] >= 4:
+            return {
+                'resolved_lang': resolved_lang,
+                'detected_lang': 'ko',
+                'source': source,
+                'reason': 'mixed_cjk_script',
+            }
+        if resolved_lang == 'zh':
+            if counts['hangul'] >= 4:
+                return {
+                    'resolved_lang': resolved_lang,
+                    'detected_lang': 'ko',
+                    'source': source,
+                    'reason': 'mixed_cjk_script',
+                }
+            if counts['kana'] >= 4:
+                return {
+                    'resolved_lang': resolved_lang,
+                    'detected_lang': 'ja',
+                    'source': source,
+                    'reason': 'mixed_cjk_script',
+                }
+        if resolved_lang == 'ko' and counts['kana'] >= 4:
+            return {
+                'resolved_lang': resolved_lang,
+                'detected_lang': 'ja',
+                'source': source,
+                'reason': 'mixed_cjk_script',
+            }
+
         detected = _cjk_script_signature(text or '')
         if detected and detected != resolved_lang:
             return {
@@ -780,15 +817,35 @@ def _iter_targets(service, types: Iterable[str]):
                 stack.append((child, f"{source_path}/{child.get('name', '')}", depth + 1))
 
 
+def _parse_language_overrides(values: Iterable[str]) -> Dict[str, str]:
+    """Parse FILE_ID=lang overrides for human-confirmed raster PDFs."""
+    overrides: Dict[str, str] = {}
+    for raw in values:
+        if '=' not in raw:
+            raise ValueError(f"invalid language override '{raw}' (expected FILE_ID=lang)")
+        file_id, lang = [part.strip() for part in raw.split('=', 1)]
+        if not file_id:
+            raise ValueError(f"invalid language override '{raw}' (missing file id)")
+        if lang not in SUPPORTED_LANGS:
+            raise ValueError(
+                f"invalid language override '{raw}' (lang must be one of {sorted(SUPPORTED_LANGS)})"
+            )
+        overrides[file_id] = lang
+    return overrides
+
+
 def process(
     types: List[str],
     *,
     filter_slug: Optional[str],
+    filter_file_ids: Optional[set[str]] = None,
     dry_run: bool,
     force: bool,
+    language_overrides: Optional[Dict[str, str]] = None,
 ) -> Tuple[List[Dict], List[Dict]]:
     service = _get_drive_service()
     manifest = _load_manifest()
+    language_overrides = language_overrides or {}
 
     scanned: List[Dict] = []
     processed: List[Dict] = []
@@ -819,6 +876,8 @@ def process(
 
     for rtype, pdf in _iter_targets(service, types):
         file_id = pdf['id']
+        if filter_file_ids and file_id not in filter_file_ids:
+            continue
         modified = pdf.get('modifiedTime', '')
         record = {
             'rtype': rtype,
@@ -981,6 +1040,15 @@ def process(
             if not lang and prev.get('lang') and prev.get('modifiedTime') == modified:
                 lang = prev.get('lang')
                 lang_source = 'manifest'
+            if file_id in language_overrides:
+                override_lang = language_overrides[file_id]
+                if lang and lang != override_lang:
+                    print(
+                        f"    [WARN] language override for {pdf['name']}: "
+                        f"{lang} ({lang_source}) → {override_lang}"
+                    )
+                lang = override_lang
+                lang_source = 'override'
 
             slug = (project or {}).get('slug')
             project_id = (project or {}).get('id')
@@ -1246,25 +1314,46 @@ def main() -> int:
                         help='Report type to process (default: all)')
     parser.add_argument('--slug', default=None,
                         help='Process only files resolving to this slug (post-resolution filter)')
+    parser.add_argument(
+        '--file-id',
+        action='append',
+        default=[],
+        help='Process only this Drive file id; repeatable',
+    )
     parser.add_argument('--dry-run', action='store_true', help='Scan only — no download/upload/DB')
     parser.add_argument('--force', action='store_true', help='Reprocess even if manifest is up-to-date')
+    parser.add_argument(
+        '--language-override',
+        action='append',
+        default=[],
+        metavar='FILE_ID=LANG',
+        help='Human-confirmed language for a specific Drive PDF file id; repeatable',
+    )
     args = parser.parse_args()
 
     types = ['econ', 'mat', 'for'] if args.type == 'all' else [args.type]
+    try:
+        language_overrides = _parse_language_overrides(args.language_override)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 2
     scan_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
 
     print('=' * 60)
     print('Slide Pipeline Watcher — BCE-1085/1099')
     print(f'Scan Time: {scan_time}')
     print(f'Types: {types}  Slug filter: {args.slug or "(none)"}  '
-          f'Dry-run: {args.dry_run}  Force: {args.force}')
+          f'Dry-run: {args.dry_run}  Force: {args.force}  '
+          f'Language overrides: {len(language_overrides)}')
     print('=' * 60)
 
     scanned, processed = process(
         types,
         filter_slug=args.slug,
+        filter_file_ids=set(args.file_id) if args.file_id else None,
         dry_run=args.dry_run,
         force=args.force,
+        language_overrides=language_overrides,
     )
 
     write_run_log(scan_time, types, scanned, processed)

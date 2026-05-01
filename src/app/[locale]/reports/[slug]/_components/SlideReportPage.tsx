@@ -5,11 +5,15 @@ import { getTranslations } from 'next-intl/server'
 import SlideViewer from '@/components/SlideViewer'
 import { cleanCardSummary } from '@/lib/report-summary'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { resolveSlideUrl } from './slide-report-utils'
+import {
+  type CardDataRecord,
+  getLocaleReportState,
+  getLocalizedSummary,
+  resolveSlideUrl,
+} from './slide-report-utils'
 
 type ReportTypeKey = 'econ' | 'maturity'
 
-type CardDataRecord = Record<string, unknown>
 type ReportRecord = Record<string, unknown> & {
   card_keywords?: string[] | null
   card_summary_en?: string | null
@@ -51,34 +55,6 @@ function isNonEmptyString(value: unknown): value is string {
 function asStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return []
   return value.filter(isNonEmptyString)
-}
-
-function getLocalizedSummary(
-  locale: string,
-  report: ReportRecord,
-  cardData: CardDataRecord | null,
-): string {
-  const summaryByLang = cardData?.summary_by_lang as Record<string, unknown> | undefined
-  const localeSummary =
-    summaryByLang?.[locale]
-    ?? report[`card_summary_${locale}`]
-    ?? cardData?.[`summary_${locale}`]
-
-  if (isNonEmptyString(localeSummary)) return localeSummary
-
-  if (report.language === locale && isNonEmptyString(cardData?.summary)) {
-    return cardData.summary
-  }
-
-  if (locale !== 'en') return ''
-
-  const englishSummary =
-    summaryByLang?.en
-    ?? report.card_summary_en
-    ?? cardData?.summary_en
-    ?? cardData?.summary
-
-  return isNonEmptyString(englishSummary) ? englishSummary : ''
 }
 
 function getLocalizedKeywords(
@@ -127,30 +103,19 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
 
   if (!project) notFound()
 
-  // project_reports rows are scoped per (project, type, language). Do not
-  // fall back to another language here; otherwise Korean routes can render an
-  // English report row when only shared URL metadata exists.
-  const { data: report } = await supabase
+  const { data: allRows } = await supabase
     .from('project_reports')
     .select('*')
     .eq('project_id', project.id)
     .eq('report_type', reportType)
-    .eq('language', locale)
     .in('status', ['published', 'coming_soon'])
     .order('published_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
 
-  if (!report) notFound()
+  const reportState = getLocaleReportState(allRows, locale)
+  if (reportState.status === 'not_found') notFound()
 
-  // Merge slide URLs across every language row so an exact locale URL can be
-  // found even when the pipeline stored it on a sibling report row.
-  const { data: allRows } = await supabase
-    .from('project_reports')
-    .select('slide_html_urls_by_lang')
-    .eq('project_id', project.id)
-    .eq('report_type', reportType)
-    .in('status', ['published', 'coming_soon'])
+  const report = reportState.status === 'available' ? reportState.report : null
+  const isLocalePending = reportState.status === 'locale_pending'
 
   const mergedSlideUrls: Record<string, string> = {}
   for (const row of allRows ?? []) {
@@ -165,20 +130,22 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
   const theme = themeByType[reportType]
   const reportLabel = reportType === 'econ' ? t('econLabel') : t('maturityLabel')
   const reportTypeName = reportType === 'econ' ? t('econTypeName') : t('maturityTypeName')
-  const allReportsHref = `/${locale}/reports?type=${reportType === 'econ' ? 'econ' : 'maturity'}`
+  const allReportsHref = `/${locale}/score`
 
-  const cardData = report.card_data as CardDataRecord | null
-  const slideUrl = resolveSlideUrl(mergedSlideUrls, locale)
+  const cardData = report?.card_data as CardDataRecord | null
+  const slideUrl = report ? resolveSlideUrl(mergedSlideUrls, locale) : null
 
-  const keywords = getLocalizedKeywords(locale, report, cardData)
-  const summary = cleanCardSummary(getLocalizedSummary(locale, report, cardData))
+  const keywords = report ? getLocalizedKeywords(locale, report, cardData) : []
+  const summary = report ? cleanCardSummary(getLocalizedSummary(locale, report, cardData)) : ''
 
   const score =
-    reportType === 'maturity'
+    report && reportType === 'maturity'
       ? (project.maturity_score ?? cardData?.maturity_score ?? cardData?.score ?? null)
-      : (cardData?.economy_score ?? cardData?.score ?? null)
+      : report
+        ? (cardData?.economy_score ?? cardData?.score ?? null)
+        : null
 
-  const generatedAt = cardData?.generated_at || report.published_at || report.created_at
+  const generatedAt = report ? (cardData?.generated_at || report.published_at || report.created_at) : null
 
   return (
     <div className="min-h-screen">
@@ -220,6 +187,11 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
                   {summary}
                 </p>
               )}
+              {isLocalePending && (
+                <p className="text-gray-400 text-lg leading-relaxed max-w-2xl mt-4">
+                  {t('localePendingHeroDesc', { locale: locale.toUpperCase() })}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -235,6 +207,15 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
               title={`${project.name} ${reportLabel}`}
               projectName={project.name}
             />
+          ) : isLocalePending ? (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-10 text-center">
+              <p className="text-base font-semibold text-white mb-2">
+                {t('localePendingTitle')}
+              </p>
+              <p className="text-sm text-gray-400">
+                {t('localePendingDesc', { locale: locale.toUpperCase() })}
+              </p>
+            </div>
           ) : (
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-10 text-center">
               <p className="text-base font-semibold text-white mb-2">
@@ -272,7 +253,7 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
           </div>
           <div className="rounded-xl bg-white/[0.03] border border-white/5 p-5">
             <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{t('versionLabel')}</p>
-            <p className="text-white font-semibold">v{report.version || 1}</p>
+            <p className="text-white font-semibold">{report ? `v${report.version || 1}` : '—'}</p>
           </div>
           <div className="rounded-xl bg-white/[0.03] border border-white/5 p-5">
             <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{t('analysisDate')}</p>

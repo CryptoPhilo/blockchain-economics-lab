@@ -1070,6 +1070,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ethereum/1/en.html"
   },
+  "1ogt1Asym3iy8pGZDw5zkFSgJm6etDt0t": {
+    "error": null,
+    "finished_at": "2026-05-01T09:06:19.018322+00:00",
+    "lang": "ja",
+    "lang_source": "override",
+    "modifiedTime": "2026-05-01T09:03:19.000Z",
+    "name": "USDC_Operating_System_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7916666666666667,
+      "height": 768.0,
+      "is_landscape_slide": true,
+      "page_count": 12,
+      "width": 1376.0
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usd-coin/latest/ja.html",
+    "report_id": "03e71042-9f76-40c1-a74a-a6fb380d0200",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "usd-coin",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/USDC_Operating_System_jp.pdf",
+    "started_at": "2026-05-01T09:06:12.212276+00:00",
+    "status": "published",
+    "updated_at": "2026-05-01T09:06:19.018355+00:00",
+    "version": null,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usd-coin/latest/ja.html"
+  },
   "1sxiWvXPBGPgEY9XqLIZBTtBDJeCy-1y-": {
     "error": null,
     "finished_at": "2026-04-29T09:04:12.172402+00:00",
@@ -1128,16 +1158,34 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ripple/1/ko.html"
   },
   "1x7WmbYN32Vp4ovGbkmImO0cjyq2mA1s_": {
-    "error": "unresolved (slug=usd-coin via filename; lang=? via none)",
-    "lang": null,
-    "lang_source": "none",
+    "error": null,
+    "finished_at": "2026-05-01T08:55:08.736169+00:00",
+    "lang": "zh",
+    "lang_source": "override",
     "modifiedTime": "2026-04-30T20:42:30.000Z",
     "name": "USDC_Economic_OS.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7916666666666667,
+      "height": 768.0,
+      "is_landscape_slide": true,
+      "page_count": 14,
+      "width": 1376.0
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usd-coin/latest/zh.html",
+    "report_id": "03e71042-9f76-40c1-a74a-a6fb380d0200",
+    "retry_count": 0,
     "rtype": "econ",
     "slug": "usd-coin",
     "slug_source": "filename",
-    "status": "unresolved",
-    "updated_at": "2026-05-01T06:53:47.534202+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/econ/USDC_Economic_OS.pdf",
+    "started_at": "2026-05-01T08:55:01.484408+00:00",
+    "status": "published",
+    "updated_at": "2026-05-01T08:55:08.736184+00:00",
+    "version": null,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usd-coin/latest/zh.html"
   },
   "1yYj03c03BqcKfip-PNMewzd0qD_U6Sd5": {
     "error": null,

@@ -207,6 +207,9 @@
     "languageLabel": "언어",
     "slideComingSoonTitle": "슬라이드 준비 중",
     "slideComingSoonDesc": "보고서가 발행되었지만 슬라이드 자료는 아직 준비 중입니다. 곧 다시 확인해 주세요.",
+    "localePendingTitle": "해당 언어 보고서를 준비 중입니다",
+    "localePendingDesc": "{locale} 보고서와 슬라이드는 아직 제공되지 않습니다. 다른 언어 보고서 내용은 섞어 보여주지 않습니다.",
+    "localePendingHeroDesc": "{locale} 버전은 아직 준비 중입니다. 현지화된 보고서가 발행되면 이 페이지에서 제공됩니다.",
     "disclaimer": "면책 조항: 이 보고서는 AI 기반 분석과 시장 데이터로 생성되었습니다. 투자 조언이 아니며, 모든 투자 결정은 본인의 책임 하에 이루어져야 합니다.",
     "backToReports": "전체 보고서 목록으로"
   },

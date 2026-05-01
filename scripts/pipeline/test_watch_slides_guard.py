@@ -97,6 +97,48 @@ def test_allows_japanese_body_resolved_as_japanese(ws):
     assert ws._detect_language_content_mismatch('ja', body, '') is None
 
 
+def test_blocks_japanese_body_with_korean_cover_text(ws):
+    body = (
+        'USDC ハイブリッド経済OS\n'
+        '스테이블코인 결제 네트워크 분석\n'
+        '本レポートはオンチェーン決済、準備金、流動性伝達を分析する。'
+    ) * 3
+
+    mismatch = ws._detect_language_content_mismatch('ja', body, '')
+
+    assert mismatch == {
+        'resolved_lang': 'ja',
+        'detected_lang': 'ko',
+        'source': 'text',
+        'reason': 'mixed_cjk_script',
+    }
+
+
+def test_allows_chinese_body_resolved_as_chinese(ws):
+    body = (
+        '本报告分析稳定币流动性、链上结算网络、交易所储备以及美元流动性传导机制。'
+        '报告指出资金费率、现货深度与跨境支付需求共同影响市场结构。'
+    ) * 3
+
+    assert ws._detect_language_content_mismatch('zh', body, '') is None
+
+
+def test_blocks_chinese_body_with_japanese_kana(ws):
+    body = (
+        '本报告分析稳定币流动性、链上结算网络。'
+        'このページには日本語のタイトルが混入しています。'
+    ) * 3
+
+    mismatch = ws._detect_language_content_mismatch('zh', body, '')
+
+    assert mismatch == {
+        'resolved_lang': 'zh',
+        'detected_lang': 'ja',
+        'source': 'text',
+        'reason': 'mixed_cjk_script',
+    }
+
+
 @pytest.mark.parametrize(
     ('filename', 'expected'),
     [
@@ -156,6 +198,40 @@ def test_iter_targets_recurses_nested_folders(ws, monkeypatch):
     assert [(rtype, pdf['id']) for rtype, pdf in targets] == [('econ', 'nested-slide')]
     assert targets[0][1]['source_path'] == 'Slide/econ/bitcoin/ko/bitcoin-ko.pdf'
     assert targets[0][1]['source_depth'] == 2
+
+
+def test_process_file_id_filter_skips_nonmatching_targets(ws, monkeypatch):
+    monkeypatch.setattr(ws, '_get_drive_service', lambda: object())
+    monkeypatch.setattr(ws, '_load_manifest', lambda: {})
+    monkeypatch.setattr(ws, '_iter_targets', lambda _service, _types: [
+        ('econ', {'id': 'skip-me', 'name': 'skip.pdf', 'modifiedTime': 't0'}),
+    ])
+
+    scanned, processed = ws.process(
+        ['econ'],
+        filter_slug=None,
+        filter_file_ids={'target-only'},
+        dry_run=True,
+        force=True,
+    )
+
+    assert scanned == []
+    assert processed == []
+
+
+def test_parse_language_overrides(ws):
+    assert ws._parse_language_overrides([
+        'drive-file-1=zh',
+        'drive-file-2=ja',
+    ]) == {
+        'drive-file-1': 'zh',
+        'drive-file-2': 'ja',
+    }
+
+
+def test_parse_language_overrides_rejects_invalid_lang(ws):
+    with pytest.raises(ValueError):
+        ws._parse_language_overrides(['drive-file-1=jp'])
 
 
 def _write_blank_pdf(width, height):
