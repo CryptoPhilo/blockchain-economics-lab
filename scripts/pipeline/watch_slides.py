@@ -35,7 +35,7 @@ import tempfile
 import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 # Add pipeline directory to path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -107,6 +107,16 @@ LANG_HINTS: List[Tuple[str, str]] = [
     ('deutsch', 'de'), ('german', 'de'),
     ('日本語', 'ja'), ('japanese', 'ja'),
     ('中文', 'zh'), ('简体', 'zh'), ('繁體', 'zh'), ('chinese', 'zh'),
+]
+
+FILENAME_LANG_HINTS: List[Tuple[str, str]] = [
+    ('ko', 'ko'), ('kor', 'ko'), ('kr', 'ko'),
+    ('en', 'en'), ('eng', 'en'),
+    ('fr', 'fr'), ('fre', 'fr'), ('fra', 'fr'),
+    ('es', 'es'), ('spa', 'es'),
+    ('de', 'de'), ('ger', 'de'), ('deu', 'de'),
+    ('ja', 'ja'), ('jp', 'ja'), ('jpn', 'ja'),
+    ('zh', 'zh'), ('cn', 'zh'), ('chn', 'zh'),
 ]
 
 
@@ -422,6 +432,24 @@ def _lang_from_metadata(meta: Dict[str, str]) -> Optional[str]:
     return None
 
 
+def _lang_from_filename(pdf_name: str) -> Optional[str]:
+    """Resolve explicit filename language tokens before content heuristics.
+
+    NotebookLM slide filenames often carry the intended target locale as a
+    suffix (`_en`, `_ko`, `_cn2`). The rendered PDF text/OCR can be sparse or
+    image-heavy, so statistical language detection can mislabel those decks and
+    overwrite the wrong storage object.
+    """
+    stem = Path(pdf_name).stem.lower()
+    tokens = [t for t in re.split(r'[^a-z0-9]+', stem) if t]
+    for token in reversed(tokens):
+        normalized = re.sub(r'\d+$', '', token)
+        for hint, code in FILENAME_LANG_HINTS:
+            if normalized == hint:
+                return code
+    return None
+
+
 def _cjk_script_signature(text: str) -> Optional[str]:
     """High-confidence CJK script detection by Unicode block counts.
 
@@ -467,7 +495,15 @@ def _lang_from_text(text: str) -> Optional[str]:
     return code if code in SUPPORTED_LANGS else None
 
 
-def _resolve_lang(meta: Dict[str, str], text: str, ocr_text: str) -> Tuple[Optional[str], str]:
+def _resolve_lang(
+    pdf_name: str,
+    meta: Dict[str, str],
+    text: str,
+    ocr_text: str,
+) -> Tuple[Optional[str], str]:
+    code = _lang_from_filename(pdf_name)
+    if code:
+        return code, 'filename'
     code = _lang_from_metadata(meta)
     if code:
         return code, 'metadata'
@@ -478,6 +514,33 @@ def _resolve_lang(meta: Dict[str, str], text: str, ocr_text: str) -> Tuple[Optio
     if code:
         return code, 'ocr_langdetect'
     return None, 'none'
+
+
+def _detect_language_content_mismatch(
+    resolved_lang: Optional[str],
+    pdf_text: str,
+    ocr_text: str,
+) -> Optional[Dict[str, str]]:
+    """Flag high-confidence CJK body text that contradicts resolved language.
+
+    PDF metadata is useful but not authoritative: mislabeled NotebookLM exports
+    can say "Japanese" while the slide body is Chinese. Use only the deterministic
+    CJK script signature here so Latin-script reports are not blocked by noisy
+    statistical language detection.
+    """
+    if not resolved_lang:
+        return None
+
+    for source, text in (('text', pdf_text), ('ocr', ocr_text)):
+        detected = _cjk_script_signature(text or '')
+        if detected and detected != resolved_lang:
+            return {
+                'resolved_lang': resolved_lang,
+                'detected_lang': detected,
+                'source': source,
+            }
+
+    return None
 
 
 # ═══════════════════════════════════════════
@@ -524,7 +587,8 @@ def _find_any_report_id(sb, project_id: str, db_type: str) -> Optional[str]:
 
     The frontend merges `slide_html_urls_by_lang` across every language row of
     the same (project, type), so writing the URL into any sibling row keeps the
-    new language available via the cross-row fallback chain.
+    exact language available without rendering a different language on the
+    current locale route.
     """
     rep = sb.table('project_reports').select('id') \
         .eq('project_id', project_id) \
@@ -700,7 +764,17 @@ def process(
                     ocr_text = _ocr_first_page_text(tmp_path)
 
             project, slug_source = _resolve_slug(pdf['name'], pdf_text, ocr_text, projects)
-            lang, lang_source = _resolve_lang(meta, pdf_text, ocr_text)
+            lang, lang_source = _resolve_lang(pdf['name'], meta, pdf_text, ocr_text)
+
+            # Raster NotebookLM exports can have trustworthy-looking metadata
+            # while the actual slide image is another CJK language. Force OCR for
+            # CJK rows when the PDF text layer has no decisive script signal.
+            if (
+                lang in {'ko', 'ja', 'zh'}
+                and not _cjk_script_signature(pdf_text)
+                and not ocr_text
+            ):
+                ocr_text = _ocr_first_page_text(tmp_path)
 
             slug = (project or {}).get('slug')
             project_id = (project or {}).get('id')
@@ -732,6 +806,32 @@ def process(
                 }
                 _save_manifest(manifest)
                 processed.append({**record, 'status': 'unresolved', 'error': msg})
+                continue
+
+            lang_mismatch = _detect_language_content_mismatch(lang, pdf_text, ocr_text)
+            if lang_mismatch:
+                msg = (
+                    f"language/content mismatch — resolved '{lang_mismatch['resolved_lang']}' "
+                    f"via {lang_source} but {lang_mismatch['source']} body script indicates "
+                    f"'{lang_mismatch['detected_lang']}'"
+                )
+                print(f"  [BLOCKED] {rtype}/{pdf['name']}: {msg}")
+                manifest[file_id] = {
+                    **prev,
+                    'rtype': rtype,
+                    'name': pdf['name'],
+                    'modifiedTime': modified,
+                    'status': 'language_mismatch',
+                    'slug': slug,
+                    'lang': lang,
+                    'slug_source': slug_source,
+                    'lang_source': lang_source,
+                    'error': msg,
+                    'language_mismatch': lang_mismatch,
+                    'updated_at': datetime.now(timezone.utc).isoformat(),
+                }
+                _save_manifest(manifest)
+                processed.append({**record, 'status': 'language_mismatch', 'error': msg})
                 continue
 
             # Publish guard (BCE-1699): when slug came from filename, sanity-check

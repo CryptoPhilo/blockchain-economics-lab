@@ -70,3 +70,41 @@ def test_short_body_below_threshold_is_skipped(ws, projects):
     proj_bitcoin = projects[0]
     short_bittensor = '비텐서 Bittensor TAO'
     assert ws._detect_slug_content_mismatch(proj_bitcoin, short_bittensor, '', projects) is None
+
+
+def test_blocks_chinese_body_resolved_as_japanese(ws):
+    body = (
+        '本报告分析稳定币流动性、链上结算网络、交易所储备以及美元流动性传导机制。'
+        '报告指出资金费率、现货深度与跨境支付需求共同影响市场结构。'
+    ) * 3
+
+    mismatch = ws._detect_language_content_mismatch('ja', body, '')
+
+    assert mismatch == {
+        'resolved_lang': 'ja',
+        'detected_lang': 'zh',
+        'source': 'text',
+    }
+
+
+def test_allows_japanese_body_resolved_as_japanese(ws):
+    body = (
+        '本レポートはステーブルコイン流動性、オンチェーン決済ネットワーク、'
+        '取引所準備金、およびドル流動性の伝達メカニズムを分析する。'
+    ) * 3
+
+    assert ws._detect_language_content_mismatch('ja', body, '') is None
+
+
+@pytest.mark.parametrize(
+    ('filename', 'expected'),
+    [
+        ('Tether_Cryptoeconomic_Blueprint_cn2.pdf', 'zh'),
+        ('TRON_Economic_Architecture_en.pdf', 'en'),
+        ('Solana_Economic_Engine_jp.pdf', 'ja'),
+        ('TRON_Economic_Blueprint_ko.pdf', 'ko'),
+        ('XRPL_Cryptoeconomic_Blueprint.pdf', None),
+    ],
+)
+def test_resolves_explicit_filename_language_hints(ws, filename, expected):
+    assert ws._lang_from_filename(filename) == expected

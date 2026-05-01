@@ -95,6 +95,7 @@ describe('rapid change report list helpers', () => {
 
     const result = prepareRapidChangeReports({
       reports,
+      locale: 'en',
       page: 1,
       pageSize: 2,
       searchQuery: 'alpha',
@@ -104,5 +105,117 @@ describe('rapid change report list helpers', () => {
     expect(result.totalPages).toBe(1)
     expect(result.currentPage).toBe(1)
     expect(result.reports.map((report) => report.id)).toEqual(['alpha-new'])
+  })
+
+  it('filters by locale before deduping so an older Korean report can beat a newer Chinese-only report', () => {
+    const reports = [
+      createReport({
+        id: 'alpha-zh-new',
+        project_id: 'alpha',
+        language: 'zh',
+        title_zh: 'Alpha 中文报告',
+        created_at: '2026-04-24T12:00:00.000Z',
+      }),
+      createReport({
+        id: 'alpha-ko-old',
+        project_id: 'alpha',
+        language: 'ko',
+        title_ko: 'Alpha 한국어 보고서',
+        created_at: '2026-04-24T10:00:00.000Z',
+      }),
+    ]
+
+    const result = prepareRapidChangeReports({
+      reports,
+      locale: 'ko',
+      page: 1,
+      pageSize: 20,
+    })
+
+    expect(result.totalCount).toBe(1)
+    expect(result.reports.map((report) => report.id)).toEqual(['alpha-ko-old'])
+  })
+
+  it('excludes Chinese-only reports from the Korean rapid change list when no Korean version exists', () => {
+    const reports = [
+      createReport({
+        id: 'alpha-zh',
+        project_id: 'alpha',
+        language: 'zh',
+        title_zh: 'Alpha 中文报告',
+        card_summary_zh: '中文摘要',
+        gdrive_urls_by_lang: { zh: { url: 'https://example.com/zh.pdf' } },
+        created_at: '2026-04-24T12:00:00.000Z',
+      }),
+      createReport({
+        id: 'beta-ko',
+        project_id: 'beta',
+        language: 'en',
+        title_ko: 'Beta 한국어 보고서',
+        created_at: '2026-04-24T11:00:00.000Z',
+      }),
+    ]
+
+    const result = prepareRapidChangeReports({
+      reports,
+      locale: 'ko',
+      page: 1,
+      pageSize: 20,
+    })
+
+    expect(result.totalCount).toBe(1)
+    expect(result.reports.map((report) => report.id)).toEqual(['beta-ko'])
+  })
+
+  it('does not treat empty Korean card arrays or empty URL entries as Korean availability', () => {
+    const reports = [
+      createReport({
+        id: 'alpha-zh-empty-ko-markers',
+        project_id: 'alpha',
+        language: 'zh',
+        title_zh: 'Alpha 中文报告',
+        card_data: {
+          summary_by_lang: { ko: '   ' },
+          keywords_by_lang: { ko: [] },
+        },
+        gdrive_urls_by_lang: {
+          ko: {},
+          zh: { url: 'https://example.com/zh.pdf' },
+        } as unknown as ProjectReport['gdrive_urls_by_lang'],
+        file_urls_by_lang: { ko: '   ' } as ProjectReport['file_urls_by_lang'],
+        created_at: '2026-04-24T12:00:00.000Z',
+      }),
+      createReport({
+        id: 'beta-en-empty-ko-markers',
+        project_id: 'beta',
+        language: 'en',
+        title_en: 'Beta English report',
+        card_data: {
+          keywords_by_lang: { ko: ['', '   '] },
+        },
+        gdrive_urls_by_lang: {
+          ko: { download_url: '   ' },
+          en: { url: 'https://example.com/en.pdf' },
+        } as unknown as ProjectReport['gdrive_urls_by_lang'],
+        created_at: '2026-04-24T11:00:00.000Z',
+      }),
+      createReport({
+        id: 'gamma-ko',
+        project_id: 'gamma',
+        language: 'en',
+        title_ko: 'Gamma 한국어 보고서',
+        created_at: '2026-04-24T10:00:00.000Z',
+      }),
+    ]
+
+    const result = prepareRapidChangeReports({
+      reports,
+      locale: 'ko',
+      page: 1,
+      pageSize: 20,
+    })
+
+    expect(result.totalCount).toBe(1)
+    expect(result.reports.map((report) => report.id)).toEqual(['gamma-ko'])
   })
 })

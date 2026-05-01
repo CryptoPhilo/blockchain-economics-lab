@@ -1,5 +1,9 @@
 import type { ProjectReport } from '@/lib/types'
 
+type TranslationState = 'completed' | 'published'
+
+const COMPLETED_TRANSLATION_STATES = new Set<TranslationState>(['completed', 'published'])
+
 function getEffectiveTimestamp(report: Pick<ProjectReport, 'published_at' | 'created_at'>): number {
   const source = report.published_at || report.created_at
 
@@ -60,6 +64,70 @@ function getSearchableText(report: ProjectReport): string {
     .toLowerCase()
 }
 
+function hasNonEmptyValue(value: unknown): boolean {
+  if (typeof value === 'string') {
+    return value.trim().length > 0
+  }
+
+  if (Array.isArray(value)) {
+    return value.some(hasNonEmptyValue)
+  }
+
+  return false
+}
+
+function hasLocalizedField(report: ProjectReport, locale: string, fieldPrefix: string): boolean {
+  return hasNonEmptyValue((report as unknown as Partial<Record<string, unknown>>)[`${fieldPrefix}_${locale}`])
+}
+
+function hasLocalizedUrl(report: ProjectReport, locale: string): boolean {
+  const gdriveUrls = report.gdrive_urls_by_lang as Record<string, unknown> | undefined
+  const fileUrls = report.file_urls_by_lang as Record<string, unknown> | undefined
+
+  return hasUrlEntry(gdriveUrls?.[locale]) || hasUrlEntry(fileUrls?.[locale])
+}
+
+function hasLocalizedCardData(report: ProjectReport, locale: string): boolean {
+  return hasNonEmptyValue(report.card_data?.summary_by_lang?.[locale])
+    || hasNonEmptyValue(report.card_data?.keywords_by_lang?.[locale])
+}
+
+function hasUrlEntry(value: unknown): boolean {
+  if (typeof value === 'string') {
+    return value.trim().length > 0
+  }
+
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const entry = value as { url?: unknown; download_url?: unknown }
+  return hasNonEmptyValue(entry.url) || hasNonEmptyValue(entry.download_url)
+}
+
+function hasCompletedTranslation(report: ProjectReport, locale: string): boolean {
+  const translationStatus = report.translation_status as Record<string, unknown> | undefined
+  const status = translationStatus?.[locale]
+
+  return typeof status === 'string' && COMPLETED_TRANSLATION_STATES.has(status as TranslationState)
+}
+
+export function reportSupportsLocale(report: ProjectReport, locale: string): boolean {
+  if (!locale) {
+    return true
+  }
+
+  if (report.language === locale) {
+    return true
+  }
+
+  return hasLocalizedField(report, locale, 'title')
+    || hasLocalizedField(report, locale, 'card_summary')
+    || hasLocalizedUrl(report, locale)
+    || hasLocalizedCardData(report, locale)
+    || hasCompletedTranslation(report, locale)
+}
+
 export function dedupeLatestReportsByProject(reports: ProjectReport[]): ProjectReport[] {
   const latestByProject = new Map<string, ProjectReport>()
 
@@ -76,14 +144,16 @@ export function dedupeLatestReportsByProject(reports: ProjectReport[]): ProjectR
 
 export function prepareRapidChangeReports(args: {
   reports: ProjectReport[]
+  locale: string
   page: number
   pageSize: number
   searchQuery?: string
 }) {
   const normalizedQuery = args.searchQuery?.trim().toLowerCase() || ''
+  const localizedReports = args.reports.filter((report) => reportSupportsLocale(report, args.locale))
   const filteredReports = normalizedQuery
-    ? args.reports.filter((report) => getSearchableText(report).includes(normalizedQuery))
-    : args.reports
+    ? localizedReports.filter((report) => getSearchableText(report).includes(normalizedQuery))
+    : localizedReports
 
   const dedupedReports = dedupeLatestReportsByProject(filteredReports)
   const totalCount = dedupedReports.length
