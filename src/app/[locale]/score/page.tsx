@@ -15,6 +15,10 @@ import SubscribeForm from '@/components/SubscribeForm'
 const ITEMS_PER_PAGE = 100
 const MAX_RANK = 200
 export const MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS = 200
+const SCOREBOARD_CANONICAL_ALIASES = [
+  { alias: 'ethena-usde', slug: 'ethena' },
+  { alias: 'usde', slug: 'ethena' },
+] as const
 
 type TrackedScoreboardProject = Awaited<
   ReturnType<ReturnType<typeof createProjectsRepository>['getProjectsForScoreboard']>
@@ -61,6 +65,13 @@ export function buildTrackedProjectLookup(projects: TrackedScoreboardProject[]) 
       for (const alias of project.aliases) {
         addProjectLookup(lookup, alias, project)
       }
+    }
+  }
+
+  for (const { alias, slug } of SCOREBOARD_CANONICAL_ALIASES) {
+    const canonicalProject = lookup.get(slug)
+    if (canonicalProject) {
+      addProjectLookup(lookup, alias, canonicalProject)
     }
   }
 

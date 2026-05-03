@@ -78,4 +78,43 @@ describe('score page tracked project aliases', () => {
       },
     })
   })
+
+  it('keeps the Ethena USDe mapping when DB aliases are temporarily absent', () => {
+    const trackedProjects = [
+      {
+        id: 'ethena-project',
+        name: 'Ethena',
+        slug: 'ethena',
+        symbol: 'ENA',
+        category: 'Stablecoins',
+        market_cap_usd: 100,
+        coingecko_id: 'ethena',
+        cmc_id: null,
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: '2026-05-01T00:00:00.000Z',
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const snapshotRows = [
+      {
+        slug: 'ethena-usde',
+        price_usd: 1,
+        market_cap: 500,
+        change_24h: 0.1,
+        recorded_at: '2026-05-03',
+      },
+    ]
+
+    const lookup = buildTrackedProjectLookup(trackedProjects)
+    const [row] = snapshotRowsToScoreRows(snapshotRows, lookup)
+
+    expect(row).toMatchObject({
+      name: 'Ethena',
+      symbol: 'ENA',
+      slug: 'ethena',
+      reportTypes: ['econ'],
+    })
+  })
 })
