@@ -1,7 +1,6 @@
 import { getTranslations } from 'next-intl/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { fetchCoinGeckoPrices } from '@/lib/coingecko'
-import { fetchCMCPricesByIds } from '@/lib/coinmarketcap'
+import { createProjectsRepository } from '@/lib/repositories/projects'
 import ScoreTableGate from '@/components/ScoreTableGate'
 import SubscribeForm from '@/components/SubscribeForm'
 
@@ -10,11 +9,147 @@ import SubscribeForm from '@/components/SubscribeForm'
  *
  * Shows top 200 projects by market cap across 2 pages (100 per page).
  * Each row includes price, 24h change, market cap, BCE Score, and report badges.
- * Data: tracked_projects (DB) + CoinGecko API (real-time price/market data).
+ * Data: latest CMC market_data_daily snapshot, enriched by tracked_projects.
  */
 
 const ITEMS_PER_PAGE = 100
 const MAX_RANK = 200
+export const MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS = 200
+
+type TrackedScoreboardProject = Awaited<
+  ReturnType<ReturnType<typeof createProjectsRepository>['getProjectsForScoreboard']>
+>[number]
+
+type ScoreboardSnapshotRow = Awaited<
+  ReturnType<ReturnType<typeof createProjectsRepository>['getLatestScoreboardMarketSnapshot']>
+>[number]
+
+function normalizeKey(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const normalized = value.trim().toLowerCase()
+  return normalized.length > 0 ? normalized : null
+}
+
+function toNumber(value: unknown): number {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0
+  if (typeof value === 'string') {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : 0
+  }
+  return 0
+}
+
+function addProjectLookup(
+  lookup: Map<string, TrackedScoreboardProject>,
+  key: unknown,
+  project: TrackedScoreboardProject
+) {
+  const normalized = normalizeKey(key)
+  if (normalized && !lookup.has(normalized)) {
+    lookup.set(normalized, project)
+  }
+}
+
+export function buildTrackedProjectLookup(projects: TrackedScoreboardProject[]) {
+  const lookup = new Map<string, TrackedScoreboardProject>()
+
+  for (const project of projects) {
+    addProjectLookup(lookup, project.slug, project)
+    addProjectLookup(lookup, project.coingecko_id, project)
+    addProjectLookup(lookup, project.cmc_id, project)
+    if (Array.isArray(project.aliases)) {
+      for (const alias of project.aliases) {
+        addProjectLookup(lookup, alias, project)
+      }
+    }
+  }
+
+  return lookup
+}
+
+function formatSnapshotName(slug: string) {
+  return slug
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+function formatSnapshotSymbol(slug: string) {
+  return slug
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 6)
+    .toUpperCase() || slug.slice(0, 6).toUpperCase()
+}
+
+function buildReportTypes(project: TrackedScoreboardProject | undefined) {
+  const reportTypes: string[] = []
+  if (project?.last_econ_report_at) reportTypes.push('econ')
+  if (project?.last_maturity_report_at) reportTypes.push('maturity')
+  if (project?.last_forensic_report_at) reportTypes.push('forensic')
+  return reportTypes
+}
+
+export function snapshotRowsToScoreRows(
+  snapshotRows: ScoreboardSnapshotRow[],
+  trackedLookup: Map<string, TrackedScoreboardProject>
+) {
+  return snapshotRows
+    .slice(0, MAX_RANK)
+    .map((snapshot, index) => {
+      const project = trackedLookup.get(normalizeKey(snapshot.slug) || '')
+      const reportTypes = buildReportTypes(project)
+
+      return {
+        rank: index + 1,
+        name: project?.name || formatSnapshotName(snapshot.slug),
+        symbol: project?.symbol || formatSnapshotSymbol(snapshot.slug),
+        slug: project?.slug || snapshot.slug,
+        change24h: snapshot.change_24h == null ? null : toNumber(snapshot.change_24h),
+        marketCap: toNumber(snapshot.market_cap),
+        score: project?.maturity_score == null ? null : toNumber(project.maturity_score),
+        category: project?.category || '',
+        reportTypes,
+        reportDates: {
+          econ: project?.last_econ_report_at ?? null,
+          maturity: project?.last_maturity_report_at ?? null,
+          forensic: project?.last_forensic_report_at ?? null,
+        },
+      }
+    })
+}
+
+function fallbackProjectsToScoreRows(projects: TrackedScoreboardProject[]) {
+  return projects
+    .slice(0, MAX_RANK)
+    .map((project, index) => {
+      const reportTypes = buildReportTypes(project)
+
+      return {
+        rank: index + 1,
+        name: project.name,
+        symbol: project.symbol,
+        slug: project.slug,
+        change24h: null,
+        marketCap: toNumber(project.market_cap_usd),
+        score: project.maturity_score == null ? null : toNumber(project.maturity_score),
+        category: project.category || '',
+        reportTypes,
+        reportDates: {
+          econ: project.last_econ_report_at ?? null,
+          maturity: project.last_maturity_report_at ?? null,
+          forensic: project.last_forensic_report_at ?? null,
+        },
+      }
+    })
+}
+
+export function hasCompleteCmcCanonicalTop200Snapshot(snapshotRowCount: number) {
+  return snapshotRowCount >= MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS
+}
 
 export default async function ScorePage({
   params,
@@ -27,81 +162,21 @@ export default async function ScorePage({
   const { page: pageStr } = await searchParams
   const t = await getTranslations()
   const supabase = await createServerSupabaseClient()
+  const projectsRepository = createProjectsRepository(supabase)
 
   const currentPage = Math.max(1, Math.min(2, parseInt(pageStr || '1', 10)))
 
-  // Fetch all active tracked projects (including cmc_id for fallback)
-  const { data: projects } = await supabase
-    .from('tracked_projects')
-    .select(`
-      id, name, slug, symbol, category,
-      market_cap_usd, coingecko_id, cmc_id, maturity_score,
-      last_econ_report_at, last_maturity_report_at, last_forensic_report_at
-    `)
-    .in('status', ['active', 'monitoring_only'])
-    .order('market_cap_usd', { ascending: false, nullsFirst: false })
+  const [trackedProjects, cmcSnapshotRows] = await Promise.all([
+    projectsRepository.getProjectsForScoreboard(),
+    projectsRepository.getLatestScoreboardMarketSnapshot(MAX_RANK),
+  ])
 
-  const allProjects = projects || []
-
-  // Waterfall approach: CoinGecko → CoinMarketCap → DB cache
-
-  // Step 1: Fetch CoinGecko data for all projects with coingecko_id
-  const coingeckoIds = allProjects
-    .map((p) => p.coingecko_id)
-    .filter((id): id is string => !!id)
-
-  const cgPriceData = await fetchCoinGeckoPrices([...new Set(coingeckoIds)])
-
-  // Step 2: Identify projects without CoinGecko data and fetch from CMC
-  const projectsNeedingCMC = allProjects.filter(
-    (p) => p.cmc_id && (!p.coingecko_id || !cgPriceData[p.coingecko_id])
-  )
-
-  const cmcIds = projectsNeedingCMC
-    .map((p) => p.cmc_id)
-    .filter((id): id is number => typeof id === 'number' && id > 0)
-
-  const cmcPriceData = await fetchCMCPricesByIds([...new Set(cmcIds)])
-
-  // Step 3: Merge price data (CoinGecko takes precedence)
-  const priceData = { ...cgPriceData }
-
-  // Build ranked rows by market cap (waterfall: CoinGecko → CMC → DB)
-  // BCE-379: Limit to top 200 projects across 2 pages
-  const allRows = allProjects
-    .map((p) => {
-      // Try CoinGecko first, then CMC, then DB
-      const cgData = p.coingecko_id ? priceData[p.coingecko_id] : undefined
-      const cmcData = p.cmc_id ? cmcPriceData[p.cmc_id] : undefined
-      const liveData = cgData || cmcData
-
-      const marketCap = liveData?.usd_market_cap || p.market_cap_usd || 0
-
-      const reportTypes: string[] = []
-      if (p.last_econ_report_at) reportTypes.push('econ')
-      if (p.last_maturity_report_at) reportTypes.push('maturity')
-      if (p.last_forensic_report_at) reportTypes.push('forensic')
-
-      return {
-        name: p.name,
-        symbol: p.symbol,
-        slug: p.slug,
-        price: liveData?.usd ?? null,
-        change24h: liveData?.usd_24h_change ?? null,
-        marketCap,
-        score: p.maturity_score ?? null,
-        category: p.category || '',
-        reportTypes,
-        reportDates: {
-          econ: p.last_econ_report_at,
-          maturity: p.last_maturity_report_at,
-          forensic: p.last_forensic_report_at,
-        },
-      }
-    })
-    .sort((a, b) => b.marketCap - a.marketCap)
-    .slice(0, MAX_RANK) // Top 200 only
-    .map((row, i) => ({ ...row, rank: i + 1 }))
+  const trackedLookup = buildTrackedProjectLookup(trackedProjects)
+  // Partial CMC snapshots are not canonical Top 200 data; use tracked projects instead.
+  const usingTrackedProjectFallback = !hasCompleteCmcCanonicalTop200Snapshot(cmcSnapshotRows.length)
+  const allRows = usingTrackedProjectFallback
+    ? fallbackProjectsToScoreRows(trackedProjects)
+    : snapshotRowsToScoreRows(cmcSnapshotRows, trackedLookup)
 
   // Paginate: 100 per page
   const startIdx = (currentPage - 1) * ITEMS_PER_PAGE
