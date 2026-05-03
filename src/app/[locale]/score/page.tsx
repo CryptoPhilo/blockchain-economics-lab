@@ -46,10 +46,11 @@ function toNumber(value: unknown): number {
 function addProjectLookup(
   lookup: Map<string, TrackedScoreboardProject>,
   key: unknown,
-  project: TrackedScoreboardProject
+  project: TrackedScoreboardProject,
+  options: { overwrite?: boolean } = {}
 ) {
   const normalized = normalizeKey(key)
-  if (normalized && !lookup.has(normalized)) {
+  if (normalized && (options.overwrite || !lookup.has(normalized))) {
     lookup.set(normalized, project)
   }
 }
@@ -63,7 +64,7 @@ export function buildTrackedProjectLookup(projects: TrackedScoreboardProject[]) 
     addProjectLookup(lookup, project.cmc_id, project)
     if (Array.isArray(project.aliases)) {
       for (const alias of project.aliases) {
-        addProjectLookup(lookup, alias, project)
+        addProjectLookup(lookup, alias, project, { overwrite: true })
       }
     }
   }
@@ -71,7 +72,7 @@ export function buildTrackedProjectLookup(projects: TrackedScoreboardProject[]) 
   for (const { alias, slug } of SCOREBOARD_CANONICAL_ALIASES) {
     const canonicalProject = lookup.get(slug)
     if (canonicalProject) {
-      addProjectLookup(lookup, alias, canonicalProject)
+      addProjectLookup(lookup, alias, canonicalProject, { overwrite: true })
     }
   }
 
