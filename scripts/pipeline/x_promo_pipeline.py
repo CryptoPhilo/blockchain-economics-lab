@@ -645,11 +645,24 @@ def load_reports_from_json(path: Path) -> List[XPromoReport]:
 
 def _get_supabase_client():
     if not HAS_WAREHOUSE:
+        wh = None
+    else:
+        wh = get_warehouse()
+        if getattr(wh, "connected", False):
+            client = getattr(wh, "sb", None) or getattr(wh, "client", None)
+            if client is not None:
+                return client
+
+    try:
+        from supabase import create_client
+    except Exception:
         return None
-    wh = get_warehouse()
-    if not getattr(wh, "connected", False):
+
+    url = os.environ.get("SUPABASE_URL") or os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
+    key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("SUPABASE_KEY")
+    if not url or not key:
         return None
-    return getattr(wh, "sb", None) or getattr(wh, "client", None)
+    return create_client(url, key)
 
 
 def load_reports_from_supabase(limit: int) -> List[XPromoReport]:
