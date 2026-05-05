@@ -48,14 +48,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
-      - name: Apply marketing metadata migration directly
+      - name: Apply marketing metadata migration via Supabase pooler
         env:
           PROJECT_REF: ${{ steps.extract-ref.outputs.project_ref }}
           PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
-          psql "host=db.${PROJECT_REF}.supabase.co port=5432 dbname=postgres user=postgres sslmode=require" \
+          psql "host=aws-1-ap-northeast-2.pooler.supabase.com port=5432 dbname=postgres user=postgres.${PROJECT_REF} sslmode=require" \
             -v ON_ERROR_STOP=1 \
             -f supabase/migrations/20260505_add_marketing_content_metadata.sql
-          psql "host=db.${PROJECT_REF}.supabase.co port=5432 dbname=postgres user=postgres sslmode=require" \
+          psql "host=aws-1-ap-northeast-2.pooler.supabase.com port=5432 dbname=postgres user=postgres.${PROJECT_REF} sslmode=require" \
             -v ON_ERROR_STOP=1 \
             -c "NOTIFY pgrst, 'reload schema';"
