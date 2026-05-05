@@ -22,7 +22,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Protocol, Sequence
-from urllib import parse, request
+from urllib import error, parse, request
 
 
 PIPELINE_DIR = Path(__file__).resolve().parent
@@ -203,8 +203,15 @@ class XApiClient:
             },
             method="POST",
         )
-        with request.urlopen(req, timeout=self.timeout) as response:
-            payload = json.loads(response.read().decode("utf-8"))
+        try:
+            with request.urlopen(req, timeout=self.timeout) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        except error.HTTPError as exc:
+            body = _read_http_error_body(exc)
+            detail = f": {body}" if body else ""
+            raise RuntimeError(
+                f"X API POST /2/tweets failed with HTTP {exc.code} {exc.reason}{detail}"
+            ) from exc
 
         data = payload.get("data") or {}
         post_id = str(data.get("id") or "")
@@ -249,6 +256,19 @@ def _clean_text(value: str) -> str:
 
 def _percent_encode(value: Any) -> str:
     return parse.quote(str(value), safe="~-._")
+
+
+def _read_http_error_body(exc: error.HTTPError, limit: int = 2000) -> str:
+    try:
+        raw = exc.read(limit + 1)
+    except Exception:
+        return ""
+    if not raw:
+        return ""
+    text = raw[:limit].decode("utf-8", errors="replace").strip()
+    if len(raw) > limit:
+        text += "…"
+    return text
 
 
 def _oauth1_signature(
