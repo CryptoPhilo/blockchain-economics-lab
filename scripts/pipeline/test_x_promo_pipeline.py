@@ -1,7 +1,9 @@
 """Tests for BCE-1795 X promo copy generation and approval queue."""
 
 import importlib.util
+import io
 import json
+import urllib.error
 from pathlib import Path
 
 import pytest
@@ -159,6 +161,30 @@ def test_post_requires_x_credentials(tmp_path, monkeypatch, xpromo):
 
     with pytest.raises(RuntimeError, match="Missing X credentials"):
         xpromo.main(["--queue-jsonl", str(queue), "--post", "--confirm", "project-1"])
+
+
+def test_x_api_client_surfaces_http_error_body(monkeypatch, xpromo):
+    def fake_urlopen(req, timeout):
+        raise urllib.error.HTTPError(
+            req.full_url,
+            403,
+            "Forbidden",
+            {},
+            fp=io.BytesIO(b'{"title":"Forbidden","detail":"app permissions do not allow write"}'),
+        )
+
+    monkeypatch.setattr(xpromo.request, "urlopen", fake_urlopen)
+    client = xpromo.XApiClient(
+        xpromo.XCredentials(
+            api_key="key",
+            api_secret="secret",
+            access_token="token",
+            access_token_secret="token-secret",
+        )
+    )
+
+    with pytest.raises(RuntimeError, match="app permissions do not allow write"):
+        client.post_tweet("BCE Lab test")
 
 
 def test_duplicate_guard_skips_previously_posted_key(tmp_path, xpromo):
