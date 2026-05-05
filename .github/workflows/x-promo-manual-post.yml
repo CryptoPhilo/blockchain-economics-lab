@@ -1,0 +1,178 @@
+name: X Promo Manual Post
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_key:
+        description: "Exact X promo duplicate_key approved for this single post"
+        required: true
+        type: string
+      confirm_slug:
+        description: "Report slug to confirm"
+        required: true
+        default: "bitcoin"
+        type: string
+      post:
+        description: "Actually post to X. Leave false for dry-run."
+        required: true
+        default: false
+        type: boolean
+      limit:
+        description: "Maximum production Supabase report rows to inspect"
+        required: true
+        default: "100"
+        type: string
+
+jobs:
+  x-promo-manual-post:
+    name: Build queue and run selected X promo
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL || secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      X_API_KEY: ${{ secrets.X_API_KEY }}
+      X_API_SECRET: ${{ secrets.X_API_SECRET }}
+      X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+      X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+      X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+      QUEUE_DIR: data/x-approval-queue
+      POST_LOG: data/x-post-attempts.jsonl
+      RUN_ID: github-${{ github.run_id }}-${{ github.run_attempt }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate dispatch inputs
+        run: |
+          set -euo pipefail
+
+          if ! [[ "${{ inputs.limit }}" =~ ^[1-9][0-9]{0,3}$ ]]; then
+            echo "::error::limit must be a positive integer up to 9999"
+            exit 1
+          fi
+
+          if ! [[ "${{ inputs.confirm_slug }}" =~ ^[A-Za-z0-9._~:-]+$ ]]; then
+            echo "::error::confirm_slug must be a single slug without spaces or shell metacharacters"
+            exit 1
+          fi
+
+          if ! [[ "${{ inputs.confirm_key }}" =~ ^[A-Za-z0-9._~:-]+$ ]]; then
+            echo "::error::confirm_key must be a single duplicate_key without spaces or shell metacharacters"
+            exit 1
+          fi
+
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_KEY" ]; then
+            echo "::error::Production Supabase secrets are required"
+            exit 1
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install pipeline dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --no-cache-dir supabase==2.28.3
+
+      - name: Generate production approval queue
+        run: |
+          set -euo pipefail
+          python3 scripts/pipeline/x_promo_pipeline.py \
+            --source supabase \
+            --limit "${{ inputs.limit }}" \
+            --language en \
+            --template chart-report-first \
+            --write-queue \
+            --output-dir "$QUEUE_DIR" \
+            --run-id "$RUN_ID"
+
+      - name: Approve exactly one confirmed queue row
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import pathlib
+          import sys
+
+          queue_dir = pathlib.Path(os.environ["QUEUE_DIR"])
+          run_id = os.environ["RUN_ID"]
+          confirm_key = os.environ["CONFIRM_KEY"]
+          confirm_slug = os.environ["CONFIRM_SLUG"]
+          source = queue_dir / f"x-promo-approval-{run_id}.jsonl"
+          approved = queue_dir / f"x-promo-approved-{run_id}.jsonl"
+
+          rows = []
+          matches = []
+          for line_number, line in enumerate(source.read_text(encoding="utf-8").splitlines(), start=1):
+              if not line.strip():
+                  continue
+              row = json.loads(line)
+              if row.get("duplicate_key") == confirm_key and row.get("slug") == confirm_slug:
+                  matches.append((line_number, row))
+              rows.append(row)
+
+          if len(matches) != 1:
+              print(
+                  f"::error::confirm_key + confirm_slug matched {len(matches)} queue rows; expected exactly 1",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+
+          match_line, match_row = matches[0]
+          with approved.open("w", encoding="utf-8") as out:
+              for row in rows:
+                  if row.get("duplicate_key") == confirm_key and row.get("slug") == confirm_slug:
+                      row = {**row, "status": "approved"}
+                  out.write(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n")
+
+          print(f"Approved exactly one queue row at line {match_line}")
+          print(f"slug={match_row.get('slug')}")
+          print(f"language={match_row.get('language')}")
+          print(f"template={match_row.get('template')}")
+          print(f"char_count={match_row.get('char_count')}")
+          PY
+        env:
+          CONFIRM_KEY: ${{ inputs.confirm_key }}
+          CONFIRM_SLUG: ${{ inputs.confirm_slug }}
+
+      - name: Dry-run selected post
+        if: ${{ !inputs.post }}
+        run: |
+          set -euo pipefail
+          python3 scripts/pipeline/x_promo_pipeline.py \
+            --queue-jsonl "$QUEUE_DIR/x-promo-approved-$RUN_ID.jsonl" \
+            --confirm "${{ inputs.confirm_slug }}" \
+            --confirm-key "${{ inputs.confirm_key }}" \
+            --post-log "$POST_LOG"
+
+      - name: Post selected item to X
+        if: ${{ inputs.post }}
+        run: |
+          set -euo pipefail
+          python3 scripts/pipeline/x_promo_pipeline.py \
+            --queue-jsonl "$QUEUE_DIR/x-promo-approved-$RUN_ID.jsonl" \
+            --post \
+            --confirm "${{ inputs.confirm_slug }}" \
+            --confirm-key "${{ inputs.confirm_key }}" \
+            --post-log "$POST_LOG"
+
+      - name: Upload queue and post logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: x-promo-manual-post-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            data/x-approval-queue/x-promo-approval-${{ env.RUN_ID }}.jsonl
+            data/x-approval-queue/x-promo-approval-${{ env.RUN_ID }}.md
+            data/x-approval-queue/x-promo-approved-${{ env.RUN_ID }}.jsonl
+            data/x-post-attempts.jsonl
+          if-no-files-found: ignore
+          retention-days: 30
