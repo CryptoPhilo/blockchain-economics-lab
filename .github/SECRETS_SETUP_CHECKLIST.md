@@ -1,13 +1,14 @@
-# GitHub Secrets Setup Checklist for FOR Pipeline
+# GitHub Secrets Setup Checklist for Slide Pipeline
 
-Use this checklist when configuring GitHub Actions secrets for the FOR pipeline workflow.
+Use this checklist when configuring GitHub Actions secrets for the active slide
+pipeline workflow. The retired FOR draft workflow must not be recreated.
 
 ## Setup Location
 **GitHub Repository → Settings → Secrets and variables → Actions → Repository secrets**
 
 ## Checklist
 
-### ✅ Supabase (3 secrets)
+### ✅ Supabase (5 secrets)
 - [ ] `NEXT_PUBLIC_SUPABASE_URL`
   - Find in: Supabase project settings → API
   - Format: `https://xxx.supabase.co`
@@ -19,6 +20,16 @@ Use this checklist when configuring GitHub Actions secrets for the FOR pipeline 
 - [ ] `SUPABASE_SERVICE_KEY`
   - Find in: Supabase project settings → API → service_role (secret!)
   - Format: Long JWT token starting with `eyJ`
+
+- [ ] `SUPABASE_ACCESS_TOKEN`
+  - Find in: Supabase dashboard → Account → Access Tokens
+  - Required by: `.github/workflows/db-migration.yml`
+  - Format: Personal access token. Never paste this token into issues, comments, or logs.
+
+- [ ] `SUPABASE_DB_PASSWORD`
+  - Find/reset in: Supabase project settings → Database
+  - Required by: `.github/workflows/db-migration.yml`
+  - Format: Production project's Postgres database password. Never paste this password into issues, comments, or logs.
 
 ### ✅ Google Drive (3 secrets)
 - [ ] `GDRIVE_ROOT_FOLDER_ID`
@@ -59,6 +70,8 @@ Use this checklist when configuring GitHub Actions secrets for the FOR pipeline 
 gh secret set NEXT_PUBLIC_SUPABASE_URL -b "https://your-project.supabase.co"
 gh secret set NEXT_PUBLIC_SUPABASE_ANON_KEY -b "your-anon-key"
 gh secret set SUPABASE_SERVICE_KEY -b "your-service-key"
+gh secret set SUPABASE_ACCESS_TOKEN -b "your-supabase-access-token"
+gh secret set SUPABASE_DB_PASSWORD -b "your-production-database-password"
 
 # Set Google Drive secrets
 gh secret set GDRIVE_ROOT_FOLDER_ID -b "your-folder-id"
@@ -80,6 +93,8 @@ source .env.local
 gh secret set NEXT_PUBLIC_SUPABASE_URL -b "$NEXT_PUBLIC_SUPABASE_URL"
 gh secret set NEXT_PUBLIC_SUPABASE_ANON_KEY -b "$NEXT_PUBLIC_SUPABASE_ANON_KEY"
 gh secret set SUPABASE_SERVICE_KEY -b "$SUPABASE_SERVICE_KEY"
+gh secret set SUPABASE_ACCESS_TOKEN -b "$SUPABASE_ACCESS_TOKEN"
+gh secret set SUPABASE_DB_PASSWORD -b "$SUPABASE_DB_PASSWORD"
 gh secret set GDRIVE_ROOT_FOLDER_ID -b "$GDRIVE_ROOT_FOLDER_ID"
 gh secret set GDRIVE_DELEGATE_EMAIL -b "$GDRIVE_DELEGATE_EMAIL"
 gh secret set GDRIVE_SERVICE_ACCOUNT_JSON < "$GDRIVE_SERVICE_ACCOUNT_FILE"
@@ -95,11 +110,11 @@ gh secret set RESEND_API_KEY -b "$RESEND_API_KEY"
 ```bash
 gh secret list
 ```
-Expected output: 11 secrets listed
+Expected output includes `SUPABASE_ACCESS_TOKEN` and `SUPABASE_DB_PASSWORD` for the database migration workflow.
 
 ### 2. Test Workflow (Dry Run)
 1. Go to **Actions** tab
-2. Select **FOR Pipeline - Automated Processing**
+2. Select **Slide Pipeline - Automated Processing**
 3. Click **Run workflow**
 4. Enable **dry_run** checkbox
 5. Click **Run workflow**
@@ -111,9 +126,13 @@ Expected output: 11 secrets listed
 #### Supabase Test
 - Should see: "Connected to Supabase" or database queries succeed
 - Error pattern: "Invalid API key" → check service key
+- Database migration workflow should pass "Validate migration secrets"
+- Error pattern: "Missing GitHub secret SUPABASE_ACCESS_TOKEN" → add the Supabase personal access token as a repository secret
+- Error pattern: "Missing GitHub secret SUPABASE_DB_PASSWORD" → add the production project's Postgres database password as a repository secret
+- Error pattern: "Access token not provided" during `supabase link` → verify the secret name is exactly `SUPABASE_ACCESS_TOKEN`
 
 #### Google Drive Test
-- Should see: "Found X files in drafts/FOR/"
+- Should see: `Slide/{TYPE}` scan output from `scripts/pipeline/watch_slides.py`
 - Error pattern: "403 Forbidden" → check service account permissions
 - Error pattern: "Folder not found" → check root folder ID
 
