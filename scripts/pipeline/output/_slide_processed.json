@@ -18,7 +18,7 @@
     "source_path": "Slide/econ/Chainlink_Institutional_Blueprint_en.pdf",
     "started_at": "2026-05-01T06:46:34.642553+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:50:16.311591+00:00",
+    "updated_at": "2026-05-06T22:01:19.951906+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/chainlink/latest/en.html"
   },
@@ -48,7 +48,7 @@
     "source_path": "Slide/econ/Litecoin_Cryptoeconomic_Architecture_Analysis_ko.pdf",
     "started_at": "2026-05-02T10:07:37.869372+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:45:25.413050+00:00",
+    "updated_at": "2026-05-06T21:55:51.034182+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/litecoin/1/ko.html"
   },
@@ -78,7 +78,7 @@
     "source_path": "Slide/econ/Ondo_RWA_Blueprint_jp.pdf",
     "started_at": "2026-05-05T21:48:08.929252+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:32:38.193594+00:00",
+    "updated_at": "2026-05-06T21:41:51.777796+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ondo-finance/latest/ja.html"
   },
@@ -108,7 +108,7 @@
     "source_path": "Slide/econ/KCS_Economic_Teardown_jp.pdf",
     "started_at": "2026-05-05T08:28:26.362790+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:34:32.413039+00:00",
+    "updated_at": "2026-05-06T21:43:53.902284+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/kucoin/latest/ja.html"
   },
@@ -127,7 +127,7 @@
     "slug": "ethereum",
     "slug_source": "ocr",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:38:17.018321+00:00"
+    "updated_at": "2026-05-06T21:47:57.783564+00:00"
   },
   "10P4cGxCLUAyvKDA_hpcTcbxMbnMIP6gL": {
     "error": null,
@@ -148,7 +148,7 @@
     "source_path": "Slide/econ/Hyperliquid_Economic_Intelligence_jp.pdf",
     "started_at": "2026-04-30T22:11:31.384647+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:50:53.152044+00:00",
+    "updated_at": "2026-05-06T22:02:01.638005+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/hyperliquid/latest/ja.html"
   },
@@ -172,7 +172,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/Cardano_Economic_Blueprint_jp.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:39:13.708638+00:00"
+    "updated_at": "2026-05-06T21:49:01.584058+00:00"
   },
   "11y7lGh6ny58ZUYD7hzvDjtFVI8zqg_Se": {
     "error": null,
@@ -200,7 +200,7 @@
     "source_path": "Slide/econ/NEAR_Economic_Blueprint_jp.pdf",
     "started_at": "2026-05-04T23:15:24.535892+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:36:28.773637+00:00",
+    "updated_at": "2026-05-06T21:45:53.133910+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/near/latest/ja.html"
   },
@@ -246,7 +246,7 @@
     "source_path": "Slide/econ/Litecoin_Economic_Architecture_jp.pdf",
     "started_at": "2026-05-02T10:08:28.632943+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:45:43.214984+00:00",
+    "updated_at": "2026-05-06T21:56:10.520817+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/litecoin/latest/ja.html"
   },
@@ -276,7 +276,7 @@
     "source_path": "Slide/econ/Mantle_Economic_Teardown_en.pdf",
     "started_at": "2026-05-04T11:15:10.302605+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:39:45.787008+00:00",
+    "updated_at": "2026-05-06T21:49:37.803843+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/mantle/latest/en.html"
   },
@@ -306,7 +306,7 @@
     "source_path": "Slide/econ/Sky_Protocol_Anatomy_cn.pdf",
     "started_at": "2026-05-01T14:08:33.926756+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:47:34.510904+00:00",
+    "updated_at": "2026-05-06T21:58:11.228794+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sky/latest/zh.html"
   },
@@ -336,7 +336,7 @@
     "source_path": "Slide/mat/Bitcoin_Institutional_Evolution_jp.pdf",
     "started_at": "2026-05-06T10:07:09.894203+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:53:32.798138+00:00",
+    "updated_at": "2026-05-06T22:05:01.211898+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/latest/ja.html"
   },
@@ -366,7 +366,7 @@
     "source_path": "Slide/econ/Ondo_Finance_Architecture_en.pdf",
     "started_at": "2026-05-05T21:47:08.610348+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:32:37.179596+00:00",
+    "updated_at": "2026-05-06T21:41:50.832335+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ondo-finance/latest/en.html"
   },
@@ -396,7 +396,7 @@
     "source_path": "Slide/econ/Ondo_Finance_Strategic_Architecture_cn.pdf",
     "started_at": "2026-05-05T21:47:36.163597+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:32:37.532738+00:00",
+    "updated_at": "2026-05-06T21:41:51.459841+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ondo-finance/latest/zh.html"
   },
@@ -415,7 +415,7 @@
     "slug": "matic-network",
     "slug_source": "ocr",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:37:21.078083+00:00"
+    "updated_at": "2026-05-06T21:46:49.328074+00:00"
   },
   "13vpSdTqBWfOXG9tE8kvgTKzxrHaKGnxe": {
     "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
@@ -432,7 +432,7 @@
     "slug": "ripple-usd",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:33:13.813559+00:00"
+    "updated_at": "2026-05-06T21:42:28.501092+00:00"
   },
   "146aVc9YbH-dFwyM4p66K8sB0VZ-WkEb_": {
     "error": null,
@@ -453,7 +453,7 @@
     "source_path": "Slide/econ/Canton_Network_Institutional_Blueprint_ko.pdf",
     "started_at": "2026-05-01T06:48:51.616004+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:50:17.629544+00:00",
+    "updated_at": "2026-05-06T22:01:21.525681+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/canton-network/1/ko.html"
   },
@@ -483,7 +483,7 @@
     "source_path": "Slide/econ/Stellar_Cryptoeconomics_Blueprint_cn.pdf",
     "started_at": "2026-05-01T14:05:37.921095+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:47:16.725077+00:00",
+    "updated_at": "2026-05-06T21:57:51.002498+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/stellar/latest/zh.html"
   },
@@ -513,7 +513,7 @@
     "source_path": "Slide/mat/XRPL_Institutional_Infrastructure_Diagnostic_ko.pdf",
     "started_at": "2026-05-06T11:54:28.598927+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:51:29.670099+00:00",
+    "updated_at": "2026-05-06T22:02:38.283256+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ripple-usd/latest/ko.html"
   },
@@ -532,7 +532,7 @@
     "slug": "memecore",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:47:04.084984+00:00"
+    "updated_at": "2026-05-06T21:57:36.411069+00:00"
   },
   "15dmRTzSO2WrwORAufpx9wIQgS8gdRdZm": {
     "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
@@ -549,7 +549,7 @@
     "slug": "near",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:36:28.084392+00:00"
+    "updated_at": "2026-05-06T21:45:52.279775+00:00"
   },
   "16-9v-inchOknQlUjB0qkDRWaVmVooBz5": {
     "error": null,
@@ -577,7 +577,7 @@
     "source_path": "Slide/econ/Dogecoin_Economic_Blueprint_jp.pdf",
     "started_at": "2026-05-01T12:40:05.830850+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:47:35.376371+00:00",
+    "updated_at": "2026-05-06T21:58:11.904534+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/dogecoin/latest/ja.html"
   },
@@ -600,7 +600,7 @@
     "source_path": "Slide/econ/Canton_Institutional_Blueprint_en.pdf",
     "started_at": "2026-05-01T06:49:18.236756+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:50:17.949122+00:00",
+    "updated_at": "2026-05-06T22:01:21.844865+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/canton-network/latest/en.html"
   },
@@ -619,7 +619,7 @@
     "slug": "pepe",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:35:14.771910+00:00"
+    "updated_at": "2026-05-06T21:44:37.423810+00:00"
   },
   "16nSeKQLd70nl8WOHG2bvL-3S-AZeyZOw": {
     "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
@@ -636,7 +636,7 @@
     "slug": "pi-network",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:37:48.494444+00:00"
+    "updated_at": "2026-05-06T21:47:23.075783+00:00"
   },
   "18LpvCBeVOHneMF3J10qwhR6w5lmWomUS": {
     "error": null,
@@ -664,7 +664,7 @@
     "source_path": "Slide/econ/ICP_MISSION_70_MASTERPLAN_ko.pdf",
     "started_at": "2026-05-05T08:27:25.346537+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:34:03.649578+00:00",
+    "updated_at": "2026-05-06T21:43:23.803875+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/internet-computer/1/ko.html"
   },
@@ -683,7 +683,7 @@
     "slug": "usd-coin",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:51:28.338536+00:00"
+    "updated_at": "2026-05-06T22:02:36.909203+00:00"
   },
   "18dIXnFusweK1qw9QjOAHRp9omQWUO75j": {
     "error": null,
@@ -711,7 +711,7 @@
     "source_path": "Slide/econ/Avalanche_Economic_Engine_jp.pdf",
     "started_at": "2026-05-02T09:05:37.393583+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:46:00.774775+00:00",
+    "updated_at": "2026-05-06T21:56:29.446936+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/avalanche-2/latest/ja.html"
   },
@@ -734,7 +734,7 @@
     "source_path": "Slide/econ/TRON_Economic_Architecture_en.pdf",
     "started_at": "2026-04-30T21:14:28.883251+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:50:54.904037+00:00",
+    "updated_at": "2026-05-06T22:02:03.380434+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/tron/1/en.html"
   },
@@ -764,7 +764,7 @@
     "source_path": "Slide/econ/BNB_2026_Economic_Nexus_ko.pdf",
     "started_at": "2026-05-01T12:44:21.035325+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:48:15.660816+00:00",
+    "updated_at": "2026-05-06T21:58:59.413463+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/binancecoin/1/ko.html"
   },
@@ -794,7 +794,7 @@
     "source_path": "Slide/econ/BCH_Economic_Blueprint_ko.pdf",
     "started_at": "2026-05-04T15:11:42.193284+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:38:33.633977+00:00",
+    "updated_at": "2026-05-06T21:48:15.912423+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin-cash/1/ko.html"
   },
@@ -824,7 +824,7 @@
     "source_path": "Slide/econ/World_Liberty_Financial_Deconstructed_ko.pdf",
     "started_at": "2026-05-05T06:08:32.075210+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:34:59.144614+00:00",
+    "updated_at": "2026-05-06T21:44:22.734600+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ethereum/1/ko.html"
   },
@@ -854,7 +854,7 @@
     "source_path": "Slide/mat/USDC_Financial_OS_Blueprint_jp.pdf",
     "started_at": "2026-05-06T11:53:22.870167+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:51:28.686853+00:00",
+    "updated_at": "2026-05-06T22:02:37.271034+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usd-coin/latest/ja.html"
   },
@@ -873,7 +873,7 @@
     "slug": "litecoin",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:45:59.312993+00:00"
+    "updated_at": "2026-05-06T21:56:28.267000+00:00"
   },
   "1Apz2N-OenjIm1dUrhf9LE0OvppUj_0b9": {
     "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
@@ -890,7 +890,7 @@
     "slug": "cronos",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:43:06.650693+00:00"
+    "updated_at": "2026-05-06T21:53:16.232367+00:00"
   },
   "1BVDmTRMCWeNYBR3SwnFwn2orjmRoGD7U": {
     "error": null,
@@ -918,7 +918,7 @@
     "source_path": "Slide/econ/KCS_Economic_Analysis_ko.pdf",
     "started_at": "2026-05-05T08:28:49.523385+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:34:32.737728+00:00",
+    "updated_at": "2026-05-06T21:43:54.271991+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/kucoin/latest/ko.html"
   },
@@ -948,7 +948,7 @@
     "source_path": "Slide/econ/MemeCore_Economics_cn.pdf",
     "started_at": "2026-05-02T03:54:37.015844+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:47:04.884902+00:00",
+    "updated_at": "2026-05-06T21:57:37.205152+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/memecore/latest/zh.html"
   },
@@ -978,7 +978,7 @@
     "source_path": "Slide/econ/DOGE_Protocol_Economics_cn.pdf",
     "started_at": "2026-05-01T12:39:32.766334+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:47:34.975692+00:00",
+    "updated_at": "2026-05-06T21:58:11.555069+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/dogecoin/latest/zh.html"
   },
@@ -1006,7 +1006,7 @@
     "source_path": "Slide/econ/The_Tether_Blueprint.pdf",
     "started_at": "2026-04-30T06:31:01.383735+00:00",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:49:04.880857+00:00",
+    "updated_at": "2026-05-06T21:59:56.562479+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/tether/latest/ja.html"
   },
@@ -1036,7 +1036,7 @@
     "source_path": "Slide/econ/Sky_Sovereign_Economic_Engine_jp.pdf",
     "started_at": "2026-05-01T14:08:07.073842+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:47:34.162391+00:00",
+    "updated_at": "2026-05-06T21:58:10.907249+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sky/latest/ja.html"
   },
@@ -1055,7 +1055,7 @@
     "slug": "bitcoin",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:38:47.552916+00:00"
+    "updated_at": "2026-05-06T21:48:32.652017+00:00"
   },
   "1CKmLTasSL5dCu_neAiXixAUYV8g9TzD_": {
     "error": "slug/content mismatch — filename resolved 'tether' (body score 12) but body strongly matches 'ethereum' (score 16)",
@@ -1077,7 +1077,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/Tether_Financial_Blueprint_jp.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:48:52.812107+00:00"
+    "updated_at": "2026-05-06T21:59:42.592041+00:00"
   },
   "1CMW5w9RivIeW4TVxG2rg3NQyt2CkUYy7": {
     "error": null,
@@ -1105,7 +1105,7 @@
     "source_path": "Slide/econ/Sui_Economic_Analysis_jp.pdf",
     "started_at": "2026-05-03T10:39:48.545943+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:43:21.252482+00:00",
+    "updated_at": "2026-05-06T21:53:29.978101+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sui/latest/ja.html"
   },
@@ -1128,7 +1128,7 @@
     "source_path": "Slide/econ/Monero_Economic_Blueprint_cn.pdf",
     "started_at": "2026-05-01T06:50:40.138739+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:50:18.913058+00:00",
+    "updated_at": "2026-05-06T22:01:22.828738+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/monero/latest/zh.html"
   },
@@ -1147,7 +1147,7 @@
     "slug": "tether",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:52:53.836792+00:00"
+    "updated_at": "2026-05-06T22:04:15.783306+00:00"
   },
   "1CyH5_jY2HhVdvVkP4pf8F0fd15IOBLtX": {
     "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
@@ -1164,7 +1164,7 @@
     "slug": "internet-computer",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:34:02.662281+00:00"
+    "updated_at": "2026-05-06T21:43:23.275185+00:00"
   },
   "1CzpFPakmXBdh5iyxo015XEFA5BYm3vY6": {
     "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
@@ -1181,7 +1181,7 @@
     "slug": "tether",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:52:26.026872+00:00"
+    "updated_at": "2026-05-06T22:03:43.022917+00:00"
   },
   "1D35aCOg_m5MCj1lRv70sqkvwo_wmur0r": {
     "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
@@ -1198,7 +1198,7 @@
     "slug": "pi-network",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:37:59.513097+00:00"
+    "updated_at": "2026-05-06T21:47:35.473835+00:00"
   },
   "1DFMAdGVxE3knqwwOOO1dvw2aHgFB6u_0": {
     "error": null,
@@ -1226,7 +1226,7 @@
     "source_path": "Slide/econ/Sui_Economic_Blueprint_cn.pdf",
     "started_at": "2026-05-03T10:38:59.396960+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:43:20.419175+00:00",
+    "updated_at": "2026-05-06T21:53:28.992781+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sui/latest/zh.html"
   },
@@ -1245,7 +1245,7 @@
     "slug": "litecoin",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:45:42.699975+00:00"
+    "updated_at": "2026-05-06T21:56:10.040051+00:00"
   },
   "1DMhQMCBGE6kKntWiNe34VLGlD1qGaPyn": {
     "error": null,
@@ -1273,7 +1273,7 @@
     "source_path": "Slide/econ/WLF_Economic_Architecture_cn.pdf",
     "started_at": "2026-05-05T06:09:01.342862+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:34:59.476523+00:00",
+    "updated_at": "2026-05-06T21:44:23.092127+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/world-liberty-financial/latest/zh.html"
   },
@@ -1303,7 +1303,7 @@
     "source_path": "Slide/econ/Ethereum_Economic_Blueprint_2026_jp.pdf",
     "started_at": "2026-05-01T12:48:58.263675+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:49:23.963019+00:00",
+    "updated_at": "2026-05-06T22:00:19.556938+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ethereum/latest/ja.html"
   },
@@ -1326,7 +1326,7 @@
     "source_path": "Slide/econ/Monero_Cryptographic_Blueprint_ko.pdf",
     "started_at": "2026-05-01T06:52:08.029491+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:50:38.422863+00:00",
+    "updated_at": "2026-05-06T22:01:45.729247+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/monero/1/ko.html"
   },
@@ -1349,7 +1349,7 @@
     "source_path": "Slide/econ/Solana_Economic_Blueprint_cn.pdf",
     "started_at": "2026-04-30T21:15:48.427045+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:51:14.125865+00:00",
+    "updated_at": "2026-05-06T22:02:21.407715+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/solana/latest/ja.html"
   },
@@ -1373,7 +1373,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/Tether_Gold_Cryptoeconomics_cn.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:41:16.998230+00:00"
+    "updated_at": "2026-05-06T21:51:17.878370+00:00"
   },
   "1DySgK3DmBkZ1bmNW75KtlFDcu09ZfIwS": {
     "error": null,
@@ -1401,7 +1401,7 @@
     "source_path": "Slide/econ/Polkadot_2.0_Economic_Blueprint_cn.pdf",
     "started_at": "2026-05-04T11:18:18.712970+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:39:48.873602+00:00",
+    "updated_at": "2026-05-06T21:49:40.728923+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/polkadot/latest/zh.html"
   },
@@ -1431,7 +1431,7 @@
     "source_path": "Slide/econ/Avalanche_Economic_Architecture_cn.pdf",
     "started_at": "2026-05-02T09:06:07.895202+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:46:01.089398+00:00",
+    "updated_at": "2026-05-06T21:56:29.780549+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/avalanche-2/latest/zh.html"
   },
@@ -1455,7 +1455,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/Mantle_Cyber_Financial_Blueprint_jp.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:39:44.930812+00:00"
+    "updated_at": "2026-05-06T21:49:36.935591+00:00"
   },
   "1EeXeaW5KFVyCDdW4JgvlNQnDubf0Xgbo": {
     "error": null,
@@ -1483,7 +1483,7 @@
     "source_path": "Slide/econ/Shiba_Inu_Cryptoeconomic_Analysis_ko.pdf",
     "started_at": "2026-05-03T04:09:22.451347+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:43:53.591252+00:00",
+    "updated_at": "2026-05-06T21:54:07.295796+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/shiba-inu/latest/ko.html"
   },
@@ -1502,7 +1502,7 @@
     "slug": "the-open-network",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:54:30.325981+00:00"
+    "updated_at": "2026-05-06T22:06:09.672660+00:00"
   },
   "1Et_YXTmETG4Dy4dIdL6JaX4ITxd5Oq1P": {
     "error": null,
@@ -1530,7 +1530,7 @@
     "source_path": "Slide/for/TON_Market_Forensic_Intelligence_cn.pdf",
     "started_at": "2026-05-05T22:10:36.200017+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:54:31.020301+00:00",
+    "updated_at": "2026-05-06T22:06:10.426110+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/the-open-network/latest/zh.html"
   },
@@ -1560,7 +1560,7 @@
     "source_path": "Slide/econ/Stellar_Cryptoeconomic_Blueprint_ko.pdf",
     "started_at": "2026-05-01T14:06:44.089398+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:47:17.378029+00:00",
+    "updated_at": "2026-05-06T21:57:51.927691+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/stellar/1/ko.html"
   },
@@ -1584,7 +1584,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/Monero_Design_Blueprint_jp.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:50:38.089365+00:00"
+    "updated_at": "2026-05-06T22:01:45.293995+00:00"
   },
   "1Fn8jjtQrWkUYcX_bLo7Y4b9z-tK-ELVL": {
     "error": "slug/content mismatch — filename resolved 'leo-token' (body score 6) but body strongly matches 'ethereum' (score 16)",
@@ -1606,7 +1606,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/Unus_Sed_Leo_Blueprint_jp.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:50:51.775300+00:00"
+    "updated_at": "2026-05-06T22:02:00.202660+00:00"
   },
   "1Fr2CG99Rkb_Jc9KZHE4D_gbLqI8KRtYM": {
     "error": null,
@@ -1627,7 +1627,7 @@
     "source_path": "Slide/econ/Chainlink_Trustless_Economy_Blueprint_jp.pdf",
     "started_at": "2026-05-01T06:48:13.952330+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:50:17.306985+00:00",
+    "updated_at": "2026-05-06T22:01:21.208761+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/chainlink/latest/ja.html"
   },
@@ -1646,7 +1646,7 @@
     "slug": "world-liberty-financial",
     "slug_source": "ocr",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:34:58.218991+00:00"
+    "updated_at": "2026-05-06T21:44:22.197400+00:00"
   },
   "1GKXmJULFi_bt4jiPQvKSzSNurD9y4vvn": {
     "error": "slug/content mismatch — filename resolved 'usdg' (body score 8) but body strongly matches 'global-dollar' (score 26)",
@@ -1668,7 +1668,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/USDG_Cryptoeconomic_Analysis_en.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:40:37.351171+00:00"
+    "updated_at": "2026-05-06T21:50:34.240123+00:00"
   },
   "1Gl9YyfVmcu5cXFRrBE3vu7OF2xG-vez-": {
     "error": null,
@@ -1689,7 +1689,7 @@
     "source_path": "Slide/econ/Canton_Network_Institutional_Blueprint_cn.pdf",
     "started_at": "2026-05-01T06:49:45.854560+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:50:18.272046+00:00",
+    "updated_at": "2026-05-06T22:01:22.190383+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/canton-network/latest/zh.html"
   },
@@ -1713,7 +1713,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/Aster_Protocol_Economic_Analysis_ko.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:36:43.860778+00:00"
+    "updated_at": "2026-05-06T21:46:08.943575+00:00"
   },
   "1HjkDOfzK3A-SQuLEtqe-guosKQJLjDuL": {
     "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
@@ -1739,7 +1739,7 @@
     "source_path": "Slide/econ/Bitcoin_Crypto-Economy_Architecture.pdf",
     "started_at": "2026-04-29T10:59:44.436389+00:00",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:49:40.214812+00:00",
+    "updated_at": "2026-05-06T22:00:39.290608+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ja.html"
   },
@@ -1769,7 +1769,7 @@
     "source_path": "Slide/econ/Uniswap_Protocol_Blueprint_jp.pdf",
     "started_at": "2026-05-04T11:15:40.066280+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:39:46.307616+00:00",
+    "updated_at": "2026-05-06T21:49:38.269043+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/uniswap/latest/ja.html"
   },
@@ -1788,7 +1788,7 @@
     "slug": "tether",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:41:48.203291+00:00"
+    "updated_at": "2026-05-06T21:51:51.134641+00:00"
   },
   "1IlLLK5D4vzGtB_GtXDiT-aQIoO2n0UNH": {
     "error": null,
@@ -1816,7 +1816,7 @@
     "source_path": "Slide/econ/X_Layer_Economic_Blueprint_cn.pdf",
     "started_at": "2026-05-04T22:17:10.409162+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:37:07.527182+00:00",
+    "updated_at": "2026-05-06T21:46:34.466778+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/matic-network/latest/zh.html"
   },
@@ -1839,7 +1839,7 @@
     "source_path": "Slide/econ/Solana_Economic_Engine_jp.pdf",
     "started_at": "2026-04-30T21:16:14.455091+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:51:14.723950+00:00",
+    "updated_at": "2026-05-06T22:02:21.743811+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/solana/latest/ja.html"
   },
@@ -1869,7 +1869,7 @@
     "source_path": "Slide/econ/World_Liberty_Financial_Analysis_en.pdf",
     "started_at": "2026-05-02T09:06:48.763230+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:46:18.458822+00:00",
+    "updated_at": "2026-05-06T21:56:47.555958+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/gnosis/latest/en.html"
   },
@@ -1899,7 +1899,7 @@
     "source_path": "Slide/econ/PAX_Gold_Institutional_Analysis_jp.pdf",
     "started_at": "2026-05-04T22:20:25.269784+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:38:00.187951+00:00",
+    "updated_at": "2026-05-06T21:47:36.163915+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pax-gold/latest/ja.html"
   },
@@ -1918,7 +1918,7 @@
     "slug": "memecore",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:46:48.186900+00:00"
+    "updated_at": "2026-05-06T21:57:18.678584+00:00"
   },
   "1JFztD7U3trgMC-jOSjyTgmN2kDvXW2D3": {
     "error": null,
@@ -1939,7 +1939,7 @@
     "source_path": "Slide/econ/The_Chainlink_Trust_Blueprint_cn.pdf",
     "started_at": "2026-05-01T06:47:41.504066+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:50:16.976830+00:00",
+    "updated_at": "2026-05-06T22:01:20.886057+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/chainlink/latest/zh.html"
   },
@@ -1969,7 +1969,7 @@
     "source_path": "Slide/econ/Stellar_Institutional_Analysis_jp.pdf",
     "started_at": "2026-05-01T14:06:05.550413+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:47:17.051302+00:00",
+    "updated_at": "2026-05-06T21:57:51.459989+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/stellar/latest/ja.html"
   },
@@ -1999,7 +1999,7 @@
     "source_path": "Slide/econ/Polkadot_2026_Economic_Blueprint_en.pdf",
     "started_at": "2026-05-04T11:17:24.247615+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:39:47.921922+00:00",
+    "updated_at": "2026-05-06T21:49:40.096517+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/polkadot/latest/en.html"
   },
@@ -2022,7 +2022,7 @@
     "source_path": "Slide/econ/LEO_Structural_Analysis_en.pdf",
     "started_at": "2026-05-01T04:13:10.019766+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:50:52.151401+00:00",
+    "updated_at": "2026-05-06T22:02:00.546919+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/leo-token/1/en.html"
   },
@@ -2052,7 +2052,7 @@
     "source_path": "Slide/econ/Ethena_Economic_Blueprint_cn.pdf",
     "started_at": "2026-05-02T22:37:15.293705+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:45:10.652689+00:00",
+    "updated_at": "2026-05-06T21:55:33.802509+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ethena/latest/zh.html"
   },
@@ -2082,7 +2082,7 @@
     "source_path": "Slide/econ/PancakeSwap_Economic_Architecture_en.pdf",
     "started_at": "2026-05-01T12:47:31.116465+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:49:22.970495+00:00",
+    "updated_at": "2026-05-06T22:00:18.561954+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pancakeswap/latest/en.html"
   },
@@ -2101,7 +2101,7 @@
     "slug": "ethereum",
     "slug_source": "ocr",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:37:32.272584+00:00"
+    "updated_at": "2026-05-06T21:47:03.380393+00:00"
   },
   "1LukPticY6lR_CZFfA7Y510vEOO4nxLVj": {
     "error": "slug/content mismatch — filename resolved 'ethereum' (body score 0) but body strongly matches 'vision' (score 12)",
@@ -2123,7 +2123,7 @@
     "source_depth": 0,
     "source_path": "Slide/mat/Ethereum_Economic_Paradox_jp.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:53:59.319481+00:00"
+    "updated_at": "2026-05-06T22:05:30.719347+00:00"
   },
   "1MMBmj4qy1hcQ6umYj3_9DDx-m527SwNH": {
     "error": null,
@@ -2144,7 +2144,7 @@
     "source_path": "Slide/econ/BNB_Chain_2026_Economic_Engine_cn.pdf",
     "started_at": "2026-04-30T21:17:48.336585+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:51:15.038449+00:00",
+    "updated_at": "2026-05-06T22:02:22.084574+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/binancecoin/1/en.html"
   },
@@ -2174,7 +2174,7 @@
     "source_path": "Slide/econ/Uniswap_Protocol_Blueprint_en.pdf",
     "started_at": "2026-05-04T11:16:29.156835+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:39:47.112704+00:00",
+    "updated_at": "2026-05-06T21:49:39.179928+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/uniswap/latest/en.html"
   },
@@ -2198,7 +2198,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/The_Ondo_Blueprint_ko.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:32:56.493335+00:00"
+    "updated_at": "2026-05-06T21:42:10.198006+00:00"
   },
   "1MpQTbEjh0jFLr2CsTqQwbXpB2KcXbEj-": {
     "error": null,
@@ -2219,7 +2219,7 @@
     "source_path": "Slide/econ/Canton_Network_Blueprint_jp.pdf",
     "started_at": "2026-05-01T06:50:11.785642+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:50:18.592974+00:00",
+    "updated_at": "2026-05-06T22:01:22.511183+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/canton-network/latest/ja.html"
   },
@@ -2238,7 +2238,7 @@
     "slug": "bitcoin",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:53:31.800544+00:00"
+    "updated_at": "2026-05-06T22:05:00.005957+00:00"
   },
   "1N1MsPkSbaddu4lIULLmdP7JiCw-z85xu": {
     "error": null,
@@ -2266,7 +2266,7 @@
     "source_path": "Slide/mat/BNB_Chain_Maturity_Audit_cn.pdf",
     "started_at": "2026-05-06T10:03:57.577409+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:52:01.593958+00:00",
+    "updated_at": "2026-05-06T22:03:16.797570+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/binancecoin/latest/zh.html"
   },
@@ -2289,7 +2289,7 @@
     "source_path": "Slide/econ/TRON_Economic_Blueprint_ko.pdf",
     "started_at": "2026-04-30T21:14:02.883420+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:50:54.582730+00:00",
+    "updated_at": "2026-05-06T22:02:03.060444+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/tron/1/ko.html"
   },
@@ -2313,7 +2313,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/PYUSD_Intelligence_Briefing_ko.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:42:26.423317+00:00"
+    "updated_at": "2026-05-06T21:52:29.451289+00:00"
   },
   "1Nff0wbMYiAFYY0QE-cSVZnd8knkdGrtQ": {
     "error": null,
@@ -2341,7 +2341,7 @@
     "source_path": "Slide/econ/USDG_Economic_Engine_Blueprint_jp.pdf",
     "started_at": "2026-05-04T09:05:56.913607+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:40:38.356857+00:00",
+    "updated_at": "2026-05-06T21:50:35.179204+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usdg/latest/ja.html"
   },
@@ -2369,7 +2369,7 @@
     "source_path": "Slide/econ/Solana_Economic_Engine.pdf",
     "started_at": "2026-04-30T21:16:55.923290+00:00",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:47:48.672644+00:00",
+    "updated_at": "2026-05-06T21:58:26.546841+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/solana/latest/ja.html"
   },
@@ -2397,7 +2397,7 @@
     "source_path": "Slide/econ/Bitcoin_Cryptoeconomic_Architecture.pdf",
     "started_at": "2026-04-28T15:23:14.719659+00:00",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:49:58.879700+00:00",
+    "updated_at": "2026-05-06T22:01:00.706737+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/1/ko.html"
   },
@@ -2421,7 +2421,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/Tether_Gold_Synthesis_en.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:41:32.226568+00:00"
+    "updated_at": "2026-05-06T21:51:32.853080+00:00"
   },
   "1O7rBWrIcoQT2orFRr5CQT9MpJX--gZSB": {
     "error": null,
@@ -2449,7 +2449,7 @@
     "source_path": "Slide/econ/Zcash_Cryptoeconomic_Blueprint_jp.pdf",
     "started_at": "2026-05-01T22:27:04.332565+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:47:05.272152+00:00",
+    "updated_at": "2026-05-06T21:57:37.536064+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/zcash/latest/ja.html"
   },
@@ -2472,7 +2472,7 @@
     "source_path": "Slide/econ/PancakeSwap_Economic_Blueprint_jp.pdf",
     "started_at": "2026-04-30T06:31:58.455658+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:51:15.687902+00:00",
+    "updated_at": "2026-05-06T22:02:22.761246+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pancakeswap/latest/ja.html"
   },
@@ -2495,7 +2495,7 @@
     "source_path": "Slide/econ/Monero_Protocol_Blueprint_en.pdf",
     "started_at": "2026-05-01T06:51:03.341053+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:50:19.234733+00:00",
+    "updated_at": "2026-05-06T22:01:23.147839+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/monero/1/en.html"
   },
@@ -2525,7 +2525,7 @@
     "source_path": "Slide/econ/Zcash_Crypto_Economy_Blueprint_cn.pdf",
     "started_at": "2026-05-01T22:28:28.074171+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:47:06.220956+00:00",
+    "updated_at": "2026-05-06T21:57:38.541705+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/zcash/latest/zh.html"
   },
@@ -2549,7 +2549,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/RLUSD_Institutional_Economics_jp.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:33:30.209357+00:00"
+    "updated_at": "2026-05-06T21:42:45.993736+00:00"
   },
   "1OgwiC2qpJfppjWLYhgSohk4Zm5SwYBoj": {
     "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
@@ -2575,7 +2575,7 @@
     "source_path": "Slide/econ/XRPL_Institutional_Architecture.pdf",
     "started_at": "2026-04-30T10:31:23.892378+00:00",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:48:32.298261+00:00",
+    "updated_at": "2026-05-06T21:59:18.315946+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/cross-crypto/latest/ja.html"
   },
@@ -2598,7 +2598,7 @@
     "source_path": "Slide/econ/PancakeSwap_Economic_Blueprint_cn.pdf",
     "started_at": "2026-04-30T06:31:29.854361+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:51:15.350221+00:00",
+    "updated_at": "2026-05-06T22:02:22.423610+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pancakeswap/latest/en.html"
   },
@@ -2628,7 +2628,7 @@
     "source_path": "Slide/econ/Aster_Financial_Blueprint_jp.pdf",
     "started_at": "2026-05-04T23:16:30.158857+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:36:44.557002+00:00",
+    "updated_at": "2026-05-06T21:46:09.937444+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/aster/latest/ja.html"
   },
@@ -2647,7 +2647,7 @@
     "slug": "mantle",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:39:31.889688+00:00"
+    "updated_at": "2026-05-06T21:49:21.230678+00:00"
   },
   "1Q5nv9S3JLz5nmMYqLN-U4UJJnqa3T5pi": {
     "error": null,
@@ -2675,7 +2675,7 @@
     "source_path": "Slide/econ/Shiba_Inu_Economic_Architecture_revised_cn.pdf",
     "started_at": "2026-05-04T09:06:46.360001+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:40:56.863763+00:00",
+    "updated_at": "2026-05-06T21:50:56.607994+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/shiba-inu/1/zh.html"
   },
@@ -2705,7 +2705,7 @@
     "source_path": "Slide/econ/Zcash_Economic_Architecture_en.pdf",
     "started_at": "2026-05-01T22:27:26.424655+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:47:05.600077+00:00",
+    "updated_at": "2026-05-06T21:57:37.864249+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/zcash/1/en.html"
   },
@@ -2735,7 +2735,7 @@
     "source_path": "Slide/econ/The_USDC_Blueprint_en.pdf",
     "started_at": "2026-05-01T12:42:38.522730+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:48:02.424755+00:00",
+    "updated_at": "2026-05-06T21:58:43.219006+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usd-coin/1/en.html"
   },
@@ -2765,7 +2765,7 @@
     "source_path": "Slide/econ/RLUSD_Institutional_Blueprint_en.pdf",
     "started_at": "2026-05-05T21:48:50.872763+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:32:57.616312+00:00",
+    "updated_at": "2026-05-06T21:42:10.841472+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ripple-usd/1/en.html"
   },
@@ -2795,7 +2795,7 @@
     "source_path": "Slide/econ/Pi_Network_2026_Blueprint_jp.pdf",
     "started_at": "2026-05-04T22:18:41.142819+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:37:33.156278+00:00",
+    "updated_at": "2026-05-06T21:47:04.608872+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pi-network/latest/ja.html"
   },
@@ -2825,7 +2825,7 @@
     "source_path": "Slide/econ/MemeCore_Economic_Blueprint_jp.pdf",
     "started_at": "2026-05-02T03:54:01.680432+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:47:04.556965+00:00",
+    "updated_at": "2026-05-06T21:57:36.856668+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/memecore/latest/ja.html"
   },
@@ -2844,7 +2844,7 @@
     "slug": "bittensor",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:42:04.082287+00:00"
+    "updated_at": "2026-05-06T21:52:04.957702+00:00"
   },
   "1TClH7GSQP3TqnOTUr6GvniTRWn28_Pg9": {
     "error": null,
@@ -2872,7 +2872,7 @@
     "source_path": "Slide/mat/2026_Bitcoin_Economic_Diagnostic_ko.pdf",
     "started_at": "2026-05-06T10:06:37.486093+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:53:32.460168+00:00",
+    "updated_at": "2026-05-06T22:05:00.858981+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/1/ko.html"
   },
@@ -2902,7 +2902,7 @@
     "source_path": "Slide/econ/BCH_Cryptoeconomic_Blueprint_jp.pdf",
     "started_at": "2026-05-04T15:12:58.179749+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:38:48.414799+00:00",
+    "updated_at": "2026-05-06T21:48:33.486641+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin-cash/latest/ja.html"
   },
@@ -2932,7 +2932,7 @@
     "source_path": "Slide/econ/Uniswap_Financial_Blueprint_ko.pdf",
     "started_at": "2026-05-04T11:16:55.229606+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:39:47.443842+00:00",
+    "updated_at": "2026-05-06T21:49:39.633210+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/uniswap/1/ko.html"
   },
@@ -2956,7 +2956,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/BNB_Chain_2026_Strategic_Blueprint_en.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:48:14.976485+00:00"
+    "updated_at": "2026-05-06T21:58:58.402183+00:00"
   },
   "1Um0Hq4f7xbU6-lVBAuJy_y6wB0ZtWPyD": {
     "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
@@ -2973,7 +2973,7 @@
     "slug": "stellar",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:47:33.491261+00:00"
+    "updated_at": "2026-05-06T21:58:10.239863+00:00"
   },
   "1VxjVOYKeEx9kd3BaVgReH_1zaOwEPj84": {
     "error": "slug/content mismatch — filename resolved 'the-open-network' (body score 6) but body strongly matches 'vision' (score 12)",
@@ -2995,7 +2995,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/TON_Super-Server_Blueprint_en.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:44:21.030870+00:00"
+    "updated_at": "2026-05-06T21:54:38.620273+00:00"
   },
   "1W0CHRmsAetZMQx0soNN-qXv2wAgDBfK1": {
     "error": null,
@@ -3023,7 +3023,7 @@
     "source_path": "Slide/econ/USDC_Hybrid_Economic_OS_ko.pdf",
     "started_at": "2026-05-01T12:43:07.644208+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:48:02.748660+00:00",
+    "updated_at": "2026-05-06T21:58:43.555854+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usd-coin/1/ko.html"
   },
@@ -3053,7 +3053,7 @@
     "source_path": "Slide/econ/Ethena_Cryptoeconomic_Analysis_jp.pdf",
     "started_at": "2026-05-02T22:38:40.777641+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:45:24.953937+00:00",
+    "updated_at": "2026-05-06T21:55:50.556006+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ethena/latest/ja.html"
   },
@@ -3083,7 +3083,7 @@
     "source_path": "Slide/econ/PAXG_Institutional_Blueprint_ko.pdf",
     "started_at": "2026-05-04T22:20:00.802928+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:37:59.865236+00:00",
+    "updated_at": "2026-05-06T21:47:35.836292+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pax-gold/latest/ko.html"
   },
@@ -3113,7 +3113,7 @@
     "source_path": "Slide/econ/Pi_Network_2026_Economic_Blueprint_cn.pdf",
     "started_at": "2026-05-04T22:19:25.706105+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:37:49.018097+00:00",
+    "updated_at": "2026-05-06T21:47:23.606086+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pi-network/latest/zh.html"
   },
@@ -3143,7 +3143,7 @@
     "source_path": "Slide/econ/Tether_Cryptoeconomic_Blueprint_cn.pdf",
     "started_at": "2026-05-01T14:10:10.417664+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:48:33.027283+00:00",
+    "updated_at": "2026-05-06T21:59:19.018353+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/tether/latest/zh.html"
   },
@@ -3173,7 +3173,7 @@
     "source_path": "Slide/mat/XRPL_Institutional_Evolution_jp.pdf",
     "started_at": "2026-05-06T11:54:05.634702+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:51:29.343458+00:00",
+    "updated_at": "2026-05-06T22:02:37.955062+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ripple-usd/latest/ja.html"
   },
@@ -3196,7 +3196,7 @@
     "source_path": "Slide/econ/Hyperliquid_Economic_Blueprint_ko.pdf",
     "started_at": "2026-04-30T22:11:58.496544+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:50:53.477285+00:00",
+    "updated_at": "2026-05-06T22:02:01.957090+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/hyperliquid/1/ko.html"
   },
@@ -3215,7 +3215,7 @@
     "slug": "tether",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:52:37.149278+00:00"
+    "updated_at": "2026-05-06T22:03:55.703479+00:00"
   },
   "1XnkUxDT9IBiZRgOnJhkqbsz5Hv6OJ4eB": {
     "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
@@ -3232,7 +3232,7 @@
     "slug": "ripple-usd",
     "slug_source": "ocr",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:51:49.427403+00:00"
+    "updated_at": "2026-05-06T22:03:02.892704+00:00"
   },
   "1ZbBcxidVim2KusgrSk84ZspaHu57d_j3": {
     "error": "slug/content mismatch — filename resolved 'cardano' (body score 14) but body strongly matches 'midnight-network' (score 16)",
@@ -3254,7 +3254,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/Cardano_Economic_Blueprint_en.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:38:59.107301+00:00"
+    "updated_at": "2026-05-06T21:48:45.883531+00:00"
   },
   "1Zl-GU-8GI_0E7AKoStV55n1VRz_fcHTC": {
     "error": null,
@@ -3282,7 +3282,7 @@
     "source_path": "Slide/econ/NEAR_Protocol_Cryptoeconomics_cn.pdf",
     "started_at": "2026-05-04T23:14:03.905567+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:36:09.719968+00:00",
+    "updated_at": "2026-05-06T21:45:30.360720+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/near/latest/zh.html"
   },
@@ -3312,7 +3312,7 @@
     "source_path": "Slide/econ/Cronos_Economic_Anatomy_cn.pdf",
     "started_at": "2026-05-03T14:37:45.525036+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:42:41.313415+00:00",
+    "updated_at": "2026-05-06T21:52:47.047668+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/cronos/latest/zh.html"
   },
@@ -3342,7 +3342,7 @@
     "source_path": "Slide/econ/Solana_Economic_Blueprint_en.pdf",
     "started_at": "2026-05-01T12:41:22.092751+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:47:36.412468+00:00",
+    "updated_at": "2026-05-06T21:58:12.876953+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/solana/latest/en.html"
   },
@@ -3372,7 +3372,7 @@
     "source_path": "Slide/econ/Sky_Protocol_Blueprint_ko.pdf",
     "started_at": "2026-05-01T14:07:35.867958+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:47:33.840803+00:00",
+    "updated_at": "2026-05-06T21:58:10.585528+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sky/1/ko.html"
   },
@@ -3391,7 +3391,7 @@
     "slug": "gnosis",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:34:46.848411+00:00"
+    "updated_at": "2026-05-06T21:44:08.782906+00:00"
   },
   "1_xr8j901SmhJbKzmg0iQMD-WtuDwFfIC": {
     "error": null,
@@ -3419,7 +3419,7 @@
     "source_path": "Slide/econ/BNB_Chain_2026_Blueprint_jp.pdf",
     "started_at": "2026-05-01T12:42:03.455484+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:47:49.070559+00:00",
+    "updated_at": "2026-05-06T21:58:26.902467+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/binancecoin/latest/ja.html"
   },
@@ -3438,7 +3438,7 @@
     "slug": "shiba-inu",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:43:53.202638+00:00"
+    "updated_at": "2026-05-06T21:54:06.802412+00:00"
   },
   "1a9AXRQH3YPhAObtP17dM0CccxHy-V39l": {
     "error": "slug/content mismatch — filename resolved 'internet-computer' (body score 6) but body strongly matches 'ethereum' (score 16)",
@@ -3460,7 +3460,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/ICP_Economic_Blueprint_jp.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:33:47.510826+00:00"
+    "updated_at": "2026-05-06T21:43:05.264857+00:00"
   },
   "1aEzuhMQyIa7SMZLn8AMfMbX7DnhUoxMY": {
     "error": null,
@@ -3481,7 +3481,7 @@
     "source_path": "Slide/econ/LEO_Deflationary_Engine_Analysis_ko.pdf",
     "started_at": "2026-05-01T04:14:01.107764+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:50:52.827055+00:00",
+    "updated_at": "2026-05-06T22:02:01.323122+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/leo-token/1/ko.html"
   },
@@ -3511,7 +3511,7 @@
     "source_path": "Slide/econ/Dogecoin_Institutional_Analysis_en.pdf",
     "started_at": "2026-05-01T12:40:28.956501+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:47:35.763814+00:00",
+    "updated_at": "2026-05-06T21:58:12.230293+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/dogecoin/latest/en.html"
   },
@@ -3530,7 +3530,7 @@
     "slug": "world-liberty-financial",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:46:34.632270+00:00"
+    "updated_at": "2026-05-06T21:57:02.576097+00:00"
   },
   "1akMCEIo7MlJps5aSbX9sHvmoHYSxjUeV": {
     "error": "slug/content mismatch — filename resolved 'cronos' (body score 12) but body strongly matches 'ethereum' (score 16)",
@@ -3552,7 +3552,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/Cronos_Economic_Architecture_en.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:42:52.143709+00:00"
+    "updated_at": "2026-05-06T21:52:59.858878+00:00"
   },
   "1b2IargeLYT18LQgpHm7xFSZeJH1tO_G3": {
     "error": null,
@@ -3573,7 +3573,7 @@
     "source_path": "Slide/econ/Chainlink_Strategic_Analysis_ko.pdf",
     "started_at": "2026-05-01T06:47:05.443586+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:50:16.648658+00:00",
+    "updated_at": "2026-05-06T22:01:20.291514+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/chainlink/1/ko.html"
   },
@@ -3603,7 +3603,7 @@
     "source_path": "Slide/econ/RLUSD_Tokenomics_Deconstructed_cn.pdf",
     "started_at": "2026-05-05T21:49:50.880627+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:33:30.667987+00:00",
+    "updated_at": "2026-05-06T21:42:46.374426+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ripple-usd/latest/zh.html"
   },
@@ -3633,7 +3633,7 @@
     "source_path": "Slide/econ/World_Liberty_Financial_Analysis_jp.pdf",
     "started_at": "2026-05-05T06:07:51.256116+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:34:47.502392+00:00",
+    "updated_at": "2026-05-06T21:44:09.134594+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usd1/latest/ja.html"
   },
@@ -3663,7 +3663,7 @@
     "source_path": "Slide/econ/Cardano_Economic_Architecture_cn.pdf",
     "started_at": "2026-05-04T15:14:03.563879+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:39:14.110225+00:00",
+    "updated_at": "2026-05-06T21:49:01.949023+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/cardano/latest/zh.html"
   },
@@ -3715,7 +3715,7 @@
     "source_path": "Slide/econ/XRPL_Institutional_Economic_Analysis_jp.pdf",
     "started_at": "2026-05-01T12:44:54.220121+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:48:15.981889+00:00",
+    "updated_at": "2026-05-06T21:58:59.731561+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ripple/latest/ja.html"
   },
@@ -3745,7 +3745,7 @@
     "source_path": "Slide/econ/Mantle_Network_Economic_Blueprint_cn.pdf",
     "started_at": "2026-05-04T11:14:49.854375+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:39:45.358964+00:00",
+    "updated_at": "2026-05-06T21:49:37.451041+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/mantle/latest/zh.html"
   },
@@ -3769,7 +3769,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/PEPE_Memetic_Capital_Architecture_ko.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:35:32.285620+00:00"
+    "updated_at": "2026-05-06T21:44:54.163795+00:00"
   },
   "1dhDiC2XUazHpcRaI9O9pc9MvUNZZGifE": {
     "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
@@ -3786,7 +3786,7 @@
     "slug": "the-open-network",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:44:10.972507+00:00"
+    "updated_at": "2026-05-06T21:54:26.859152+00:00"
   },
   "1dhGlaqpRwEu5fZqq0S_K2XHshFAEuEgi": {
     "error": "slug/content mismatch — filename resolved 'binancecoin' (body score 6) but body strongly matches 'ethereum' (score 16)",
@@ -3808,7 +3808,7 @@
     "source_depth": 0,
     "source_path": "Slide/mat/BNB_Diagnostic_Blueprint_en.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:52:01.208658+00:00"
+    "updated_at": "2026-05-06T22:03:16.405656+00:00"
   },
   "1dkUD3BKSIl0hSCLuKy0DR0k2wfFe06A9": {
     "error": null,
@@ -3852,7 +3852,7 @@
     "source_path": "Slide/econ/XRPL_Cryptoeconomic_Blueprint_cn.pdf",
     "started_at": "2026-05-01T12:43:53.286222+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:48:15.335189+00:00",
+    "updated_at": "2026-05-06T21:58:59.082712+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ripple/latest/zh.html"
   },
@@ -3871,7 +3871,7 @@
     "slug": "aster",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:37:07.056757+00:00"
+    "updated_at": "2026-05-06T21:46:34.127906+00:00"
   },
   "1ePDD0DW23dM_bHUklBz4EKmIiEHxiuR5": {
     "error": "slug/content mismatch — filename resolved 'hedera-hashgraph' (body score 12) but body strongly matches 'virtuals-protocol' (score 14)",
@@ -3893,7 +3893,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/Hedera_Economic_Blueprint_cn.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:45:09.866631+00:00"
+    "updated_at": "2026-05-06T21:55:33.301864+00:00"
   },
   "1elfejitRyZmbVvPLzJjP4ba7X-7FthZ4": {
     "error": null,
@@ -3914,7 +3914,7 @@
     "source_path": "Slide/econ/Hyperliquid_Economic_Engine_en.pdf",
     "started_at": "2026-04-30T22:12:50.512626+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:50:54.119680+00:00",
+    "updated_at": "2026-05-06T22:02:02.599000+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/hyperliquid/1/en.html"
   },
@@ -3938,7 +3938,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/Cronos_Economic_Blueprint_jp.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:43:19.859625+00:00"
+    "updated_at": "2026-05-06T21:53:28.364146+00:00"
   },
   "1ezgoijYiTFO8893Y6vC1Eas09aGWbADS": {
     "error": null,
@@ -3966,7 +3966,7 @@
     "source_path": "Slide/econ/Polkadot_2.0_Economic_Paradigm_jp.pdf",
     "started_at": "2026-05-04T11:17:52.835833+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:39:48.400032+00:00",
+    "updated_at": "2026-05-06T21:49:40.413152+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/polkadot/latest/ja.html"
   },
@@ -3996,7 +3996,7 @@
     "source_path": "Slide/econ/Bittensor_Cryptoeconomic_Analysis_ko.pdf",
     "started_at": "2026-05-03T17:07:12.099819+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:42:04.487456+00:00",
+    "updated_at": "2026-05-06T21:52:05.646502+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bittensor/latest/ko.html"
   },
@@ -4015,7 +4015,7 @@
     "slug": "binancecoin",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:52:12.501587+00:00"
+    "updated_at": "2026-05-06T22:03:29.599122+00:00"
   },
   "1gR-K1VQV4Eovkip17FNw_RJzbdinfngP": {
     "error": null,
@@ -4043,7 +4043,7 @@
     "source_path": "Slide/econ/Ethena_Cryptoeconomic_Blueprint_ko.pdf",
     "started_at": "2026-05-02T22:37:46.453760+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:45:11.013057+00:00",
+    "updated_at": "2026-05-06T21:55:34.155270+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ethena/1/ko.html"
   },
@@ -4062,7 +4062,7 @@
     "slug": "paypal-usd",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:42:40.815445+00:00"
+    "updated_at": "2026-05-06T21:52:46.558747+00:00"
   },
   "1ghpx1znmcLobwz0QezrlCvuzPuYFiy7Y": {
     "error": null,
@@ -4090,7 +4090,7 @@
     "source_path": "Slide/econ/Dogecoin_Economic_Architecture_ko.pdf",
     "started_at": "2026-05-01T12:40:59.754990+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:47:36.090863+00:00",
+    "updated_at": "2026-05-06T21:58:12.553434+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/dogecoin/1/ko.html"
   },
@@ -4114,7 +4114,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/Sky_Protocol_Blueprint_en.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:47:16.214121+00:00"
+    "updated_at": "2026-05-06T21:57:50.493321+00:00"
   },
   "1hVjUQn_56nDb5avcUnKWw01IzUlIjA8j": {
     "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
@@ -4131,7 +4131,7 @@
     "slug": "hedera-hashgraph",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:44:41.015576+00:00"
+    "updated_at": "2026-05-06T21:55:01.427722+00:00"
   },
   "1hdIQfY3SzKRAH7EMOJQCdMQRLBmRap8K": {
     "error": "slug/content mismatch — filename resolved 'pepe' (body score 8) but body strongly matches 'ethereum' (score 16)",
@@ -4153,7 +4153,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/PEPE_Institutional_Analysis_jp.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:35:44.442525+00:00"
+    "updated_at": "2026-05-06T21:45:07.470914+00:00"
   },
   "1hfp-o8N88KQ-ESafVqZ4IQUCpauBdrgR": {
     "error": null,
@@ -4181,7 +4181,7 @@
     "source_path": "Slide/econ/BCH_Cryptoeconomic_Design_cn.pdf",
     "started_at": "2026-05-04T15:12:31.622405+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:38:48.068361+00:00",
+    "updated_at": "2026-05-06T21:48:33.148185+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin-cash/latest/zh.html"
   },
@@ -4211,7 +4211,7 @@
     "source_path": "Slide/econ/PancakeSwap_Economic_Blueprint_ko.pdf",
     "started_at": "2026-05-01T12:47:57.743326+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:49:23.314125+00:00",
+    "updated_at": "2026-05-06T22:00:18.901743+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pancakeswap/latest/ko.html"
   },
@@ -4257,7 +4257,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/WLFI_HyFi_Diagnostic_jp.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:46:18.086372+00:00"
+    "updated_at": "2026-05-06T21:56:47.197765+00:00"
   },
   "1ie8UtNIB47Csbjqu9LyPP5llmA2SLq03": {
     "error": "slug/content mismatch — filename resolved 'tron' (body score 8) but body strongly matches 'avalanche-2' (score 18)",
@@ -4279,7 +4279,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/TRON_Economic_Blueprint_cn.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:51:13.790805+00:00"
+    "updated_at": "2026-05-06T22:02:20.753928+00:00"
   },
   "1jU4KjbGGE_fTFsR45ij0cqT7O6GyQnwO": {
     "error": null,
@@ -4307,7 +4307,7 @@
     "source_path": "Slide/mat/BNB_Chain_Maturity_Analysis_jp.pdf",
     "started_at": "2026-05-06T10:04:38.142966+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:52:12.871652+00:00",
+    "updated_at": "2026-05-06T22:03:30.029524+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/binancecoin/latest/ja.html"
   },
@@ -4330,7 +4330,7 @@
     "source_path": "Slide/econ/TRON_Economic_Architecture_jp.pdf",
     "started_at": "2026-04-30T21:15:01.177714+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:50:55.223249+00:00",
+    "updated_at": "2026-05-06T22:02:03.699615+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/tron/latest/ja.html"
   },
@@ -4353,7 +4353,7 @@
     "source_path": "Slide/econ/LEO_Economic_Blueprint_cn.pdf",
     "started_at": "2026-05-01T06:52:56.459645+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:50:52.498055+00:00",
+    "updated_at": "2026-05-06T22:02:00.862967+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/leo-token/latest/zh.html"
   },
@@ -4377,7 +4377,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/USDG_Economic_Blueprint_ko.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:40:24.030887+00:00"
+    "updated_at": "2026-05-06T21:50:21.656383+00:00"
   },
   "1kXnOOcO6TiHyvXl2NgPl4u678YFSlJ3y": {
     "error": null,
@@ -4405,7 +4405,7 @@
     "source_path": "Slide/econ/Bitcoin_Cryptoeconomic_Blueprint_en.pdf",
     "started_at": "2026-05-01T12:50:38.379800+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:49:40.895733+00:00",
+    "updated_at": "2026-05-06T22:00:40.573710+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/en.html"
   },
@@ -4428,7 +4428,7 @@
     "source_path": "Slide/econ/Hyperliquid_Economic_Blueprint_cn.pdf",
     "started_at": "2026-04-30T22:12:27.169654+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:50:53.798508+00:00",
+    "updated_at": "2026-05-06T22:02:02.275651+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/hyperliquid/latest/zh.html"
   },
@@ -4452,7 +4452,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/MISSION_70_ICP_ECONOMIC_AUDIT_en.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:34:16.533431+00:00"
+    "updated_at": "2026-05-06T21:43:38.660582+00:00"
   },
   "1lu-FO3C0WwX_BFD4c8Upms_7X7bQUtz-": {
     "error": null,
@@ -4480,7 +4480,7 @@
     "source_path": "Slide/econ/WLFI_Economic_Architecture_ko.pdf",
     "started_at": "2026-05-02T09:07:09.074013+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:46:18.776522+00:00",
+    "updated_at": "2026-05-06T21:56:47.886530+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/world-liberty-financial/1/ko.html"
   },
@@ -4510,7 +4510,7 @@
     "source_path": "Slide/for/TON_Market_Forensic_Intelligence_jp.pdf",
     "started_at": "2026-05-05T22:11:00.405656+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:54:31.332314+00:00",
+    "updated_at": "2026-05-06T22:06:10.764365+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/the-open-network/latest/ja.html"
   },
@@ -4540,7 +4540,7 @@
     "source_path": "Slide/econ/The_PYUSD_Blueprint_jp.pdf",
     "started_at": "2026-05-03T14:36:57.086238+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:42:26.775608+00:00",
+    "updated_at": "2026-05-06T21:52:29.815185+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/paypal-usd/latest/ja.html"
   },
@@ -4559,7 +4559,7 @@
     "slug": "bitcoin",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:53:44.298651+00:00"
+    "updated_at": "2026-05-06T22:05:13.700284+00:00"
   },
   "1mlN-xPx6FmK-wfsInKY0WwRdPRe41W7j": {
     "error": null,
@@ -4587,7 +4587,7 @@
     "source_path": "Slide/econ/The_Bittensor_Neural_Ledger_jp.pdf",
     "started_at": "2026-05-03T17:07:39.711735+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:42:04.829348+00:00",
+    "updated_at": "2026-05-06T21:52:05.992110+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bittensor/latest/ja.html"
   },
@@ -4617,7 +4617,7 @@
     "source_path": "Slide/econ/Sui_Economic_Architecture_en.pdf",
     "started_at": "2026-05-03T10:40:05.719905+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:43:21.583655+00:00",
+    "updated_at": "2026-05-06T21:53:30.455018+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sui/latest/en.html"
   },
@@ -4647,7 +4647,7 @@
     "source_path": "Slide/econ/X_Layer_Economic_Analysis_jp.pdf",
     "started_at": "2026-05-04T22:18:08.154721+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:37:32.810838+00:00",
+    "updated_at": "2026-05-06T21:47:04.102322+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ethereum/latest/ja.html"
   },
@@ -4670,7 +4670,7 @@
     "source_path": "Slide/econ/Ethereum_Cryptoeconomic_Architecture_cn.pdf",
     "started_at": "2026-04-30T03:40:16.114052+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:51:16.113838+00:00",
+    "updated_at": "2026-05-06T22:02:23.098475+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ethereum/latest/zh.html"
   },
@@ -4700,7 +4700,7 @@
     "source_path": "Slide/econ/SHIB_Economic_Blueprint_jp.pdf",
     "started_at": "2026-05-03T04:09:50.791316+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:43:53.936281+00:00",
+    "updated_at": "2026-05-06T21:54:07.639832+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/shiba-inu/latest/ja.html"
   },
@@ -4730,7 +4730,7 @@
     "source_path": "Slide/for/TON_Forensic_Market_Report_en.pdf",
     "started_at": "2026-05-05T22:10:14.040809+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:54:30.689104+00:00",
+    "updated_at": "2026-05-06T22:06:10.066394+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/the-open-network/latest/en.html"
   },
@@ -4754,7 +4754,7 @@
     "source_depth": 0,
     "source_path": "Slide/mat/Tether_Strategic_Diagnostic_2026_jp.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:53:12.703397+00:00"
+    "updated_at": "2026-05-06T22:04:38.345542+00:00"
   },
   "1oV_QtsmdbF0nL9eGZ0aDSnAtQFOOuABi": {
     "error": null,
@@ -4782,7 +4782,7 @@
     "source_path": "Slide/econ/Ethereum_Cryptoeconomic_Architecture_en.pdf",
     "started_at": "2026-05-01T12:48:22.839839+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:49:23.645108+00:00",
+    "updated_at": "2026-05-06T22:00:19.230502+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ethereum/1/en.html"
   },
@@ -4806,7 +4806,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/USDC_Operating_System_jp.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:50:15.778897+00:00"
+    "updated_at": "2026-05-06T22:01:19.459426+00:00"
   },
   "1ot7Nh306-6vgNnqk9enksH6ST6Aos9mC": {
     "error": null,
@@ -4834,7 +4834,7 @@
     "source_path": "Slide/econ/Cardano_Cryptoeconomic_Design_ko.pdf",
     "started_at": "2026-05-04T15:14:28.413318+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:39:14.442632+00:00",
+    "updated_at": "2026-05-06T21:49:02.567500+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/cardano/1/ko.html"
   },
@@ -4853,7 +4853,7 @@
     "slug": "hedera-hashgraph",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:44:55.566548+00:00"
+    "updated_at": "2026-05-06T21:55:17.226853+00:00"
   },
   "1pPdDwsJv-_vWLJR8ZAyMteXu5kw89Bo2": {
     "error": "slug/content mismatch — filename resolved 'usdg' (body score 8) but body strongly matches 'global-dollar' (score 26)",
@@ -4875,7 +4875,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/USDG_Cryptoeconomic_Analysis_cn.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:40:56.251300+00:00"
+    "updated_at": "2026-05-06T21:50:56.205305+00:00"
   },
   "1pR0Ro13nHlgoWNnNoAy78bjMba1sjjm9": {
     "error": null,
@@ -4903,7 +4903,7 @@
     "source_path": "Slide/mat/USDC_Global_Payment_OS_cn.pdf",
     "started_at": "2026-05-06T11:52:47.725285+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:51:17.109968+00:00",
+    "updated_at": "2026-05-06T22:02:24.338055+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usd-coin/latest/zh.html"
   },
@@ -4933,7 +4933,7 @@
     "source_path": "Slide/econ/PYUSD_Economic_Blueprint_en.pdf",
     "started_at": "2026-05-03T14:36:01.210285+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:42:05.497962+00:00",
+    "updated_at": "2026-05-06T21:52:06.634782+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/paypal-usd/latest/en.html"
   },
@@ -4963,7 +4963,7 @@
     "source_path": "Slide/econ/TON_Economic_Analysis_ko.pdf",
     "started_at": "2026-05-03T04:11:07.683631+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:44:21.522857+00:00",
+    "updated_at": "2026-05-06T21:54:39.136064+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/the-open-network/1/ko.html"
   },
@@ -4993,7 +4993,7 @@
     "source_path": "Slide/econ/Sui_Economic_Blueprint_ko.pdf",
     "started_at": "2026-05-03T10:39:23.534485+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:43:20.912530+00:00",
+    "updated_at": "2026-05-06T21:53:29.489176+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sui/1/ko.html"
   },
@@ -5023,7 +5023,7 @@
     "source_path": "Slide/econ/The_Avalanche_Blueprint_en.pdf",
     "started_at": "2026-05-02T09:05:06.756216+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:46:00.326029+00:00",
+    "updated_at": "2026-05-06T21:56:29.113320+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/avalanche-2/latest/en.html"
   },
@@ -5047,7 +5047,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/KCS_Ecosystem_Blueprint_en.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:34:32.032024+00:00"
+    "updated_at": "2026-05-06T21:43:53.210876+00:00"
   },
   "1rjKbcxdpK9EmU8lwRuuV-Mn13N0F6FCM": {
     "error": null,
@@ -5075,7 +5075,7 @@
     "source_path": "Slide/econ/Hedera_Systemic_Blueprint_jp.pdf",
     "started_at": "2026-05-03T04:11:38.751155+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:44:21.997490+00:00",
+    "updated_at": "2026-05-06T21:54:39.615114+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/hedera-hashgraph/latest/ja.html"
   },
@@ -5105,7 +5105,7 @@
     "source_path": "Slide/econ/Aster_Economic_Blueprint_en.pdf",
     "started_at": "2026-05-04T23:16:03.942608+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:36:44.211308+00:00",
+    "updated_at": "2026-05-06T21:46:09.614961+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/aster/1/en.html"
   },
@@ -5135,7 +5135,7 @@
     "source_path": "Slide/mat/Ethereum_2026_Economic_Diagnostic_en.pdf",
     "started_at": "2026-05-06T01:36:30.860081+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:53:44.635407+00:00",
+    "updated_at": "2026-05-06T22:05:14.049455+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ethereum/latest/en.html"
   },
@@ -5165,7 +5165,7 @@
     "source_path": "Slide/econ/Programmable_Trust_Blueprint_ko.pdf",
     "started_at": "2026-05-01T12:49:22.110383+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:49:24.279357+00:00",
+    "updated_at": "2026-05-06T22:00:20.026204+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ethereum/1/ko.html"
   },
@@ -5195,7 +5195,7 @@
     "source_path": "Slide/mat/USDC_Strategic_Evaluation_ko.pdf",
     "started_at": "2026-05-06T11:52:21.995602+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:51:16.789194+00:00",
+    "updated_at": "2026-05-06T22:02:23.995169+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usd-coin/1/ko.html"
   },
@@ -5219,7 +5219,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/PEPE_Cryptoeconomics_cn.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:36:09.034814+00:00"
+    "updated_at": "2026-05-06T21:45:29.385816+00:00"
   },
   "1u1Hu-VHeNCMDdTzuqjRQAONnxjB8zh2n": {
     "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
@@ -5236,7 +5236,7 @@
     "slug": "ethena",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:45:24.607670+00:00"
+    "updated_at": "2026-05-06T21:55:50.203318+00:00"
   },
   "1u7Drzhg9XPVbzKJEEnerkdXhQZW2w4yq": {
     "error": null,
@@ -5264,7 +5264,7 @@
     "source_path": "Slide/econ/Bittensor_Economic_Design_cn.pdf",
     "started_at": "2026-05-03T17:08:03.954570+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:42:05.166856+00:00",
+    "updated_at": "2026-05-06T21:52:06.309451+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bittensor/latest/zh.html"
   },
@@ -5283,7 +5283,7 @@
     "slug": "polkadot",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:40:06.876066+00:00"
+    "updated_at": "2026-05-06T21:50:01.873390+00:00"
   },
   "1w3f6xqctUtdW9TYK_2WEobjPlqS8J7nC": {
     "error": null,
@@ -5311,7 +5311,7 @@
     "source_path": "Slide/econ/The_Bitcoin_Blueprint_jp.pdf",
     "started_at": "2026-05-01T12:50:15.031076+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:49:40.567322+00:00",
+    "updated_at": "2026-05-06T22:00:39.952583+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ja.html"
   },
@@ -5341,7 +5341,7 @@
     "source_path": "Slide/econ/XRPL_Economic_Blueprint_ko.pdf",
     "started_at": "2026-05-01T12:45:43.353901+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:48:32.654306+00:00",
+    "updated_at": "2026-05-06T21:59:18.691990+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/dai/latest/ko.html"
   },
@@ -5371,7 +5371,7 @@
     "source_path": "Slide/econ/Zcash_Cryptoeconomic_Blueprint_ko.pdf",
     "started_at": "2026-05-01T22:28:00.018079+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:47:05.916094+00:00",
+    "updated_at": "2026-05-06T21:57:38.207703+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/zcash/1/ko.html"
   },
@@ -5401,7 +5401,7 @@
     "source_path": "Slide/econ/2026_Uniswap_Blueprint_cn.pdf",
     "started_at": "2026-05-04T11:16:04.172461+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:39:46.641037+00:00",
+    "updated_at": "2026-05-06T21:49:38.733463+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/uniswap/latest/zh.html"
   },
@@ -5425,7 +5425,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/USDC_Economic_OS_cn.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:48:02.080208+00:00"
+    "updated_at": "2026-05-06T21:58:42.854348+00:00"
   },
   "1xOzXerZG-JCyNrkUXikD3IrsQXQ1tMGS": {
     "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
@@ -5442,7 +5442,7 @@
     "slug": "ethereum",
     "slug_source": "filename",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:54:15.970532+00:00"
+    "updated_at": "2026-05-06T22:05:52.498631+00:00"
   },
   "1yGfHenI51KHy4h5RxKVilh5h2G2Xtqeq": {
     "error": null,
@@ -5470,7 +5470,7 @@
     "source_path": "Slide/mat/Ethereum_2026_Economic_Paradox_cn.pdf",
     "started_at": "2026-05-06T01:37:16.345431+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:53:59.665054+00:00",
+    "updated_at": "2026-05-06T22:05:31.425788+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ethereum/latest/zh.html"
   },
@@ -5500,7 +5500,7 @@
     "source_path": "Slide/econ/Avalanche_Economic_Architecture_ko.pdf",
     "started_at": "2026-05-02T09:04:41.751716+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:45:59.875734+00:00",
+    "updated_at": "2026-05-06T21:56:28.780606+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/avalanche-2/1/ko.html"
   },
@@ -5528,7 +5528,7 @@
     "source_path": "Slide/econ/Tether_System_Anatomy.pdf",
     "started_at": "2026-04-30T06:32:29.442046+00:00",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:49:22.558095+00:00",
+    "updated_at": "2026-05-06T22:00:17.577301+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/tether/latest/ja.html"
   },
@@ -5552,7 +5552,7 @@
     "source_depth": 0,
     "source_path": "Slide/econ/TON_Blueprint_jp.pdf",
     "status": "mismatch",
-    "updated_at": "2026-05-06T20:43:41.277841+00:00"
+    "updated_at": "2026-05-06T21:53:52.279421+00:00"
   },
   "1z0WFw8-YwuE02UDitpe6ICUHmJJ9Lz-_": {
     "error": null,
@@ -5580,7 +5580,7 @@
     "source_path": "Slide/mat/XRPL_Institutional_Evolution_en.pdf",
     "started_at": "2026-05-06T11:53:41.712771+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:51:29.018139+00:00",
+    "updated_at": "2026-05-06T22:02:37.633402+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ripple-usd/latest/en.html"
   },
@@ -5610,7 +5610,7 @@
     "source_path": "Slide/econ/The_XAUt_Blueprint_jp.pdf",
     "started_at": "2026-05-04T06:31:12.017129+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:40:57.343841+00:00",
+    "updated_at": "2026-05-06T21:50:57.094625+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/tether-gold/latest/ja.html"
   },
@@ -5640,7 +5640,7 @@
     "source_path": "Slide/econ/NEAR_Cryptoeconomic_Analysis_en.pdf",
     "started_at": "2026-05-04T23:14:52.438811+00:00",
     "status": "published",
-    "updated_at": "2026-05-06T20:36:28.447200+00:00",
+    "updated_at": "2026-05-06T21:45:52.662602+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/near/1/en.html"
   },
@@ -5659,6 +5659,6 @@
     "slug": "ethereum",
     "slug_source": "ocr",
     "status": "language_mismatch",
-    "updated_at": "2026-05-06T20:38:32.992046+00:00"
+    "updated_at": "2026-05-06T21:48:14.866472+00:00"
   }
 }
