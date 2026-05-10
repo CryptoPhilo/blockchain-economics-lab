@@ -13,7 +13,7 @@ export class ProjectsRepository {
       .from('tracked_projects')
       .select(`
         id, name, slug, symbol, category,
-        market_cap_usd, coingecko_id, cmc_id, maturity_score,
+        market_cap_usd, coingecko_id, cmc_id, aliases, maturity_score,
         last_econ_report_at, last_maturity_report_at, last_forensic_report_at
       `)
       .in('status', ['active', 'monitoring_only'])
