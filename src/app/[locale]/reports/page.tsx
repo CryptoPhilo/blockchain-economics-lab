@@ -225,7 +225,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
 
                   {report.status === 'coming_soon' ? (
                     <span className="px-4 py-2 bg-amber-500/10 text-amber-400 text-sm font-medium rounded-lg border border-amber-500/20 cursor-default shrink-0">
-                      🔜 Coming Soon
+                      🔜 {locale === 'ko' ? '준비 중' : 'Coming Soon'}
                     </span>
                   ) : project ? (
                     <Link

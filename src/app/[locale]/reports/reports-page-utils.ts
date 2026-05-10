@@ -16,6 +16,10 @@ function getStatusRank(report: Pick<ProjectReport, 'status'>): number {
   return report.status === 'published' ? 1 : 0
 }
 
+function isRapidChangeCandidate(report: ProjectReport): boolean {
+  return report.status === 'coming_soon' && report.report_type === 'forensic'
+}
+
 function compareRapidChangeReports(a: ProjectReport, b: ProjectReport): number {
   const effectiveTimeDelta = getEffectiveTimestamp(a) - getEffectiveTimestamp(b)
   if (effectiveTimeDelta !== 0) {
@@ -83,7 +87,9 @@ export function prepareRapidChangeReports(args: {
   searchQuery?: string
 }) {
   const normalizedQuery = args.searchQuery?.trim().toLowerCase() || ''
-  const localizedReports = args.reports.filter((report) => reportSupportsLocale(report, args.locale))
+  const localizedReports = args.reports.filter((report) => (
+    isRapidChangeCandidate(report) || reportSupportsLocale(report, args.locale)
+  ))
   const filteredReports = normalizedQuery
     ? localizedReports.filter((report) => getSearchableText(report).includes(normalizedQuery))
     : localizedReports
