@@ -207,6 +207,60 @@ describe('rapid change report list helpers', () => {
     expect(result.reports.map((report) => report.id)).toEqual(['beta-ko'])
   })
 
+  it('includes coming soon forensic candidates without localized assets on Korean rapid change list', () => {
+    const reports = [
+      createReport({
+        id: 'alpha-en-published-no-ko-asset',
+        project_id: 'alpha',
+        language: 'en',
+        title_en: 'Alpha English report',
+        status: 'published',
+        created_at: '2026-04-24T12:00:00.000Z',
+      }),
+      createReport({
+        id: 'beta-bce-1849-candidate',
+        project_id: 'beta',
+        language: 'en',
+        title_en: 'Beta rapid change alert',
+        title_ko: 'Beta 급변동 알림',
+        status: 'coming_soon',
+        trigger_reason: 'Exchange inflows crossed the rapid-change threshold.',
+        created_at: '2026-04-24T11:00:00.000Z',
+      }),
+      createReport({
+        id: 'gamma-market-candidate',
+        project_id: 'gamma',
+        language: 'en',
+        title_en: 'Gamma market alert',
+        title_ko: 'Gamma 시장 알림',
+        status: 'coming_soon',
+        report_type: 'market' as unknown as ProjectReport['report_type'],
+        created_at: '2026-04-24T10:00:00.000Z',
+      }),
+      createReport({
+        id: 'delta-ko-published',
+        project_id: 'delta',
+        language: 'ko',
+        title_ko: 'Delta 한국어 보고서',
+        status: 'published',
+        created_at: '2026-04-24T09:00:00.000Z',
+      }),
+    ]
+
+    const result = prepareRapidChangeReports({
+      reports,
+      locale: 'ko',
+      page: 1,
+      pageSize: 20,
+    })
+
+    expect(result.totalCount).toBe(2)
+    expect(result.reports.map((report) => report.id)).toEqual([
+      'beta-bce-1849-candidate',
+      'delta-ko-published',
+    ])
+  })
+
   it('does not treat empty Korean card arrays or empty URL entries as Korean availability', () => {
     const reports = [
       createReport({
