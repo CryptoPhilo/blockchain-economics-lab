@@ -1,0 +1,80 @@
+name: Production Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      paperclip_issue:
+        description: 'Paperclip issue that requested this deployment'
+        required: true
+        type: string
+      board_approval_url:
+        description: 'Paperclip board approval URL or approval evidence'
+        required: true
+        type: string
+      expected_commit:
+        description: 'Expected commit SHA to deploy. Leave blank to deploy the selected ref.'
+        required: false
+        type: string
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  verify-deployment-evidence:
+    name: Verify Deployment Evidence
+    runs-on: ubuntu-latest
+    outputs:
+      deploy_sha: ${{ steps.sha.outputs.deploy_sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: sha
+        run: |
+          SELECTED_SHA="${{ github.sha }}"
+          EXPECTED_SHA="${{ inputs.expected_commit }}"
+          if [ -n "$EXPECTED_SHA" ] && [ "$EXPECTED_SHA" != "$SELECTED_SHA" ]; then
+            echo "Expected commit $EXPECTED_SHA but workflow selected $SELECTED_SHA"
+            exit 1
+          fi
+          echo "deploy_sha=$SELECTED_SHA" >> "$GITHUB_OUTPUT"
+      - name: Validate Paperclip evidence
+        run: |
+          test -n "${{ inputs.paperclip_issue }}"
+          test -n "${{ inputs.board_approval_url }}"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run verify:pipeline
+      - run: npm run verify:runtime-pipelines
+      - run: npx tsc --noEmit
+      - run: npm test -- --passWithNoTests
+      - run: npm run build
+
+  deploy-production:
+    name: Deploy Production
+    runs-on: ubuntu-latest
+    needs: verify-deployment-evidence
+    environment: production
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Vercel Production
+        id: vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          vercel-args: '--prod'
+      - name: Deployment summary
+        run: |
+          echo "## Production Deployment" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Paperclip issue: ${{ inputs.paperclip_issue }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Board approval: ${{ inputs.board_approval_url }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Commit: ${{ needs.verify-deployment-evidence.outputs.deploy_sha }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Vercel URL: ${{ steps.vercel.outputs.preview-url }}" >> "$GITHUB_STEP_SUMMARY"

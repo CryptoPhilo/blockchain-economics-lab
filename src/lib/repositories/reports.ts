@@ -70,7 +70,9 @@ export class ReportsRepository {
       .select('*')
       .eq('project_id', project.id)
       .eq('report_type', 'forensic')
-      .in('status', ['published', 'coming_soon'])
+      .in('status', ['published', 'coming_soon', 'in_review'])
+      .not('slide_html_urls_by_lang', 'is', null)
+      .order('updated_at', { ascending: false })
       .order('published_at', { ascending: false })
       .limit(1)
       .single()
@@ -90,9 +92,10 @@ export class ReportsRepository {
       .from('project_reports')
       .select('*, tracked_projects!inner(id, name, slug, symbol, chain, category)')
       .eq('report_type', 'forensic')
-      .eq('status', 'published')
+      .in('status', ['published', 'in_review'])
       .not('card_data', 'is', null)
-      .order('published_at', { ascending: false })
+      .not('slide_html_urls_by_lang', 'is', null)
+      .order('updated_at', { ascending: false })
       .limit(limit)
 
     if (error) {
@@ -116,7 +119,7 @@ export class ReportsRepository {
   }) {
     const {
       reportType = 'forensic',
-      status = ['published', 'coming_soon'],
+      status = ['published', 'coming_soon', 'in_review'],
       searchQuery,
       page = 1,
       pageSize = 20,

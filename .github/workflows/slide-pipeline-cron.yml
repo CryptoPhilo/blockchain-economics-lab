@@ -107,6 +107,10 @@ jobs:
         if: steps.gate.outputs.should_run == 'true'
         uses: actions/checkout@v4
 
+      - name: Verify runtime pipeline manifest
+        if: steps.gate.outputs.should_run == 'true'
+        run: npm run verify:runtime-pipelines
+
       - name: Set up Python
         if: steps.gate.outputs.should_run == 'true'
         uses: actions/setup-python@v5
@@ -154,6 +158,7 @@ jobs:
           # Google Drive
           GDRIVE_ROOT_FOLDER_ID=${{ secrets.GDRIVE_ROOT_FOLDER_ID }}
           GDRIVE_DELEGATE_EMAIL=${{ secrets.GDRIVE_DELEGATE_EMAIL }}
+          BCE_MARKETING_FOR_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_FOR_SOURCE_FOLDER_ID }}
 
           # App
           NEXT_PUBLIC_APP_URL=https://bcelab.xyz
@@ -169,6 +174,12 @@ jobs:
         working-directory: scripts/pipeline
         env:
           GDRIVE_SERVICE_ACCOUNT_FILE: ${{ github.workspace }}/scripts/pipeline/.gdrive_service_account.json
+          PAPERCLIP_API_URL: ${{ secrets.PAPERCLIP_API_URL }}
+          PAPERCLIP_API_KEY: ${{ secrets.PAPERCLIP_API_KEY }}
+          PAPERCLIP_COMPANY_ID: ${{ secrets.PAPERCLIP_COMPANY_ID }}
+          PAPERCLIP_ECON_PIPELINE_ID: ${{ secrets.PAPERCLIP_ECON_PIPELINE_ID }}
+          PAPERCLIP_MAT_PIPELINE_ID: ${{ secrets.PAPERCLIP_MAT_PIPELINE_ID }}
+          PAPERCLIP_FOR_PIPELINE_ID: ${{ secrets.PAPERCLIP_FOR_PIPELINE_ID }}
         run: |
           ARGS=""
           TYPE_INPUT="${{ github.event.inputs.type }}"

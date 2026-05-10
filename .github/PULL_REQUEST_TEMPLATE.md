@@ -25,10 +25,20 @@
 <!-- How does this trace to the company mission? (Paperclip principle) -->
 Company Mission → ... → This PR
 
+## Paperclip Pipeline Evidence
+<!-- Required for website changes. Link the Paperclip issue, affected pipeline/node, and approval request. -->
+- **Pipeline**: BCELab Website Development and Operations
+- **Affected node(s)**:
+- **Paperclip issue**:
+- **Temporary workspace / branch**:
+- **Pipeline definition alignment check**:
+- **Board approval**:
+
 ## Testing
 - [ ] Unit tests pass
 - [ ] Build succeeds (`npm run build`)
 - [ ] Lint passes (`npm run lint`)
+- [ ] Pipeline alignment passes (`npm run verify:pipeline`)
 - [ ] Manual testing done
 - [ ] i18n verified (at least EN + KO)
 

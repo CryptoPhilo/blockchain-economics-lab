@@ -136,6 +136,8 @@ export interface TrackedProject {
   market_cap_usd?: number
   tvl_usd?: number
   coingecko_id?: string
+  cmc_id?: string
+  aliases?: string[] | null
   website_url?: string
   last_econ_report_at?: string
   last_maturity_report_at?: string
@@ -193,6 +195,7 @@ export interface ProjectReport {
   approved_at?: string
   published_at?: string
   created_at: string
+  updated_at?: string
   trigger_reason?: string
   risk_level?: string
   is_free?: boolean
@@ -205,13 +208,14 @@ export interface ProjectReport {
   card_summary_de?: string
   card_summary_ja?: string
   card_summary_zh?: string
+  marketing_content_by_lang?: Record<string, string>
   card_data?: ReportCardData | null
   file_url?: string
-  file_urls_by_lang?: Record<SupportedLanguage, string>
+  file_urls_by_lang?: Record<SupportedLanguage, string> | null
   gdrive_url?: string
   gdrive_download_url?: string
-  gdrive_urls_by_lang?: Record<string, GDriveUrlEntry | string>
-  slide_html_urls_by_lang?: Record<string, string>
+  gdrive_urls_by_lang?: Record<string, GDriveUrlEntry | string> | null
+  slide_html_urls_by_lang?: Record<string, string> | null
   page_count?: number
   task_id?: string
   title_en?: string
@@ -377,6 +381,53 @@ export interface ExchangeReferral {
   created_at: string
 }
 
+export type MemberReferralStatus = 'pending' | 'converted' | 'rewarded'
+export type MemberReferralRewardType = 'discount' | 'commission' | 'credit' | 'other'
+
+export interface MemberReferral {
+  id: string
+  referrer_id: string
+  referred_id: string
+  referral_code: string
+  status: MemberReferralStatus
+  reward_type: MemberReferralRewardType
+  reward_value: number
+  reward_granted_at?: string
+  converted_at?: string
+  created_at: string
+}
+
+export interface ReferralStatsItem {
+  date: string
+  email: string
+  status: MemberReferralStatus
+}
+
+export interface ReferralStatsPayload {
+  referral_code: string
+  stats: {
+    total: number
+    converted: number
+    rewarded: number
+    pending: number
+  }
+  recent: ReferralStatsItem[]
+}
+
+export interface ReferralClaimResponse {
+  success: true
+  message: string
+  referrer_code: string
+}
+
+export interface ReferralErrorResponse {
+  error: string
+}
+
+export type ReferralClaimApiResponse = ReferralClaimResponse | ReferralErrorResponse
+
+export type ReferralStatsApiResponse = ReferralStatsPayload | ReferralErrorResponse
+
 export interface ReferralClick {
   id: string
   user_id?: string
@@ -387,6 +438,16 @@ export interface ReferralClick {
   ip_country?: string
   geo_blocked: boolean
   clicked_at: string
+}
+
+export type LeadSource = 'lead_magnet' | 'newsletter' | 'rating_gate' | 'homepage'
+
+export interface EmailLead {
+  id: string
+  email: string
+  source: LeadSource
+  report_id?: string
+  created_at: string
 }
 
 export interface ReferralEarnings {
@@ -400,6 +461,49 @@ export interface ReferralEarnings {
   commission_usd: number
   status: EarningsStatus
   created_at: string
+}
+
+export interface CryptoPayment {
+  id: string
+  order_id: string
+  currency: string
+  network: string
+  amount: string
+  receiving_address: string
+  required_confirmations: number
+  expires_at: string
+  tx_hash?: string
+  paid_at?: string
+  created_at?: string
+}
+
+export interface AdminEmail {
+  email: string
+  note?: string
+  created_at: string
+}
+
+export interface PipelineRun {
+  id: string
+  report_type: 'econ' | 'mat' | 'for'
+  project_slug: string
+  version: number
+  status: string
+  source_filename?: string
+  retry_count?: number
+  started_at?: string
+  completed_at?: string
+  languages_completed?: Record<string, string>
+  error_detail?: string
+}
+
+export interface PipelineSchedule {
+  pipeline_name: string
+  interval_minutes: number
+  enabled: boolean
+  last_run_at?: string
+  updated_at: string
+  updated_by?: string
 }
 
 // ============================================================

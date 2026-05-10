@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import Link from 'next/link'
 import type { ProjectReport } from '@/lib/types'
+import { getLocalizedMarketingContent } from '@/lib/report-marketing-content'
 import { prepareRapidChangeReports } from './reports-page-utils'
 
 interface Props {
@@ -57,6 +58,25 @@ function formatRelativeTime(dateStr: string, locale: string): string {
   return locale === 'ko' ? `${diffDays}일 전` : `${diffDays}d ago`
 }
 
+function getLocalizedSummary(report: ProjectReport, locale: string): string {
+  const summaryByLang = report.card_data?.summary_by_lang
+  const candidate =
+    (summaryByLang && typeof summaryByLang === 'object'
+      ? summaryByLang[locale]
+      : undefined)
+    ?? report[`card_summary_${locale}` as keyof ProjectReport]
+    ?? (locale === 'en' ? report.card_summary_en : undefined)
+
+  return typeof candidate === 'string' ? candidate : ''
+}
+
+function getRapidChangeReason(report: ProjectReport, locale: string): string {
+  const triggerReason = report.trigger_reason?.trim()
+  if (triggerReason) return triggerReason
+
+  return getLocalizedSummary(report, locale).trim()
+}
+
 export default async function ReportsPage({ params, searchParams }: Props) {
   const { locale } = await params
   const { page: pageStr, q: searchQuery } = await searchParams
@@ -70,10 +90,10 @@ export default async function ReportsPage({ params, searchParams }: Props) {
   const dataQuery = supabase
     .from('project_reports')
     .select('*, project:tracked_projects(id, name, slug, symbol, chain, category)')
-    .in('status', ['published', 'coming_soon'])
+    .in('status', ['published', 'coming_soon', 'in_review'])
     .eq('report_type', 'forensic')
     .gte('created_at', seventyTwoHoursAgo.toISOString())
-    .order('published_at', { ascending: false })
+    .order('updated_at', { ascending: false })
     .order('created_at', { ascending: false })
 
   const { data: rawReports } = await dataQuery
@@ -169,6 +189,9 @@ export default async function ReportsPage({ params, searchParams }: Props) {
             const project = report.project
             const config = FORENSIC_CONFIG
             const title = getLocalizedTitle(report, locale)
+            const summary = getLocalizedSummary(report, locale)
+            const rapidChangeReason = getRapidChangeReason(report, locale)
+            const marketingContent = getLocalizedMarketingContent(report, locale, summary)
 
             const translationStatus = report.translation_status || {}
             const gdriveUrls = report.gdrive_urls_by_lang || {}
@@ -225,7 +248,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
 
                   {report.status === 'coming_soon' ? (
                     <span className="px-4 py-2 bg-amber-500/10 text-amber-400 text-sm font-medium rounded-lg border border-amber-500/20 cursor-default shrink-0">
-                      🔜 Coming Soon
+                      🔜 {locale === 'ko' ? '준비 중' : 'Coming Soon'}
                     </span>
                   ) : project ? (
                     <Link
@@ -236,6 +259,28 @@ export default async function ReportsPage({ params, searchParams }: Props) {
                     </Link>
                   ) : null}
                 </div>
+
+                {marketingContent && (
+                  <div className="rounded-xl border border-red-500/15 bg-gray-950/40 px-4 py-3">
+                    <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">
+                      {locale === 'ko' ? '투자 관점' : 'Investment View'}
+                    </p>
+                    <p className="line-clamp-2 text-sm leading-relaxed text-gray-300">
+                      {marketingContent}
+                    </p>
+                  </div>
+                )}
+
+                {rapidChangeReason && (
+                  <div className="rounded-xl border border-amber-500/15 bg-amber-500/[0.04] px-4 py-3">
+                    <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-500/80">
+                      {locale === 'ko' ? '감지 이유' : 'Detection Reason'}
+                    </p>
+                    <p className="line-clamp-2 text-sm leading-relaxed text-amber-100/85">
+                      {rapidChangeReason}
+                    </p>
+                  </div>
+                )}
 
                 {availableLangs.length > 1 && (
                   <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/5">

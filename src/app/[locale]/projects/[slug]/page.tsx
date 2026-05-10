@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+import { getLocalizedMarketingContent } from '@/lib/report-marketing-content'
 import { cleanCardSummary } from '@/lib/report-summary'
-import { pickLocaleReport, reportSupportsLocale } from '@/lib/report-locale'
+import { pickLocaleReport, reportHasSlideAssetForLocale } from '@/lib/report-locale'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import type { ProjectReport, ReportType, TrackedProject } from '@/lib/types'
 
@@ -95,11 +96,11 @@ function pickLocalizedSummary(report: ProjectReport, locale: string): string | n
 }
 
 /**
- * Pick one report row per report type. Language-scoped slide rows must not
- * fall back to English on non-English pages; shared URL maps can exist on
- * sibling rows and are not proof that row content matches the route locale.
+ * Pick one report row per report type. Language-scoped slide rows use real
+ * locale assets first, then canonical English assets for locales whose report
+ * catalog intentionally falls back to English.
  */
-function selectReportsByType(
+export function selectReportsByType(
   reports: ProjectReport[],
   locale: string,
 ): Map<ReportType, ProjectReport> {
@@ -112,7 +113,7 @@ function selectReportsByType(
 
   const selected = new Map<ReportType, ProjectReport>()
   for (const [type, list] of byType.entries()) {
-    const eligible = list.filter((report) => reportSupportsLocale(report, locale))
+    const eligible = list.filter((report) => reportHasSlideAssetForLocale(report, locale))
     const pick = pickLocaleReport(eligible, locale)
     if (pick) selected.set(type, pick)
   }
@@ -140,9 +141,9 @@ export default async function ProjectDetailPage({ params }: Props) {
     .from('project_reports')
     .select('*')
     .eq('project_id', project.id)
-    .eq('status', 'published')
-    .not('published_at', 'is', null)
-    .order('published_at', { ascending: false })
+    .in('status', ['published', 'in_review'])
+    .not('slide_html_urls_by_lang', 'is', null)
+    .order('updated_at', { ascending: false })
 
   const reports = (reportsRaw || []) as ProjectReport[]
   const reportsByType = selectReportsByType(reports, locale)
@@ -244,6 +245,7 @@ export default async function ProjectDetailPage({ params }: Props) {
               const typeLabel = isKo ? theme.labelKo : theme.labelEn
               const title = pickLocalizedTitle(report, locale, project.symbol)
               const summary = pickLocalizedSummary(report, locale)
+              const marketingContent = getLocalizedMarketingContent(report, locale, summary)
               const route = REPORT_TYPE_ROUTE[report.report_type]
               const href = `/${locale}/reports/${project.slug}/${route}`
               const publishedAt = report.published_at
@@ -275,6 +277,17 @@ export default async function ProjectDetailPage({ params }: Props) {
                     <p className="text-sm text-gray-400 leading-relaxed mb-6 line-clamp-3 flex-1">
                       {summary}
                     </p>
+                  )}
+
+                  {marketingContent && (
+                    <div className="mb-6 rounded-xl border border-white/10 bg-gray-950/40 px-4 py-3">
+                      <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">
+                        {isKo ? '투자 관점' : 'Investment View'}
+                      </p>
+                      <p className="line-clamp-3 text-sm leading-relaxed text-gray-300">
+                        {marketingContent}
+                      </p>
+                    </div>
                   )}
 
                   {/* Footer */}

@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import GatedDownloadButton from '@/components/GatedDownloadButton'
 import { FORENSIC_LABELS, getLabel } from '@/lib/constants/forensic'
+import { getLocalizedMarketingContent } from '@/lib/report-marketing-content'
 import { cleanCardSummary } from '@/lib/report-summary'
 
 interface Props {
@@ -42,7 +43,9 @@ export default async function ForensicReportPage({ params }: Props) {
     .select('*')
     .eq('project_id', project.id)
     .eq('report_type', 'forensic')
-    .in('status', ['published', 'coming_soon'])
+    .in('status', ['published', 'coming_soon', 'in_review'])
+    .not('slide_html_urls_by_lang', 'is', null)
+    .order('updated_at', { ascending: false })
     .order('published_at', { ascending: false })
     .limit(1)
     .single()
@@ -85,6 +88,7 @@ export default async function ForensicReportPage({ params }: Props) {
     || getLabel(FORENSIC_LABELS.defaultSummary, locale)
     || '',
   )
+  const marketingContent = getLocalizedMarketingContent(report, locale, summary)
 
   const change24h = cardData?.price_change_24h ?? cardData?.change_24h ?? 0
   const direction = cardData?.direction ?? (change24h >= 0 ? 'up' : 'down')
@@ -97,13 +101,15 @@ export default async function ForensicReportPage({ params }: Props) {
 
   // Resolve the best available PDF URL for the current locale
   const urlsByLang = report.gdrive_urls_by_lang as Record<string, unknown> | null
+  const slideUrlsByLang = report.slide_html_urls_by_lang as Record<string, unknown> | null
   const resolveUrl = (val: unknown): string | undefined => {
     if (typeof val === 'string') return val
     if (val && typeof val === 'object' && 'url' in val) return (val as { url: string }).url
     return undefined
   }
   const localizedUrl = (urlsByLang && (resolveUrl(urlsByLang[locale]) || resolveUrl(urlsByLang['en']))) || null
-  const primaryUrl = report.file_url || report.gdrive_url || localizedUrl
+  const localizedSlideUrl = (slideUrlsByLang && (resolveUrl(slideUrlsByLang[locale]) || resolveUrl(slideUrlsByLang['en']))) || null
+  const primaryUrl = report.file_url || report.gdrive_url || localizedUrl || localizedSlideUrl
   const hasReport = !!primaryUrl
   const canDownload = hasReport && !isComingSoon
   const previewStatusLabel =
@@ -251,6 +257,16 @@ export default async function ForensicReportPage({ params }: Props) {
               <p className="text-gray-400 text-lg leading-relaxed max-w-2xl">
                 {summary}
               </p>
+              {marketingContent && (
+                <div className="mt-6 max-w-2xl rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                    {locale === 'ko' ? '투자 관점' : 'Investment View'}
+                  </p>
+                  <p className="whitespace-pre-line text-base leading-7 text-gray-300">
+                    {marketingContent}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Right: risk gauge */}

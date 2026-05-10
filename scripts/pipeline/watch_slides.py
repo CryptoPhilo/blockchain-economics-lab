@@ -3,6 +3,8 @@
 Slide Pipeline Watcher — BCE-1085 / BCE-1099
 
 Scans `Slide/{TYPE}/` and child folders for landscape slide PDFs,
+plus explicitly supported legacy report folders at
+`BCE Lab Reports/{slug}/{TYPE}/`,
 identifies (slug, lang) from PDF content, converts to a self-contained HTML
 viewer, uploads it to Supabase Storage, and merges the public URL into
 `project_reports.slide_html_urls_by_lang`.
@@ -20,7 +22,7 @@ Language detection:
 Usage:
     python watch_slides.py                      # all types (econ, mat, for)
     python watch_slides.py --type econ          # one report type only
-    python watch_slides.py --slug bitcoin       # post-resolution filter
+    python watch_slides.py --slug bitcoin       # targeted filename/folder hint filter
     python watch_slides.py --dry-run            # scan-only, no uploads
     python watch_slides.py --force              # ignore manifest, reprocess all
 """
@@ -30,12 +32,15 @@ import argparse
 import json
 import os
 import re
+import shutil
 import sys
 import tempfile
 import unicodedata
+import urllib.error
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 # Add pipeline directory to path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -68,6 +73,20 @@ TYPE_FOLDER_IDS: Dict[str, str] = {
     'for':  '1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex',
 }
 
+# Legacy report PDFs sometimes live outside the active Slide/{TYPE} roots.
+# They are still scanned so the watcher can either publish a landscape deck or
+# record an explicit portrait-report skip instead of leaving the DB state silent.
+LEGACY_REPORTS_ROOT_FOLDER_NAME = 'BCE Lab Reports'
+LEGACY_REPORTS_ROOT_FOLDER_ENV = 'BCE_LAB_REPORTS_FOLDER_ID'
+LEGACY_REPORTS_TYPE_FOLDER_NAMES: Dict[str, Set[str]] = {
+    'econ': {'econ', 'economic', 'economics'},
+    'mat': {'mat', 'maturity'},
+    'for': {'for', 'forensic'},
+}
+
+SOURCE_DRAFTS_ROOT_FOLDER_NAME = 'BCE Research Source Drafts'
+SOURCE_DRAFTS_ROOT_FOLDER_ENV = 'BCE_RESEARCH_SOURCE_DRAFTS_FOLDER_ID'
+
 # Internal type → DB enum (project_reports.report_type)
 DB_REPORT_TYPE: Dict[str, str] = {
     'econ': 'econ',
@@ -76,6 +95,9 @@ DB_REPORT_TYPE: Dict[str, str] = {
 }
 
 BUCKET_NAME = 'slides'
+REVIEW_READY_STATUS = 'in_review'
+PUBLICATION_APPROVED_STATUS = 'approved'
+PUBLICATION_PUBLISHED_STATUS = 'published'
 
 PIPELINE_DIR = Path(__file__).resolve().parent
 REPO_ROOT = PIPELINE_DIR.parent.parent
@@ -89,6 +111,7 @@ PDF_TEXT_PAGES = 3
 # NotebookLM slide decks are 16:9 landscape. Legacy PDF reports are portrait
 # documents and must not be published as slide HTML.
 MIN_SLIDE_ASPECT_RATIO = 1.25
+STALE_PROCESSING_AFTER_MINUTES = int(os.environ.get('SLIDE_PIPELINE_STALE_PROCESSING_MINUTES', '30'))
 
 # Tesseract trained-data codes per supported language. Used both for OCR of
 # raster-only PDFs and to control which language packs to install in CI.
@@ -101,6 +124,7 @@ TESSERACT_LANG_CODES: Dict[str, str] = {
     'ja': 'jpn',
     'zh': 'chi_sim',
 }
+_TESSERACT_AVAILABLE: Optional[bool] = None
 
 # Hints used when guessing language from PDF metadata strings.
 LANG_HINTS: List[Tuple[str, str]] = [
@@ -122,6 +146,74 @@ FILENAME_LANG_HINTS: List[Tuple[str, str]] = [
     ('ja', 'ja'), ('jp', 'ja'), ('jpn', 'ja'),
     ('zh', 'zh'), ('cn', 'zh'), ('chn', 'zh'),
 ]
+
+# Explicit watcher-only project aliases. These are intentionally narrow: aliases
+# may resolve a slug, but the existing content mismatch guard still blocks
+# publication when the PDF body points to another tracked project.
+PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
+    'ripple': ['xrpl', 'xrp ledger'],
+    'world-liberty-financial': ['wlf intelligence briefing', 'wlf economic architecture'],
+    'okx': ['x layer economic blueprint', 'x layer money chain analysis', 'x layer economic analysis'],
+    'ethereum': ['programmable trust blueprint'],
+    'bitcoin-cash': ['bch'],
+    'cardano': ['ada'],
+    'tether-gold': ['xaut'],
+    'global-dollar': ['usdg', 'global dollar usd'],
+    'mantle': ['mnt'],
+    'uniswap': ['uni'],
+    'polkadot': ['dot'],
+    'pi-network': ['pi'],
+    'cosmos-hub': ['cosmos'],
+    'worldcoin': ['world'],
+    'siren': ['sirenai', 'siren ai'],
+    'gate': ['gatechain', 'gate chain'],
+    'venice-token': ['venice ai', 'venice_ai'],
+}
+
+TRACKED_PROJECT_GUARD_FIELDS = (
+    'id, slug, name, symbol, status, '
+    'last_econ_report_at, last_maturity_report_at, last_forensic_report_at, '
+    'next_econ_due_at, next_maturity_due_at'
+)
+
+PAPERCLIP_PIPELINE_NAMES: Dict[str, str] = {
+    'econ': 'ECON Report Publishing',
+    'mat': 'MAT Report Publishing',
+    'for': 'FOR Report Publishing',
+}
+
+PAPERCLIP_NODE_STAGES: List[Tuple[str, str]] = [
+    ('source_collection', 'Slide PDF intake'),
+    ('research_synthesis', 'Analysis source confirmation'),
+    ('draft_report', 'Summary and marketing extraction'),
+    ('summary_marketing_localization', '7-language summary and marketing localization'),
+    ('editorial_review', 'Publication review'),
+    ('website_publish', 'Website publishing'),
+    ('post_publish_monitoring', 'Post-publish monitoring'),
+]
+
+PAPERCLIP_SUCCESS_STATUSES = {
+    'published',
+    'review_ready',
+    'review_ready_created',
+    'unchanged',
+    'dry_run',
+    'pruned_stale_languages',
+    'pruned_stale_storage',
+}
+
+PAPERCLIP_FAILURE_STATUSES = {'failed'}
+
+PAPERCLIP_BLOCKED_STATUSES = {
+    'unresolved',
+    'mismatch',
+    'language_mismatch',
+    'blocked_missing_analysis_source',
+    'prune_skipped_no_publishable_pdf',
+    'prune_skipped_no_project_id',
+    'prune_skipped_no_supabase',
+    'prune_storage_failed',
+}
 
 
 # ═══════════════════════════════════════════
@@ -161,6 +253,8 @@ def _list_pdfs_direct(service, parent_id: str) -> List[Dict]:
             fields='nextPageToken, files(id, name, modifiedTime, size)',
             pageToken=page_token,
             pageSize=1000,
+            supportsAllDrives=True,
+            includeItemsFromAllDrives=True,
         ).execute()
         out.extend(resp.get('files', []))
         page_token = resp.get('nextPageToken')
@@ -184,6 +278,62 @@ def _list_child_folders(service, parent_id: str) -> List[Dict]:
             fields='nextPageToken, files(id, name)',
             pageToken=page_token,
             pageSize=1000,
+            supportsAllDrives=True,
+            includeItemsFromAllDrives=True,
+        ).execute()
+        out.extend(resp.get('files', []))
+        page_token = resp.get('nextPageToken')
+        if not page_token:
+            break
+    return out
+
+
+def _list_non_folder_files_direct(service, parent_id: str) -> List[Dict]:
+    """List non-folder files in `parent_id` only."""
+    query = (
+        f"'{parent_id}' in parents "
+        f"and mimeType != '{GDRIVE_FOLDER_MIME}' "
+        f"and trashed = false"
+    )
+    out: List[Dict] = []
+    page_token = None
+    while True:
+        resp = service.files().list(
+            q=query,
+            fields='nextPageToken, files(id, name, mimeType, modifiedTime, size)',
+            pageToken=page_token,
+            pageSize=1000,
+            supportsAllDrives=True,
+            includeItemsFromAllDrives=True,
+        ).execute()
+        out.extend(resp.get('files', []))
+        page_token = resp.get('nextPageToken')
+        if not page_token:
+            break
+    return out
+
+
+def _drive_literal(value: str) -> str:
+    return (value or '').replace('\\', '\\\\').replace("'", "\\'")
+
+
+def _find_folders_by_name(service, name: str) -> List[Dict]:
+    """Find Drive folders by exact name across accessible drives."""
+    query = (
+        f"name = '{_drive_literal(name)}' "
+        f"and mimeType = '{GDRIVE_FOLDER_MIME}' "
+        f"and trashed = false"
+    )
+    out: List[Dict] = []
+    page_token = None
+    while True:
+        resp = service.files().list(
+            q=query,
+            fields='nextPageToken, files(id, name)',
+            pageToken=page_token,
+            pageSize=100,
+            supportsAllDrives=True,
+            includeItemsFromAllDrives=True,
         ).execute()
         out.extend(resp.get('files', []))
         page_token = resp.get('nextPageToken')
@@ -221,6 +371,49 @@ def _save_manifest(data: Dict[str, Dict]) -> None:
         json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True),
         encoding='utf-8',
     )
+
+
+def _parse_manifest_datetime(value: Any) -> Optional[datetime]:
+    if not isinstance(value, str) or not value.strip():
+        return None
+    raw = value.strip()
+    if raw.endswith('Z'):
+        raw = f"{raw[:-1]}+00:00"
+    try:
+        parsed = datetime.fromisoformat(raw)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def _processing_manifest_diagnostic(
+    manifest_entry: Dict[str, Any],
+    *,
+    now: datetime,
+    stale_after_minutes: int = STALE_PROCESSING_AFTER_MINUTES,
+) -> Optional[Dict[str, Any]]:
+    if manifest_entry.get('status') != 'processing':
+        return None
+    started_at_raw = manifest_entry.get('started_at')
+    started_at = _parse_manifest_datetime(started_at_raw)
+    if started_at is None:
+        return {
+            'is_stale': True,
+            'started_at': started_at_raw,
+            'age_minutes': None,
+            'stale_after_minutes': stale_after_minutes,
+            'reason': 'missing_or_invalid_started_at',
+        }
+    age_minutes = max(0, int((now.astimezone(timezone.utc) - started_at).total_seconds() // 60))
+    return {
+        'is_stale': age_minutes >= stale_after_minutes,
+        'started_at': started_at.isoformat(),
+        'age_minutes': age_minutes,
+        'stale_after_minutes': stale_after_minutes,
+        'reason': 'age_exceeded_threshold' if age_minutes >= stale_after_minutes else 'within_threshold',
+    }
 
 
 # ═══════════════════════════════════════════
@@ -291,6 +484,13 @@ def _ocr_first_page_text(pdf_path: str, max_pages: int = PDF_TEXT_PAGES) -> str:
     except Exception as e:
         print(f"    [WARN] OCR deps unavailable: {e}")
         return ''
+    global _TESSERACT_AVAILABLE
+    if _TESSERACT_AVAILABLE is None:
+        _TESSERACT_AVAILABLE = shutil.which('tesseract') is not None
+        if not _TESSERACT_AVAILABLE:
+            print("    [WARN] OCR binary unavailable: tesseract is not installed or not in PATH")
+    if not _TESSERACT_AVAILABLE:
+        return ''
     try:
         doc = fitz.open(pdf_path)
     except Exception:
@@ -324,19 +524,53 @@ def _ocr_first_page_text(pdf_path: str, max_pages: int = PDF_TEXT_PAGES) -> str:
 # ═══════════════════════════════════════════
 
 _TOKEN_RE = re.compile(r'[A-Za-z0-9]+')
+_ASCII_ONLY_RE = re.compile(r'^[a-z0-9 ]+$')
+_SIGNAL_SEPARATOR_RE = re.compile(r'[^a-z0-9]+')
 
 
 def _tokenize(text: str) -> List[str]:
     return [t.lower() for t in _TOKEN_RE.findall(text or '')]
 
 
-def _load_tracked_projects(sb) -> List[Dict[str, str]]:
-    """Fetch all tracked_projects (id, slug, name, symbol)."""
-    out: List[Dict[str, str]] = []
+def _normalize_signal_text(text: str) -> str:
+    return f" {_SIGNAL_SEPARATOR_RE.sub(' ', (text or '').lower()).strip()} "
+
+
+def _is_ascii_signal(sig: str) -> bool:
+    return bool(_ASCII_ONLY_RE.match(sig))
+
+
+def _score_signal_in_text(sig: str, t: str, normalized_text: str, tokens: Set[str]) -> int:
+    """Score one signal without allowing ASCII substring false positives."""
+    if not sig:
+        return 0
+
+    normalized_sig = _normalize_signal_text(sig)
+    normalized_sig_body = normalized_sig.strip()
+    ascii_signal = _is_ascii_signal(normalized_sig_body)
+    has_phrase_separator = bool(re.search(r'[\s-]', sig))
+
+    if ascii_signal:
+        if has_phrase_separator:
+            return len(sig) * 2 if normalized_sig in normalized_text else 0
+        return len(sig) * 2 if sig in tokens else 0
+
+    if has_phrase_separator and normalized_sig_body and normalized_sig in normalized_text:
+        return len(sig) * 2
+    if sig in tokens:
+        return len(sig) * 2
+    if len(sig) >= 2 and sig in t:
+        return len(sig) * 2
+    return 0
+
+
+def _load_tracked_projects(sb) -> List[Dict[str, Any]]:
+    """Fetch all tracked_projects (id, slug, name, symbol, aliases)."""
+    out: List[Dict[str, Any]] = []
     page_size = 1000
     offset = 0
     while True:
-        res = sb.table('tracked_projects').select('id, slug, name, symbol') \
+        res = sb.table('tracked_projects').select('id, slug, name, symbol, aliases') \
             .range(offset, offset + page_size - 1).execute()
         rows = res.data or []
         out.extend(rows)
@@ -346,7 +580,517 @@ def _load_tracked_projects(sb) -> List[Dict[str, str]]:
     return out
 
 
-def _project_signal(project: Dict[str, str]) -> List[str]:
+def _lang_map_has_value(value: Any) -> bool:
+    if isinstance(value, str):
+        return bool(value.strip())
+    if isinstance(value, dict):
+        return any(_lang_map_has_value(v) for v in value.values())
+    if isinstance(value, list):
+        return any(_lang_map_has_value(v) for v in value)
+    return False
+
+
+def _report_row_has_slide_html(row: Dict[str, Any]) -> bool:
+    return _lang_map_has_value(row.get('slide_html_urls_by_lang'))
+
+
+def _report_row_has_legacy_pdf_url(row: Dict[str, Any]) -> bool:
+    return any(
+        _lang_map_has_value(row.get(field))
+        for field in (
+            'gdrive_urls_by_lang',
+            'gdrive_url',
+            'file_url',
+            'gdrive_file_id',
+        )
+    )
+
+
+def _missing_report_backlog_reason(report_rows: List[Dict[str, Any]]) -> str:
+    if any(_report_row_has_legacy_pdf_url(row) for row in report_rows):
+        return 'legacy_pdf_only_no_slide_html'
+    if report_rows:
+        return 'project_report_no_slide_html'
+    return 'no_project_report_slide_state'
+
+
+def find_active_projects_missing_report_backlog(sb) -> List[Dict[str, Any]]:
+    """Find active projects missing current slide production state.
+
+    Legacy ECON rows with only Google Drive/PDF URLs are report history, but they
+    are not evidence that the slide pipeline has produced HTML. The guard should
+    therefore count only rows with slide_html_urls_by_lang, plus explicit future
+    schedule markers, as satisfying the slide backlog state.
+    """
+    projects_result = (
+        sb.table('tracked_projects')
+        .select(TRACKED_PROJECT_GUARD_FIELDS)
+        .eq('status', 'active')
+        .execute()
+    )
+    projects = projects_result.data or []
+    if not projects:
+        return []
+
+    project_ids = [p['id'] for p in projects if p.get('id')]
+    slide_reported_project_ids: Set[str] = set()
+    report_rows_by_project_id: Dict[str, List[Dict[str, Any]]] = {}
+    if project_ids:
+        reports_result = (
+            sb.table('project_reports')
+            .select(
+                'project_id, gdrive_urls_by_lang, gdrive_url, file_url, '
+                'gdrive_file_id, slide_html_urls_by_lang'
+            )
+            .in_('project_id', project_ids)
+            .execute()
+        )
+        for row in reports_result.data or []:
+            project_id = row.get('project_id')
+            if project_id:
+                report_rows_by_project_id.setdefault(project_id, []).append(row)
+        slide_reported_project_ids = {
+            row.get('project_id')
+            for row in (reports_result.data or [])
+            if row.get('project_id') and _report_row_has_slide_html(row)
+        }
+
+    projects_with_report_state: Set[str] = set(slide_reported_project_ids)
+    active_report_state_symbols: Set[str] = set()
+    for project in projects:
+        marker_values = [
+            project.get('next_econ_due_at'),
+            project.get('next_maturity_due_at'),
+        ]
+        if project.get('id') in slide_reported_project_ids or any(marker_values):
+            projects_with_report_state.add(project.get('id'))
+            symbol = (project.get('symbol') or '').strip().upper()
+            if symbol:
+                active_report_state_symbols.add(symbol)
+
+    missing = []
+    for project in projects:
+        if project.get('id') in slide_reported_project_ids:
+            continue
+        marker_values = [
+            project.get('next_econ_due_at'),
+            project.get('next_maturity_due_at'),
+        ]
+        if any(marker_values):
+            continue
+        symbol = (project.get('symbol') or '').strip().upper()
+        if (
+            symbol
+            and symbol in active_report_state_symbols
+            and project.get('id') not in projects_with_report_state
+        ):
+            continue
+        reason = _missing_report_backlog_reason(
+            report_rows_by_project_id.get(project.get('id'), [])
+        )
+        missing.append({
+            'id': project.get('id'),
+            'slug': project.get('slug'),
+            'name': project.get('name'),
+            'symbol': project.get('symbol'),
+            'status': 'missing_slide_html',
+            'reason': reason,
+        })
+
+    return sorted(missing, key=lambda p: p.get('slug') or '')
+
+
+def run_active_project_backlog_guard() -> List[Dict[str, Any]]:
+    """Run the backlog guard from the current slide watcher path."""
+    try:
+        from supabase_storage import get_supabase_storage_client
+        sb = get_supabase_storage_client()
+    except Exception as e:
+        print(f"\n[GUARD] Unable to create Supabase client: {e}")
+        return []
+
+    try:
+        missing = find_active_projects_missing_report_backlog(sb)
+    except Exception as e:
+        print(f"\n[GUARD] Unable to check active project backlog: {e}")
+        return []
+
+    if missing:
+        print("\n[GUARD] Active projects missing report backlog:")
+        for project in missing:
+            symbol = project.get('symbol') or '?'
+            name = project.get('name') or project.get('slug') or '?'
+            reason = project.get('reason') or 'unknown'
+            status = project.get('status') or 'missing'
+            print(f"  - {project.get('slug')} ({symbol}) — {name} [{status}: {reason}]")
+    else:
+        print("\n[GUARD] No active projects missing report backlog")
+    return missing
+
+
+# ═══════════════════════════════════════════
+# Optional Paperclip telemetry
+# ═══════════════════════════════════════════
+
+def _paperclip_utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _paperclip_configured() -> bool:
+    return bool(
+        os.environ.get('PAPERCLIP_API_URL')
+        and (
+            os.environ.get('PAPERCLIP_API_KEY')
+            or os.environ.get('PAPERCLIP_AGENT_TOKEN')
+            or os.environ.get('PAPERCLIP_TOKEN')
+        )
+    )
+
+
+def _paperclip_auth_token() -> Optional[str]:
+    return (
+        os.environ.get('PAPERCLIP_API_KEY')
+        or os.environ.get('PAPERCLIP_AGENT_TOKEN')
+        or os.environ.get('PAPERCLIP_TOKEN')
+    )
+
+
+def _paperclip_pipeline_id_from_env(rtype: str) -> Optional[str]:
+    suffix = rtype.upper()
+    return (
+        os.environ.get(f'PAPERCLIP_{suffix}_PIPELINE_ID')
+        or os.environ.get(f'PAPERCLIP_PIPELINE_ID_{suffix}')
+        or os.environ.get(f'PAPERCLIP_PIPELINE_{suffix}_ID')
+    )
+
+
+def _paperclip_pipeline_name_from_env(rtype: str) -> str:
+    suffix = rtype.upper()
+    return (
+        os.environ.get(f'PAPERCLIP_{suffix}_PIPELINE_NAME')
+        or os.environ.get(f'PAPERCLIP_PIPELINE_NAME_{suffix}')
+        or PAPERCLIP_PIPELINE_NAMES[rtype]
+    )
+
+
+def build_paperclip_run_payload(
+    *,
+    rtype: str,
+    scan_time: str,
+    dry_run: bool,
+    force: bool,
+    slug: Optional[str],
+) -> Dict[str, Any]:
+    return {
+        'status': 'running',
+        'triggerType': 'schedule' if os.environ.get('GITHUB_ACTIONS') else 'manual',
+        'startedAt': _paperclip_utc_now(),
+        'summary': f"{rtype.upper()} slide watcher started",
+        'metadata': {
+            'reportType': rtype,
+            'scanTime': scan_time,
+            'dryRun': dry_run,
+            'force': force,
+            'slug': slug,
+            'githubRunId': os.environ.get('GITHUB_RUN_ID'),
+            'githubRunNumber': os.environ.get('GITHUB_RUN_NUMBER'),
+            'githubWorkflow': os.environ.get('GITHUB_WORKFLOW'),
+            'githubSha': os.environ.get('GITHUB_SHA'),
+        },
+    }
+
+
+def build_paperclip_node_run_payload(
+    *,
+    pipeline_run_id: str,
+    node_id: str,
+    rtype: str,
+    stage_key: str,
+    stage_name: str,
+    status: str,
+    metrics: Dict[str, int],
+    log_path: Optional[str],
+) -> Dict[str, Any]:
+    now = _paperclip_utc_now()
+    return {
+        'runId': pipeline_run_id,
+        'nodeId': node_id,
+        'status': status,
+        'startedAt': now,
+        'finishedAt': now,
+        'summary': f"{stage_name}: {status}",
+        'metadata': {
+            'reportType': rtype,
+            'nodeKey': stage_key,
+            'nodeName': stage_name,
+            'metrics': metrics,
+            'logArtifactPath': log_path,
+            'source': 'watch_slides.py',
+        },
+    }
+
+
+def build_paperclip_event_payload(
+    *,
+    pipeline_run_id: str,
+    rtype: str,
+    status: str,
+    metrics: Dict[str, int],
+    log_path: Optional[str],
+    warnings: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    return {
+        'runId': pipeline_run_id,
+        'eventType': 'slide_watcher.completed',
+        'severity': 'error' if status == 'failed' else 'warning' if status == 'waiting_manual' else 'info',
+        'message': (
+            f"{rtype.upper()} slide watcher completed: "
+            f"scanned={metrics['scanned']} processed={metrics['processed']} "
+            f"review_ready={metrics['review_ready']} unresolved={metrics['unresolved']} "
+            f"failed={metrics['failed']}"
+        ),
+        'occurredAt': _paperclip_utc_now(),
+        'artifactRef': log_path,
+        'details': {
+            'reportType': rtype,
+            'status': status,
+            'metrics': metrics,
+            'logArtifactPath': log_path,
+            'warnings': warnings or [],
+            'source': 'watch_slides.py',
+        },
+    }
+
+
+def _paperclip_counts_for_type(
+    rtype: str,
+    scanned: List[Dict[str, Any]],
+    processed: List[Dict[str, Any]],
+) -> Dict[str, int]:
+    scanned_for_type = [r for r in scanned if r.get('rtype') == rtype]
+    processed_for_type = [r for r in processed if r.get('rtype') == rtype]
+    return {
+        'scanned': len(scanned_for_type),
+        'processed': len(processed_for_type),
+        'published': sum(1 for r in processed_for_type if r.get('status') == 'published'),
+        'review_ready': sum(1 for r in processed_for_type if r.get('status') == 'review_ready'),
+        'unresolved': sum(1 for r in processed_for_type if r.get('status') == 'unresolved'),
+        'failed': sum(1 for r in processed_for_type if r.get('status') in PAPERCLIP_FAILURE_STATUSES),
+        'blocked': sum(1 for r in processed_for_type if r.get('status') in PAPERCLIP_BLOCKED_STATUSES),
+    }
+
+
+def _paperclip_status_for_counts(metrics: Dict[str, int]) -> str:
+    if metrics.get('failed', 0) > 0:
+        return 'failed'
+    if metrics.get('blocked', 0) > 0 or metrics.get('unresolved', 0) > 0:
+        return 'waiting_manual'
+    return 'succeeded'
+
+
+class PaperclipTelemetry:
+    def __init__(self) -> None:
+        self.enabled = _paperclip_configured()
+        self.api_url = (os.environ.get('PAPERCLIP_API_URL') or '').rstrip('/')
+        self.company_id = os.environ.get('PAPERCLIP_COMPANY_ID')
+        self.token = _paperclip_auth_token()
+        self.pipeline_ids: Dict[str, str] = {}
+        self.node_ids: Dict[str, Dict[str, str]] = {}
+        self.run_ids: Dict[str, str] = {}
+        self.warnings: List[str] = []
+
+    def warn(self, message: str) -> None:
+        self.warnings.append(message)
+        print(f"  [WARN] Paperclip telemetry: {message}")
+
+    def _url_for_path(self, path: str) -> str:
+        if self.api_url.endswith('/api') and path.startswith('/api/'):
+            return f"{self.api_url}{path[4:]}"
+        return f"{self.api_url}{path}"
+
+    def _request_once(
+        self,
+        method: str,
+        path: str,
+        payload: Optional[Dict[str, Any]] = None,
+    ) -> Tuple[Optional[Any], Optional[str]]:
+        if not self.enabled:
+            return None, None
+        body = None
+        headers = {
+            'Accept': 'application/json',
+            'Authorization': f'Bearer {self.token}',
+        }
+        if payload is not None:
+            body = json.dumps(payload).encode('utf-8')
+            headers['Content-Type'] = 'application/json'
+        run_id = os.environ.get('PAPERCLIP_RUN_ID')
+        if run_id:
+            headers['X-Paperclip-Run-Id'] = run_id
+        url = self._url_for_path(path)
+        req = urllib.request.Request(url, data=body, headers=headers, method=method)
+        try:
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                raw = resp.read().decode('utf-8')
+                if not raw:
+                    return {}, None
+                content_type = resp.headers.get('content-type', '')
+                if 'application/json' not in content_type:
+                    raise RuntimeError(f"non-JSON response from {path}: {content_type}")
+                return json.loads(raw), None
+        except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, RuntimeError, json.JSONDecodeError) as e:
+            return None, str(e)
+
+    def request(self, method: str, path: str, payload: Optional[Dict[str, Any]] = None) -> Optional[Any]:
+        paths = [path]
+        if not path.startswith('/api/'):
+            paths.append(f'/api{path}')
+        last_error = None
+        for candidate in paths:
+            response, error = self._request_once(method, candidate, payload)
+            if error is None:
+                return response
+            last_error = error
+        self.warn(f"{method} {path} failed: {last_error}")
+        return None
+
+    def resolve_pipeline_id(self, rtype: str) -> Optional[str]:
+        configured_id = _paperclip_pipeline_id_from_env(rtype)
+        if configured_id:
+            self.resolve_pipeline_nodes(configured_id, rtype)
+            return configured_id
+        if not self.company_id:
+            self.warn(f"{rtype.upper()} pipeline id not configured and PAPERCLIP_COMPANY_ID is missing")
+            return None
+        response = self.request('GET', f'/api/companies/{self.company_id}/pipelines')
+        if not isinstance(response, list):
+            self.warn(f"{rtype.upper()} pipeline lookup returned no pipeline list")
+            return None
+        expected_name = _paperclip_pipeline_name_from_env(rtype)
+        for pipeline in response:
+            if (pipeline.get('name') or '').strip() == expected_name:
+                pipeline_id = pipeline.get('id')
+                if pipeline_id:
+                    self.resolve_pipeline_nodes(pipeline_id, rtype)
+                return pipeline_id
+        self.warn(f"{rtype.upper()} pipeline not found by name: {expected_name}")
+        return None
+
+    def resolve_pipeline_nodes(self, pipeline_id: str, rtype: str) -> None:
+        response = self.request('GET', f'/api/pipelines/{pipeline_id}')
+        if not isinstance(response, dict):
+            self.warn(f"{rtype.upper()} pipeline detail lookup failed for node ids")
+            return
+        nodes = response.get('nodes')
+        if not isinstance(nodes, list):
+            self.warn(f"{rtype.upper()} pipeline detail did not include nodes")
+            return
+        node_ids = {
+            str(node.get('nodeKey')): str(node.get('id'))
+            for node in nodes
+            if node.get('nodeKey') and node.get('id')
+        }
+        missing = [stage_key for stage_key, _stage_name in PAPERCLIP_NODE_STAGES if stage_key not in node_ids]
+        if missing:
+            self.warn(f"{rtype.upper()} pipeline missing node keys: {', '.join(missing)}")
+        self.node_ids[rtype] = node_ids
+
+    def start_runs(self, types: List[str], *, scan_time: str, dry_run: bool, force: bool, slug: Optional[str]) -> None:
+        if not self.enabled:
+            self.warn('disabled; set PAPERCLIP_API_URL and PAPERCLIP_API_KEY to publish pipeline telemetry')
+            return
+        for rtype in types:
+            pipeline_id = self.resolve_pipeline_id(rtype)
+            if not pipeline_id:
+                continue
+            self.pipeline_ids[rtype] = pipeline_id
+            payload = build_paperclip_run_payload(
+                rtype=rtype,
+                scan_time=scan_time,
+                dry_run=dry_run,
+                force=force,
+                slug=slug,
+            )
+            response = self.request('POST', f'/pipelines/{pipeline_id}/runs', payload)
+            run_id = (response or {}).get('id') or (response or {}).get('runId')
+            if run_id:
+                self.run_ids[rtype] = run_id
+            else:
+                self.warn(f"{rtype.upper()} run was not created")
+
+    def complete_runs(
+        self,
+        types: List[str],
+        *,
+        scanned: List[Dict[str, Any]],
+        processed: List[Dict[str, Any]],
+        log_path: Optional[str],
+    ) -> None:
+        if not self.enabled:
+            return
+        for rtype in types:
+            pipeline_id = self.pipeline_ids.get(rtype)
+            run_id = self.run_ids.get(rtype)
+            if not pipeline_id or not run_id:
+                continue
+            metrics = _paperclip_counts_for_type(rtype, scanned, processed)
+            status = _paperclip_status_for_counts(metrics)
+            node_ids = self.node_ids.get(rtype, {})
+            for stage_key, stage_name in PAPERCLIP_NODE_STAGES:
+                node_id = node_ids.get(stage_key)
+                if not node_id:
+                    self.warn(f"{rtype.upper()} node run skipped; missing node id for {stage_key}")
+                    continue
+                self.request(
+                    'POST',
+                    f'/pipeline-runs/{run_id}/node-runs',
+                    build_paperclip_node_run_payload(
+                        pipeline_run_id=run_id,
+                        node_id=node_id,
+                        rtype=rtype,
+                        stage_key=stage_key,
+                        stage_name=stage_name,
+                        status=status,
+                        metrics=metrics,
+                        log_path=log_path,
+                    ),
+                )
+            self.request(
+                'POST',
+                f'/pipelines/{pipeline_id}/events',
+                build_paperclip_event_payload(
+                    pipeline_run_id=run_id,
+                    rtype=rtype,
+                    status=status,
+                    metrics=metrics,
+                    log_path=log_path,
+                    warnings=self.warnings,
+                ),
+            )
+            self.request(
+                'PATCH',
+                f'/pipeline-runs/{run_id}',
+                {
+                    'status': status,
+                    'finishedAt': _paperclip_utc_now(),
+                    'summary': (
+                        f"{rtype.upper()} slide watcher completed: "
+                        f"scanned={metrics['scanned']} processed={metrics['processed']} "
+                        f"review_ready={metrics['review_ready']} unresolved={metrics['unresolved']} "
+                        f"failed={metrics['failed']}"
+                    ),
+                    'metadata': {
+                        'reportType': rtype,
+                        'metrics': metrics,
+                        'logArtifactPath': log_path,
+                        'telemetryWarnings': self.warnings,
+                        'source': 'watch_slides.py',
+                    },
+                },
+            )
+
+
+def _project_signal(project: Dict[str, Any]) -> List[str]:
     """Return lowercase tokens that identify a project.
 
     Uses only the full slug/name/symbol strings; hyphenated slug parts are
@@ -358,6 +1102,14 @@ def _project_signal(project: Dict[str, str]) -> List[str]:
         v = (project.get(key) or '').strip().lower()
         if v:
             sigs.append(v)
+    aliases = project.get('aliases') or []
+    if isinstance(aliases, list):
+        sigs.extend(
+            alias.strip().lower()
+            for alias in aliases
+            if isinstance(alias, str) and alias.strip()
+        )
+    sigs.extend(PROJECT_ALIAS_REGISTRY.get((project.get('slug') or '').lower(), []))
     return list({s for s in sigs if s})
 
 
@@ -366,22 +1118,13 @@ def _match_project_by_text(text: str, projects: List[Dict[str, str]]) -> Optiona
     if not text:
         return None
     t = text.lower()
+    normalized_text = _normalize_signal_text(text)
     tokens = set(_tokenize(text))
     best: Optional[Tuple[int, Dict[str, str]]] = None
     for proj in projects:
         score = 0
         for sig in _project_signal(proj):
-            if not sig:
-                continue
-            # prefer multi-word/symbol exact-token match; fall back to substring
-            if ' ' in sig or '-' in sig:
-                if sig in t:
-                    score = max(score, len(sig) * 2)
-            else:
-                if sig in tokens:
-                    score = max(score, len(sig) * 2)
-                elif len(sig) >= 4 and sig in t:
-                    score = max(score, len(sig))
+            score = max(score, _score_signal_in_text(sig, t, normalized_text, tokens))
         if score and (best is None or score > best[0]):
             best = (score, proj)
     return best[1] if best else None
@@ -411,19 +1154,11 @@ def _score_project_in_text(text: str, proj: Dict[str, str]) -> int:
     if not text:
         return 0
     t = text.lower()
+    normalized_text = _normalize_signal_text(text)
     tokens = set(_tokenize(text))
     score = 0
     for sig in _project_signal(proj):
-        if not sig:
-            continue
-        if ' ' in sig or '-' in sig:
-            if sig in t:
-                score = max(score, len(sig) * 2)
-        else:
-            if sig in tokens:
-                score = max(score, len(sig) * 2)
-            elif len(sig) >= 4 and sig in t:
-                score = max(score, len(sig))
+        score = max(score, _score_signal_in_text(sig, t, normalized_text, tokens))
     return score
 
 
@@ -440,17 +1175,18 @@ def _detect_slug_content_mismatch(
     a mismatch descriptor if body content matches a *different* project with
     a meaningfully higher score than the resolved slug; returns None otherwise.
 
-    Heuristic: only blocks when (a) the body has an interpretable text layer,
-    (b) some other project's score is at least 12 (covers most slug/name
-    tokens >=6 chars), and (c) that score is strictly higher than the resolved
-    project's body score. Empty-text-layer PDFs (e.g. NotebookLM raster) are
-    skipped to avoid false positives.
+    Heuristic: text-layer bodies keep the existing strict guard. OCR-only
+    bodies use a higher threshold because NotebookLM raster exports can produce
+    generic or noisy project signals.
     """
     if resolved_project is None:
         return None
     body = (pdf_text or '') + '\n' + (ocr_text or '')
     if len(body.strip()) < 200:
         return None  # not enough body text to decide reliably
+    has_interpretable_text_layer = len((pdf_text or '').strip()) >= 200
+    min_other_score = 12 if has_interpretable_text_layer else 24
+    min_score_margin = 1 if has_interpretable_text_layer else 12
     expected_score = _score_project_in_text(body, resolved_project)
     expected_slug = (resolved_project.get('slug') or '').lower()
     best_other: Optional[Tuple[int, Dict[str, str]]] = None
@@ -458,9 +1194,9 @@ def _detect_slug_content_mismatch(
         if (proj.get('slug') or '').lower() == expected_slug:
             continue
         score = _score_project_in_text(body, proj)
-        if score >= 12 and (best_other is None or score > best_other[0]):
+        if score >= min_other_score and (best_other is None or score > best_other[0]):
             best_other = (score, proj)
-    if best_other and best_other[0] > expected_score:
+    if best_other and best_other[0] >= expected_score + min_score_margin:
         other_slug = (best_other[1].get('slug') or '').lower()
         return {
             'expected_slug': expected_slug,
@@ -538,6 +1274,14 @@ def _cjk_script_signature(text: str) -> Optional[str]:
     return None
 
 
+def _is_han_dominant_zh(counts: Dict[str, int]) -> bool:
+    """Return true when Chinese Han text clearly outweighs OCR kana noise."""
+    han = counts.get('han', 0)
+    kana = counts.get('kana', 0)
+    hangul = counts.get('hangul', 0)
+    return hangul == 0 and han >= 20 and (kana == 0 or han >= kana * 4)
+
+
 def _lang_from_text(text: str) -> Optional[str]:
     if not text or len(text.strip()) < 30:
         # Even on short text, kana/hangul presence is decisive enough.
@@ -581,6 +1325,7 @@ def _detect_language_content_mismatch(
     resolved_lang: Optional[str],
     pdf_text: str,
     ocr_text: str,
+    lang_source: Optional[str] = None,
 ) -> Optional[Dict[str, str]]:
     """Flag high-confidence CJK body text that contradicts resolved language.
 
@@ -591,8 +1336,12 @@ def _detect_language_content_mismatch(
     """
     if not resolved_lang:
         return None
+    if resolved_lang not in {'ko', 'ja', 'zh'}:
+        return None
 
     for source, text in (('text', pdf_text), ('ocr', ocr_text)):
+        if source == 'ocr' and lang_source == 'filename':
+            continue
         counts = _cjk_script_counts(text or '')
         if resolved_lang == 'ja' and counts['hangul'] >= 4:
             return {
@@ -610,12 +1359,13 @@ def _detect_language_content_mismatch(
                     'reason': 'mixed_cjk_script',
                 }
             if counts['kana'] >= 4:
-                return {
-                    'resolved_lang': resolved_lang,
-                    'detected_lang': 'ja',
-                    'source': source,
-                    'reason': 'mixed_cjk_script',
-                }
+                if not _is_han_dominant_zh(counts):
+                    return {
+                        'resolved_lang': resolved_lang,
+                        'detected_lang': 'ja',
+                        'source': source,
+                        'reason': 'mixed_cjk_script',
+                    }
         if resolved_lang == 'ko' and counts['kana'] >= 4:
             return {
                 'resolved_lang': resolved_lang,
@@ -625,6 +1375,8 @@ def _detect_language_content_mismatch(
             }
 
         detected = _cjk_script_signature(text or '')
+        if resolved_lang == 'zh' and detected == 'ja' and _is_han_dominant_zh(counts):
+            continue
         if detected and detected != resolved_lang:
             return {
                 'resolved_lang': resolved_lang,
@@ -639,25 +1391,26 @@ def _detect_language_content_mismatch(
 # DB lookup helpers
 # ═══════════════════════════════════════════
 
-def _find_report_for_lang(sb, project_id: str, db_type: str, lang: str) -> Tuple[Optional[str], Optional[int]]:
+def _find_report_for_lang(sb, project_id: str, db_type: str, lang: str) -> Tuple[Optional[str], Optional[int], Optional[str]]:
     """Find the latest published project_reports row for (project, type, language).
 
     project_reports rows are scoped per (project, type, language); without the
     language filter the URL for one language would be merged into another
     language's row.
     """
-    rep = sb.table('project_reports').select('id, version, status, published_at') \
+    rep = sb.table('project_reports').select('id, version, status, published_at, updated_at') \
         .eq('project_id', project_id) \
         .eq('report_type', db_type) \
         .eq('language', lang) \
-        .in_('status', ['published', 'coming_soon']) \
-        .order('published_at', desc=True) \
+        .in_('status', [PUBLICATION_PUBLISHED_STATUS, 'coming_soon', PUBLICATION_APPROVED_STATUS, REVIEW_READY_STATUS]) \
+        .order('updated_at', desc=True) \
         .limit(1) \
         .execute()
     if not rep.data:
-        return None, None
+        return None, None, None
     report_id = rep.data[0]['id']
     version = rep.data[0].get('version')
+    status = rep.data[0].get('status')
 
     try:
         rv = sb.table('report_versions').select('version') \
@@ -671,38 +1424,249 @@ def _find_report_for_lang(sb, project_id: str, db_type: str, lang: str) -> Tuple
     except Exception:
         pass
 
-    return report_id, version
+    return report_id, version, status
 
 
-def _find_any_report_id(sb, project_id: str, db_type: str) -> Optional[str]:
-    """Fallback row when no (project, type, language) match exists.
+def _create_report_row_for_slide(
+    sb,
+    *,
+    project_id: str,
+    db_type: str,
+    slug: str,
+    lang: str,
+    pdf_file_id: str,
+    pdf_name: str,
+    public_url: str,
+    version: Optional[int],
+    status: str = REVIEW_READY_STATUS,
+) -> Tuple[Optional[str], Optional[int]]:
+    """Create a project_reports row when a slide PDF has no report shell yet."""
+    now = datetime.now(timezone.utc).isoformat()
+    resolved_version = version or 1
+    gdrive_url = f"https://drive.google.com/file/d/{pdf_file_id}/view?usp=drivesdk"
+    row = {
+        'project_id': project_id,
+        'report_type': db_type,
+        'version': resolved_version,
+        'language': lang,
+        'status': status,
+        'review_at': now if status == REVIEW_READY_STATUS else None,
+        'published_at': now if status == PUBLICATION_PUBLISHED_STATUS else None,
+        'file_url': gdrive_url,
+        'gdrive_url': gdrive_url,
+        'gdrive_file_id': pdf_file_id,
+        'gdrive_urls_by_lang': {lang: gdrive_url},
+        'slide_html_urls_by_lang': {lang: public_url},
+        'translation_status': {lang: status},
+        'card_data': {
+            'report_type': 'econ' if db_type == 'econ' else db_type,
+            'slug': slug,
+            'generated_at': now,
+        },
+        'updated_at': now,
+    }
+    title_col = f"title_{lang}"
+    if lang in SUPPORTED_LANGS:
+        row[title_col] = Path(pdf_name).stem.replace('_', ' ')
 
-    The frontend merges `slide_html_urls_by_lang` across every language row of
-    the same (project, type), so writing the URL into any sibling row keeps the
-    exact language available without rendering a different language on the
-    current locale route.
-    """
-    rep = sb.table('project_reports').select('id') \
-        .eq('project_id', project_id) \
-        .eq('report_type', db_type) \
-        .in_('status', ['published', 'coming_soon']) \
-        .order('published_at', desc=True) \
-        .limit(1) \
-        .execute()
-    return rep.data[0]['id'] if rep.data else None
+    result = sb.table('project_reports').upsert(
+        row,
+        on_conflict='project_id,report_type,version,language',
+    ).execute()
+    data = result.data or []
+    report_id = data[0].get('id') if data else None
+
+    timestamp_field = _tracked_timestamp_field(db_type)
+    if timestamp_field and status in {PUBLICATION_PUBLISHED_STATUS, 'coming_soon'}:
+        sb.table('tracked_projects').update({
+            timestamp_field: now,
+            'updated_at': now,
+        }).eq('id', project_id).execute()
+
+    return report_id, resolved_version
 
 
-def _merge_slide_url(sb, report_id: str, lang: str, public_url: str) -> None:
-    current = sb.table('project_reports').select('slide_html_urls_by_lang') \
+def _target_publication_status(current_status: Optional[str]) -> str:
+    """Keep generated assets in review until an editor approves publication."""
+    if current_status == PUBLICATION_APPROVED_STATUS:
+        return PUBLICATION_PUBLISHED_STATUS
+    return REVIEW_READY_STATUS
+
+
+def _tracked_timestamp_field(report_type: str) -> Optional[str]:
+    if report_type == 'econ':
+        return 'last_econ_report_at'
+    if report_type == 'maturity':
+        return 'last_maturity_report_at'
+    if report_type == 'forensic':
+        return 'last_forensic_report_at'
+    return None
+
+
+def _merge_slide_url(
+    sb,
+    report_id: str,
+    lang: str,
+    public_url: str,
+    status: str,
+    published_at: Optional[str] = None,
+) -> None:
+    publish_ts = published_at or datetime.now(timezone.utc).isoformat()
+    current = sb.table('project_reports').select(
+        'slide_html_urls_by_lang, card_data, project_id, report_type'
+    ) \
         .eq('id', report_id).single().execute()
-    urls = (current.data or {}).get('slide_html_urls_by_lang') or {}
-    if not isinstance(urls, dict):
-        urls = {}
-    urls[lang] = public_url
-    sb.table('project_reports').update({
+    row = current.data or {}
+    # project_reports rows are language-scoped; do not carry over stale
+    # sibling-language URLs left by older cross-language fallback merges.
+    urls = {lang: public_url}
+    card_data = row.get('card_data')
+    if isinstance(card_data, dict):
+        card_data = {**card_data, 'generated_at': publish_ts}
+    update_payload = {
         'slide_html_urls_by_lang': urls,
-        'updated_at': datetime.now(timezone.utc).isoformat(),
-    }).eq('id', report_id).execute()
+        'status': status,
+        'updated_at': publish_ts,
+    }
+    if status == PUBLICATION_PUBLISHED_STATUS:
+        update_payload['published_at'] = publish_ts
+    elif status == REVIEW_READY_STATUS:
+        update_payload['review_at'] = publish_ts
+        update_payload['published_at'] = None
+    if isinstance(card_data, dict):
+        update_payload['card_data'] = card_data
+    sb.table('project_reports').update(update_payload).eq('id', report_id).execute()
+
+    timestamp_field = _tracked_timestamp_field(str(row.get('report_type') or ''))
+    project_id = row.get('project_id')
+    if timestamp_field and project_id and status in {PUBLICATION_PUBLISHED_STATUS, 'coming_soon'}:
+        sb.table('tracked_projects').update({
+            timestamp_field: publish_ts,
+            'updated_at': publish_ts,
+        }).eq('id', project_id).execute()
+
+
+def _generate_summary_after_slide_publish(
+    sb,
+    drive_service,
+    *,
+    project: Dict[str, Any],
+    rtype: str,
+    report_id: Optional[str],
+    version: Optional[int],
+    source: Optional[Any] = None,
+) -> bool:
+    """Generate website card copy after a slide deck is published."""
+    if rtype not in {'econ', 'mat', 'for'} or not report_id:
+        return False
+    report_label = rtype.upper()
+
+    try:
+        from marketing_content_pipeline import build_project_report_patch_from_drive_source
+
+        if source is None:
+            source = _find_analysis_source_for_slide(
+                drive_service,
+                project=project,
+                rtype=rtype,
+                version=version,
+            )
+        if not source:
+            print(
+                f"    [WARN] {report_label} summary skipped: no Drive analysis/{report_label} source "
+                f"for {project.get('slug')}"
+            )
+            return False
+
+        current = sb.table('project_reports').select('card_data').eq('id', report_id).single().execute()
+        row = current.data or {}
+        existing_card_data = row.get('card_data') if isinstance(row.get('card_data'), dict) else {}
+        patch = build_project_report_patch_from_drive_source(source, translate=True)
+        patch_card_data = patch.get('card_data') if isinstance(patch.get('card_data'), dict) else {}
+        patch['card_data'] = {**existing_card_data, **patch_card_data}
+        sb.table('project_reports').update(patch).eq('id', report_id).execute()
+        print(
+            f"    ✓ {report_label} summary generated from Drive source: "
+            f"{source.name} ({source.drive_file_id})"
+        )
+        return True
+    except Exception as e:
+        print(f"    [WARN] {report_label} summary generation failed after slide publish: {e}")
+        return False
+
+
+def _find_analysis_source_for_slide(
+    drive_service,
+    *,
+    project: Dict[str, Any],
+    rtype: str,
+    version: Optional[int],
+) -> Optional[Any]:
+    """Find the required analysis/{TYPE} Markdown source for a slide publication."""
+    if rtype not in {'econ', 'mat', 'for'}:
+        return None
+    try:
+        from marketing_content_pipeline import find_drive_source_for_project
+
+        return find_drive_source_for_project(
+            project,
+            report_type=rtype,
+            version=version or 1,
+            service=drive_service,
+        )
+    except Exception as e:
+        print(f"    [WARN] {rtype.upper()} analysis source lookup failed: {e}")
+        return None
+
+
+def _repair_unchanged_manifest_publication(
+    sb,
+    *,
+    rtype: str,
+    project: Optional[Dict[str, Any]],
+    slug: Optional[str],
+    lang: Optional[str],
+    public_url: Optional[str],
+    pdf_file_id: str,
+    pdf_name: str,
+    version: Optional[int],
+) -> Tuple[Optional[str], Optional[int], str]:
+    """Repair DB publication state for an unchanged already-converted PDF.
+
+    The manifest can be up to date while `project_reports` is missing the slide
+    JSON or even the entire report shell. Prefer live DB lookup over a stale
+    manifest report_id so deleted rows are recreated instead of silently skipped.
+    """
+    if not slug or not lang:
+        return None, version, 'missing_slug_or_lang'
+    if not public_url:
+        return None, version, 'missing_public_url_reprocess_required'
+    project_id = (project or {}).get('id')
+    if not project_id:
+        return None, version, 'missing_project_id'
+
+    db_type = DB_REPORT_TYPE[rtype]
+    report_id, db_version, current_status = _find_report_for_lang(sb, project_id, db_type, lang)
+    resolved_version = db_version or version
+    target_status = _target_publication_status(current_status)
+
+    if report_id:
+        _merge_slide_url(sb, report_id, lang, public_url, status=target_status)
+        return report_id, resolved_version, 'published' if target_status == PUBLICATION_PUBLISHED_STATUS else 'review_ready'
+
+    report_id, created_version = _create_report_row_for_slide(
+        sb,
+        project_id=project_id,
+        db_type=db_type,
+        slug=slug,
+        lang=lang,
+        pdf_file_id=pdf_file_id,
+        pdf_name=pdf_name,
+        public_url=public_url,
+        version=resolved_version,
+        status=target_status,
+    )
+    return report_id, created_version or resolved_version, 'review_ready_created' if report_id else 'create_failed'
 
 
 def _remove_slide_url_if_matches(sb, report_id: str, lang: str, public_url: str) -> bool:
@@ -721,6 +1685,163 @@ def _remove_slide_url_if_matches(sb, report_id: str, lang: str, public_url: str)
         'updated_at': datetime.now(timezone.utc).isoformat(),
     }).eq('id', report_id).execute()
     return True
+
+
+def _project_by_slug(projects: List[Dict[str, str]], slug: str) -> Optional[Dict[str, str]]:
+    slug_lc = (slug or '').lower()
+    for project in projects:
+        if (project.get('slug') or '').lower() == slug_lc:
+            return project
+    return None
+
+
+def _pruned_lang_map(value: Any, current_langs: Set[str]) -> Tuple[Dict[str, Any], List[str]]:
+    """Return a JSON map with languages outside current_langs removed."""
+    if not isinstance(value, dict):
+        return {}, []
+    stale = sorted(lang for lang in value.keys() if lang not in current_langs)
+    if not stale:
+        return dict(value), []
+    updated = dict(value)
+    for lang in stale:
+        updated.pop(lang, None)
+    return updated, stale
+
+
+def _remove_latest_slide_objects(storage_client, rtype: str, slug: str, langs: Iterable[str]) -> List[str]:
+    """Remove only latest slide HTML objects; versioned slide paths are preserved."""
+    keys = [f'{rtype}/{slug}/latest/{lang}.html' for lang in sorted(set(langs))]
+    if not keys:
+        return []
+    storage_client.storage.from_(BUCKET_NAME).remove(keys)
+    return keys
+
+
+def _prune_stale_languages_for_pair(
+    sb,
+    storage_client,
+    *,
+    rtype: str,
+    slug: str,
+    project_id: str,
+    current_langs: Set[str],
+    dry_run: bool,
+) -> List[Dict[str, Any]]:
+    """Prune DB JSON language keys and latest Storage objects absent from this Drive scan."""
+    if not current_langs:
+        print(f"  [WARN] stale language prune skipped for {rtype}/{slug}: no current publishable PDFs")
+        return [{
+            'rtype': rtype,
+            'slug': slug,
+            'lang': None,
+            'status': 'prune_skipped_no_publishable_pdf',
+            'error': 'no current publishable PDFs',
+        }]
+    if sb is None:
+        print(f"  [WARN] stale language prune skipped for {rtype}/{slug}: supabase client unavailable")
+        return [{
+            'rtype': rtype,
+            'slug': slug,
+            'lang': None,
+            'status': 'prune_skipped_no_supabase',
+            'error': 'supabase client unavailable',
+        }]
+
+    db_type = DB_REPORT_TYPE[rtype]
+    rows = sb.table('project_reports').select(
+        'id, gdrive_urls_by_lang, slide_html_urls_by_lang'
+    ).eq('project_id', project_id).eq('report_type', db_type).execute().data or []
+
+    results: List[Dict[str, Any]] = []
+    stale_storage_langs: Set[str] = set()
+    for row in rows:
+        report_id = row.get('id')
+        gdrive_urls, stale_gdrive = _pruned_lang_map(row.get('gdrive_urls_by_lang'), current_langs)
+        slide_urls, stale_slide = _pruned_lang_map(row.get('slide_html_urls_by_lang'), current_langs)
+        stale_langs = sorted(set(stale_gdrive) | set(stale_slide))
+        if not stale_langs:
+            continue
+
+        stale_storage_langs.update(stale_langs)
+        status = 'dry_run_prune' if dry_run else 'pruned_stale_languages'
+        if dry_run:
+            print(
+                f"  [DRY-RUN] would prune {rtype}/{slug} report {report_id}: "
+                f"stale_langs={stale_langs}, current_langs={sorted(current_langs)}"
+            )
+        else:
+            sb.table('project_reports').update({
+                'gdrive_urls_by_lang': gdrive_urls,
+                'slide_html_urls_by_lang': slide_urls,
+                'updated_at': datetime.now(timezone.utc).isoformat(),
+            }).eq('id', report_id).execute()
+            print(
+                f"  [PRUNE] project_reports[{report_id}] {rtype}/{slug}: "
+                f"removed stale_langs={stale_langs}"
+            )
+        results.append({
+            'rtype': rtype,
+            'slug': slug,
+            'lang': None,
+            'status': status,
+            'report_id': report_id,
+            'current_langs': sorted(current_langs),
+            'stale_langs': stale_langs,
+        })
+
+    if stale_storage_langs:
+        keys = [f'{rtype}/{slug}/latest/{lang}.html' for lang in sorted(stale_storage_langs)]
+        if dry_run:
+            print(f"  [DRY-RUN] would prune Storage latest objects: {keys}")
+            results.append({
+                'rtype': rtype,
+                'slug': slug,
+                'lang': None,
+                'status': 'dry_run_prune_storage',
+                'current_langs': sorted(current_langs),
+                'stale_langs': sorted(stale_storage_langs),
+                'storage_keys': keys,
+            })
+        else:
+            if storage_client is None:
+                print(f"  [WARN] Storage prune skipped for {rtype}/{slug}: storage client unavailable")
+                results.append({
+                    'rtype': rtype,
+                    'slug': slug,
+                    'lang': None,
+                    'status': 'prune_storage_skipped_no_client',
+                    'current_langs': sorted(current_langs),
+                    'stale_langs': sorted(stale_storage_langs),
+                    'storage_keys': keys,
+                    'error': 'storage client unavailable',
+                })
+            else:
+                try:
+                    removed_keys = _remove_latest_slide_objects(storage_client, rtype, slug, stale_storage_langs)
+                    print(f"  [PRUNE] Storage latest objects removed: {removed_keys}")
+                    results.append({
+                        'rtype': rtype,
+                        'slug': slug,
+                        'lang': None,
+                        'status': 'pruned_stale_storage',
+                        'current_langs': sorted(current_langs),
+                        'stale_langs': sorted(stale_storage_langs),
+                        'storage_keys': removed_keys,
+                    })
+                except Exception as e:
+                    print(f"  [WARN] Storage prune failed for {rtype}/{slug}: {e}")
+                    results.append({
+                        'rtype': rtype,
+                        'slug': slug,
+                        'lang': None,
+                        'status': 'prune_storage_failed',
+                        'current_langs': sorted(current_langs),
+                        'stale_langs': sorted(stale_storage_langs),
+                        'storage_keys': keys,
+                        'error': str(e)[:300],
+                    })
+
+    return results
 
 
 # ═══════════════════════════════════════════
@@ -779,23 +1900,362 @@ def _with_source_metadata(pdf: Dict, *, parent_folder: Dict, source_path: str, d
     }
 
 
-def _iter_targets(service, types: Iterable[str]):
-    """Yield (rtype, pdf_info) for root and nested PDFs under Slide/<TYPE>/."""
-    for rtype in types:
-        type_folder = TYPE_FOLDER_IDS.get(rtype)
+def _legacy_reports_root_folders(service) -> List[Dict]:
+    configured = [
+        folder_id.strip()
+        for folder_id in (os.environ.get(LEGACY_REPORTS_ROOT_FOLDER_ENV) or '').split(',')
+        if folder_id.strip()
+    ]
+    if configured:
+        return [{'id': folder_id, 'name': LEGACY_REPORTS_ROOT_FOLDER_NAME} for folder_id in configured]
+    try:
+        return _find_folders_by_name(service, LEGACY_REPORTS_ROOT_FOLDER_NAME)
+    except Exception as e:
+        print(f"  [WARN] legacy report root lookup failed: {e}")
+        return []
+
+
+def _legacy_report_type_for_folder(folder_name: str, requested_types: Set[str]) -> Optional[str]:
+    normalized = (folder_name or '').strip().lower()
+    for rtype in requested_types:
+        if normalized in LEGACY_REPORTS_TYPE_FOLDER_NAMES.get(rtype, set()):
+            return rtype
+    return None
+
+
+def _iter_legacy_report_targets(
+    service,
+    types: Iterable[str],
+    *,
+    filter_slug: Optional[str] = None,
+):
+    """Yield PDFs under BCE Lab Reports/{slug}/{type}/."""
+    requested_types = set(types)
+    roots = _legacy_reports_root_folders(service)
+    if not roots:
+        return
+    seen_file_ids: Set[str] = set()
+    for root in roots:
+        root_id = root.get('id')
+        root_name = root.get('name') or LEGACY_REPORTS_ROOT_FOLDER_NAME
+        if not root_id:
+            continue
+        try:
+            slug_folders = _list_child_folders(service, root_id)
+        except Exception as e:
+            print(f"  [WARN] legacy report slug folder scan failed for {root_name}: {e}")
+            continue
+        for slug_folder in slug_folders:
+            slug_folder_id = slug_folder.get('id')
+            slug_name = slug_folder.get('name') or ''
+            if not slug_folder_id:
+                continue
+            if filter_slug and slug_name != filter_slug:
+                continue
+            try:
+                type_folders = _list_child_folders(service, slug_folder_id)
+            except Exception as e:
+                print(f"  [WARN] legacy report type folder scan failed for {root_name}/{slug_name}: {e}")
+                continue
+            for type_folder in type_folders:
+                rtype = _legacy_report_type_for_folder(type_folder.get('name') or '', requested_types)
+                if not rtype:
+                    continue
+                type_folder_id = type_folder.get('id')
+                if not type_folder_id:
+                    continue
+                source_path = f"{root_name}/{slug_name}/{type_folder.get('name', '')}"
+                try:
+                    pdfs = _list_pdfs_direct(service, type_folder_id)
+                except Exception as e:
+                    print(f"  [WARN] legacy report PDF scan failed for {source_path}: {e}")
+                    continue
+                for pdf in pdfs:
+                    file_id = pdf.get('id')
+                    if file_id and file_id in seen_file_ids:
+                        continue
+                    if file_id:
+                        seen_file_ids.add(file_id)
+                    yield rtype, {
+                        **_with_source_metadata(
+                            pdf,
+                            parent_folder=type_folder,
+                            source_path=source_path,
+                            depth=2,
+                        ),
+                        'source_kind': 'legacy_report',
+                        'legacy_slug_hint': slug_name,
+                    }
+
+
+def _source_drafts_root_folders(service) -> List[Dict]:
+    configured = [
+        folder_id.strip()
+        for folder_id in (os.environ.get(SOURCE_DRAFTS_ROOT_FOLDER_ENV) or '').split(',')
+        if folder_id.strip()
+    ]
+    if configured:
+        return [{'id': folder_id, 'name': SOURCE_DRAFTS_ROOT_FOLDER_NAME} for folder_id in configured]
+    try:
+        return _find_folders_by_name(service, SOURCE_DRAFTS_ROOT_FOLDER_NAME)
+    except Exception as e:
+        print(f"  [WARN] source draft root lookup failed: {e}")
+        return []
+
+
+def _parse_source_draft_name(name: str, requested_types: Set[str]) -> Optional[Dict[str, Any]]:
+    stem = Path(name or '').stem
+    match = re.match(
+        r'^(?P<slug>[a-z0-9][a-z0-9-]*)_(?P<rtype>econ|mat|maturity|for|forensic)_v(?P<version>\d+)(?:_(?P<lang>[a-z]{2,3}))?$',
+        stem,
+        flags=re.IGNORECASE,
+    )
+    if not match:
+        return None
+    raw_rtype = match.group('rtype').lower()
+    rtype = {
+        'maturity': 'mat',
+        'forensic': 'for',
+    }.get(raw_rtype, raw_rtype)
+    if rtype not in requested_types:
+        return None
+    lang = (match.group('lang') or '').lower() or None
+    if lang == 'cn':
+        lang = 'zh'
+    return {
+        'slug': match.group('slug').lower(),
+        'rtype': rtype,
+        'version': int(match.group('version')),
+        'lang': lang,
+    }
+
+
+def validate_source_slide_handoff_contract(contract: Dict[str, Any]) -> Dict[str, Any]:
+    """Executable guard for scanner/card/source-draft/Slide intake handoffs."""
+    source_request = contract.get('human_source_request') or {}
+    slide_intake = contract.get('slide_intake') or {}
+    registration = ((contract.get('registration') or {}).get('tables') or {}).get('project_reports') or {}
+
+    draft_name = source_request.get('draft_name') or slide_intake.get('expected_source_draft_name')
+    parsed = _parse_source_draft_name(str(draft_name or ''), {'for'})
+    if not parsed:
+        return {
+            'status': 'failed',
+            'code': 'invalid_source_draft_name',
+            'message': 'source draft name does not match {slug}_{type}_v{version}_{lang}.md',
+        }
+
+    expected_slug = source_request.get('required_slug')
+    expected_rtype = source_request.get('required_rtype') or 'for'
+    expected_lang = source_request.get('required_lang')
+    expected_db_type = (
+        slide_intake.get('expected_db_report_type')
+        or source_request.get('required_report_type')
+        or registration.get('report_type')
+    )
+
+    mismatches = []
+    if expected_slug and parsed['slug'] != expected_slug:
+        mismatches.append({'field': 'slug', 'draft': parsed['slug'], 'expected': expected_slug})
+    if expected_rtype and parsed['rtype'] != expected_rtype:
+        mismatches.append({'field': 'rtype', 'draft': parsed['rtype'], 'expected': expected_rtype})
+    if expected_lang and parsed.get('lang') != expected_lang:
+        mismatches.append({'field': 'lang', 'draft': parsed.get('lang'), 'expected': expected_lang})
+
+    db_report_type = DB_REPORT_TYPE.get(parsed['rtype'])
+    if expected_db_type and db_report_type != expected_db_type:
+        mismatches.append({
+            'field': 'db_report_type',
+            'draft': db_report_type,
+            'expected': expected_db_type,
+        })
+    if registration.get('report_type') and registration.get('report_type') != db_report_type:
+        mismatches.append({
+            'field': 'registration.report_type',
+            'draft': db_report_type,
+            'expected': registration.get('report_type'),
+        })
+
+    watcher_args = slide_intake.get('args') or []
+    if '--slug' in watcher_args:
+        slug_index = watcher_args.index('--slug') + 1
+        watcher_slug = watcher_args[slug_index] if slug_index < len(watcher_args) else None
+        if watcher_slug != parsed['slug']:
+            mismatches.append({'field': 'watcher_args.slug', 'draft': parsed['slug'], 'expected': watcher_slug})
+    if '--type' in watcher_args:
+        type_index = watcher_args.index('--type') + 1
+        watcher_type = watcher_args[type_index] if type_index < len(watcher_args) else None
+        if watcher_type != parsed['rtype']:
+            mismatches.append({'field': 'watcher_args.type', 'draft': parsed['rtype'], 'expected': watcher_type})
+
+    if mismatches:
+        return {
+            'status': 'failed',
+            'code': 'handoff_contract_mismatch',
+            'source_draft': parsed,
+            'mismatches': mismatches,
+        }
+
+    return {
+        'status': 'ok',
+        'source_draft': parsed,
+        'db_report_type': db_report_type,
+        'watcher_args': watcher_args,
+    }
+
+
+def _iter_source_draft_records(
+    service,
+    types: Iterable[str],
+    *,
+    filter_slug: Optional[str] = None,
+):
+    """Yield source draft records from BCE Research Source Drafts.
+
+    This is diagnostics only; source drafts are not converted or published here.
+    """
+    requested_types = set(types)
+    roots = _source_drafts_root_folders(service)
+    if not roots:
+        return
+    seen_file_ids: Set[str] = set()
+    for root in roots:
+        root_id = root.get('id')
+        root_name = root.get('name') or SOURCE_DRAFTS_ROOT_FOLDER_NAME
+        if not root_id:
+            continue
+        try:
+            files = _list_non_folder_files_direct(service, root_id)
+        except Exception as e:
+            print(f"  [WARN] source draft scan failed for {root_name}: {e}")
+            continue
+        for file_info in files:
+            file_id = file_info.get('id')
+            if file_id and file_id in seen_file_ids:
+                continue
+            parsed = _parse_source_draft_name(file_info.get('name') or '', requested_types)
+            if not parsed:
+                continue
+            if filter_slug and parsed['slug'] != filter_slug:
+                continue
+            if file_id:
+                seen_file_ids.add(file_id)
+            yield {
+                **file_info,
+                **parsed,
+                'source_path': f"{root_name}/{file_info.get('name', '')}",
+                'source_kind': 'source_draft',
+            }
+
+
+def _infer_rtype_from_file_name(
+    name: str,
+    types: Iterable[str],
+    *,
+    default_single_type: bool = True,
+) -> Optional[str]:
+    requested_types = list(types)
+    if default_single_type and len(requested_types) == 1:
+        return requested_types[0]
+    normalized = _normalize_signal_text(Path(name or '').stem)
+    for rtype in requested_types:
+        tokens = LEGACY_REPORTS_TYPE_FOLDER_NAMES.get(rtype, {rtype})
+        if any(f" {token} " in normalized for token in tokens):
+            return rtype
+    return None
+
+
+def _slug_hint_tokens(filter_slug: Optional[str], projects: List[Dict[str, Any]]) -> Set[str]:
+    if not filter_slug:
+        return set()
+    slug = filter_slug.lower()
+    tokens = {slug, slug.replace('-', ' '), slug.replace('-', '_')}
+    project = _project_by_slug(projects, slug)
+    if project:
+        tokens.update(_project_signal(project))
+    return {token.lower() for token in tokens if token}
+
+
+def _name_matches_slug_hint(name: str, hint_tokens: Set[str]) -> bool:
+    if not hint_tokens:
+        return True
+    normalized = _normalize_signal_text(Path(name or '').stem)
+    raw = (name or '').lower()
+    for token in hint_tokens:
+        if not token:
+            continue
+        token_norm = _normalize_signal_text(token)
+        if token in raw or token_norm in normalized:
+            return True
+    return False
+
+
+def _folder_matches_slug_hint(folder_name: str, hint_tokens: Set[str]) -> bool:
+    return _name_matches_slug_hint(folder_name, hint_tokens)
+
+
+def _root_scan_mode(root_rtype: str, requested_types: Set[str], hint_tokens: Set[str]) -> str:
+    """Return scan mode for a Slide root.
+
+    Requested roots are fully scanned. Sibling roots are checked only at the
+    direct PDF level so a misfiled PDF with an explicit type token can still be
+    recovered without traversing unrelated folder trees during targeted runs.
+    """
+    if root_rtype in requested_types:
+        return 'full'
+    if len(requested_types) == len(TYPE_FOLDER_IDS):
+        return 'full'
+    if hint_tokens:
+        return 'skip'
+    return 'direct'
+
+
+def _iter_active_slide_targets(
+    service,
+    types: Iterable[str],
+    *,
+    filter_slug: Optional[str] = None,
+    projects: Optional[List[Dict[str, Any]]] = None,
+):
+    """Yield (rtype, pdf_info) for active Slide roots only."""
+    requested_types = set(types)
+    hint_tokens = _slug_hint_tokens(filter_slug, projects or [])
+    seen_file_ids: Set[str] = set()
+    for root_rtype, type_folder in TYPE_FOLDER_IDS.items():
         if not type_folder:
             continue
-        root_folder = {'id': type_folder, 'name': rtype}
+        scan_mode = _root_scan_mode(root_rtype, requested_types, hint_tokens)
+        if scan_mode == 'skip':
+            continue
+        root_folder = {'id': type_folder, 'name': root_rtype}
         for pdf in _list_pdfs_direct(service, type_folder):
-            yield rtype, _with_source_metadata(
+            if not _name_matches_slug_hint(pdf.get('name') or '', hint_tokens):
+                continue
+            target_rtype = (
+                _infer_rtype_from_file_name(
+                    pdf.get('name') or '',
+                    requested_types,
+                    default_single_type=False,
+                )
+                or root_rtype
+            )
+            if target_rtype not in requested_types:
+                continue
+            file_id = pdf.get('id')
+            if file_id:
+                seen_file_ids.add(file_id)
+            yield target_rtype, _with_source_metadata(
                 pdf,
                 parent_folder=root_folder,
-                source_path=f"Slide/{rtype}",
+                source_path=f"Slide/{root_rtype}",
                 depth=0,
             )
+        if scan_mode != 'full':
+            continue
         stack: List[Tuple[Dict, str, int]] = [
-            (folder, f"Slide/{rtype}/{folder.get('name', '')}", 1)
+            (folder, f"Slide/{root_rtype}/{folder.get('name', '')}", 1)
             for folder in _list_child_folders(service, type_folder)
+            if _folder_matches_slug_hint(folder.get('name') or '', hint_tokens)
         ]
         seen: set[str] = set()
         while stack:
@@ -806,7 +2266,24 @@ def _iter_targets(service, types: Iterable[str]):
             seen.add(folder_id)
 
             for pdf in _list_pdfs_direct(service, folder_id):
-                yield rtype, _with_source_metadata(
+                if not _name_matches_slug_hint(pdf.get('name') or '', hint_tokens):
+                    continue
+                target_rtype = (
+                    _infer_rtype_from_file_name(
+                        pdf.get('name') or '',
+                        requested_types,
+                        default_single_type=False,
+                    )
+                    or root_rtype
+                )
+                if target_rtype not in requested_types:
+                    continue
+                file_id = pdf.get('id')
+                if file_id and file_id in seen_file_ids:
+                    continue
+                if file_id:
+                    seen_file_ids.add(file_id)
+                yield target_rtype, _with_source_metadata(
                     pdf,
                     parent_folder=folder,
                     source_path=source_path,
@@ -814,7 +2291,29 @@ def _iter_targets(service, types: Iterable[str]):
                 )
 
             for child in _list_child_folders(service, folder_id):
+                if hint_tokens and not (
+                    _folder_matches_slug_hint(child.get('name') or '', hint_tokens)
+                    or _folder_matches_slug_hint(source_path, hint_tokens)
+                ):
+                    continue
                 stack.append((child, f"{source_path}/{child.get('name', '')}", depth + 1))
+
+
+def _iter_targets(
+    service,
+    types: Iterable[str],
+    *,
+    filter_slug: Optional[str] = None,
+    projects: Optional[List[Dict[str, Any]]] = None,
+):
+    """Yield (rtype, pdf_info) for active Slide roots only."""
+    for rtype, pdf in _iter_active_slide_targets(
+        service,
+        types,
+        filter_slug=filter_slug,
+        projects=projects,
+    ):
+        yield rtype, pdf
 
 
 def _parse_language_overrides(values: Iterable[str]) -> Dict[str, str]:
@@ -834,6 +2333,11 @@ def _parse_language_overrides(values: Iterable[str]) -> Dict[str, str]:
     return overrides
 
 
+def _has_verified_landscape_profile(manifest_entry: Dict[str, Any]) -> bool:
+    page_profile = manifest_entry.get('page_profile')
+    return isinstance(page_profile, dict) and page_profile.get('is_landscape_slide') is True
+
+
 def process(
     types: List[str],
     *,
@@ -843,12 +2347,19 @@ def process(
     force: bool,
     language_overrides: Optional[Dict[str, str]] = None,
 ) -> Tuple[List[Dict], List[Dict]]:
+    if filter_file_ids:
+        raise ValueError('--file-id targets are disabled; place PDFs under Slide/{TYPE} and use --slug/--type filters')
+
     service = _get_drive_service()
     manifest = _load_manifest()
     language_overrides = language_overrides or {}
 
     scanned: List[Dict] = []
     processed: List[Dict] = []
+    prune_candidate_pairs: Set[Tuple[str, str]] = set()
+    current_langs_by_pair: Dict[Tuple[str, str], Set[str]] = {}
+    active_slide_seen_types: Set[str] = set()
+    active_slide_missing_diag_types: Set[str] = set()
 
     storage_client = None
     sb = None
@@ -874,11 +2385,36 @@ def process(
             print(f"  [WARN] tracked_projects fetch failed: {e}")
             projects = []
 
-    for rtype, pdf in _iter_targets(service, types):
+    target_iter = _iter_targets(service, types, filter_slug=filter_slug, projects=projects)
+
+    for rtype, pdf in target_iter:
         file_id = pdf['id']
         if filter_file_ids and file_id not in filter_file_ids:
             continue
         modified = pdf.get('modifiedTime', '')
+        if pdf.get('source_kind') == 'legacy_report':
+            if (
+                filter_slug
+                and rtype not in active_slide_seen_types
+                and rtype not in active_slide_missing_diag_types
+            ):
+                diag = {
+                    'rtype': rtype,
+                    'slug': filter_slug,
+                    'lang': None,
+                    'status': 'no_active_slide_pdf_for_slug',
+                    'error': 'active_slide_pdf_missing',
+                    'source_path': f"Slide/{rtype}",
+                    'source_kind': 'active_slide_diagnostic',
+                }
+                print(
+                    f"  [DIAG] {diag['status']}: "
+                    f"{diag['source_path']} has no active PDF for slug '{filter_slug}'"
+                )
+                scanned.append(diag)
+                active_slide_missing_diag_types.add(rtype)
+        else:
+            active_slide_seen_types.add(rtype)
         record = {
             'rtype': rtype,
             'file_id': file_id,
@@ -890,49 +2426,220 @@ def process(
             'source_path': pdf.get('source_path'),
             'source_depth': pdf.get('source_depth'),
         }
+        if pdf.get('source_kind'):
+            record['source_kind'] = pdf.get('source_kind')
+        if pdf.get('legacy_slug_hint'):
+            record['legacy_slug_hint'] = pdf.get('legacy_slug_hint')
+        if (
+            filter_slug
+            and pdf.get('legacy_slug_hint')
+            and pdf.get('legacy_slug_hint') != filter_slug
+        ):
+            continue
 
         prev = manifest.get(file_id) or {}
+        now = datetime.now(timezone.utc)
+        processing_diag = _processing_manifest_diagnostic(prev, now=now)
+        if (
+            processing_diag
+            and prev.get('modifiedTime') == modified
+            and not force
+            and not processing_diag.get('is_stale')
+        ):
+            age = processing_diag.get('age_minutes')
+            threshold = processing_diag.get('stale_after_minutes')
+            print(
+                f"  [SKIP] {rtype}/{pdf['name']}: manifest status=processing "
+                f"for {age}min (< stale threshold {threshold}min)"
+            )
+            scanned.append({
+                **record,
+                'slug': prev.get('slug'),
+                'lang': prev.get('lang'),
+                'status': 'processing_in_progress',
+                'processing_age_minutes': age,
+                'processing_started_at': processing_diag.get('started_at'),
+                'stale_after_minutes': threshold,
+            })
+            continue
+        stale_processing_diag = (
+            processing_diag
+            if processing_diag
+            and prev.get('modifiedTime') == modified
+            and processing_diag.get('is_stale')
+            else None
+        )
+        if stale_processing_diag and not force:
+            print(
+                f"  [RECOVER] {rtype}/{pdf['name']}: stale manifest status=processing "
+                f"(started_at={stale_processing_diag.get('started_at')}, "
+                f"age={stale_processing_diag.get('age_minutes')}min, "
+                f"threshold={stale_processing_diag.get('stale_after_minutes')}min); reprocessing"
+            )
+            record['stale_processing'] = stale_processing_diag
+        override_lang = language_overrides.get(file_id)
+        override_changes_manifest_lang = bool(override_lang and prev.get('lang') != override_lang)
+        unchanged_manifest_published = (
+            prev.get('status') == 'published'
+            and prev.get('modifiedTime') == modified
+        )
+        unchanged_missing_publication_url = unchanged_manifest_published and not prev.get('public_url')
+        if unchanged_missing_publication_url and not dry_run and not force:
+            print(
+                f"  [REPAIR] {rtype}/{pdf['name']}: unchanged manifest has no public_url; "
+                "reprocessing slide HTML"
+            )
         if (
             not force
-            and prev.get('status') == 'published'
-            and prev.get('modifiedTime') == modified
+            and not override_changes_manifest_lang
+            and unchanged_manifest_published
+            and (dry_run or not unchanged_missing_publication_url)
         ):
+            unchanged_slug = prev.get('slug')
+            unchanged_lang = override_lang or prev.get('lang')
+            unchanged_lang_source = 'manual_verified' if override_lang else prev.get('lang_source')
+
+            if not _has_verified_landscape_profile(prev):
+                with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp_handle:
+                    tmp_path = tmp_handle.name
+                downloaded = False
+                try:
+                    try:
+                        _download_file(service, file_id, tmp_path)
+                        downloaded = True
+                    except Exception as e:
+                        err = f"download failed during unchanged page-profile recheck: {e}"
+                        print(f"    ✗ {rtype}/{pdf['name']}: {err}")
+                        manifest[file_id] = {
+                            **prev,
+                            'rtype': rtype,
+                            'name': pdf['name'],
+                            'parent_folder_id': pdf.get('parent_folder_id'),
+                            'parent_folder_name': pdf.get('parent_folder_name'),
+                            'source_path': pdf.get('source_path'),
+                            'source_depth': pdf.get('source_depth'),
+                            'status': 'failed',
+                            'error': err[:300],
+                            'modifiedTime': modified,
+                            'updated_at': datetime.now(timezone.utc).isoformat(),
+                        }
+                        _save_manifest(manifest)
+                        scanned.append({**record, 'slug': unchanged_slug, 'lang': unchanged_lang, 'status': 'failed'})
+                        processed.append({**record, 'slug': unchanged_slug, 'lang': unchanged_lang, 'status': 'failed', 'error': err})
+                        continue
+
+                    page_profile = _pdf_page_profile(tmp_path)
+                    if not page_profile.get('is_landscape_slide'):
+                        removed_stale_url = False
+                        if not dry_run:
+                            try:
+                                removed_stale_url = _remove_slide_url_if_matches(
+                                    sb,
+                                    prev.get('report_id'),
+                                    unchanged_lang,
+                                    prev.get('public_url'),
+                                )
+                                if removed_stale_url:
+                                    print(
+                                        f"    [REPAIR] removed stale portrait URL for "
+                                        f"{unchanged_slug}/{unchanged_lang}"
+                                    )
+                            except Exception as e:
+                                print(f"    [WARN] stale portrait URL cleanup failed: {e}")
+                        msg = (
+                            "legacy portrait PDF is not publishable as slide HTML "
+                            f"(aspect={page_profile.get('aspect_ratio', 0):.3f})"
+                        )
+                        pdf_path_label = pdf.get('source_path') or f"{rtype}/{pdf['name']}"
+                        print(f"  [SKIP] {pdf_path_label}: {msg}")
+                        manifest[file_id] = {
+                            **prev,
+                            'rtype': rtype,
+                            'name': pdf['name'],
+                            'modifiedTime': modified,
+                            'parent_folder_id': pdf.get('parent_folder_id'),
+                            'parent_folder_name': pdf.get('parent_folder_name'),
+                            'source_path': pdf.get('source_path'),
+                            'source_depth': pdf.get('source_depth'),
+                            'lang': unchanged_lang,
+                            'lang_source': unchanged_lang_source,
+                            'page_profile': page_profile,
+                            'status': 'skipped_legacy_portrait_pdf',
+                            'error': msg,
+                            'stale_url_removed': removed_stale_url,
+                            'updated_at': datetime.now(timezone.utc).isoformat(),
+                        }
+                        _save_manifest(manifest)
+                        scanned.append({
+                            **record,
+                            'slug': unchanged_slug,
+                            'lang': unchanged_lang,
+                            'status': 'skipped_legacy_portrait_pdf',
+                        })
+                        continue
+
+                    prev = {
+                        **prev,
+                        'page_profile': page_profile,
+                    }
+                finally:
+                    if downloaded:
+                        try:
+                            os.unlink(tmp_path)
+                        except OSError:
+                            pass
+
             if not dry_run:
-                report_id = prev.get('report_id')
                 public_url = prev.get('public_url')
-                lang = prev.get('lang')
-                slug = prev.get('slug')
+                lang = unchanged_lang
+                slug = unchanged_slug
+                report_id = prev.get('report_id')
+                version = prev.get('version')
                 should_repair = not filter_slug or slug == filter_slug
                 if should_repair and public_url and lang:
                     try:
-                        if not report_id:
-                            project = _match_project_by_text(slug or '', projects)
-                            project_id = (project or {}).get('id')
-                            if project_id:
-                                report_id, _ = _find_report_for_lang(
-                                    sb, project_id, DB_REPORT_TYPE[rtype], lang
-                                )
-                                if not report_id:
-                                    report_id = _find_any_report_id(sb, project_id, DB_REPORT_TYPE[rtype])
+                        project = _project_by_slug(projects, slug or '')
+                        report_id, version, repair_status = _repair_unchanged_manifest_publication(
+                            sb,
+                            rtype=rtype,
+                            project=project,
+                            slug=slug,
+                            lang=lang,
+                            public_url=public_url,
+                            pdf_file_id=file_id,
+                            pdf_name=pdf['name'],
+                            version=prev.get('version'),
+                        )
                         if report_id:
-                            _merge_slide_url(sb, report_id, lang, public_url)
                             print(
-                                f"    ✓ DB repaired from manifest: "
+                                f"    ✓ DB repaired from unchanged manifest ({repair_status}): "
                                 f"project_reports[{report_id}].slide_html_urls_by_lang.{lang}"
+                            )
+                        else:
+                            print(
+                                f"    [WARN] DB repair skipped for unchanged manifest: "
+                                f"{repair_status} ({slug}/{DB_REPORT_TYPE[rtype]}/{lang})"
                             )
                     except Exception as e:
                         print(f"    [WARN] DB repair from unchanged manifest failed: {e}")
                 manifest[file_id] = {
                     **prev,
                     'report_id': report_id,
+                    'version': version,
                     'parent_folder_id': pdf.get('parent_folder_id'),
                     'parent_folder_name': pdf.get('parent_folder_name'),
                     'source_path': pdf.get('source_path'),
                     'source_depth': pdf.get('source_depth'),
+                    'lang': unchanged_lang,
+                    'lang_source': unchanged_lang_source,
                     'updated_at': datetime.now(timezone.utc).isoformat(),
                 }
                 _save_manifest(manifest)
-            scanned.append({**record, 'slug': prev.get('slug'), 'lang': prev.get('lang'), 'status': 'unchanged'})
+            if unchanged_slug and (not filter_slug or unchanged_slug == filter_slug):
+                prune_candidate_pairs.add((rtype, unchanged_slug))
+                if unchanged_lang and prev.get('status') == 'published':
+                    current_langs_by_pair.setdefault((rtype, unchanged_slug), set()).add(unchanged_lang)
+            scanned.append({**record, 'slug': unchanged_slug, 'lang': unchanged_lang, 'status': 'unchanged'})
             print(f"  [SKIP] {rtype}/{pdf['name']}: unchanged since {modified}")
             continue
 
@@ -967,6 +2674,8 @@ def process(
 
             page_profile = _pdf_page_profile(tmp_path)
             if not page_profile.get('is_landscape_slide'):
+                skipped_slug = prev.get('slug') or pdf.get('legacy_slug_hint')
+                skipped_lang = prev.get('lang') or _lang_from_filename(pdf['name'])
                 removed_stale_url = False
                 if not dry_run and prev.get('status') == 'published':
                     try:
@@ -1000,6 +2709,8 @@ def process(
                     'source_depth': pdf.get('source_depth'),
                     'page_profile': page_profile,
                     'status': 'skipped_legacy_portrait_pdf',
+                    'slug': skipped_slug,
+                    'lang': skipped_lang,
                     'error': msg,
                     'stale_url_removed': removed_stale_url,
                     'updated_at': datetime.now(timezone.utc).isoformat(),
@@ -1007,8 +2718,8 @@ def process(
                 _save_manifest(manifest)
                 scanned.append({
                     **record,
-                    'slug': prev.get('slug'),
-                    'lang': prev.get('lang'),
+                    'slug': skipped_slug,
+                    'lang': skipped_lang,
                     'status': 'skipped_legacy_portrait_pdf',
                 })
                 continue
@@ -1018,7 +2729,7 @@ def process(
             # Filename match alone often resolves the slug; only invoke OCR
             # (slow) when text-layer extraction can't determine slug or lang.
             filename_match = _match_project_by_text(pdf['name'], projects)
-            text_lang = _lang_from_metadata(meta) or _lang_from_text(pdf_text)
+            text_lang = _lang_from_filename(pdf['name']) or _lang_from_metadata(meta) or _lang_from_text(pdf_text)
             ocr_text = ''
             if not filename_match or not text_lang:
                 pdf_text_match = _match_project_by_text(pdf_text, projects)
@@ -1048,7 +2759,7 @@ def process(
                         f"{lang} ({lang_source}) → {override_lang}"
                     )
                 lang = override_lang
-                lang_source = 'override'
+                lang_source = 'manual_verified'
 
             slug = (project or {}).get('slug')
             project_id = (project or {}).get('id')
@@ -1058,6 +2769,9 @@ def process(
             if filter_slug and slug != filter_slug:
                 print(f"  [SKIP] {rtype}/{pdf['name']}: slug='{slug}' != filter '{filter_slug}'")
                 continue
+
+            if slug:
+                prune_candidate_pairs.add((rtype, slug))
 
             if not slug or not lang:
                 msg = (
@@ -1080,13 +2794,17 @@ def process(
                     'slug_source': slug_source,
                     'lang_source': lang_source,
                     'error': msg,
+                    'public_url': None,
+                    'versioned_url': None,
+                    'report_id': None,
+                    'version': None,
                     'updated_at': datetime.now(timezone.utc).isoformat(),
                 }
                 _save_manifest(manifest)
                 processed.append({**record, 'status': 'unresolved', 'error': msg})
                 continue
 
-            lang_mismatch = _detect_language_content_mismatch(lang, pdf_text, ocr_text)
+            lang_mismatch = _detect_language_content_mismatch(lang, pdf_text, ocr_text, lang_source)
             if lang_mismatch:
                 msg = (
                     f"language/content mismatch — resolved '{lang_mismatch['resolved_lang']}' "
@@ -1106,6 +2824,10 @@ def process(
                     'lang_source': lang_source,
                     'error': msg,
                     'language_mismatch': lang_mismatch,
+                    'public_url': None,
+                    'versioned_url': None,
+                    'report_id': None,
+                    'version': None,
                     'updated_at': datetime.now(timezone.utc).isoformat(),
                 }
                 _save_manifest(manifest)
@@ -1140,11 +2862,17 @@ def process(
                         'lang_source': lang_source,
                         'error': msg,
                         'mismatch': mismatch,
+                        'public_url': None,
+                        'versioned_url': None,
+                        'report_id': None,
+                        'version': None,
                         'updated_at': datetime.now(timezone.utc).isoformat(),
                     }
                     _save_manifest(manifest)
                     processed.append({**record, 'status': 'mismatch', 'error': msg})
                     continue
+
+            current_langs_by_pair.setdefault((rtype, slug), set()).add(lang)
 
             print(
                 f"\n  [PROCESS] {rtype}/{pdf['name']} "
@@ -1173,10 +2901,30 @@ def process(
                 'started_at': datetime.now(timezone.utc).isoformat(),
                 'retry_count': prev.get('retry_count', 0) + (1 if prev.get('status') == 'processing' else 0),
             }
+            if stale_processing_diag:
+                manifest[file_id].update({
+                    'recovered_stale_processing_at': datetime.now(timezone.utc).isoformat(),
+                    'previous_processing_started_at': prev.get('started_at'),
+                    'stale_processing_age_minutes': stale_processing_diag.get('age_minutes'),
+                    'stale_processing_threshold_minutes': stale_processing_diag.get('stale_after_minutes'),
+                })
             _save_manifest(manifest)
 
             db_type = DB_REPORT_TYPE[rtype]
-            report_id, version = _find_report_for_lang(sb, project_id, db_type, lang)
+            report_id, version, current_status = _find_report_for_lang(sb, project_id, db_type, lang)
+            target_status = _target_publication_status(current_status)
+            analysis_source = _find_analysis_source_for_slide(
+                service,
+                project=project,
+                rtype=rtype,
+                version=version,
+            )
+            if not analysis_source:
+                print(
+                    f"    [WARN] analysis/{rtype.upper()} Markdown source missing for "
+                    f"{slug}/{DB_REPORT_TYPE[rtype]}/v{version or 1}; "
+                    "continuing because Slide PDF presence is the publication trigger"
+                )
 
             try:
                 upload_result = _convert_and_upload(
@@ -1190,26 +2938,47 @@ def process(
                 public_url = upload_result['latest_url']
 
                 if report_id:
-                    _merge_slide_url(sb, report_id, lang, public_url)
-                    print(f"    ✓ DB merged: project_reports[{report_id}].slide_html_urls_by_lang.{lang}")
+                    _merge_slide_url(sb, report_id, lang, public_url, status=target_status)
+                    if target_status == PUBLICATION_PUBLISHED_STATUS:
+                        print(f"    ✓ DB published after editorial approval: project_reports[{report_id}].slide_html_urls_by_lang.{lang}")
+                    else:
+                        print(f"    ✓ DB prepared for editorial review: project_reports[{report_id}].slide_html_urls_by_lang.{lang}")
                 else:
-                    fallback_id = _find_any_report_id(sb, project_id, db_type)
-                    if fallback_id:
-                        _merge_slide_url(sb, fallback_id, lang, public_url)
-                        report_id = fallback_id
+                    report_id, version = _create_report_row_for_slide(
+                        sb,
+                        project_id=project_id,
+                        db_type=db_type,
+                        slug=slug,
+                        lang=lang,
+                        pdf_file_id=file_id,
+                        pdf_name=pdf['name'],
+                        public_url=public_url,
+                        version=version,
+                        status=target_status,
+                    )
+                    if report_id:
                         print(
-                            f"    ✓ DB merged (cross-lang fallback): "
-                            f"project_reports[{fallback_id}].slide_html_urls_by_lang.{lang} "
-                            f"(no row for {slug}/{db_type}/{lang}; using sibling row)"
+                            f"    ✓ DB created for editorial review: project_reports[{report_id}] "
+                            f"for ({slug}, {db_type}, {lang})"
                         )
                     else:
                         print(
-                            f"    [WARN] No project_reports row for ({slug}, {db_type}, *); "
+                            f"    [WARN] No project_reports row for ({slug}, {db_type}, {lang}); "
                             f"URL uploaded but DB not updated"
                         )
 
+                _generate_summary_after_slide_publish(
+                    sb,
+                    service,
+                    project=project,
+                    rtype=rtype,
+                    report_id=report_id,
+                    version=version,
+                    source=analysis_source,
+                )
+
                 manifest[file_id].update({
-                    'status': 'published',
+                    'status': 'published' if target_status == PUBLICATION_PUBLISHED_STATUS else 'review_ready',
                     'public_url': public_url,
                     'versioned_url': upload_result['versioned_url'],
                     'report_id': report_id,
@@ -1219,7 +2988,12 @@ def process(
                     'error': None,
                 })
                 _save_manifest(manifest)
-                processed.append({**record, 'status': 'published', 'public_url': public_url, 'report_id': report_id})
+                processed.append({
+                    **record,
+                    'status': 'published' if target_status == PUBLICATION_PUBLISHED_STATUS else 'review_ready',
+                    'public_url': public_url,
+                    'report_id': report_id,
+                })
                 print(f"    ✓ {public_url}")
             except Exception as e:
                 err = str(e)[:300]
@@ -1238,18 +3012,180 @@ def process(
                 except OSError:
                     pass
 
+    if filter_slug and not filter_file_ids:
+        for rtype in types:
+            if rtype in active_slide_seen_types or rtype in active_slide_missing_diag_types:
+                continue
+            diag = {
+                'rtype': rtype,
+                'slug': filter_slug,
+                'lang': None,
+                'status': 'no_active_slide_pdf_for_slug',
+                'error': 'active_slide_pdf_missing',
+                'source_path': f"Slide/{rtype}",
+                'source_kind': 'active_slide_diagnostic',
+            }
+            print(
+                f"  [DIAG] {diag['status']}: "
+                f"{diag['source_path']} has no active PDF for slug '{filter_slug}'"
+            )
+            scanned.append(diag)
+
+    if filter_file_ids:
+        if prune_candidate_pairs or current_langs_by_pair:
+            print("  [SKIP] stale language prune skipped during file-id filtered run")
+        return scanned, processed
+
+    prune_pairs = sorted(prune_candidate_pairs | set(current_langs_by_pair.keys()))
+    for rtype, slug in prune_pairs:
+        current_langs = current_langs_by_pair.get((rtype, slug), set())
+        if not current_langs:
+            print(f"  [WARN] stale language prune skipped for {rtype}/{slug}: no current publishable PDFs")
+            processed.append({
+                'rtype': rtype,
+                'slug': slug,
+                'lang': None,
+                'status': 'prune_skipped_no_publishable_pdf',
+                'error': 'no current publishable PDFs',
+            })
+            continue
+
+        project = _project_by_slug(projects, slug)
+        project_id = (project or {}).get('id')
+        if not project_id:
+            print(f"  [WARN] stale language prune skipped for {rtype}/{slug}: project id unavailable")
+            processed.append({
+                'rtype': rtype,
+                'slug': slug,
+                'lang': None,
+                'status': 'prune_skipped_no_project_id',
+                'error': 'project id unavailable',
+            })
+            continue
+
+        processed.extend(_prune_stale_languages_for_pair(
+            sb,
+            storage_client,
+            rtype=rtype,
+            slug=slug,
+            project_id=project_id,
+            current_langs=current_langs,
+            dry_run=dry_run,
+        ))
+
     return scanned, processed
+
+
+def _publishable_slide_keys(scanned: List[Dict], processed: List[Dict]) -> Set[Tuple[str, str]]:
+    keys: Set[Tuple[str, str]] = set()
+    non_publishable_statuses = {
+        'skipped_legacy_portrait_pdf',
+        'unresolved',
+        'mismatch',
+        'language_mismatch',
+        'failed',
+        'prune_skipped_no_publishable_pdf',
+        'prune_skipped_no_project_id',
+        'prune_skipped_no_supabase',
+    }
+    for record in list(scanned) + list(processed):
+        rtype = record.get('rtype')
+        slug = record.get('slug')
+        if not rtype or not slug:
+            continue
+        status = record.get('status')
+        if status in non_publishable_statuses:
+            continue
+        keys.add((rtype, slug))
+    return keys
+
+
+def build_source_slide_diagnostics(
+    source_records: List[Dict[str, Any]],
+    scanned: List[Dict],
+    processed: List[Dict],
+) -> List[Dict[str, Any]]:
+    """Find source drafts whose active Slide PDF is missing or non-publishable."""
+    publishable_keys = _publishable_slide_keys(scanned, processed)
+    diagnostics: List[Dict[str, Any]] = []
+    seen: Set[Tuple[str, str, Optional[str]]] = set()
+    for source in source_records:
+        key = (source.get('rtype'), source.get('slug'))
+        if not key[0] or not key[1]:
+            continue
+        lang = source.get('lang')
+        dedupe_key = (key[0], key[1], lang)
+        if dedupe_key in seen:
+            continue
+        seen.add(dedupe_key)
+        if key in publishable_keys:
+            continue
+        diagnostics.append({
+            'rtype': key[0],
+            'slug': key[1],
+            'lang': lang,
+            'status': 'source_waiting_for_slide_pdf',
+            'source_path': source.get('source_path'),
+            'source_file_id': source.get('id'),
+            'message': 'source draft exists but no publishable active Slide PDF was found',
+        })
+    return sorted(
+        diagnostics,
+        key=lambda row: (row.get('rtype') or '', row.get('slug') or '', row.get('lang') or ''),
+    )
+
+
+def run_source_slide_diagnostics(
+    types: List[str],
+    *,
+    filter_slug: Optional[str],
+    scanned: List[Dict],
+    processed: List[Dict],
+) -> List[Dict[str, Any]]:
+    """Run source-vs-slide visibility diagnostics for the current watcher run."""
+    try:
+        service = _get_drive_service()
+        source_records = list(_iter_source_draft_records(service, types, filter_slug=filter_slug))
+    except Exception as e:
+        print(f"\n[DIAG] Unable to scan source drafts: {e}")
+        return []
+
+    diagnostics = build_source_slide_diagnostics(source_records, scanned, processed)
+    if diagnostics:
+        print("\n[DIAG] Source drafts waiting for publishable Slide PDFs:")
+        for row in diagnostics:
+            lang = row.get('lang') or '?'
+            print(
+                f"  - {row.get('slug')} {row.get('rtype')} {lang}: "
+                f"{row.get('source_path')} → slide generation pending/missing"
+            )
+    else:
+        print("\n[DIAG] No source drafts missing publishable Slide PDFs for this run scope")
+    return diagnostics
 
 
 # ═══════════════════════════════════════════
 # Logging
 # ═══════════════════════════════════════════
 
+def _record_log_path(record: Dict) -> str:
+    """Return a stable display path for file and non-file run result records."""
+    if record.get('source_path'):
+        return str(record['source_path'])
+    if record.get('name'):
+        return f"{record.get('rtype')}/{record['name']}"
+    slug = record.get('slug') or '?'
+    return f"{record.get('rtype')}/{slug}"
+
+
 def write_run_log(
     scan_time: str,
     types: List[str],
     scanned: List[Dict],
     processed: List[Dict],
+    guard_results: Optional[List[Dict[str, Any]]] = None,
+    source_diagnostics: Optional[List[Dict[str, Any]]] = None,
+    telemetry_warnings: Optional[List[str]] = None,
 ) -> str:
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -1260,6 +3196,12 @@ def write_run_log(
     skipped_legacy = sum(1 for r in scanned if r.get('status') == 'skipped_legacy_portrait_pdf')
     failed = sum(1 for r in processed if r.get('status') == 'failed')
     unresolved = sum(1 for r in processed if r.get('status') == 'unresolved')
+    stale_processing_records = [
+        r for r in list(scanned) + list(processed)
+        if r.get('stale_processing') or r.get('status') == 'processing_in_progress'
+    ]
+    recovered_stale_processing = sum(1 for r in stale_processing_records if r.get('stale_processing'))
+    active_processing = sum(1 for r in stale_processing_records if r.get('status') == 'processing_in_progress')
 
     lines = [
         f"# Slide Pipeline Run — {scan_time}",
@@ -1272,6 +3214,66 @@ def write_run_log(
         f"- Published: {published}",
         f"- Unresolved: {unresolved}",
         f"- Failed: {failed}",
+        f"- Stale processing recovered: {recovered_stale_processing}",
+        f"- Active processing skipped: {active_processing}",
+        "",
+        "## Paperclip Telemetry",
+        "",
+        f"- Warnings: {len(telemetry_warnings or [])}",
+    ]
+    if telemetry_warnings:
+        for warning in telemetry_warnings:
+            lines.append(f"- {warning}")
+    else:
+        lines.append("*No Paperclip telemetry warnings.*")
+    lines += [
+        "",
+        "## Active Project Backlog Guard",
+        "",
+        f"- Missing report backlog candidates: {len(guard_results or [])}",
+    ]
+    for project in guard_results or []:
+        symbol = project.get('symbol') or '?'
+        name = project.get('name') or project.get('slug') or '?'
+        slug = project.get('slug') or '?'
+        lines.append(f"  - {slug} ({symbol}) - {name}")
+    lines += [
+        "",
+        "## Source vs Slide Diagnostics",
+        "",
+        f"- Source drafts waiting for Slide PDFs: {len(source_diagnostics or [])}",
+    ]
+    if source_diagnostics:
+        for row in source_diagnostics:
+            lang = row.get('lang') or '?'
+            lines.append(
+                f"- [source_waiting_for_slide_pdf] `{row.get('source_path')}` "
+                f"(slug={row.get('slug')}, type={row.get('rtype')}, lang={lang}) - "
+                "slide generation pending/missing"
+            )
+    else:
+        lines.append("*No source drafts missing publishable Slide PDFs for this run scope.*")
+    lines += [
+        "",
+        "## Processing Manifest Health",
+        "",
+    ]
+    if stale_processing_records:
+        for row in stale_processing_records:
+            path = _record_log_path(row)
+            diag = row.get('stale_processing') or {}
+            status = 'stale_processing_reprocessed' if diag else row.get('status')
+            age = diag.get('age_minutes', row.get('processing_age_minutes'))
+            threshold = diag.get('stale_after_minutes', row.get('stale_after_minutes'))
+            started_at = diag.get('started_at', row.get('processing_started_at'))
+            lines.append(
+                f"- [{status}] `{path}` "
+                f"(slug={row.get('slug')}, lang={row.get('lang')}, "
+                f"started_at={started_at}, age_minutes={age}, threshold_minutes={threshold})"
+            )
+    else:
+        lines.append("*No processing manifest entries were stale or active-in-progress.*")
+    lines += [
         "",
         "## Scanned",
         "",
@@ -1279,10 +3281,10 @@ def write_run_log(
     if scanned:
         for r in scanned:
             status = r.get('status') or 'target'
-            path = r.get('source_path') or f"{r['rtype']}/{r['name']}"
+            path = _record_log_path(r)
             lines.append(
                 f"- [{status}] `{path}` "
-                f"(slug={r.get('slug')}, lang={r.get('lang')}, modified={r['modifiedTime']})"
+                f"(slug={r.get('slug')}, lang={r.get('lang')}, modified={r.get('modifiedTime')})"
             )
     else:
         lines.append("*No matching slide PDFs found.*")
@@ -1291,8 +3293,9 @@ def write_run_log(
     if processed:
         for r in processed:
             extra = r.get('public_url') or r.get('error') or ''
+            path = _record_log_path(r)
             lines.append(
-                f"- [{r.get('status')}] `{r['rtype']}/{r['name']}` "
+                f"- [{r.get('status')}] `{path}` "
                 f"(slug={r.get('slug')}, lang={r.get('lang')}) — {extra}"
             )
     else:
@@ -1302,6 +3305,32 @@ def write_run_log(
     log_file.write_text('\n'.join(lines), encoding='utf-8')
     print(f"\n✓ Run log: {log_file}")
     return str(log_file)
+
+
+def append_telemetry_warnings_to_run_log(log_path: str, telemetry_warnings: List[str]) -> None:
+    if not telemetry_warnings:
+        return
+    try:
+        path = Path(log_path)
+        existing = path.read_text(encoding='utf-8')
+        marker = "## Paperclip Telemetry"
+        if marker not in existing:
+            return
+        lines = existing.splitlines()
+        start = lines.index(marker)
+        end = start + 1
+        while end < len(lines) and not lines[end].startswith('## '):
+            end += 1
+        replacement = [
+            marker,
+            "",
+            f"- Warnings: {len(telemetry_warnings)}",
+            *[f"- {warning}" for warning in telemetry_warnings],
+            "",
+        ]
+        path.write_text('\n'.join(lines[:start] + replacement + lines[end:]) + '\n', encoding='utf-8')
+    except Exception as e:
+        print(f"  [WARN] Paperclip telemetry log warning append failed: {e}")
 
 
 # ═══════════════════════════════════════════
@@ -1314,12 +3343,6 @@ def main() -> int:
                         help='Report type to process (default: all)')
     parser.add_argument('--slug', default=None,
                         help='Process only files resolving to this slug (post-resolution filter)')
-    parser.add_argument(
-        '--file-id',
-        action='append',
-        default=[],
-        help='Process only this Drive file id; repeatable',
-    )
     parser.add_argument('--dry-run', action='store_true', help='Scan only — no download/upload/DB')
     parser.add_argument('--force', action='store_true', help='Reprocess even if manifest is up-to-date')
     parser.add_argument(
@@ -1347,23 +3370,58 @@ def main() -> int:
           f'Language overrides: {len(language_overrides)}')
     print('=' * 60)
 
+    paperclip_telemetry = PaperclipTelemetry()
+    paperclip_telemetry.start_runs(
+        types,
+        scan_time=scan_time,
+        dry_run=args.dry_run,
+        force=args.force,
+        slug=args.slug,
+    )
+
     scanned, processed = process(
         types,
         filter_slug=args.slug,
-        filter_file_ids=set(args.file_id) if args.file_id else None,
+        filter_file_ids=None,
         dry_run=args.dry_run,
         force=args.force,
         language_overrides=language_overrides,
     )
 
-    write_run_log(scan_time, types, scanned, processed)
+    guard_results = run_active_project_backlog_guard()
+    source_diagnostics = run_source_slide_diagnostics(
+        types,
+        filter_slug=args.slug,
+        scanned=scanned,
+        processed=processed,
+    )
+
+    log_path = write_run_log(
+        scan_time,
+        types,
+        scanned,
+        processed,
+        guard_results=guard_results,
+        source_diagnostics=source_diagnostics,
+        telemetry_warnings=paperclip_telemetry.warnings,
+    )
+    paperclip_telemetry.complete_runs(
+        types,
+        scanned=scanned,
+        processed=processed,
+        log_path=log_path,
+    )
+    append_telemetry_warnings_to_run_log(log_path, paperclip_telemetry.warnings)
 
     print('\n' + '=' * 60)
     print(
         f"DONE: scanned={len(scanned)} processed={len(processed)}  "
         f"published={sum(1 for r in processed if r.get('status') == 'published')}  "
+        f"review_ready={sum(1 for r in processed if r.get('status') == 'review_ready')}  "
         f"unresolved={sum(1 for r in processed if r.get('status') == 'unresolved')}  "
-        f"failed={sum(1 for r in processed if r.get('status') == 'failed')}"
+        f"failed={sum(1 for r in processed if r.get('status') == 'failed')}  "
+        f"guard_candidates={len(guard_results)}  "
+        f"source_slide_gaps={len(source_diagnostics)}"
     )
     print('=' * 60)
 

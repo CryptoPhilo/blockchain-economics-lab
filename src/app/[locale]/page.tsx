@@ -37,9 +37,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         .from('project_reports')
         .select('*, tracked_projects!inner(id, name, slug, symbol, chain, category)')
         .eq('report_type', 'forensic')
-        .eq('status', 'published')
+        .in('status', ['published', 'in_review'])
         .not('card_data', 'is', null)
-        .order('published_at', { ascending: false })
+        .not('slide_html_urls_by_lang', 'is', null)
+        .order('updated_at', { ascending: false })
         .limit(8),
     ])
     featuredProducts = productsRes.data || []
