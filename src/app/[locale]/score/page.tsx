@@ -136,15 +136,21 @@ function getReportAvailability(
 ): ReportAvailability {
   const fallback = createFallbackReportAvailability(project)
   const live = project?.id ? availabilityByProjectId?.get(project.id) : undefined
-  if (!live) return fallback
+  if (!availabilityByProjectId) return fallback
+  if (!live) {
+    return {
+      reportTypes: [],
+      reportDates: { econ: null, maturity: null, forensic: null },
+    }
+  }
 
-  const reportTypes = [...new Set([...fallback.reportTypes, ...live.reportTypes])]
+  const reportTypes = live.reportTypes
   return {
     reportTypes,
     reportDates: {
-      econ: live.reportDates.econ || fallback.reportDates.econ,
-      maturity: live.reportDates.maturity || fallback.reportDates.maturity,
-      forensic: live.reportDates.forensic || fallback.reportDates.forensic,
+      econ: live.reportDates.econ,
+      maturity: live.reportDates.maturity,
+      forensic: live.reportDates.forensic,
     },
   }
 }

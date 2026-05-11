@@ -57,6 +57,16 @@ The active watcher also runs the active-project backlog guard. It flags active
 projects with no `project_reports` row and no report/due timestamp markers so
 newly tracked projects are visible from the current pipeline logs.
 
+Full type scans also run a final Drive-vs-DB availability reconcile. The
+watcher rebuilds the current `(report_type, slug, language)` set from active
+`Slide/{TYPE}` PDFs and cancels website-visible `project_reports` rows outside
+that set, then clears/syncs the matching `tracked_projects.last_*_report_at`
+field. This prevents historical pipeline rows from making the website show a
+report badge for a project that no longer has a readable slide in Drive.
+Slug-targeted runs skip this reconcile by design; use a full type run after
+large Drive folder changes. If an emergency diagnostic run must avoid DB
+reconciliation, pass `--skip-db-reconcile`.
+
 ## OpenAI API Report POC
 
 `scripts/pipeline/openai_report_poc.py` is a local dry-run spike for generating

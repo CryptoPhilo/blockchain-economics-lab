@@ -891,14 +891,17 @@ def test_iter_targets_slug_filter_prunes_nonmatching_folders_and_pdfs(ws, monkey
         'root-econ': [
             {'id': 'near-root', 'name': 'NEAR_Cryptoeconomic_Blueprint_en.pdf', 'modifiedTime': 't-near'},
             {'id': 'okx-root', 'name': 'OKX_Cryptoeconomic_Blueprint_en.pdf', 'modifiedTime': 't-okx'},
+            {'id': 'bitcoin-cash-root', 'name': 'Bitcoin_Cash_Cryptoeconomic_Blueprint_en.pdf', 'modifiedTime': 't-bch'},
         ],
         'folder-near': [{'id': 'near-child', 'name': 'near_econ_v1_ko.pdf', 'modifiedTime': 't-near-ko'}],
         'folder-okx': [{'id': 'okx-child', 'name': 'okx_econ_v1_ko.pdf', 'modifiedTime': 't-okx-ko'}],
+        'folder-bitcoin-cash': [{'id': 'bitcoin-cash-child', 'name': 'bitcoin-cash_econ_v1_ko.pdf', 'modifiedTime': 't-bch-ko'}],
     }
     folders_by_parent = {
         'root-econ': [
             {'id': 'folder-near', 'name': 'near'},
             {'id': 'folder-okx', 'name': 'okx'},
+            {'id': 'folder-bitcoin-cash', 'name': 'bitcoin-cash'},
         ],
         'folder-near': [],
     }
@@ -909,13 +912,67 @@ def test_iter_targets_slug_filter_prunes_nonmatching_folders_and_pdfs(ws, monkey
         object(),
         ['econ'],
         filter_slug='near',
-        projects=[{'slug': 'near', 'name': 'NEAR Protocol', 'symbol': 'NEAR'}],
+        projects=[
+            {'slug': 'near', 'name': 'NEAR Protocol', 'symbol': 'NEAR'},
+            {'slug': 'bitcoin-cash', 'name': 'Bitcoin Cash', 'symbol': 'BCH'},
+        ],
     ))
 
     assert [(rtype, pdf['id']) for rtype, pdf in targets] == [
         ('econ', 'near-root'),
         ('econ', 'near-child'),
     ]
+
+
+def test_iter_targets_slug_filter_does_not_substring_match_other_projects(ws, monkeypatch):
+    monkeypatch.setattr(ws, 'TYPE_FOLDER_IDS', {'econ': 'root-econ'})
+    pdfs_by_parent = {
+        'root-econ': [
+            {'id': 'bitcoin-root', 'name': 'Bitcoin_Cryptoeconomic_Blueprint_en.pdf', 'modifiedTime': 't-btc'},
+            {'id': 'bitcoin-cash-root', 'name': 'Bitcoin_Cash_Cryptoeconomic_Blueprint_en.pdf', 'modifiedTime': 't-bch'},
+            {'id': 'ethena-root', 'name': 'Ethena_Economic_Blueprint_en.pdf', 'modifiedTime': 't-ena'},
+            {'id': 'tether-root', 'name': 'Tether_Cryptoeconomic_Blueprint_en.pdf', 'modifiedTime': 't-usdt'},
+        ],
+        'folder-bitcoin': [{'id': 'bitcoin-child', 'name': 'bitcoin_econ_v1_ko.pdf', 'modifiedTime': 't-btc-ko'}],
+        'folder-bitcoin-cash': [{'id': 'bitcoin-cash-child', 'name': 'bitcoin-cash_econ_v1_ko.pdf', 'modifiedTime': 't-bch-ko'}],
+    }
+    folders_by_parent = {
+        'root-econ': [
+            {'id': 'folder-bitcoin', 'name': 'bitcoin'},
+            {'id': 'folder-bitcoin-cash', 'name': 'bitcoin-cash'},
+        ],
+        'folder-bitcoin': [],
+    }
+    monkeypatch.setattr(ws, '_list_pdfs_direct', lambda _service, parent_id: pdfs_by_parent.get(parent_id, []))
+    monkeypatch.setattr(ws, '_list_child_folders', lambda _service, parent_id: folders_by_parent.get(parent_id, []))
+
+    projects = [
+        {'slug': 'bitcoin', 'name': 'Bitcoin', 'symbol': 'BTC'},
+        {'slug': 'bitcoin-cash', 'name': 'Bitcoin Cash', 'symbol': 'BCH'},
+        {'slug': 'ethereum', 'name': 'Ethereum', 'symbol': 'ETH'},
+        {'slug': 'ethena', 'name': 'Ethena', 'symbol': 'ENA'},
+        {'slug': 'tether', 'name': 'Tether', 'symbol': 'USDT'},
+    ]
+
+    bitcoin_targets = list(ws._iter_targets(
+        object(),
+        ['econ'],
+        filter_slug='bitcoin',
+        projects=projects,
+    ))
+
+    ethereum_targets = list(ws._iter_targets(
+        object(),
+        ['econ'],
+        filter_slug='ethereum',
+        projects=projects,
+    ))
+
+    assert [(rtype, pdf['id']) for rtype, pdf in bitcoin_targets] == [
+        ('econ', 'bitcoin-root'),
+        ('econ', 'bitcoin-child'),
+    ]
+    assert ethereum_targets == []
 
 
 def test_iter_targets_keeps_root_type_when_filename_has_no_type_token(ws, monkeypatch):
@@ -1848,6 +1905,57 @@ class _FakeStorageClient:
         self.storage = _FakeStorageRoot()
 
 
+class _FakeReconcileExecuteResult:
+    def __init__(self, data):
+        self.data = data
+
+
+class _FakeReconcileTable:
+    def __init__(self, rows):
+        self.rows = rows
+        self.filters = {}
+        self.patch = None
+        self.range_bounds = None
+
+    def select(self, *_args):
+        return self
+
+    def range(self, start, end):
+        self.range_bounds = (start, end)
+        return self
+
+    def update(self, patch):
+        self.patch = patch
+        return self
+
+    def eq(self, key, value):
+        self.filters[key] = value
+        return self
+
+    def execute(self):
+        matched = [
+            row for row in self.rows
+            if all(row.get(key) == value for key, value in self.filters.items())
+        ]
+        if self.patch is not None:
+            for row in matched:
+                row.update(self.patch)
+            return _FakeReconcileExecuteResult(matched)
+        if self.range_bounds:
+            start, end = self.range_bounds
+            matched = matched[start:end + 1]
+        return _FakeReconcileExecuteResult(matched)
+
+
+class _FakeReconcileSupabase:
+    def __init__(self, tables):
+        self.tables = tables
+
+    def table(self, name):
+        assert name in self.tables
+        return _FakeReconcileTable(self.tables[name])
+
+
 class _FakeMergeTable:
     def __init__(self, row):
         self.row = row
@@ -2115,6 +2223,164 @@ def test_prune_stale_languages_skips_empty_current_language_set(ws):
         'lang': None,
         'status': 'prune_skipped_no_publishable_pdf',
         'error': 'no current publishable PDFs',
+    }]
+
+
+def test_db_reconcile_cancels_visible_rows_absent_from_active_drive(ws, monkeypatch):
+    projects = [
+        {'id': 'project-bitcoin', 'slug': 'bitcoin', 'name': 'Bitcoin', 'symbol': 'BTC'},
+        {'id': 'project-polygon', 'slug': 'matic-network', 'name': 'Polygon', 'symbol': 'MATIC'},
+    ]
+    tables = {
+        'project_reports': [
+            {
+                'id': 'report-bitcoin-en',
+                'project_id': 'project-bitcoin',
+                'report_type': 'econ',
+                'language': 'en',
+                'status': 'published',
+                'published_at': '2026-05-01T00:00:00Z',
+                'updated_at': '2026-05-01T00:00:00Z',
+                'created_at': '2026-05-01T00:00:00Z',
+                'slide_html_urls_by_lang': {'en': 'https://storage/econ/bitcoin/latest/en.html'},
+            },
+            {
+                'id': 'report-polygon-en',
+                'project_id': 'project-polygon',
+                'report_type': 'econ',
+                'language': 'en',
+                'status': 'published',
+                'published_at': '2026-04-01T00:00:00Z',
+                'updated_at': '2026-04-01T00:00:00Z',
+                'created_at': '2026-04-01T00:00:00Z',
+                'slide_html_urls_by_lang': {'en': 'https://storage/econ/matic-network/latest/en.html'},
+            },
+        ],
+        'tracked_projects': [
+            {
+                'id': 'project-bitcoin',
+                'slug': 'bitcoin',
+                'last_econ_report_at': '2026-04-30T00:00:00Z',
+                'last_maturity_report_at': None,
+                'last_forensic_report_at': None,
+            },
+            {
+                'id': 'project-polygon',
+                'slug': 'matic-network',
+                'last_econ_report_at': '2026-04-01T00:00:00Z',
+                'last_maturity_report_at': None,
+                'last_forensic_report_at': None,
+            },
+        ],
+    }
+    monkeypatch.setattr(ws, '_iter_active_slide_targets', lambda *_args, **_kwargs: [
+        ('econ', {'name': 'Bitcoin_Cryptoeconomic_Blueprint_en.pdf', 'source_path': 'Slide/econ'}),
+    ])
+
+    results = ws._reconcile_visible_reports_with_drive(
+        _FakeReconcileSupabase(tables),
+        object(),
+        types=['econ'],
+        projects=projects,
+        dry_run=False,
+    )
+
+    assert tables['project_reports'][0]['status'] == 'published'
+    assert tables['project_reports'][1]['status'] == 'cancelled'
+    assert tables['tracked_projects'][0]['last_econ_report_at'] == '2026-05-01T00:00:00Z'
+    assert tables['tracked_projects'][1]['last_econ_report_at'] is None
+    assert {row['status'] for row in results} == {
+        'db_reconcile_cancelled',
+        'db_reconcile_timestamp_synced',
+        'db_reconcile_timestamp_cleared',
+    }
+
+
+def test_db_reconcile_dry_run_does_not_mutate_rows(ws, monkeypatch):
+    projects = [
+        {'id': 'project-polygon', 'slug': 'matic-network', 'name': 'Polygon', 'symbol': 'MATIC'},
+    ]
+    tables = {
+        'project_reports': [{
+            'id': 'report-polygon-en',
+            'project_id': 'project-polygon',
+            'report_type': 'econ',
+            'language': 'en',
+            'status': 'published',
+            'published_at': '2026-04-01T00:00:00Z',
+            'updated_at': '2026-04-01T00:00:00Z',
+            'created_at': '2026-04-01T00:00:00Z',
+            'slide_html_urls_by_lang': {'en': 'https://storage/econ/matic-network/latest/en.html'},
+        }],
+        'tracked_projects': [{
+            'id': 'project-polygon',
+            'slug': 'matic-network',
+            'last_econ_report_at': '2026-04-01T00:00:00Z',
+            'last_maturity_report_at': None,
+            'last_forensic_report_at': None,
+        }],
+    }
+    monkeypatch.setattr(ws, '_iter_active_slide_targets', lambda *_args, **_kwargs: [])
+
+    results = ws._reconcile_visible_reports_with_drive(
+        _FakeReconcileSupabase(tables),
+        object(),
+        types=['econ'],
+        projects=projects,
+        dry_run=True,
+    )
+
+    assert tables['project_reports'][0]['status'] == 'published'
+    assert tables['tracked_projects'][0]['last_econ_report_at'] == '2026-04-01T00:00:00Z'
+    assert {row['status'] for row in results} == {
+        'dry_run_db_reconcile_cancel',
+        'dry_run_db_reconcile_timestamp_clear',
+    }
+
+
+def test_db_reconcile_resolves_compact_drive_filename_slug(ws, monkeypatch):
+    projects = [
+        {'id': 'project-pump', 'slug': 'pump-fun', 'name': 'Pump.fun', 'symbol': 'PUMP'},
+    ]
+    tables = {
+        'project_reports': [{
+            'id': 'report-pump-en',
+            'project_id': 'project-pump',
+            'report_type': 'maturity',
+            'language': 'en',
+            'status': 'published',
+            'published_at': '2026-05-01T00:00:00Z',
+            'updated_at': '2026-05-01T00:00:00Z',
+            'created_at': '2026-05-01T00:00:00Z',
+            'slide_html_urls_by_lang': {'en': 'https://storage/mat/pump-fun/latest/en.html'},
+        }],
+        'tracked_projects': [{
+            'id': 'project-pump',
+            'slug': 'pump-fun',
+            'last_econ_report_at': None,
+            'last_maturity_report_at': '2026-05-01T00:00:00Z',
+            'last_forensic_report_at': None,
+        }],
+    }
+    monkeypatch.setattr(ws, '_iter_active_slide_targets', lambda *_args, **_kwargs: [
+        ('mat', {'name': 'pumpfun_MAT_en.pdf', 'source_path': 'Slide/mat/pumpfun_MAT_en.pdf'}),
+    ])
+
+    results = ws._reconcile_visible_reports_with_drive(
+        _FakeReconcileSupabase(tables),
+        object(),
+        types=['mat'],
+        projects=projects,
+        dry_run=False,
+    )
+
+    assert tables['project_reports'][0]['status'] == 'published'
+    assert results == [{
+        'rtype': None,
+        'slug': None,
+        'lang': None,
+        'status': 'db_reconcile_ok',
+        'error': 'visible DB report availability already matches active Drive Slide folders',
     }]
 
 

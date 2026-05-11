@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 
 import { getLocalizedMarketingContent } from '@/lib/report-marketing-content'
 import { cleanCardSummary } from '@/lib/report-summary'
-import { pickLocaleReport, reportHasSlideAssetForLocale } from '@/lib/report-locale'
+import { pickLocaleReport, reportSupportsLocale } from '@/lib/report-locale'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import type { ProjectReport, ReportType, TrackedProject } from '@/lib/types'
 
@@ -64,6 +64,13 @@ const REPORT_TYPE_ROUTE: Record<ReportType, string> = {
   forensic: 'forensic',
 }
 
+export function buildReportHref(locale: string, slug: string, reportType: ReportType): string {
+  if (reportType === 'forensic') {
+    return `/${locale}/reports/forensic/${slug}`
+  }
+  return `/${locale}/reports/${slug}/${REPORT_TYPE_ROUTE[reportType]}`
+}
+
 const REPORT_TYPE_DEFAULT_LABEL: Record<ReportType, { ko: string; en: string }> = {
   econ: { ko: '경제 분석', en: 'Economic Analysis' },
   maturity: { ko: '성숙도 평가', en: 'Maturity Assessment' },
@@ -96,9 +103,9 @@ function pickLocalizedSummary(report: ProjectReport, locale: string): string | n
 }
 
 /**
- * Pick one report row per report type. Language-scoped slide rows use real
- * locale assets first, then canonical English assets for locales whose report
- * catalog intentionally falls back to English.
+ * Pick one report row per report type. The project page is an availability
+ * index, so PDF/Drive-only legacy rows are still valid cards; the detail page
+ * handles slide HTML first and then PDF fallback.
  */
 export function selectReportsByType(
   reports: ProjectReport[],
@@ -113,7 +120,7 @@ export function selectReportsByType(
 
   const selected = new Map<ReportType, ProjectReport>()
   for (const [type, list] of byType.entries()) {
-    const eligible = list.filter((report) => reportHasSlideAssetForLocale(report, locale))
+    const eligible = list.filter((report) => reportSupportsLocale(report, locale))
     const pick = pickLocaleReport(eligible, locale)
     if (pick) selected.set(type, pick)
   }
@@ -142,7 +149,6 @@ export default async function ProjectDetailPage({ params }: Props) {
     .select('*')
     .eq('project_id', project.id)
     .in('status', ['published', 'in_review'])
-    .not('slide_html_urls_by_lang', 'is', null)
     .order('updated_at', { ascending: false })
 
   const reports = (reportsRaw || []) as ProjectReport[]
@@ -246,8 +252,7 @@ export default async function ProjectDetailPage({ params }: Props) {
               const title = pickLocalizedTitle(report, locale, project.symbol)
               const summary = pickLocalizedSummary(report, locale)
               const marketingContent = getLocalizedMarketingContent(report, locale, summary)
-              const route = REPORT_TYPE_ROUTE[report.report_type]
-              const href = `/${locale}/reports/${project.slug}/${route}`
+              const href = buildReportHref(locale, project.slug, report.report_type)
               const publishedAt = report.published_at
                 ? new Date(report.published_at).toLocaleDateString(dateLocale, {
                     year: 'numeric', month: 'short', day: 'numeric',

@@ -25,6 +25,7 @@ Usage:
     python watch_slides.py --slug bitcoin       # targeted filename/folder hint filter
     python watch_slides.py --dry-run            # scan-only, no uploads
     python watch_slides.py --force              # ignore manifest, reprocess all
+    python watch_slides.py --skip-db-reconcile  # do not cancel stale DB rows after full scan
 """
 from __future__ import annotations
 
@@ -200,6 +201,13 @@ PAPERCLIP_SUCCESS_STATUSES = {
     'dry_run',
     'pruned_stale_languages',
     'pruned_stale_storage',
+    'db_reconcile_ok',
+    'db_reconcile_cancelled',
+    'db_reconcile_timestamp_synced',
+    'db_reconcile_timestamp_cleared',
+    'dry_run_db_reconcile_cancel',
+    'dry_run_db_reconcile_timestamp_sync',
+    'dry_run_db_reconcile_timestamp_clear',
 }
 
 PAPERCLIP_FAILURE_STATUSES = {'failed'}
@@ -213,6 +221,7 @@ PAPERCLIP_BLOCKED_STATUSES = {
     'prune_skipped_no_project_id',
     'prune_skipped_no_supabase',
     'prune_storage_failed',
+    'db_reconcile_skipped',
 }
 
 
@@ -1844,6 +1853,242 @@ def _prune_stale_languages_for_pair(
     return results
 
 
+VISIBLE_REPORT_STATUSES = {
+    PUBLICATION_PUBLISHED_STATUS,
+    PUBLICATION_APPROVED_STATUS,
+    REVIEW_READY_STATUS,
+    'coming_soon',
+}
+
+
+def _fetch_all_table_rows(sb, table_name: str, columns: str) -> List[Dict[str, Any]]:
+    """Fetch rows in pages to avoid Supabase's default 1k result cap."""
+    rows: List[Dict[str, Any]] = []
+    offset = 0
+    page_size = 1000
+    while True:
+        res = sb.table(table_name).select(columns).range(offset, offset + page_size - 1).execute()
+        data = res.data or []
+        rows.extend(data)
+        if len(data) < page_size:
+            break
+        offset += page_size
+    return rows
+
+
+def _active_drive_report_pairs(
+    service,
+    types: Iterable[str],
+    projects: List[Dict[str, Any]],
+) -> Tuple[Set[Tuple[str, str, str]], List[Dict[str, Any]]]:
+    """Return active Slide/{TYPE} report keys as (db_type, slug, lang)."""
+    pairs: Set[Tuple[str, str, str]] = set()
+    unresolved: List[Dict[str, Any]] = []
+    for rtype, pdf in _iter_active_slide_targets(service, types, projects=projects):
+        project = _match_drive_pdf_project(pdf, projects)
+        lang = _lang_from_filename(pdf.get('name') or '')
+        db_type = DB_REPORT_TYPE.get(rtype)
+        slug = (project or {}).get('slug')
+        if db_type and slug and lang:
+            pairs.add((db_type, slug, lang))
+            continue
+        unresolved.append({
+            'rtype': rtype,
+            'name': pdf.get('name'),
+            'source_path': pdf.get('source_path'),
+            'slug': slug,
+            'lang': lang,
+            'status': 'db_reconcile_unresolved_drive_pdf',
+            'error': 'Drive PDF could not be reduced to (report_type, slug, lang)',
+        })
+    return pairs, unresolved
+
+
+def _compact_project_signal(value: Any) -> str:
+    return re.sub(r'[^a-z0-9]+', '', _normalize_signal_text(str(value or '')))
+
+
+def _match_drive_pdf_project(pdf: Dict[str, Any], projects: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """Resolve a Drive PDF to a project without downloading the PDF body.
+
+    The final reconcile step must be conservative: active Drive files are the
+    source of truth, and common filename spellings like `pumpfun` vs `pump-fun`
+    should not make the guard hide a real report. Prefer the normal resolver,
+    then fall back to compact slug/name/alias matching and symbol tokens.
+    """
+    name = pdf.get('name') or ''
+    source_path = pdf.get('source_path') or ''
+    matched = _match_project_by_text(f'{name} {source_path}', projects)
+    if matched:
+        return matched
+
+    stem = Path(name).stem
+    compact_stem = _compact_project_signal(stem)
+    token_text = _normalize_signal_text(stem)
+    token_set = set(token_text.split())
+    candidates: List[Tuple[int, Dict[str, Any]]] = []
+    for project in projects:
+        slug_signal = _compact_project_signal(project.get('slug'))
+        name_signal = _compact_project_signal(project.get('name'))
+        aliases = project.get('aliases') or []
+        alias_signals = [
+            _compact_project_signal(alias)
+            for alias in aliases
+            if _compact_project_signal(alias)
+        ]
+        for signal in [slug_signal, name_signal, *alias_signals]:
+            if len(signal) >= 5 and signal in compact_stem:
+                candidates.append((len(signal), project))
+        symbol = str(project.get('symbol') or '').lower()
+        if symbol and len(symbol) <= 8 and symbol in token_set:
+            candidates.append((len(symbol), project))
+
+    if not candidates:
+        return None
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    return candidates[0][1]
+
+
+def _rtype_for_db_type(db_type: Optional[str]) -> Optional[str]:
+    return next((rtype for rtype, mapped in DB_REPORT_TYPE.items() if mapped == db_type), None)
+
+
+def _reconcile_visible_reports_with_drive(
+    sb,
+    service,
+    *,
+    types: Iterable[str],
+    projects: List[Dict[str, Any]],
+    dry_run: bool,
+) -> List[Dict[str, Any]]:
+    """Keep website-visible report rows aligned with current active Slide folders."""
+    if sb is None:
+        return [{
+            'rtype': None,
+            'slug': None,
+            'lang': None,
+            'status': 'db_reconcile_skipped',
+            'error': 'supabase client unavailable',
+        }]
+
+    results: List[Dict[str, Any]] = []
+    drive_pairs, unresolved = _active_drive_report_pairs(service, types, projects)
+    results.extend(unresolved)
+    db_types = {DB_REPORT_TYPE[rtype] for rtype in types if rtype in DB_REPORT_TYPE}
+    project_by_id = {p.get('id'): p for p in projects}
+
+    report_rows = [
+        row for row in _fetch_all_table_rows(
+            sb,
+            'project_reports',
+            (
+                'id, project_id, report_type, language, status, published_at, '
+                'updated_at, created_at, slide_html_urls_by_lang'
+            ),
+        )
+        if row.get('report_type') in db_types
+    ]
+
+    now = datetime.now(timezone.utc).isoformat()
+    active_slugs_by_type: Dict[str, Set[str]] = {}
+    for db_type, slug, _lang in drive_pairs:
+        active_slugs_by_type.setdefault(db_type, set()).add(slug)
+
+    for row in report_rows:
+        project = project_by_id.get(row.get('project_id')) or {}
+        key = (row.get('report_type'), project.get('slug'), row.get('language'))
+        if row.get('status') not in VISIBLE_REPORT_STATUSES or key in drive_pairs:
+            continue
+        status = 'dry_run_db_reconcile_cancel' if dry_run else 'db_reconcile_cancelled'
+        if not dry_run:
+            sb.table('project_reports').update({
+                'status': 'cancelled',
+                'updated_at': now,
+            }).eq('id', row.get('id')).execute()
+        results.append({
+            'rtype': _rtype_for_db_type(row.get('report_type')),
+            'slug': project.get('slug'),
+            'lang': row.get('language'),
+            'status': status,
+            'report_id': row.get('id'),
+            'error': 'website-visible report row is absent from active Drive Slide folder',
+        })
+
+    latest_by_type_slug: Dict[Tuple[str, str], str] = {}
+    for row in report_rows:
+        project = project_by_id.get(row.get('project_id')) or {}
+        slug = project.get('slug')
+        key = (row.get('report_type'), slug, row.get('language'))
+        if key not in drive_pairs:
+            continue
+        if row.get('status') not in VISIBLE_REPORT_STATUSES:
+            continue
+        if not _lang_map_has_value(row.get('slide_html_urls_by_lang')):
+            continue
+        ts = row.get('published_at') or row.get('updated_at') or row.get('created_at')
+        if not ts or not slug:
+            continue
+        latest_key = (str(row.get('report_type')), str(slug))
+        if latest_key not in latest_by_type_slug or ts > latest_by_type_slug[latest_key]:
+            latest_by_type_slug[latest_key] = ts
+
+    tracked_rows = _fetch_all_table_rows(
+        sb,
+        'tracked_projects',
+        'id, slug, last_econ_report_at, last_maturity_report_at, last_forensic_report_at',
+    )
+    for project in tracked_rows:
+        slug = project.get('slug')
+        project_id = project.get('id')
+        for db_type in sorted(db_types):
+            timestamp_field = _tracked_timestamp_field(db_type)
+            if not timestamp_field:
+                continue
+            active_slugs = active_slugs_by_type.get(db_type, set())
+            current_value = project.get(timestamp_field)
+            latest = latest_by_type_slug.get((db_type, slug))
+            if slug not in active_slugs:
+                if not current_value:
+                    continue
+                status = 'dry_run_db_reconcile_timestamp_clear' if dry_run else 'db_reconcile_timestamp_cleared'
+                if not dry_run and project_id:
+                    sb.table('tracked_projects').update({
+                        timestamp_field: None,
+                        'updated_at': now,
+                    }).eq('id', project_id).execute()
+                results.append({
+                    'rtype': _rtype_for_db_type(db_type),
+                    'slug': slug,
+                    'lang': None,
+                    'status': status,
+                    'error': f'{timestamp_field} cleared because no active Drive Slide report exists',
+                })
+            elif latest and latest != current_value:
+                status = 'dry_run_db_reconcile_timestamp_sync' if dry_run else 'db_reconcile_timestamp_synced'
+                if not dry_run and project_id:
+                    sb.table('tracked_projects').update({
+                        timestamp_field: latest,
+                        'updated_at': now,
+                    }).eq('id', project_id).execute()
+                results.append({
+                    'rtype': _rtype_for_db_type(db_type),
+                    'slug': slug,
+                    'lang': None,
+                    'status': status,
+                    'error': f'{timestamp_field} synced from active Drive-backed report rows',
+                })
+
+    if not results:
+        results.append({
+            'rtype': None,
+            'slug': None,
+            'lang': None,
+            'status': 'db_reconcile_ok',
+            'error': 'visible DB report availability already matches active Drive Slide folders',
+        })
+    return results
+
+
 # ═══════════════════════════════════════════
 # Conversion + upload
 # ═══════════════════════════════════════════
@@ -2176,22 +2421,44 @@ def _slug_hint_tokens(filter_slug: Optional[str], projects: List[Dict[str, Any]]
     return {token.lower() for token in tokens if token}
 
 
-def _name_matches_slug_hint(name: str, hint_tokens: Set[str]) -> bool:
+def _name_matches_slug_hint(
+    name: str,
+    hint_tokens: Set[str],
+    *,
+    filter_slug: Optional[str] = None,
+    projects: Optional[List[Dict[str, Any]]] = None,
+) -> bool:
     if not hint_tokens:
         return True
+
+    if filter_slug and projects:
+        matched_project = _match_project_by_text(name or '', projects)
+        if matched_project:
+            return (matched_project.get('slug') or '').lower() == filter_slug.lower()
+
     normalized = _normalize_signal_text(Path(name or '').stem)
-    raw = (name or '').lower()
     for token in hint_tokens:
         if not token:
             continue
         token_norm = _normalize_signal_text(token)
-        if token in raw or token_norm in normalized:
+        if token_norm in normalized:
             return True
     return False
 
 
-def _folder_matches_slug_hint(folder_name: str, hint_tokens: Set[str]) -> bool:
-    return _name_matches_slug_hint(folder_name, hint_tokens)
+def _folder_matches_slug_hint(
+    folder_name: str,
+    hint_tokens: Set[str],
+    *,
+    filter_slug: Optional[str] = None,
+    projects: Optional[List[Dict[str, Any]]] = None,
+) -> bool:
+    return _name_matches_slug_hint(
+        folder_name,
+        hint_tokens,
+        filter_slug=filter_slug,
+        projects=projects,
+    )
 
 
 def _root_scan_mode(root_rtype: str, requested_types: Set[str], hint_tokens: Set[str]) -> str:
@@ -2229,7 +2496,12 @@ def _iter_active_slide_targets(
             continue
         root_folder = {'id': type_folder, 'name': root_rtype}
         for pdf in _list_pdfs_direct(service, type_folder):
-            if not _name_matches_slug_hint(pdf.get('name') or '', hint_tokens):
+            if not _name_matches_slug_hint(
+                pdf.get('name') or '',
+                hint_tokens,
+                filter_slug=filter_slug,
+                projects=projects,
+            ):
                 continue
             target_rtype = (
                 _infer_rtype_from_file_name(
@@ -2255,7 +2527,12 @@ def _iter_active_slide_targets(
         stack: List[Tuple[Dict, str, int]] = [
             (folder, f"Slide/{root_rtype}/{folder.get('name', '')}", 1)
             for folder in _list_child_folders(service, type_folder)
-            if _folder_matches_slug_hint(folder.get('name') or '', hint_tokens)
+            if _folder_matches_slug_hint(
+                folder.get('name') or '',
+                hint_tokens,
+                filter_slug=filter_slug,
+                projects=projects,
+            )
         ]
         seen: set[str] = set()
         while stack:
@@ -2266,7 +2543,12 @@ def _iter_active_slide_targets(
             seen.add(folder_id)
 
             for pdf in _list_pdfs_direct(service, folder_id):
-                if not _name_matches_slug_hint(pdf.get('name') or '', hint_tokens):
+                if not _name_matches_slug_hint(
+                    pdf.get('name') or '',
+                    hint_tokens,
+                    filter_slug=filter_slug,
+                    projects=projects,
+                ):
                     continue
                 target_rtype = (
                     _infer_rtype_from_file_name(
@@ -2292,8 +2574,18 @@ def _iter_active_slide_targets(
 
             for child in _list_child_folders(service, folder_id):
                 if hint_tokens and not (
-                    _folder_matches_slug_hint(child.get('name') or '', hint_tokens)
-                    or _folder_matches_slug_hint(source_path, hint_tokens)
+                    _folder_matches_slug_hint(
+                        child.get('name') or '',
+                        hint_tokens,
+                        filter_slug=filter_slug,
+                        projects=projects,
+                    )
+                    or _folder_matches_slug_hint(
+                        source_path,
+                        hint_tokens,
+                        filter_slug=filter_slug,
+                        projects=projects,
+                    )
                 ):
                     continue
                 stack.append((child, f"{source_path}/{child.get('name', '')}", depth + 1))
@@ -2345,6 +2637,7 @@ def process(
     filter_file_ids: Optional[set[str]] = None,
     dry_run: bool,
     force: bool,
+    reconcile_db: bool = True,
     language_overrides: Optional[Dict[str, str]] = None,
 ) -> Tuple[List[Dict], List[Dict]]:
     if filter_file_ids:
@@ -3073,6 +3366,21 @@ def process(
             dry_run=dry_run,
         ))
 
+    if reconcile_db:
+        if filter_slug:
+            print("  [SKIP] DB availability reconcile skipped during slug-filtered run")
+        elif sb is None or not projects:
+            print("  [SKIP] DB availability reconcile skipped: Supabase/projects unavailable")
+        else:
+            reconcile_results = _reconcile_visible_reports_with_drive(
+                sb,
+                service,
+                types=types,
+                projects=projects,
+                dry_run=dry_run,
+            )
+            processed.extend(reconcile_results)
+
     return scanned, processed
 
 
@@ -3346,6 +3654,11 @@ def main() -> int:
     parser.add_argument('--dry-run', action='store_true', help='Scan only — no download/upload/DB')
     parser.add_argument('--force', action='store_true', help='Reprocess even if manifest is up-to-date')
     parser.add_argument(
+        '--skip-db-reconcile',
+        action='store_true',
+        help='Skip final Drive-vs-DB availability reconciliation for full type scans',
+    )
+    parser.add_argument(
         '--language-override',
         action='append',
         default=[],
@@ -3385,6 +3698,7 @@ def main() -> int:
         filter_file_ids=None,
         dry_run=args.dry_run,
         force=args.force,
+        reconcile_db=not args.skip_db_reconcile,
         language_overrides=language_overrides,
     )
 
