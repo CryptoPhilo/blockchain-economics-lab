@@ -63,6 +63,13 @@ const REPORT_TYPE_ROUTE: Record<ReportType, string> = {
   forensic: 'forensic',
 }
 
+export function buildReportHref(locale: string, slug: string, reportType: ReportType): string {
+  if (reportType === 'forensic') {
+    return `/${locale}/reports/forensic/${slug}`
+  }
+  return `/${locale}/reports/${slug}/${REPORT_TYPE_ROUTE[reportType]}`
+}
+
 const REPORT_TYPE_DEFAULT_LABEL: Record<ReportType, { ko: string; en: string }> = {
   econ: { ko: '경제 분석', en: 'Economic Analysis' },
   maturity: { ko: '성숙도 평가', en: 'Maturity Assessment' },
@@ -244,8 +251,7 @@ export default async function ProjectDetailPage({ params }: Props) {
               const typeLabel = isKo ? theme.labelKo : theme.labelEn
               const title = pickLocalizedTitle(report, locale, project.symbol)
               const summary = pickLocalizedSummary(report, locale)
-              const route = REPORT_TYPE_ROUTE[report.report_type]
-              const href = `/${locale}/reports/${project.slug}/${route}`
+              const href = buildReportHref(locale, project.slug, report.report_type)
               const publishedAt = report.published_at
                 ? new Date(report.published_at).toLocaleDateString(dateLocale, {
                     year: 'numeric', month: 'short', day: 'numeric',

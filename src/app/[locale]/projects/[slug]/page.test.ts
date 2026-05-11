@@ -1,4 +1,4 @@
-import { selectReportsByType } from './page'
+import { buildReportHref, selectReportsByType } from './page'
 import type { ProjectReport } from '@/lib/types'
 
 function createReport(overrides: Partial<ProjectReport> = {}): ProjectReport {
@@ -44,5 +44,18 @@ describe('project detail report selection', () => {
     expect(selectReportsByType([report], 'de').get('econ')).toBe(report)
     expect(selectReportsByType([report], 'es').get('econ')).toBe(report)
     expect(selectReportsByType([report], 'fr').get('econ')).toBe(report)
+  })
+})
+
+describe('project detail report links', () => {
+  it('uses the legacy slide route shape for ECON and MAT reports', () => {
+    expect(buildReportHref('ko', 'bitcoin', 'econ')).toBe('/ko/reports/bitcoin/econ')
+    expect(buildReportHref('ko', 'ethereum', 'maturity')).toBe('/ko/reports/ethereum/maturity')
+  })
+
+  it('uses the actual forensic detail route for FOR reports', () => {
+    expect(buildReportHref('ko', 'aerodrome-finance', 'forensic')).toBe(
+      '/ko/reports/forensic/aerodrome-finance',
+    )
   })
 })
