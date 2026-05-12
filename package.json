@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "echo \"No tests configured yet\""
+    "test": "echo \"No tests configured yet\"",
+    "verify:runtime-pipelines": "node scripts/verify-runtime-pipelines.mjs"
   },
   "dependencies": {
     "@parcel/watcher": "^2.5.6",

@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "company": "BCELab",
+  "principle": "Paperclip owns the operating definition; this repository owns the executable manifest; CI verifies the mapping before code can be deployed or remote jobs can run.",
+  "remoteFirst": true,
+  "localExecutionPolicy": {
+    "allowedPurposes": ["dry_run", "development", "incident_reproduction"],
+    "productionWritesAllowed": false,
+    "requiredEvidence": "Local pipeline execution must be linked to a Paperclip issue and rerun remotely before production approval."
+  },
+  "pipelines": [
+    {
+      "key": "econ-report-publishing",
+      "paperclipName": "ECON Report Publishing",
+      "owner": "CRO",
+      "status": "active",
+      "cadence": {
+        "kind": "scheduled",
+        "workflow": ".github/workflows/slide-pipeline-cron.yml",
+        "cron": "*/5 * * * *",
+        "runtimeGate": "Supabase pipeline_schedules row where pipeline_name=slide-pipeline",
+        "expectedIntervalMinutes": 30
+      },
+      "nodes": [
+        {
+          "key": "source_collection",
+          "paperclipLabel": "Slide PDF intake",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/slide-pipeline-cron.yml",
+            "entrypoint": "scripts/pipeline/watch_slides.py",
+            "commandContains": "python3 watch_slides.py",
+            "localAllowed": ["dry_run", "development"]
+          }
+        },
+        {
+          "key": "post_publish_monitoring",
+          "paperclipLabel": "Post-publish monitoring",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/pipeline-daily-report.yml",
+            "entrypoint": "scripts/pipeline/daily_pipeline_report.py",
+            "commandContains": "daily_pipeline_report.py",
+            "localAllowed": ["development"]
+          }
+        }
+      ]
+    },
+    {
+      "key": "mat-report-publishing",
+      "paperclipName": "MAT Report Publishing",
+      "extends": "econ-report-publishing",
+      "owner": "CRO",
+      "status": "active",
+      "reportType": "mat"
+    },
+    {
+      "key": "for-report-publishing",
+      "paperclipName": "FOR Report Publishing",
+      "extends": "econ-report-publishing",
+      "owner": "CRO",
+      "status": "active",
+      "reportType": "for"
+    }
+  ]
+}
