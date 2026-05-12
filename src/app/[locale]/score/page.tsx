@@ -43,6 +43,11 @@ function toNumber(value: unknown): number {
   return 0
 }
 
+function toCmcCanonicalRank(value: unknown): number | null {
+  const rank = toNumber(value)
+  return Number.isInteger(rank) && rank >= 1 && rank <= MAX_RANK ? rank : null
+}
+
 function addProjectLookup(
   lookup: Map<string, TrackedScoreboardProject>,
   key: unknown,
@@ -116,7 +121,7 @@ export function snapshotRowsToScoreRows(
       const reportTypes = buildReportTypes(project)
 
       return {
-        rank: index + 1,
+        rank: toCmcCanonicalRank(snapshot.cmc_rank) ?? index + 1,
         name: project?.name || formatSnapshotName(snapshot.slug),
         symbol: project?.symbol || formatSnapshotSymbol(snapshot.slug),
         slug: project?.slug || snapshot.slug,
@@ -138,15 +143,28 @@ export function canonicalSnapshotRowsToScoreRows(
   snapshotRows: ScoreboardSnapshotRow[],
   trackedProjects: TrackedScoreboardProject[]
 ) {
-  if (!hasCompleteCmcCanonicalTop200Snapshot(snapshotRows.length)) return []
+  const canonicalRows = snapshotRows
+    .filter((row) => toCmcCanonicalRank(row.cmc_rank) !== null)
+    .sort((a, b) => (toCmcCanonicalRank(a.cmc_rank) ?? 0) - (toCmcCanonicalRank(b.cmc_rank) ?? 0))
+
+  if (!hasCompleteCmcCanonicalTop200Snapshot(canonicalRows)) return []
   return snapshotRowsToScoreRows(
-    snapshotRows,
+    canonicalRows,
     buildTrackedProjectLookup(trackedProjects)
   )
 }
 
-export function hasCompleteCmcCanonicalTop200Snapshot(snapshotRowCount: number) {
-  return snapshotRowCount >= MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS
+export function hasCompleteCmcCanonicalTop200Snapshot(snapshotRows: ScoreboardSnapshotRow[]) {
+  if (snapshotRows.length !== MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS) return false
+
+  const ranks = new Set(snapshotRows.map((row) => toCmcCanonicalRank(row.cmc_rank)))
+  if (ranks.has(null) || ranks.size !== MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS) return false
+
+  for (let rank = 1; rank <= MAX_RANK; rank += 1) {
+    if (!ranks.has(rank)) return false
+  }
+
+  return true
 }
 
 export default async function ScorePage({
