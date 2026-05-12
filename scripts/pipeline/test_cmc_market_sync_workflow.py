@@ -100,23 +100,26 @@ def test_cmc_to_market_row_preserves_cmc_rank_and_source():
     assert row['source'] == 'coinmarketcap'
 
 
-def test_mode_top200_upserts_only_canonical_cmc_rank_1_to_200():
-    tokens = [
-        make_token(1, 'bitcoin', 'BTC'),
-        make_token(200, 'rank-200', 'R200'),
+def test_mode_top200_upserts_response_order_as_canonical_rank_1_to_200():
+    tokens = [make_token(rank, f'rank-{rank}', f'R{rank}') for rank in range(1, 201)]
+    tokens[168] = make_token(169, 'duplicate-rank-a', 'DRA')
+    tokens[169] = make_token(169, 'duplicate-rank-b', 'DRB')
+    tokens.extend([
         make_token(201, 'rain', 'RAIN'),
         make_token(203, 'htx-dao', 'HTX'),
         make_token(999, 'falcon-usd', 'USDf'),
-        {**make_token(45, 'bad-rank'), 'cmc_rank': None},
-    ]
+    ])
     db = FakeDB()
 
     result = mode_top200(FakeCMC(tokens), db)
 
     assert result['fetched'] == len(tokens)
-    assert result['written'] == 2
-    assert [row['slug'] for row in db.rows] == ['bitcoin', 'rank-200']
-    assert [row['cmc_rank'] for row in db.rows] == [1, 200]
+    assert result['written'] == 200
+    assert [row['cmc_rank'] for row in db.rows] == list(range(1, 201))
+    assert db.rows[168]['slug'] == 'duplicate-rank-a'
+    assert db.rows[168]['cmc_rank'] == 169
+    assert db.rows[169]['slug'] == 'duplicate-rank-b'
+    assert db.rows[169]['cmc_rank'] == 170
     assert 'rain' not in {row['slug'] for row in db.rows}
     assert 'htx-dao' not in {row['slug'] for row in db.rows}
     assert 'falcon-usd' not in {row['slug'] for row in db.rows}
