@@ -79,7 +79,7 @@ class CMCClient:
                         'convert': 'USD',
                         'sort': 'market_cap',
                         'sort_dir': 'desc',
-                        'aux': 'num_market_pairs,date_added,platform,max_supply,'
+                        'aux': 'cmc_rank,num_market_pairs,date_added,platform,max_supply,'
                                'circulating_supply,total_supply',
                     },
                     timeout=30,
