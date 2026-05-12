@@ -9,6 +9,7 @@ assert SPEC and SPEC.loader
 SPEC.loader.exec_module(cmc_market_sync)
 
 cmc_to_market_row = cmc_market_sync.cmc_to_market_row
+CMCClient = cmc_market_sync.CMCClient
 mode_top200 = cmc_market_sync.mode_top200
 
 
@@ -55,6 +56,40 @@ class FakeDB:
     def upsert_market_data(self, rows):
         self.rows.extend(rows)
         return len(rows)
+
+
+class FakeResponse:
+    def raise_for_status(self):
+        return None
+
+    def json(self):
+        return {
+            'status': {
+                'credit_count': 1,
+                'error_code': 0,
+            },
+            'data': [],
+        }
+
+
+class FakeSession:
+    def __init__(self):
+        self.headers = {}
+        self.params = None
+
+    def get(self, _url, params, timeout):
+        self.params = params
+        return FakeResponse()
+
+
+def test_cmc_get_listings_requests_canonical_rank_aux():
+    client = CMCClient('test-key')
+    fake_session = FakeSession()
+    client.session = fake_session
+
+    client.get_listings(start=1, limit=200)
+
+    assert 'cmc_rank' in fake_session.params['aux'].split(',')
 
 
 def test_cmc_to_market_row_preserves_cmc_rank_and_source():
