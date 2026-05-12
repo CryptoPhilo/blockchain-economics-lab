@@ -1,5 +1,6 @@
 import {
   buildTrackedProjectLookup,
+  canonicalSnapshotRowsToScoreRows,
   hasCompleteCmcCanonicalTop200Snapshot,
   MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS,
   snapshotRowsToScoreRows,
@@ -26,13 +27,42 @@ jest.mock('@/components/SubscribeForm', () => function SubscribeForm() {
 })
 
 describe('score page CMC canonical Top 200 snapshot guard', () => {
-  it('rejects partial snapshots so score falls back to tracked projects', () => {
+  it('rejects partial snapshots as non-canonical Top 200 data', () => {
     expect(hasCompleteCmcCanonicalTop200Snapshot(1)).toBe(false)
     expect(hasCompleteCmcCanonicalTop200Snapshot(199)).toBe(false)
   })
 
   it('accepts only snapshots with at least 200 rows as canonical Top 200 data', () => {
     expect(hasCompleteCmcCanonicalTop200Snapshot(MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS)).toBe(true)
+  })
+
+  it('does not substitute tracked projects when the CMC snapshot is incomplete', () => {
+    const trackedProjects = [
+      {
+        id: 'htx-project',
+        name: 'HTX',
+        slug: 'htx',
+        symbol: 'HTX',
+        category: 'Exchange',
+        market_cap_usd: 100,
+        coingecko_id: 'htx',
+        cmc_id: 'htx',
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const partialSnapshotRows = Array.from({ length: 199 }, (_, index) => ({
+      slug: index === 0 ? 'bitcoin' : `cmc-project-${index}`,
+      price_usd: index + 1,
+      market_cap: 1_000_000 - index,
+      change_24h: 0,
+      recorded_at: '2026-05-12',
+    }))
+
+    expect(canonicalSnapshotRowsToScoreRows(partialSnapshotRows, trackedProjects)).toEqual([])
   })
 })
 

@@ -134,29 +134,15 @@ export function snapshotRowsToScoreRows(
     })
 }
 
-function fallbackProjectsToScoreRows(projects: TrackedScoreboardProject[]) {
-  return projects
-    .slice(0, MAX_RANK)
-    .map((project, index) => {
-      const reportTypes = buildReportTypes(project)
-
-      return {
-        rank: index + 1,
-        name: project.name,
-        symbol: project.symbol,
-        slug: project.slug,
-        change24h: null,
-        marketCap: toNumber(project.market_cap_usd),
-        score: project.maturity_score == null ? null : toNumber(project.maturity_score),
-        category: project.category || '',
-        reportTypes,
-        reportDates: {
-          econ: project.last_econ_report_at ?? null,
-          maturity: project.last_maturity_report_at ?? null,
-          forensic: project.last_forensic_report_at ?? null,
-        },
-      }
-    })
+export function canonicalSnapshotRowsToScoreRows(
+  snapshotRows: ScoreboardSnapshotRow[],
+  trackedProjects: TrackedScoreboardProject[]
+) {
+  if (!hasCompleteCmcCanonicalTop200Snapshot(snapshotRows.length)) return []
+  return snapshotRowsToScoreRows(
+    snapshotRows,
+    buildTrackedProjectLookup(trackedProjects)
+  )
 }
 
 export function hasCompleteCmcCanonicalTop200Snapshot(snapshotRowCount: number) {
@@ -183,12 +169,10 @@ export default async function ScorePage({
     projectsRepository.getLatestScoreboardMarketSnapshot(MAX_RANK),
   ])
 
-  const trackedLookup = buildTrackedProjectLookup(trackedProjects)
-  // Partial CMC snapshots are not canonical Top 200 data; use tracked projects instead.
-  const usingTrackedProjectFallback = !hasCompleteCmcCanonicalTop200Snapshot(cmcSnapshotRows.length)
-  const allRows = usingTrackedProjectFallback
-    ? fallbackProjectsToScoreRows(trackedProjects)
-    : snapshotRowsToScoreRows(cmcSnapshotRows, trackedLookup)
+  const allRows = canonicalSnapshotRowsToScoreRows(
+    cmcSnapshotRows,
+    trackedProjects
+  )
 
   // Paginate: 100 per page
   const startIdx = (currentPage - 1) * ITEMS_PER_PAGE
