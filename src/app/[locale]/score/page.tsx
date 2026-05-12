@@ -216,28 +216,17 @@ export function snapshotRowsToScoreRows(
     })
 }
 
-function fallbackProjectsToScoreRows(
-  projects: TrackedScoreboardProject[],
+export function canonicalSnapshotRowsToScoreRows(
+  snapshotRows: ScoreboardSnapshotRow[],
+  trackedProjects: TrackedScoreboardProject[],
   availabilityByProjectId?: Map<string, ReportAvailability>,
 ) {
-  return projects
-    .slice(0, MAX_RANK)
-    .map((project, index) => {
-      const reportAvailability = getReportAvailability(project, availabilityByProjectId)
-
-      return {
-        rank: index + 1,
-        name: project.name,
-        symbol: project.symbol,
-        slug: project.slug,
-        change24h: null,
-        marketCap: toNumber(project.market_cap_usd),
-        score: project.maturity_score == null ? null : toNumber(project.maturity_score),
-        category: project.category || '',
-        reportTypes: reportAvailability.reportTypes,
-        reportDates: reportAvailability.reportDates,
-      }
-    })
+  if (!hasCompleteCmcCanonicalTop200Snapshot(snapshotRows.length)) return []
+  return snapshotRowsToScoreRows(
+    snapshotRows,
+    buildTrackedProjectLookup(trackedProjects),
+    availabilityByProjectId,
+  )
 }
 
 export function hasCompleteCmcCanonicalTop200Snapshot(snapshotRowCount: number) {
@@ -284,12 +273,11 @@ export default async function ScorePage({
     }>,
   )
 
-  const trackedLookup = buildTrackedProjectLookup(trackedProjects)
-  // Partial CMC snapshots are not canonical Top 200 data; use tracked projects instead.
-  const usingTrackedProjectFallback = !hasCompleteCmcCanonicalTop200Snapshot(cmcSnapshotRows.length)
-  const allRows = usingTrackedProjectFallback
-    ? fallbackProjectsToScoreRows(trackedProjects, reportAvailabilityByProjectId)
-    : snapshotRowsToScoreRows(cmcSnapshotRows, trackedLookup, reportAvailabilityByProjectId)
+  const allRows = canonicalSnapshotRowsToScoreRows(
+    cmcSnapshotRows,
+    trackedProjects,
+    reportAvailabilityByProjectId,
+  )
 
   // Paginate: 100 per page
   const startIdx = (currentPage - 1) * ITEMS_PER_PAGE
