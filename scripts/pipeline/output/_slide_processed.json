@@ -245,6 +245,36 @@
     "status": "language_mismatch",
     "updated_at": "2026-05-12T18:17:55.031245+00:00"
   },
+  "1015A0Xsa1HZMtFrhDzhK_M4_NJJcEgJ7": {
+    "error": null,
+    "finished_at": "2026-05-12T23:14:25.244275+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-12T20:57:36.000Z",
+    "name": "humanity_protocol_ECON_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/humanity-protocol/latest/ko.html",
+    "report_id": "87fcaaed-41d2-4fec-a907-1c8ba59e6767",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "humanity-protocol",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/humanity_protocol_ECON_ko.pdf",
+    "started_at": "2026-05-12T23:14:21.192470+00:00",
+    "status": "review_ready",
+    "updated_at": "2026-05-12T23:14:25.244288+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/humanity-protocol/latest/ko.html"
+  },
   "10AthnjQJclPl6hFgE2dDN23YuVL5OsX6": {
     "error": "slug/content mismatch — filename resolved 'solana' (body score 12) but body strongly matches 'jupiter-ag' (score 14)",
     "lang": "zh",
@@ -452,6 +482,32 @@
     "updated_at": "2026-05-12T17:39:17.375190+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/gate/latest/zh.html"
+  },
+  "11Iw4BEjmgqR6G5l4uU4gFefgk-h0ZKVP": {
+    "error": "slug/content mismatch — filename resolved 'humanity' (body score 16) but body strongly matches 'humanity-protocol' (score 34)",
+    "lang": "ja",
+    "lang_source": "filename",
+    "mismatch": {
+      "detected_score": 34,
+      "detected_slug": "humanity-protocol",
+      "expected_score": 16,
+      "expected_slug": "humanity"
+    },
+    "modifiedTime": "2026-05-12T22:13:01.000Z",
+    "name": "humanity_ECON_jp.pdf",
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": null,
+    "report_id": null,
+    "rtype": "econ",
+    "slug": "humanity",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/humanity_ECON_jp.pdf",
+    "status": "mismatch",
+    "updated_at": "2026-05-12T23:12:42.219072+00:00",
+    "version": null,
+    "versioned_url": null
   },
   "11JQxao3B3FolYgu9VFwjK44hjk57nXXU": {
     "error": "slug/content mismatch — filename resolved 'cardano' (body score 14) but body strongly matches 'midnight-network' (score 16)",
@@ -1480,6 +1536,36 @@
     "slug_source": "filename",
     "status": "language_mismatch",
     "updated_at": "2026-05-12T17:36:48.908543+00:00"
+  },
+  "168jrIKV3qBGAcvwqeWVbZc_BhNqiLATg": {
+    "error": null,
+    "finished_at": "2026-05-12T23:13:52.629021+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-12T20:59:14.000Z",
+    "name": "polygon_ECON_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 768.0
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/matic-network/latest/ko.html",
+    "report_id": "5587ab6d-ebcd-4f6a-a3a1-8ae93811f40a",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "matic-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/polygon_ECON_ko.pdf",
+    "started_at": "2026-05-12T23:13:48.573720+00:00",
+    "status": "review_ready",
+    "updated_at": "2026-05-12T23:13:52.629035+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/matic-network/latest/ko.html"
   },
   "16FAobzG92cW7UDDaFmHJ9_cKVT_c-GU0": {
     "error": null,
@@ -3148,6 +3234,36 @@
     "status": "language_mismatch",
     "updated_at": "2026-05-12T18:13:54.483131+00:00"
   },
+  "1EHwcaitcUFwWpL3TwWJhKorBD7F_4OIG": {
+    "error": null,
+    "finished_at": "2026-05-12T23:15:53.446365+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-12T22:18:15.000Z",
+    "name": "united_stables_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/united-stables/latest/zh.html",
+    "report_id": "d046b9f9-5d04-411d-afc8-0f04750fd6dd",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "united-stables",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/united_stables_MAT_cn.pdf",
+    "started_at": "2026-05-12T23:15:49.352773+00:00",
+    "status": "review_ready",
+    "updated_at": "2026-05-12T23:15:53.446380+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/united-stables/latest/zh.html"
+  },
   "1EMUiactFlivi2sR_C-Tu9082u6XvBdOo": {
     "error": "slug/content mismatch — filename resolved 'usdd' (body score 8) but body strongly matches 'ethereum' (score 16)",
     "lang": "zh",
@@ -3408,7 +3524,7 @@
   },
   "1FHqc3JUul7RutiY5UKKpA-6X2JHfGCGp": {
     "error": null,
-    "finished_at": "2026-05-12T22:02:31.692555+00:00",
+    "finished_at": "2026-05-12T23:18:13.598719+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-12T20:36:18.000Z",
@@ -3430,11 +3546,11 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/mat/polygon_MAT_jp.pdf",
-    "started_at": "2026-05-12T22:02:23.758116+00:00",
+    "started_at": "2026-05-12T23:18:02.587590+00:00",
     "status": "review_ready",
-    "updated_at": "2026-05-12T22:02:31.692569+00:00",
+    "updated_at": "2026-05-12T23:18:13.598734+00:00",
     "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/matic-network/latest/ja.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/matic-network/1/ja.html"
   },
   "1FJQxPMqhhJwq1t-0-3_2_ZmpVpQz5n_c": {
     "error": "slug/content mismatch — filename resolved 'quant' (body score 10) but body strongly matches 'ethereum' (score 16)",
@@ -3978,6 +4094,36 @@
     "updated_at": "2026-05-12T18:28:24.090004+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/dogecoin/1/ko.html"
+  },
+  "1IvOG5JDeHyfOH3wuBqDC73w_WglP6OqV": {
+    "error": null,
+    "finished_at": "2026-05-12T23:16:34.953213+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-12T21:40:46.000Z",
+    "name": "united_stables_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/united-stables/latest/ja.html",
+    "report_id": "dbe2e398-4535-4fb0-a555-359e902859d9",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "united-stables",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/united_stables_MAT_jp.pdf",
+    "started_at": "2026-05-12T23:16:31.738581+00:00",
+    "status": "review_ready",
+    "updated_at": "2026-05-12T23:16:34.953227+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/united-stables/latest/ja.html"
   },
   "1J2xZ9Twb4dIkK6smMuCAaW-aMteJbkv1": {
     "error": null,
@@ -4824,6 +4970,36 @@
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/uniswap/latest/en.html"
   },
+  "1Mc1FKeOfrfj6qB_rt-TYH5gnPdvMd9hy": {
+    "error": null,
+    "finished_at": "2026-05-12T23:11:53.376788+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-12T22:36:52.000Z",
+    "name": "flare_ECON_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/flare-networks/latest/zh.html",
+    "report_id": "5bee0ea2-a57c-4bc2-a89d-6b18a13c031b",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "flare-networks",
+    "slug_source": "ocr",
+    "source_depth": 0,
+    "source_path": "Slide/econ/flare_ECON_cn.pdf",
+    "started_at": "2026-05-12T23:11:49.212714+00:00",
+    "status": "review_ready",
+    "updated_at": "2026-05-12T23:11:53.376803+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/flare-networks/latest/zh.html"
+  },
   "1Mkz-viUlsCtotcA4XmbeXsM8-FLYfWgg": {
     "error": "slug/content mismatch — filename resolved 'ondo-finance' (body score 8) but body strongly matches 'layerzero' (score 18)",
     "lang": "ko",
@@ -5491,6 +5667,36 @@
     "status": "language_mismatch",
     "updated_at": "2026-05-12T18:14:58.765101+00:00"
   },
+  "1Q3IvXl2VdmK5llEs2la0KlGxFL1vovUh": {
+    "error": null,
+    "finished_at": "2026-05-12T23:14:51.006932+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-12T20:56:45.000Z",
+    "name": "united_stables_ECON_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/united-stables/latest/ja.html",
+    "report_id": "c32c2de3-fa51-4e1a-ac5d-b635772162b4",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "united-stables",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/united_stables_ECON_jp.pdf",
+    "started_at": "2026-05-12T23:14:47.479070+00:00",
+    "status": "review_ready",
+    "updated_at": "2026-05-12T23:14:51.006946+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/united-stables/latest/ja.html"
+  },
   "1Q5dlIzXG9w-py0ufHT4Xj_Rn0PxxSjEK": {
     "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
     "lang": "en",
@@ -5952,6 +6158,36 @@
     "updated_at": "2026-05-12T22:03:02.081213+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/matic-network/latest/ko.html"
+  },
+  "1SHTlK0xqKQr4ju4Rm5qA6jSPn19uV7P7": {
+    "error": null,
+    "finished_at": "2026-05-12T23:14:06.832785+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-12T20:58:24.000Z",
+    "name": "flare_network_ECON_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/flare-networks/latest/ko.html",
+    "report_id": "bce146d3-37bd-4682-85bd-e13e1b7b3d94",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "flare-networks",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/flare_network_ECON_ko.pdf",
+    "started_at": "2026-05-12T23:14:03.132493+00:00",
+    "status": "review_ready",
+    "updated_at": "2026-05-12T23:14:06.832798+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/flare-networks/latest/ko.html"
   },
   "1SLZkpyhMBb6BS2d4cK7EZb9X2oPjt4cB": {
     "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
@@ -7062,6 +7298,36 @@
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/near/latest/zh.html"
   },
+  "1ZoZjK0k_-U5y4WmSOgr_9dxDmpA8Ekng": {
+    "error": null,
+    "finished_at": "2026-05-12T23:15:31.516902+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-12T22:53:09.000Z",
+    "name": "etc_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ethereum-classic/latest/zh.html",
+    "report_id": "c969afea-e508-4251-8323-b0d8318b028c",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "ethereum-classic",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/etc_MAT_cn.pdf",
+    "started_at": "2026-05-12T23:15:22.225133+00:00",
+    "status": "review_ready",
+    "updated_at": "2026-05-12T23:15:31.516917+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ethereum-classic/latest/zh.html"
+  },
   "1Zr6NtpbVCjPHBSaSeD92OkJW9nOoNZ97": {
     "error": null,
     "finished_at": "2026-05-03T14:37:56.074638+00:00",
@@ -7151,6 +7417,32 @@
     "updated_at": "2026-05-12T17:59:09.088244+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/solana/latest/en.html"
+  },
+  "1_5C9ACJlihFYZM_s2mUYX93m6DFPjHOe": {
+    "error": "slug/content mismatch — filename resolved 'humanity' (body score 16) but body strongly matches 'humanity-protocol' (score 34)",
+    "lang": "zh",
+    "lang_source": "filename",
+    "mismatch": {
+      "detected_score": 34,
+      "detected_slug": "humanity-protocol",
+      "expected_score": 16,
+      "expected_slug": "humanity"
+    },
+    "modifiedTime": "2026-05-12T22:32:21.000Z",
+    "name": "humanity_ECON_cn.pdf",
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": null,
+    "report_id": null,
+    "rtype": "econ",
+    "slug": "humanity",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/humanity_ECON_cn.pdf",
+    "status": "mismatch",
+    "updated_at": "2026-05-12T23:12:06.913330+00:00",
+    "version": null,
+    "versioned_url": null
   },
   "1_NqE3K45X6YBS2XQQn_tyqA7WUUJAqXR": {
     "error": "slug/content mismatch — filename resolved 'aerodrome-finance' (body score 8) but body strongly matches 'bitcoin' (score 14)",
@@ -7705,6 +7997,36 @@
     "status": "language_mismatch",
     "updated_at": "2026-05-12T17:30:23.960897+00:00"
   },
+  "1bfzMBsfTXp7pSxDKIo5ip2isdFAuEME5": {
+    "error": null,
+    "finished_at": "2026-05-12T23:13:39.881790+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-12T21:36:40.000Z",
+    "name": "flare_network_ECON_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/flare-networks/latest/ja.html",
+    "report_id": "918fddb3-7cb3-483f-ab9f-0b74fe09937b",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "flare-networks",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/flare_network_ECON_jp.pdf",
+    "started_at": "2026-05-12T23:13:36.148140+00:00",
+    "status": "review_ready",
+    "updated_at": "2026-05-12T23:13:39.881804+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/flare-networks/latest/ja.html"
+  },
   "1bqN5GJsZdjy6yxDhZCChDJS-GJ8fvkOw": {
     "error": null,
     "finished_at": "2026-05-04T15:14:13.338305+00:00",
@@ -7737,7 +8059,7 @@
   },
   "1bqi6PXX-7CMqXiAlUFZEQrJi0gDZb1IH": {
     "error": null,
-    "finished_at": "2026-05-12T22:01:59.974214+00:00",
+    "finished_at": "2026-05-12T23:17:39.290920+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "modifiedTime": "2026-05-12T20:53:33.000Z",
@@ -7759,11 +8081,11 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/mat/Flare_Network_MAT_cn.pdf",
-    "started_at": "2026-05-12T22:01:50.018889+00:00",
+    "started_at": "2026-05-12T23:17:27.042232+00:00",
     "status": "review_ready",
-    "updated_at": "2026-05-12T22:01:59.974230+00:00",
+    "updated_at": "2026-05-12T23:17:39.290934+00:00",
     "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/flare-networks/latest/zh.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/flare-networks/1/zh.html"
   },
   "1cfmVNYmVApwKtTUMBdoW76uiCUogg6s4": {
     "error": "slug/content mismatch — filename resolved 'shiba-inu' (body score 8) but body strongly matches 'ethereum' (score 16)",
@@ -8416,7 +8738,7 @@
   },
   "1fV6OQUkDZ9khwvmgEp8C-p13WS-lSj_W": {
     "error": null,
-    "finished_at": "2026-05-12T22:01:30.202228+00:00",
+    "finished_at": "2026-05-12T23:17:06.944070+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "modifiedTime": "2026-05-12T21:37:32.000Z",
@@ -8438,11 +8760,11 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/mat/polygon_MAT_cn.pdf",
-    "started_at": "2026-05-12T22:01:21.424563+00:00",
+    "started_at": "2026-05-12T23:16:57.674469+00:00",
     "status": "review_ready",
-    "updated_at": "2026-05-12T22:01:30.202244+00:00",
+    "updated_at": "2026-05-12T23:17:06.944086+00:00",
     "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/matic-network/latest/zh.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/matic-network/1/zh.html"
   },
   "1foz50Og6IbLPiwHs5LEz2MlSDdQEX-cU": {
     "error": null,
@@ -8924,6 +9246,36 @@
     "source_path": "Slide/econ/USDC_Hybrid_Blueprint.pdf",
     "status": "mismatch",
     "updated_at": "2026-05-01T08:36:24.077493+00:00"
+  },
+  "1iQp96g3yjsA4W403QKdpCTSaKTiJNrf1": {
+    "error": null,
+    "finished_at": "2026-05-12T23:12:24.575779+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-12T22:23:57.000Z",
+    "name": "polygon_ECON_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/matic-network/latest/ja.html",
+    "report_id": "bca9e331-aa9b-4fcc-a584-7ccd601f0f63",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "matic-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/polygon_ECON_jp.pdf",
+    "started_at": "2026-05-12T23:12:20.247850+00:00",
+    "status": "review_ready",
+    "updated_at": "2026-05-12T23:12:24.575794+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/matic-network/latest/ja.html"
   },
   "1iU6nn1xMFpZl9acG0GS4EnqGyGbO3Flb": {
     "error": "slug/content mismatch — filename resolved 'world-liberty-financial-wlfi' (body score 8) but body strongly matches 'ethereum' (score 16)",
@@ -9656,6 +10008,36 @@
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/the-open-network/latest/ja.html"
   },
+  "1m1XxI7MzUl0kzQIZMd6fccBpvgNuFGi5": {
+    "error": null,
+    "finished_at": "2026-05-12T23:16:12.275409+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-12T21:41:56.000Z",
+    "name": "etc_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777776469582618,
+      "height": 518.4000244140625,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 921.5999755859375
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ethereum-classic/latest/ja.html",
+    "report_id": "c1fce401-a1d8-48b3-bafe-ea5172e59774",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "ethereum-classic",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/etc_MAT_jp.pdf",
+    "started_at": "2026-05-12T23:16:08.156654+00:00",
+    "status": "review_ready",
+    "updated_at": "2026-05-12T23:16:12.275422+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ethereum-classic/latest/ja.html"
+  },
   "1m1fOlZfdTQ0qbmalf7fSTrpnGBxfvVWF": {
     "error": "slug/content mismatch — filename resolved 'bitcoin' (body score 14) but body strongly matches 'bitcoin-cash' (score 24)",
     "lang": "ja",
@@ -9920,6 +10302,36 @@
     "updated_at": "2026-05-12T18:03:17.671467+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ethereum/latest/zh.html"
+  },
+  "1ngaHMMv5HOAevNcd6vq91F-6Hmi2Gnnq": {
+    "error": null,
+    "finished_at": "2026-05-12T23:11:37.305246+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-12T22:57:42.000Z",
+    "name": "polygon_ECON_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/matic-network/latest/zh.html",
+    "report_id": "b6847163-4234-4da0-82a9-0ade8df0dd0d",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "matic-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/polygon_ECON_cn.pdf",
+    "started_at": "2026-05-12T23:11:33.774602+00:00",
+    "status": "review_ready",
+    "updated_at": "2026-05-12T23:11:37.305260+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/matic-network/latest/zh.html"
   },
   "1nk6Wq509C60YDX9EHOI_otWDHbl-vthP": {
     "error": null,
@@ -12253,6 +12665,36 @@
     "slug_source": "filename",
     "status": "language_mismatch",
     "updated_at": "2026-05-12T17:37:56.727946+00:00"
+  },
+  "1zMIOvKCR5shIt2a3LqIN903_i04iJNIX": {
+    "error": null,
+    "finished_at": "2026-05-12T23:13:23.999197+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-12T22:06:23.000Z",
+    "name": "united_stables_ECON_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 1672.0
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/united-stables/latest/zh.html",
+    "report_id": "c00146a8-9a6d-4620-8ef2-b2de219acdbe",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "united-stables",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/united_stables_ECON_cn.pdf",
+    "started_at": "2026-05-12T23:13:14.840636+00:00",
+    "status": "review_ready",
+    "updated_at": "2026-05-12T23:13:23.999213+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/united-stables/latest/zh.html"
   },
   "1zR1vBA5xb2QTG465mnWFpUFaOHa3wgRV": {
     "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
