@@ -6,6 +6,17 @@ import {
   snapshotRowsToScoreRows,
 } from './page'
 
+function makeSnapshotRow(rank: number, slug = `cmc-project-${rank}`) {
+  return {
+    slug,
+    price_usd: rank,
+    market_cap: 1_000_000 - rank,
+    change_24h: 0,
+    recorded_at: '2026-05-12',
+    cmc_rank: rank,
+  }
+}
+
 jest.mock('next-intl/server', () => ({
   getTranslations: jest.fn(),
 }))
@@ -28,12 +39,33 @@ jest.mock('@/components/SubscribeForm', () => function SubscribeForm() {
 
 describe('score page CMC canonical Top 200 snapshot guard', () => {
   it('rejects partial snapshots as non-canonical Top 200 data', () => {
-    expect(hasCompleteCmcCanonicalTop200Snapshot(1)).toBe(false)
-    expect(hasCompleteCmcCanonicalTop200Snapshot(199)).toBe(false)
+    expect(hasCompleteCmcCanonicalTop200Snapshot([makeSnapshotRow(1)])).toBe(false)
+    expect(hasCompleteCmcCanonicalTop200Snapshot(
+      Array.from({ length: 199 }, (_, index) => makeSnapshotRow(index + 1)),
+    )).toBe(false)
   })
 
-  it('accepts only snapshots with at least 200 rows as canonical Top 200 data', () => {
-    expect(hasCompleteCmcCanonicalTop200Snapshot(MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS)).toBe(true)
+  it('rejects 200-row snapshots without canonical CMC ranks', () => {
+    const rowsWithoutCmcRank = Array.from({ length: 200 }, (_, index) => ({
+      ...makeSnapshotRow(index + 1),
+      cmc_rank: null,
+    }))
+
+    expect(hasCompleteCmcCanonicalTop200Snapshot(rowsWithoutCmcRank)).toBe(false)
+    expect(canonicalSnapshotRowsToScoreRows(rowsWithoutCmcRank, [])).toEqual([])
+  })
+
+  it('accepts only snapshots with contiguous CMC ranks 1 through 200', () => {
+    const canonicalRows = Array.from(
+      { length: MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS },
+      (_, index) => makeSnapshotRow(index + 1),
+    )
+    const duplicateRankRows = canonicalRows.map((row, index) => (
+      index === 199 ? { ...row, cmc_rank: 199 } : row
+    ))
+
+    expect(hasCompleteCmcCanonicalTop200Snapshot(canonicalRows)).toBe(true)
+    expect(hasCompleteCmcCanonicalTop200Snapshot(duplicateRankRows)).toBe(false)
   })
 
   it('does not substitute tracked projects when the CMC snapshot is incomplete', () => {
@@ -54,15 +86,28 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
         last_forensic_report_at: null,
       },
     ]
-    const partialSnapshotRows = Array.from({ length: 199 }, (_, index) => ({
-      slug: index === 0 ? 'bitcoin' : `cmc-project-${index}`,
-      price_usd: index + 1,
-      market_cap: 1_000_000 - index,
-      change_24h: 0,
-      recorded_at: '2026-05-12',
-    }))
+    const partialSnapshotRows = Array.from(
+      { length: 199 },
+      (_, index) => makeSnapshotRow(index + 1, index === 0 ? 'bitcoin' : `cmc-project-${index}`),
+    )
 
     expect(canonicalSnapshotRowsToScoreRows(partialSnapshotRows, trackedProjects)).toEqual([])
+  })
+
+  it('excludes rows outside the canonical CMC Top 200 before rendering', () => {
+    const snapshotRows = [
+      ...Array.from({ length: 200 }, (_, index) => makeSnapshotRow(index + 1)),
+      makeSnapshotRow(201, 'rain'),
+      makeSnapshotRow(203, 'htx'),
+    ].reverse()
+
+    const rows = canonicalSnapshotRowsToScoreRows(snapshotRows, [])
+
+    expect(rows).toHaveLength(200)
+    expect(rows[0]).toMatchObject({ rank: 1, slug: 'cmc-project-1' })
+    expect(rows[199]).toMatchObject({ rank: 200, slug: 'cmc-project-200' })
+    expect(rows.map((row) => row.slug)).not.toContain('rain')
+    expect(rows.map((row) => row.slug)).not.toContain('htx')
   })
 })
 
@@ -92,6 +137,7 @@ describe('score page tracked project aliases', () => {
         market_cap: 500,
         change_24h: 0.1,
         recorded_at: '2026-05-03',
+        cmc_rank: 37,
       },
     ]
 
@@ -134,6 +180,7 @@ describe('score page tracked project aliases', () => {
         market_cap: 500,
         change_24h: 0.1,
         recorded_at: '2026-05-03',
+        cmc_rank: 37,
       },
     ]
 
@@ -188,6 +235,7 @@ describe('score page tracked project aliases', () => {
         market_cap: 500,
         change_24h: 0.1,
         recorded_at: '2026-05-03',
+        cmc_rank: 37,
       },
     ]
 
