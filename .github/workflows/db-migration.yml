@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       migration_name:
-        description: 'Migration to apply'
+        description: 'Optional migration SQL filename to apply directly, e.g. 20260512_add_cmc_rank_to_market_data_daily.sql'
         required: false
 
 jobs:
@@ -19,6 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.migration_name == '' }}
         with:
           version: latest
       - name: Extract project ref from Supabase URL
@@ -27,10 +28,38 @@ jobs:
           PROJECT_REF=$(echo "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" | sed -E 's|https://([^.]+)\.supabase\.co.*|\1|')
           echo "project_ref=$PROJECT_REF" >> "$GITHUB_OUTPUT"
       - name: Link Supabase Project
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.migration_name == '' }}
         run: supabase link --project-ref ${{ steps.extract-ref.outputs.project_ref }}
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       - name: Apply Migrations
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.migration_name == '' }}
         run: supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      - name: Apply selected SQL migration
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.migration_name != '' }}
+        run: |
+          set -euo pipefail
+
+          MIGRATION_NAME="${{ inputs.migration_name }}"
+          if [[ "$MIGRATION_NAME" == *"/"* || "$MIGRATION_NAME" != *.sql ]]; then
+            echo "::error::migration_name must be a SQL filename in supabase/migrations"
+            exit 1
+          fi
+
+          MIGRATION_PATH="supabase/migrations/${MIGRATION_NAME}"
+          if [[ ! -f "$MIGRATION_PATH" ]]; then
+            echo "::error::Migration file not found: ${MIGRATION_PATH}"
+            exit 1
+          fi
+
+          jq -Rs '{ query: . }' "$MIGRATION_PATH" > /tmp/supabase-query.json
+          curl --fail-with-body \
+            --request POST \
+            --url "https://api.supabase.com/v1/projects/${{ steps.extract-ref.outputs.project_ref }}/database/query" \
+            --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            --header "Content-Type: application/json" \
+            --data @/tmp/supabase-query.json
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
