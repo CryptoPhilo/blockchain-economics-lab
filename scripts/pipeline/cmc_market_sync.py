@@ -202,7 +202,11 @@ def parse_cmc_rank(token: Dict) -> Optional[int]:
     return rank if rank > 0 else None
 
 
-def cmc_to_market_row(token: Dict, slug_override: str = None) -> Dict:
+def cmc_to_market_row(
+    token: Dict,
+    slug_override: str = None,
+    cmc_rank_override: Optional[int] = None,
+) -> Dict:
     """
     Convert a CMC token listing to market_data_daily row format.
 
@@ -212,7 +216,7 @@ def cmc_to_market_row(token: Dict, slug_override: str = None) -> Dict:
     """
     quote = token.get('quote', {}).get('USD', {})
     cmc_slug = token.get('slug', '')
-    cmc_rank = parse_cmc_rank(token)
+    cmc_rank = cmc_rank_override if cmc_rank_override is not None else parse_cmc_rank(token)
 
     return {
         'slug': slug_override or cmc_slug,
@@ -447,13 +451,14 @@ def mode_top200(cmc: CMCClient, db: SupabaseClient, dry_run: bool = False) -> Di
     slug_map = build_slug_map(tracked, tokens) if tracked else {}
 
     rows = []
-    for token in tokens:
-        cmc_rank = parse_cmc_rank(token)
-        if cmc_rank is None or cmc_rank > 200:
-            continue
+    for canonical_rank, token in enumerate(tokens[:200], start=1):
         cmc_slug = token.get('slug', '')
         preferred_slug = slug_map.get(cmc_slug, cmc_slug)
-        rows.append(cmc_to_market_row(token, slug_override=preferred_slug))
+        rows.append(cmc_to_market_row(
+            token,
+            slug_override=preferred_slug,
+            cmc_rank_override=canonical_rank,
+        ))
 
     print(f"  [CMC] {len(tokens)} tokens fetched, {len(rows)} canonical rank 1..200 rows prepared")
     print(f"  [CMC] Credits used: {cmc.credits_used}")
