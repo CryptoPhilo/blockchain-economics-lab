@@ -62,10 +62,22 @@ jobs:
       - run: npm ci
       - run: npm run verify:runtime-pipelines
 
+  website-pipeline:
+    name: 🧭 Website Pipeline Alignment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run verify:pipeline
+
   build:
     name: 🏗️ Build
     runs-on: ubuntu-latest
-    needs: [lint, typecheck, test, runtime-pipelines]
+    needs: [lint, typecheck, test, runtime-pipelines, website-pipeline]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

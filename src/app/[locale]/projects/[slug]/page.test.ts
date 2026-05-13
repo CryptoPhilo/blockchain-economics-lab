@@ -45,6 +45,44 @@ describe('project detail report selection', () => {
     expect(selectReportsByType([report], 'es').get('econ')).toBe(report)
     expect(selectReportsByType([report], 'fr').get('econ')).toBe(report)
   })
+
+  it('selects PDF-only legacy rows as project-page report cards', () => {
+    const legacyPdfOnly = createReport({
+      id: 'dexe-econ-legacy-pdf',
+      language: 'en',
+      report_type: 'econ',
+      gdrive_urls_by_lang: {
+        de: 'https://drive.google.com/file/d/dexe-de/view',
+        en: 'https://drive.google.com/file/d/dexe-en/view',
+        es: 'https://drive.google.com/file/d/dexe-es/view',
+        fr: 'https://drive.google.com/file/d/dexe-fr/view',
+        ja: 'https://drive.google.com/file/d/dexe-ja/view',
+        ko: 'https://drive.google.com/file/d/dexe-ko/view',
+        zh: 'https://drive.google.com/file/d/dexe-zh/view',
+      },
+      slide_html_urls_by_lang: null,
+    } as Partial<ProjectReport>)
+
+    expect(selectReportsByType([legacyPdfOnly], 'en').get('econ')).toBe(legacyPdfOnly)
+    expect(selectReportsByType([legacyPdfOnly], 'ja').get('econ')).toBe(legacyPdfOnly)
+    expect(selectReportsByType([legacyPdfOnly], 'de').get('econ')).toBe(legacyPdfOnly)
+  })
+
+  it('does not select rows that have no report asset for the requested locale', () => {
+    const zhOnly = createReport({
+      id: 'alpha-zh-only',
+      language: 'zh',
+      report_type: 'econ',
+      gdrive_urls_by_lang: {
+        zh: 'https://drive.google.com/file/d/alpha-zh/view',
+      },
+      slide_html_urls_by_lang: null,
+    } as Partial<ProjectReport>)
+
+    expect(selectReportsByType([zhOnly], 'ko').has('econ')).toBe(false)
+    expect(selectReportsByType([zhOnly], 'en').has('econ')).toBe(false)
+    expect(selectReportsByType([zhOnly], 'zh').get('econ')).toBe(zhOnly)
+  })
 })
 
 describe('project detail report links', () => {

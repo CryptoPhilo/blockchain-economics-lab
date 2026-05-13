@@ -70,7 +70,8 @@ export class ReportsRepository {
       .select('*')
       .eq('project_id', project.id)
       .eq('report_type', 'forensic')
-      .in('status', ['published', 'coming_soon'])
+      .in('status', ['published', 'coming_soon', 'in_review'])
+      .not('slide_html_urls_by_lang', 'is', null)
       .order('published_at', { ascending: false })
       .limit(1)
       .single()
@@ -116,7 +117,7 @@ export class ReportsRepository {
   }) {
     const {
       reportType = 'forensic',
-      status = ['published', 'coming_soon'],
+      status = ['published', 'coming_soon', 'in_review'],
       searchQuery,
       page = 1,
       pageSize = 20,
@@ -131,12 +132,14 @@ export class ReportsRepository {
       .from('project_reports')
       .select('id', { count: 'exact', head: true })
       .eq('report_type', reportType)
+      .not('slide_html_urls_by_lang', 'is', null)
 
     // Build data query
     let dataQuery = this.supabase
       .from('project_reports')
       .select('*, project:tracked_projects(id, name, slug, symbol, chain, category)')
       .eq('report_type', reportType)
+      .not('slide_html_urls_by_lang', 'is', null)
 
     // Apply status filter
     if (Array.isArray(status)) {
