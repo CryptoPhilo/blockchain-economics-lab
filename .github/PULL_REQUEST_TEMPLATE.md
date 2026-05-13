@@ -37,3 +37,10 @@ Company Mission → ... → This PR
 
 ## Deployment Notes
 <!-- Any special steps needed for deployment? -->
+
+## Paperclip Pipeline Evidence
+- [ ] Pipeline state wiki checked or updated
+- [ ] `pipelines/bcelab-runtime-pipelines.json` checked
+- [ ] `npm run verify:pipeline` passes
+- [ ] `npm run verify:runtime-pipelines` passes
+- [ ] Board approval captured for production-affecting changes

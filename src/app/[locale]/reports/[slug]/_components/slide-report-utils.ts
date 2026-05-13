@@ -7,11 +7,41 @@ export type SummaryReportRecord = Record<string, unknown> & {
   language?: string | null
 }
 
+export type ReportDateRecord = Record<string, unknown> & {
+  card_data?: CardDataRecord | null
+  published_at?: string | null
+  updated_at?: string | null
+  created_at?: string | null
+}
+
 const SUPPORTED_SLIDE_LOCALES = new Set(['ko', 'en', 'fr', 'es', 'de', 'ja', 'zh'])
 const ENGLISH_ASSET_FALLBACK_LOCALES = new Set(['de', 'es', 'fr'])
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0
+}
+
+function hasUrlEntry(value: unknown): boolean {
+  if (isNonEmptyString(value)) return true
+
+  if (!value || typeof value !== 'object') return false
+
+  const entry = value as { url?: unknown; download_url?: unknown }
+  return isNonEmptyString(entry.url) || isNonEmptyString(entry.download_url)
+}
+
+function resolveUrlEntry(value: unknown, preferDownload = false): string | null {
+  if (isNonEmptyString(value)) return value
+
+  if (!value || typeof value !== 'object') return null
+
+  const entry = value as { url?: unknown; download_url?: unknown }
+  const preferred = preferDownload ? entry.download_url : entry.url
+  const fallback = preferDownload ? entry.url : entry.download_url
+
+  if (isNonEmptyString(preferred)) return preferred
+  if (isNonEmptyString(fallback)) return fallback
+  return null
 }
 
 function getLocaleFromSlideUrl(url: string): string | null {
@@ -50,11 +80,66 @@ function resolveSlideUrlForLocale(
   return resolveCandidate(locale) ?? (includeEnglishFallback ? resolveCandidate('en') : null)
 }
 
+function hasSlideAssetForLocale(
+  report: {
+    slide_html_urls_by_lang?: Record<string, unknown> | null
+  },
+  locale: string,
+): boolean {
+  return resolveSlideUrlForLocale(report.slide_html_urls_by_lang, locale, false) !== null
+}
+
+function hasPdfAssetForLocale(
+  report: {
+    gdrive_urls_by_lang?: Record<string, unknown> | null
+    file_urls_by_lang?: Record<string, unknown> | null
+  },
+  locale: string,
+): boolean {
+  return hasUrlEntry(report.gdrive_urls_by_lang?.[locale])
+    || hasUrlEntry(report.file_urls_by_lang?.[locale])
+}
+
 export function resolveSlideUrl(
   urlsByLang: Record<string, unknown> | null | undefined,
   locale: string,
 ): string | null {
   return resolveSlideUrlForLocale(urlsByLang, locale, ENGLISH_ASSET_FALLBACK_LOCALES.has(locale))
+}
+
+export function resolveReportPdfUrl(
+  report: {
+    language?: string | null
+    gdrive_url?: string | null
+    gdrive_download_url?: string | null
+    file_url?: string | null
+    gdrive_urls_by_lang?: Record<string, unknown> | null
+    file_urls_by_lang?: Record<string, unknown> | null
+  } | null | undefined,
+  locale: string,
+  preferDownload = false,
+): string | null {
+  if (!report) return null
+
+  const localeUrl =
+    resolveUrlEntry(report.gdrive_urls_by_lang?.[locale], preferDownload)
+    ?? resolveUrlEntry(report.file_urls_by_lang?.[locale], preferDownload)
+  if (localeUrl) return localeUrl
+
+  if (locale === 'en' || ENGLISH_ASSET_FALLBACK_LOCALES.has(locale)) {
+    const englishUrl =
+      resolveUrlEntry(report.gdrive_urls_by_lang?.en, preferDownload)
+      ?? resolveUrlEntry(report.file_urls_by_lang?.en, preferDownload)
+    if (englishUrl) return englishUrl
+  }
+
+  if (report.language === locale || locale === 'en' || ENGLISH_ASSET_FALLBACK_LOCALES.has(locale)) {
+    return (preferDownload
+      ? report.gdrive_download_url || report.gdrive_url || report.file_url
+      : report.gdrive_url || report.file_url || report.gdrive_download_url) || null
+  }
+
+  return null
 }
 
 export function getLocalizedSummary(
@@ -67,7 +152,7 @@ export function getLocalizedSummary(
   // Summary copy is resolved only from DB metadata, never from slide HTML/PDF
   // artifacts. Keep this order aligned with the project_reports contract:
   // summary_by_lang[locale] -> card_summary_<locale> -> card_data.summary_<locale>
-  // -> same-locale generic card_data.summary -> explicit English fallback.
+  // -> same-locale generic card_data.summary -> English metadata only on /en.
   const localeSummary =
     summaryByLang?.[locale]
     ?? report[`card_summary_${locale}`]
@@ -79,13 +164,45 @@ export function getLocalizedSummary(
     return cardData.summary
   }
 
+  if (locale !== 'en') return ''
+
   const englishSummary =
     summaryByLang?.en
     ?? report.card_summary_en
     ?? cardData?.summary_en
-    ?? (report.language === 'en' ? cardData?.summary : undefined)
+    ?? cardData?.summary
 
   return isNonEmptyString(englishSummary) ? englishSummary : ''
+}
+
+function getReportPolicyTimestamp(report: ReportDateRecord): string | null {
+  const cardData = report.card_data
+  const generatedAt = cardData?.generated_at
+  if (isNonEmptyString(generatedAt)) return generatedAt
+  if (isNonEmptyString(report.published_at)) return report.published_at
+  if (isNonEmptyString(report.updated_at)) return report.updated_at
+  if (isNonEmptyString(report.created_at)) return report.created_at
+  return null
+}
+
+function isNewerDate(candidate: string, current: string): boolean {
+  return new Date(candidate).getTime() > new Date(current).getTime()
+}
+
+export function getReportDisplayDate(
+  reports: ReportDateRecord[] | null | undefined,
+  selectedReport: ReportDateRecord | null,
+): string | null {
+  const selectedTimestamp = selectedReport ? getReportPolicyTimestamp(selectedReport) : null
+  let newest = selectedTimestamp
+
+  for (const report of reports ?? []) {
+    const candidate = getReportPolicyTimestamp(report)
+    if (!candidate) continue
+    if (!newest || isNewerDate(candidate, newest)) newest = candidate
+  }
+
+  return newest
 }
 
 export type LocaleReportState<T> =
@@ -95,6 +212,8 @@ export type LocaleReportState<T> =
 
 export function getLocaleReportState<T extends {
   language?: string | null
+  gdrive_urls_by_lang?: Record<string, unknown> | null
+  file_urls_by_lang?: Record<string, unknown> | null
   slide_html_urls_by_lang?: Record<string, unknown> | null
 }>(
   reports: T[] | null | undefined,
@@ -109,8 +228,10 @@ export function getLocaleReportState<T extends {
     return { status: 'available', report: localeReport }
   }
 
+  // Slide HTML availability is distinct from legacy PDF availability. Prefer a
+  // sibling row with real slide output before falling back to PDF-only rows.
   const localeSlideReport = reports.find((report) => (
-    resolveSlideUrlForLocale(report.slide_html_urls_by_lang, locale, false) !== null
+    hasSlideAssetForLocale(report, locale)
   ))
   if (localeSlideReport) {
     return { status: 'available', report: localeSlideReport }
@@ -118,10 +239,22 @@ export function getLocaleReportState<T extends {
 
   if (ENGLISH_ASSET_FALLBACK_LOCALES.has(locale)) {
     const englishSlideReport = reports.find((report) => (
-      resolveSlideUrlForLocale(report.slide_html_urls_by_lang, 'en', false) !== null
+      hasSlideAssetForLocale(report, 'en')
     ))
     if (englishSlideReport) {
       return { status: 'available', report: englishSlideReport }
+    }
+  }
+
+  const localePdfReport = reports.find((report) => hasPdfAssetForLocale(report, locale))
+  if (localePdfReport) {
+    return { status: 'available', report: localePdfReport }
+  }
+
+  if (ENGLISH_ASSET_FALLBACK_LOCALES.has(locale)) {
+    const englishPdfReport = reports.find((report) => hasPdfAssetForLocale(report, 'en'))
+    if (englishPdfReport) {
+      return { status: 'available', report: englishPdfReport }
     }
   }
 

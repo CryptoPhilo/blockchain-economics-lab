@@ -102,9 +102,9 @@ function pickLocalizedSummary(report: ProjectReport, locale: string): string | n
 }
 
 /**
- * Pick one report row per report type. Language-scoped slide rows use real
- * locale assets first, then canonical English assets for locales whose report
- * catalog intentionally falls back to English.
+ * Pick one report row per report type. The project page is an availability
+ * index, so PDF/Drive-only legacy rows are still valid cards; the detail page
+ * handles slide HTML first and then PDF fallback.
  */
 export function selectReportsByType(
   reports: ProjectReport[],
@@ -147,9 +147,8 @@ export default async function ProjectDetailPage({ params }: Props) {
     .from('project_reports')
     .select('*')
     .eq('project_id', project.id)
-    .eq('status', 'published')
-    .not('published_at', 'is', null)
-    .order('published_at', { ascending: false })
+    .in('status', ['published', 'in_review'])
+    .order('updated_at', { ascending: false })
 
   const reports = (reportsRaw || []) as ProjectReport[]
   const reportsByType = selectReportsByType(reports, locale)
