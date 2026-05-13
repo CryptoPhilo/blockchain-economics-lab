@@ -2909,6 +2909,32 @@
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sui/latest/zh.html"
   },
+  "1DKgF9Mur6PcYtjVR8twv1YgyTXTNgIv-": {
+    "error": "slug/content mismatch — filename resolved 'humanity' (body score 16) but body strongly matches 'humanity-protocol' (score 34)",
+    "lang": "zh",
+    "lang_source": "filename",
+    "mismatch": {
+      "detected_score": 34,
+      "detected_slug": "humanity-protocol",
+      "expected_score": 16,
+      "expected_slug": "humanity"
+    },
+    "modifiedTime": "2026-05-13T12:27:32.000Z",
+    "name": "humanity_MAT_cn.pdf",
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": null,
+    "report_id": null,
+    "rtype": "mat",
+    "slug": "humanity",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/humanity_MAT_cn.pdf",
+    "status": "mismatch",
+    "updated_at": "2026-05-13T15:21:35.033355+00:00",
+    "version": null,
+    "versioned_url": null
+  },
   "1DMfls0gXILniU31_IbQow5Z80clzpqHs": {
     "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
     "lang": "en",
