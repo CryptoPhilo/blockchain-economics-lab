@@ -9,17 +9,14 @@ jobs:
     name: 🚀 Preview Deploy
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      - name: Deploy to Vercel (Preview)
-        id: vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Use Vercel GitHub preview deployment
+        run: |
+          echo "Preview deployment is handled by the Vercel GitHub integration."
+          echo "Use the Vercel status check attached to this commit as the deployment source of truth."
       - name: Comment Preview URL
         uses: marocchino/sticky-pull-request-comment@v2
         with:
@@ -28,7 +25,7 @@ jobs:
             ## 🚀 Preview Deployment
             | Environment | URL |
             |---|---|
-            | Preview | ${{ steps.vercel.outputs.preview-url }} |
+            | Preview | See the Vercel status check for this commit |
 
             **Commit:** ${{ github.sha }}
             **Branch:** ${{ github.head_ref }}

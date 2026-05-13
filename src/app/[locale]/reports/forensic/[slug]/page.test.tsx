@@ -166,7 +166,7 @@ describe('ForensicReportPage slide deck rendering', () => {
       'coming_soon',
       'in_review',
     ])
-    expect(reportsQuery.not).toHaveBeenCalledWith('slide_html_urls_by_lang', 'is', null)
+    expect(reportsQuery.not).not.toHaveBeenCalledWith('slide_html_urls_by_lang', 'is', null)
     expect(screen.getByTestId('slide-viewer').getAttribute('data-url')).toBe(
       'https://example.supabase.co/storage/v1/object/public/slides/forensic/ethena/latest/en.html',
     )

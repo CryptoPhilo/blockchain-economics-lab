@@ -1,6 +1,8 @@
 import { getTranslations } from 'next-intl/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { createProjectsRepository } from '@/lib/repositories/projects'
+import { reportSupportsLocale } from '@/lib/report-locale'
+import type { ProjectReport } from '@/lib/types'
 import ScoreTableGate from '@/components/ScoreTableGate'
 import SubscribeForm from '@/components/SubscribeForm'
 
@@ -108,11 +110,6 @@ function formatSnapshotSymbol(slug: string) {
     .toUpperCase() || slug.slice(0, 6).toUpperCase()
 }
 
-function hasSlideAsset(value: unknown): boolean {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
-  return Object.values(value).some((entry) => typeof entry === 'string' && entry.trim().length > 0)
-}
-
 function getReportTimestamp(report: {
   published_at?: string | null
   updated_at?: string | null
@@ -165,16 +162,20 @@ function buildReportAvailabilityByProjectId(
   reports: Array<{
     project_id: string
     report_type: ReportTypeKey
+    language?: ProjectReport['language'] | null
     published_at?: string | null
     updated_at?: string | null
     created_at?: string | null
+    gdrive_urls_by_lang?: ProjectReport['gdrive_urls_by_lang']
+    file_urls_by_lang?: ProjectReport['file_urls_by_lang']
     slide_html_urls_by_lang?: unknown
   }>,
+  locale: string,
 ) {
   const map = new Map<string, ReportAvailability>()
 
   for (const report of reports) {
-    if (!report.project_id || !hasSlideAsset(report.slide_html_urls_by_lang)) continue
+    if (!report.project_id || !reportSupportsLocale(report as ProjectReport, locale)) continue
     const existing = map.get(report.project_id) ?? {
       reportTypes: [],
       reportDates: { econ: null, maturity: null, forensic: null },
@@ -275,21 +276,34 @@ export default async function ScorePage({
   const { data: visibleReports } = trackedProjectIds.length > 0
     ? await supabase
       .from('project_reports')
-      .select('project_id, report_type, published_at, updated_at, created_at, slide_html_urls_by_lang')
+      .select([
+        'project_id',
+        'report_type',
+        'language',
+        'published_at',
+        'updated_at',
+        'created_at',
+        'gdrive_urls_by_lang',
+        'file_urls_by_lang',
+        'slide_html_urls_by_lang',
+      ].join(', '))
       .in('project_id', trackedProjectIds)
       .in('report_type', ['econ', 'maturity', 'forensic'])
       .in('status', ['published', 'coming_soon', 'in_review'])
-      .not('slide_html_urls_by_lang', 'is', null)
     : { data: [] }
   const reportAvailabilityByProjectId = buildReportAvailabilityByProjectId(
-    (visibleReports || []) as Array<{
+    (visibleReports || []) as unknown as Array<{
       project_id: string
       report_type: ReportTypeKey
+      language?: ProjectReport['language'] | null
       published_at?: string | null
       updated_at?: string | null
       created_at?: string | null
+      gdrive_urls_by_lang?: ProjectReport['gdrive_urls_by_lang']
+      file_urls_by_lang?: ProjectReport['file_urls_by_lang']
       slide_html_urls_by_lang?: unknown
     }>,
+    locale,
   )
 
   const allRows = canonicalSnapshotRowsToScoreRows(

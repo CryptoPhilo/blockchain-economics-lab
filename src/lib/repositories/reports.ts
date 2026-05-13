@@ -6,6 +6,7 @@ import type {
   ReportStatus,
   SupportedLanguage
 } from '../types'
+import { reportSupportsLocale } from '../report-locale'
 
 /**
  * Repository for report-related data access
@@ -65,14 +66,15 @@ export class ReportsRepository {
       return null
     }
 
-    // Then get the report rows that have slide assets available.
+    // Then get report rows that are visible under the production availability
+    // policy. Drive/PDF-only rows are valid website entries; page components
+    // render slide HTML first and fall back to the PDF asset.
     const { data: reports, error: reportsError } = await this.supabase
       .from('project_reports')
       .select('*')
       .eq('project_id', project.id)
       .eq('report_type', 'forensic')
       .in('status', ['published', 'coming_soon', 'in_review'])
-      .not('slide_html_urls_by_lang', 'is', null)
       .order('updated_at', { ascending: false })
       .order('published_at', { ascending: false })
 
@@ -110,15 +112,16 @@ export class ReportsRepository {
       .eq('report_type', 'forensic')
       .in('status', ['published', 'in_review'])
       .not('card_data', 'is', null)
-      .not('slide_html_urls_by_lang', 'is', null)
       .order('updated_at', { ascending: false })
-      .limit(limit)
+      .limit(limit * 5)
 
     if (error) {
       throw new Error(`Failed to fetch homepage reports: ${error.message}`)
     }
 
-    return data || []
+    return (data || [])
+      .filter((report) => reportSupportsLocale(report as ProjectReport, 'en'))
+      .slice(0, limit)
   }
 
   /**
