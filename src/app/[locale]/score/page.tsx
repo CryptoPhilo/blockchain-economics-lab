@@ -1,8 +1,13 @@
 import { getTranslations } from 'next-intl/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { createProjectsRepository } from '@/lib/repositories/projects'
+import { reportSupportsLocale } from '@/lib/report-locale'
+import type { ProjectReport } from '@/lib/types'
 import ScoreTableGate from '@/components/ScoreTableGate'
 import SubscribeForm from '@/components/SubscribeForm'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 /**
  * CMC-Style Market Cap Ranking Page + Report Badges (BCE-379)
@@ -47,6 +52,11 @@ function toNumber(value: unknown): number {
     return Number.isFinite(parsed) ? parsed : 0
   }
   return 0
+}
+
+function toCmcCanonicalRank(value: unknown): number | null {
+  const rank = toNumber(value)
+  return Number.isInteger(rank) && rank >= 1 && rank <= MAX_RANK ? rank : null
 }
 
 function addProjectLookup(
@@ -102,11 +112,6 @@ function formatSnapshotSymbol(slug: string) {
     .toUpperCase() || slug.slice(0, 6).toUpperCase()
 }
 
-function hasSlideAsset(value: unknown): boolean {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
-  return Object.values(value).some((entry) => typeof entry === 'string' && entry.trim().length > 0)
-}
-
 function getReportTimestamp(report: {
   published_at?: string | null
   updated_at?: string | null
@@ -155,20 +160,24 @@ function getReportAvailability(
   }
 }
 
-function buildReportAvailabilityByProjectId(
+export function buildReportAvailabilityByProjectId(
   reports: Array<{
     project_id: string
     report_type: ReportTypeKey
+    language?: ProjectReport['language'] | null
     published_at?: string | null
     updated_at?: string | null
     created_at?: string | null
+    gdrive_urls_by_lang?: ProjectReport['gdrive_urls_by_lang']
+    file_urls_by_lang?: ProjectReport['file_urls_by_lang']
     slide_html_urls_by_lang?: unknown
   }>,
+  locale: string,
 ) {
   const map = new Map<string, ReportAvailability>()
 
   for (const report of reports) {
-    if (!report.project_id || !hasSlideAsset(report.slide_html_urls_by_lang)) continue
+    if (!report.project_id || !reportSupportsLocale(report as ProjectReport, locale)) continue
     const existing = map.get(report.project_id) ?? {
       reportTypes: [],
       reportDates: { econ: null, maturity: null, forensic: null },
@@ -202,7 +211,7 @@ export function snapshotRowsToScoreRows(
       const reportAvailability = getReportAvailability(project, availabilityByProjectId)
 
       return {
-        rank: index + 1,
+        rank: toCmcCanonicalRank(snapshot.cmc_rank) ?? index + 1,
         name: project?.name || formatSnapshotName(snapshot.slug),
         symbol: project?.symbol || formatSnapshotSymbol(snapshot.slug),
         slug: project?.slug || snapshot.slug,
@@ -221,16 +230,29 @@ export function canonicalSnapshotRowsToScoreRows(
   trackedProjects: TrackedScoreboardProject[],
   availabilityByProjectId?: Map<string, ReportAvailability>,
 ) {
-  if (!hasCompleteCmcCanonicalTop200Snapshot(snapshotRows.length)) return []
+  const canonicalRows = snapshotRows
+    .filter((row) => toCmcCanonicalRank(row.cmc_rank) !== null)
+    .sort((a, b) => (toCmcCanonicalRank(a.cmc_rank) ?? 0) - (toCmcCanonicalRank(b.cmc_rank) ?? 0))
+
+  if (!hasCompleteCmcCanonicalTop200Snapshot(canonicalRows)) return []
   return snapshotRowsToScoreRows(
-    snapshotRows,
+    canonicalRows,
     buildTrackedProjectLookup(trackedProjects),
     availabilityByProjectId,
   )
 }
 
-export function hasCompleteCmcCanonicalTop200Snapshot(snapshotRowCount: number) {
-  return snapshotRowCount >= MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS
+export function hasCompleteCmcCanonicalTop200Snapshot(snapshotRows: ScoreboardSnapshotRow[]) {
+  if (snapshotRows.length !== MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS) return false
+
+  const ranks = new Set(snapshotRows.map((row) => toCmcCanonicalRank(row.cmc_rank)))
+  if (ranks.has(null) || ranks.size !== MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS) return false
+
+  for (let rank = 1; rank <= MAX_RANK; rank += 1) {
+    if (!ranks.has(rank)) return false
+  }
+
+  return true
 }
 
 export default async function ScorePage({
@@ -256,21 +278,34 @@ export default async function ScorePage({
   const { data: visibleReports } = trackedProjectIds.length > 0
     ? await supabase
       .from('project_reports')
-      .select('project_id, report_type, published_at, updated_at, created_at, slide_html_urls_by_lang')
+      .select([
+        'project_id',
+        'report_type',
+        'language',
+        'published_at',
+        'updated_at',
+        'created_at',
+        'gdrive_urls_by_lang',
+        'file_urls_by_lang',
+        'slide_html_urls_by_lang',
+      ].join(', '))
       .in('project_id', trackedProjectIds)
       .in('report_type', ['econ', 'maturity', 'forensic'])
       .in('status', ['published', 'coming_soon', 'in_review'])
-      .not('slide_html_urls_by_lang', 'is', null)
     : { data: [] }
   const reportAvailabilityByProjectId = buildReportAvailabilityByProjectId(
-    (visibleReports || []) as Array<{
+    (visibleReports || []) as unknown as Array<{
       project_id: string
       report_type: ReportTypeKey
+      language?: ProjectReport['language'] | null
       published_at?: string | null
       updated_at?: string | null
       created_at?: string | null
+      gdrive_urls_by_lang?: ProjectReport['gdrive_urls_by_lang']
+      file_urls_by_lang?: ProjectReport['file_urls_by_lang']
       slide_html_urls_by_lang?: unknown
     }>,
+    locale,
   )
 
   const allRows = canonicalSnapshotRowsToScoreRows(

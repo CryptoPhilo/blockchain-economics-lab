@@ -7,6 +7,9 @@ import { pickLocaleReport, reportSupportsLocale } from '@/lib/report-locale'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import type { ProjectReport, ReportType, TrackedProject } from '@/lib/types'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 interface Props {
   params: Promise<{ locale: string; slug: string }>
 }
