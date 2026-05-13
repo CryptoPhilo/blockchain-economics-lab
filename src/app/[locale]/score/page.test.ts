@@ -249,4 +249,49 @@ describe('score page tracked project aliases', () => {
       reportTypes: ['econ'],
     })
   })
+
+  it('does not show timestamp-only report badges when live report availability was loaded', () => {
+    const trackedProjects = [
+      {
+        id: 'bitcoin-project',
+        name: 'Bitcoin',
+        slug: 'bitcoin',
+        symbol: 'BTC',
+        category: 'L1',
+        market_cap_usd: 100,
+        coingecko_id: 'bitcoin',
+        cmc_id: 'bitcoin',
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: '2026-05-08T13:39:29.458217Z',
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const snapshotRows = [
+      {
+        slug: 'bitcoin',
+        price_usd: 100000,
+        market_cap: 100,
+        change_24h: 0.1,
+        recorded_at: '2026-05-08',
+        cmc_rank: 1,
+      },
+    ]
+
+    const lookup = buildTrackedProjectLookup(trackedProjects)
+    const [row] = snapshotRowsToScoreRows(snapshotRows, lookup, new Map())
+
+    expect(row).toMatchObject({
+      name: 'Bitcoin',
+      symbol: 'BTC',
+      slug: 'bitcoin',
+      reportTypes: [],
+      reportDates: {
+        econ: null,
+        maturity: null,
+        forensic: null,
+      },
+    })
+  })
 })
