@@ -28,6 +28,12 @@ type ScoreboardSnapshotRow = Awaited<
   ReturnType<ReturnType<typeof createProjectsRepository>['getLatestScoreboardMarketSnapshot']>
 >[number]
 
+type ReportTypeKey = 'econ' | 'maturity' | 'forensic'
+type ReportAvailability = {
+  reportTypes: ReportTypeKey[]
+  reportDates: Record<ReportTypeKey, string | null>
+}
+
 function normalizeKey(value: unknown): string | null {
   if (typeof value !== 'string') return null
   const normalized = value.trim().toLowerCase()
@@ -102,23 +108,104 @@ function formatSnapshotSymbol(slug: string) {
     .toUpperCase() || slug.slice(0, 6).toUpperCase()
 }
 
-function buildReportTypes(project: TrackedScoreboardProject | undefined) {
-  const reportTypes: string[] = []
+function hasSlideAsset(value: unknown): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  return Object.values(value).some((entry) => typeof entry === 'string' && entry.trim().length > 0)
+}
+
+function getReportTimestamp(report: {
+  published_at?: string | null
+  updated_at?: string | null
+  created_at?: string | null
+}) {
+  return report.published_at || report.updated_at || report.created_at || null
+}
+
+function createFallbackReportAvailability(project: TrackedScoreboardProject | undefined): ReportAvailability {
+  const reportTypes: ReportTypeKey[] = []
   if (project?.last_econ_report_at) reportTypes.push('econ')
   if (project?.last_maturity_report_at) reportTypes.push('maturity')
   if (project?.last_forensic_report_at) reportTypes.push('forensic')
-  return reportTypes
+  return {
+    reportTypes,
+    reportDates: {
+      econ: project?.last_econ_report_at ?? null,
+      maturity: project?.last_maturity_report_at ?? null,
+      forensic: project?.last_forensic_report_at ?? null,
+    },
+  }
+}
+
+function getReportAvailability(
+  project: TrackedScoreboardProject | undefined,
+  availabilityByProjectId?: Map<string, ReportAvailability>,
+): ReportAvailability {
+  const fallback = createFallbackReportAvailability(project)
+  const live = project?.id ? availabilityByProjectId?.get(project.id) : undefined
+  if (!availabilityByProjectId) return fallback
+  if (!live) {
+    return {
+      reportTypes: [],
+      reportDates: { econ: null, maturity: null, forensic: null },
+    }
+  }
+
+  const reportTypes = live.reportTypes
+  return {
+    reportTypes,
+    reportDates: {
+      econ: live.reportDates.econ,
+      maturity: live.reportDates.maturity,
+      forensic: live.reportDates.forensic,
+    },
+  }
+}
+
+function buildReportAvailabilityByProjectId(
+  reports: Array<{
+    project_id: string
+    report_type: ReportTypeKey
+    published_at?: string | null
+    updated_at?: string | null
+    created_at?: string | null
+    slide_html_urls_by_lang?: unknown
+  }>,
+) {
+  const map = new Map<string, ReportAvailability>()
+
+  for (const report of reports) {
+    if (!report.project_id || !hasSlideAsset(report.slide_html_urls_by_lang)) continue
+    const existing = map.get(report.project_id) ?? {
+      reportTypes: [],
+      reportDates: { econ: null, maturity: null, forensic: null },
+    }
+
+    if (!existing.reportTypes.includes(report.report_type)) {
+      existing.reportTypes.push(report.report_type)
+    }
+
+    const timestamp = getReportTimestamp(report)
+    const current = existing.reportDates[report.report_type]
+    if (timestamp && (!current || new Date(timestamp).getTime() > new Date(current).getTime())) {
+      existing.reportDates[report.report_type] = timestamp
+    }
+
+    map.set(report.project_id, existing)
+  }
+
+  return map
 }
 
 export function snapshotRowsToScoreRows(
   snapshotRows: ScoreboardSnapshotRow[],
-  trackedLookup: Map<string, TrackedScoreboardProject>
+  trackedLookup: Map<string, TrackedScoreboardProject>,
+  availabilityByProjectId?: Map<string, ReportAvailability>,
 ) {
   return snapshotRows
     .slice(0, MAX_RANK)
     .map((snapshot, index) => {
       const project = trackedLookup.get(normalizeKey(snapshot.slug) || '')
-      const reportTypes = buildReportTypes(project)
+      const reportAvailability = getReportAvailability(project, availabilityByProjectId)
 
       return {
         rank: toCmcCanonicalRank(snapshot.cmc_rank) ?? index + 1,
@@ -129,19 +216,16 @@ export function snapshotRowsToScoreRows(
         marketCap: toNumber(snapshot.market_cap),
         score: project?.maturity_score == null ? null : toNumber(project.maturity_score),
         category: project?.category || '',
-        reportTypes,
-        reportDates: {
-          econ: project?.last_econ_report_at ?? null,
-          maturity: project?.last_maturity_report_at ?? null,
-          forensic: project?.last_forensic_report_at ?? null,
-        },
+        reportTypes: reportAvailability.reportTypes,
+        reportDates: reportAvailability.reportDates,
       }
     })
 }
 
 export function canonicalSnapshotRowsToScoreRows(
   snapshotRows: ScoreboardSnapshotRow[],
-  trackedProjects: TrackedScoreboardProject[]
+  trackedProjects: TrackedScoreboardProject[],
+  availabilityByProjectId?: Map<string, ReportAvailability>,
 ) {
   const canonicalRows = snapshotRows
     .filter((row) => toCmcCanonicalRank(row.cmc_rank) !== null)
@@ -150,7 +234,8 @@ export function canonicalSnapshotRowsToScoreRows(
   if (!hasCompleteCmcCanonicalTop200Snapshot(canonicalRows)) return []
   return snapshotRowsToScoreRows(
     canonicalRows,
-    buildTrackedProjectLookup(trackedProjects)
+    buildTrackedProjectLookup(trackedProjects),
+    availabilityByProjectId,
   )
 }
 
@@ -186,10 +271,31 @@ export default async function ScorePage({
     projectsRepository.getProjectsForScoreboard(),
     projectsRepository.getLatestScoreboardMarketSnapshot(MAX_RANK),
   ])
+  const trackedProjectIds = trackedProjects.map((project) => project.id).filter(Boolean)
+  const { data: visibleReports } = trackedProjectIds.length > 0
+    ? await supabase
+      .from('project_reports')
+      .select('project_id, report_type, published_at, updated_at, created_at, slide_html_urls_by_lang')
+      .in('project_id', trackedProjectIds)
+      .in('report_type', ['econ', 'maturity', 'forensic'])
+      .in('status', ['published', 'coming_soon', 'in_review'])
+      .not('slide_html_urls_by_lang', 'is', null)
+    : { data: [] }
+  const reportAvailabilityByProjectId = buildReportAvailabilityByProjectId(
+    (visibleReports || []) as Array<{
+      project_id: string
+      report_type: ReportTypeKey
+      published_at?: string | null
+      updated_at?: string | null
+      created_at?: string | null
+      slide_html_urls_by_lang?: unknown
+    }>,
+  )
 
   const allRows = canonicalSnapshotRowsToScoreRows(
     cmcSnapshotRows,
-    trackedProjects
+    trackedProjects,
+    reportAvailabilityByProjectId,
   )
 
   // Paginate: 100 per page
