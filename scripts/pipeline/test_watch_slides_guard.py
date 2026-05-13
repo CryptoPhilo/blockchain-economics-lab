@@ -20,6 +20,30 @@ def ws():
     return module
 
 
+def _load_pipeline_module(module_name):
+    spec = importlib.util.spec_from_file_location(
+        module_name, Path(__file__).with_name(f'{module_name}.py')
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+@pytest.fixture(scope='module')
+def matching_helpers():
+    return _load_pipeline_module('watch_slides_matching')
+
+
+@pytest.fixture(scope='module')
+def inspection_helpers():
+    return _load_pipeline_module('watch_slides_inspection')
+
+
+@pytest.fixture(scope='module')
+def telemetry_helpers():
+    return _load_pipeline_module('watch_slides_telemetry')
+
+
 @pytest.fixture
 def projects():
     return [
@@ -328,6 +352,7 @@ def test_recovery_target_aliases_resolve_from_slide_filename(ws, slug, name, sym
     [
         ('cosmos-hub', 'Cosmos Hub', 'ATOM', 'cosmos_MAT_ko.pdf'),
         ('worldcoin', 'Worldcoin', 'WLD', 'World_MAT_en.pdf'),
+        ('flare-networks', 'Flare Network', 'FLR', 'Flare_MAT_ko.pdf'),
     ],
 )
 def test_mat_short_filenames_resolve_to_canonical_projects(ws, slug, name, symbol, filename):
@@ -396,6 +421,34 @@ def test_ascii_signal_does_not_match_inside_larger_filename_token(ws):
     assert source == 'none'
 
 
+def test_matching_helper_keeps_ascii_signal_token_boundaries(matching_helpers):
+    projects = [
+        {'slug': 'gnosis', 'name': 'Gnosis', 'symbol': 'GNO'},
+    ]
+
+    project, source = matching_helpers._resolve_slug(
+        'KCS_System_Diagnosis_cn.pdf',
+        '',
+        '',
+        projects,
+    )
+
+    assert project is None
+    assert source == 'none'
+
+
+def test_matching_helper_resolves_flare_filename_to_flare_networks(matching_helpers):
+    projects = [
+        {'slug': 'flare-networks', 'name': 'Flare Network', 'symbol': 'FLR'},
+        {'slug': 'filecoin', 'name': 'Filecoin', 'symbol': 'FIL'},
+    ]
+
+    project, source = matching_helpers._resolve_slug('flare_ECON_cn.pdf', '', '', projects)
+
+    assert project['slug'] == 'flare-networks'
+    assert source == 'filename'
+
+
 def test_non_ascii_substring_alias_matching_is_preserved(ws):
     projects = [
         {'slug': 'bittensor', 'name': 'Bittensor', 'symbol': 'TAO', 'aliases': ['비텐서']},
@@ -422,6 +475,69 @@ def test_filename_language_resolution_ignores_noisy_ocr_script_mismatch(ws):
     )
 
     assert mismatch is None
+
+
+def test_inspection_helper_prefers_filename_language_over_metadata(inspection_helpers):
+    lang, source = inspection_helpers._resolve_lang(
+        'Project_Market_Map_ko.pdf',
+        {'title': 'English market map'},
+        'English market map ' * 5,
+        '',
+    )
+
+    assert lang == 'ko'
+    assert source == 'filename'
+
+
+def test_telemetry_helper_classifies_blocked_counts(telemetry_helpers):
+    metrics = {
+        'scanned': 2,
+        'processed': 1,
+        'published': 0,
+        'review_ready': 0,
+        'unresolved': 1,
+        'failed': 0,
+        'blocked': 1,
+    }
+
+    assert telemetry_helpers._paperclip_status_for_counts(metrics) == 'waiting_manual'
+
+
+def test_blocked_manifest_diagnostic_honors_backoff(ws):
+    now = datetime(2026, 5, 12, 12, 0, tzinfo=timezone.utc)
+    diag = ws._blocked_manifest_diagnostic(
+        {
+            'status': 'unresolved',
+            'updated_at': '2026-05-12T10:30:00Z',
+        },
+        now=now,
+        recheck_after_minutes=120,
+    )
+
+    assert diag == {
+        'should_recheck': False,
+        'status': 'unresolved',
+        'updated_at': '2026-05-12T10:30:00+00:00',
+        'age_minutes': 90,
+        'recheck_after_minutes': 120,
+        'reason': 'within_backoff',
+    }
+
+
+def test_blocked_manifest_diagnostic_rechecks_after_threshold(ws):
+    now = datetime(2026, 5, 12, 12, 0, tzinfo=timezone.utc)
+    diag = ws._blocked_manifest_diagnostic(
+        {
+            'status': 'language_mismatch',
+            'updated_at': '2026-05-12T09:30:00Z',
+        },
+        now=now,
+        recheck_after_minutes=120,
+    )
+
+    assert diag['should_recheck'] is True
+    assert diag['age_minutes'] == 150
+    assert diag['reason'] == 'age_exceeded_threshold'
 
 
 class FakeQuery:
@@ -760,6 +876,7 @@ def test_filename_lang_still_blocks_text_layer_cjk_mismatch(ws):
     ('filename', 'expected'),
     [
         ('Tether_Cryptoeconomic_Blueprint_cn2.pdf', 'zh'),
+        ('flare_ECON_cn.pdf', 'zh'),
         ('TRON_Economic_Architecture_en.pdf', 'en'),
         ('Solana_Economic_Engine_jp.pdf', 'ja'),
         ('TRON_Economic_Blueprint_ko.pdf', 'ko'),
@@ -1916,8 +2033,15 @@ class _FakeReconcileTable:
         self.filters = {}
         self.patch = None
         self.range_bounds = None
+        self.upsert_payload = None
+        self.on_conflict = None
 
     def select(self, *_args):
+        return self
+
+    def upsert(self, payload, on_conflict=None):
+        self.upsert_payload = payload
+        self.on_conflict = on_conflict
         return self
 
     def range(self, start, end):
@@ -1933,6 +2057,10 @@ class _FakeReconcileTable:
         return self
 
     def execute(self):
+        if self.upsert_payload is not None:
+            row = {**self.upsert_payload, 'id': f"created-{len(self.rows) + 1}"}
+            self.rows.append(row)
+            return _FakeReconcileExecuteResult([row])
         matched = [
             row for row in self.rows
             if all(row.get(key) == value for key, value in self.filters.items())
@@ -2338,6 +2466,93 @@ def test_db_reconcile_dry_run_does_not_mutate_rows(ws, monkeypatch):
     }
 
 
+def test_db_reconcile_for_rows_without_active_slide_pdf_are_classified_as_missing_active_slide_pdf(ws, monkeypatch):
+    projects = [
+        {'id': 'project-ton', 'slug': 'ton', 'name': 'TON', 'symbol': 'TON'},
+    ]
+    tables = {
+        'project_reports': [{
+            'id': 'report-ton-en',
+            'project_id': 'project-ton',
+            'report_type': 'forensic',
+            'language': 'en',
+            'status': 'published',
+            'published_at': '2026-05-01T00:00:00Z',
+            'updated_at': '2026-05-01T00:00:00Z',
+            'created_at': '2026-05-01T00:00:00Z',
+            'slide_html_urls_by_lang': {'en': 'https://storage/for/ton/latest/en.html'},
+        }],
+        'tracked_projects': [{
+            'id': 'project-ton',
+            'slug': 'ton',
+            'last_econ_report_at': None,
+            'last_maturity_report_at': None,
+            'last_forensic_report_at': None,
+        }],
+    }
+    monkeypatch.setattr(ws, '_iter_active_slide_targets', lambda *_args, **_kwargs: [])
+
+    results = ws._reconcile_visible_reports_with_drive(
+        _FakeReconcileSupabase(tables),
+        object(),
+        types=['for'],
+        projects=projects,
+        dry_run=False,
+    )
+
+    assert tables['project_reports'][0]['status'] == 'cancelled'
+    assert tables['tracked_projects'][0]['last_forensic_report_at'] is None
+    assert {row['status'] for row in results} == {
+        'db_reconcile_cancelled_missing_active_slide_pdf',
+    }
+
+
+def test_db_reconcile_keeps_for_coming_soon_placeholder_without_active_slide_pdf(ws, monkeypatch):
+    projects = [
+        {'id': 'project-aztec', 'slug': 'aztec', 'name': 'Aztec', 'symbol': 'AZTEC'},
+    ]
+    tables = {
+        'project_reports': [{
+            'id': 'report-aztec-en',
+            'project_id': 'project-aztec',
+            'report_type': 'forensic',
+            'language': 'en',
+            'status': 'coming_soon',
+            'published_at': None,
+            'updated_at': '2026-05-13T00:00:00Z',
+            'created_at': '2026-05-13T00:00:00Z',
+            'gdrive_urls_by_lang': None,
+            'gdrive_url': None,
+            'file_urls_by_lang': None,
+            'file_url': None,
+            'gdrive_file_id': None,
+            'slide_html_urls_by_lang': None,
+        }],
+        'tracked_projects': [{
+            'id': 'project-aztec',
+            'slug': 'aztec',
+            'last_econ_report_at': None,
+            'last_maturity_report_at': None,
+            'last_forensic_report_at': None,
+        }],
+    }
+    monkeypatch.setattr(ws, '_iter_active_slide_targets', lambda *_args, **_kwargs: [])
+
+    results = ws._reconcile_visible_reports_with_drive(
+        _FakeReconcileSupabase(tables),
+        object(),
+        types=['for'],
+        projects=projects,
+        dry_run=False,
+    )
+
+    assert tables['project_reports'][0]['status'] == 'coming_soon'
+    assert tables['tracked_projects'][0]['last_forensic_report_at'] is None
+    assert {row['status'] for row in results} == {
+        'db_reconcile_for_placeholder_without_active_slide_pdf',
+    }
+
+
 def test_db_reconcile_resolves_compact_drive_filename_slug(ws, monkeypatch):
     projects = [
         {'id': 'project-pump', 'slug': 'pump-fun', 'name': 'Pump.fun', 'symbol': 'PUMP'},
@@ -2382,6 +2597,82 @@ def test_db_reconcile_resolves_compact_drive_filename_slug(ws, monkeypatch):
         'status': 'db_reconcile_ok',
         'error': 'visible DB report availability already matches active Drive Slide folders',
     }]
+
+
+def test_db_reconcile_materializes_active_drive_pdf_only_report_row(ws, monkeypatch):
+    projects = [
+        {'id': 'project-flare', 'slug': 'flare-networks', 'name': 'Flare Network', 'symbol': 'FLR'},
+    ]
+    tables = {
+        'project_reports': [],
+        'tracked_projects': [{
+            'id': 'project-flare',
+            'slug': 'flare-networks',
+            'last_econ_report_at': None,
+            'last_maturity_report_at': None,
+            'last_forensic_report_at': None,
+        }],
+    }
+    monkeypatch.setattr(ws, '_iter_active_slide_targets', lambda *_args, **_kwargs: [
+        ('econ', {
+            'id': 'drive-flare-cn',
+            'name': 'flare_ECON_cn.pdf',
+            'source_path': 'Slide/econ/flare_ECON_cn.pdf',
+        }),
+    ])
+
+    results = ws._reconcile_visible_reports_with_drive(
+        _FakeReconcileSupabase(tables),
+        object(),
+        types=['econ'],
+        projects=projects,
+        dry_run=False,
+    )
+
+    assert tables['project_reports'][0]['project_id'] == 'project-flare'
+    assert tables['project_reports'][0]['report_type'] == 'econ'
+    assert tables['project_reports'][0]['language'] == 'zh'
+    assert tables['project_reports'][0]['status'] == ws.REVIEW_READY_STATUS
+    assert tables['project_reports'][0]['gdrive_file_id'] == 'drive-flare-cn'
+    assert tables['project_reports'][0]['gdrive_urls_by_lang'] == {
+        'zh': 'https://drive.google.com/file/d/drive-flare-cn/view?usp=drivesdk',
+    }
+    assert tables['project_reports'][0]['slide_html_urls_by_lang'] == {}
+    assert any(result['status'] == 'db_reconcile_materialized' for result in results)
+
+
+def test_db_reconcile_dry_run_materialization_does_not_mutate_rows(ws, monkeypatch):
+    projects = [
+        {'id': 'project-flare', 'slug': 'flare-networks', 'name': 'Flare Network', 'symbol': 'FLR'},
+    ]
+    tables = {
+        'project_reports': [],
+        'tracked_projects': [{
+            'id': 'project-flare',
+            'slug': 'flare-networks',
+            'last_econ_report_at': None,
+            'last_maturity_report_at': None,
+            'last_forensic_report_at': None,
+        }],
+    }
+    monkeypatch.setattr(ws, '_iter_active_slide_targets', lambda *_args, **_kwargs: [
+        ('econ', {
+            'id': 'drive-flare-cn',
+            'name': 'flare_ECON_cn.pdf',
+            'source_path': 'Slide/econ/flare_ECON_cn.pdf',
+        }),
+    ])
+
+    results = ws._reconcile_visible_reports_with_drive(
+        _FakeReconcileSupabase(tables),
+        object(),
+        types=['econ'],
+        projects=projects,
+        dry_run=True,
+    )
+
+    assert tables['project_reports'] == []
+    assert any(result['status'] == 'dry_run_db_reconcile_materialize' for result in results)
 
 
 def test_write_run_log_handles_prune_records_without_name(ws, monkeypatch, tmp_path):

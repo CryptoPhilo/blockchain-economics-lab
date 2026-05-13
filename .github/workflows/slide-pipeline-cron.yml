@@ -107,6 +107,24 @@ jobs:
         if: steps.gate.outputs.should_run == 'true'
         uses: actions/checkout@v4
 
+      - name: Record cadence start (BCE-1878)
+        if: steps.gate.outputs.should_run == 'true' && github.event_name != 'workflow_dispatch'
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          set -uo pipefail
+          NOW=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          curl -fsSL --max-time 15 -X PATCH \
+            "${SUPABASE_URL}/rest/v1/pipeline_schedules?pipeline_name=eq.slide-pipeline" \
+            -H "apikey: ${SUPABASE_SERVICE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_KEY}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=minimal" \
+            -d "{\"last_run_at\":\"${NOW}\",\"updated_by\":\"cron-start\"}" \
+            && echo "last_run_at updated at cadence start to ${NOW}" \
+            || echo "::warning::failed to update cadence start timestamp"
+
       - name: Verify runtime pipeline manifest
         if: steps.gate.outputs.should_run == 'true'
         run: npm run verify:runtime-pipelines
@@ -182,25 +200,30 @@ jobs:
           PAPERCLIP_FOR_PIPELINE_ID: ${{ secrets.PAPERCLIP_FOR_PIPELINE_ID }}
         run: |
           ARGS=""
-          TYPE_INPUT="${{ github.event.inputs.type }}"
-          if [ -n "$TYPE_INPUT" ]; then
-            ARGS="--type $TYPE_INPUT"
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            LOOKBACK_MINUTES="${SLIDE_PIPELINE_SCHEDULE_LOOKBACK_MINUTES:-180}"
+            ARGS="--type all --modified-since-minutes ${LOOKBACK_MINUTES} --skip-db-reconcile"
           else
-            ARGS="--type all"
-          fi
+            TYPE_INPUT="${{ github.event.inputs.type }}"
+            if [ -n "$TYPE_INPUT" ]; then
+              ARGS="--type $TYPE_INPUT"
+            else
+              ARGS="--type all"
+            fi
 
-          if [ -n "${{ github.event.inputs.slug }}" ]; then
-            ARGS="$ARGS --slug ${{ github.event.inputs.slug }}"
-          fi
+            if [ -n "${{ github.event.inputs.slug }}" ]; then
+              ARGS="$ARGS --slug ${{ github.event.inputs.slug }}"
+            fi
 
-          if [ "${{ github.event.inputs.dry_run }}" == "true" ]; then
-            echo "🧪 Running in DRY RUN mode"
-            ARGS="$ARGS --dry-run"
-          fi
+            if [ "${{ github.event.inputs.dry_run }}" == "true" ]; then
+              echo "🧪 Running in DRY RUN mode"
+              ARGS="$ARGS --dry-run"
+            fi
 
-          if [ "${{ github.event.inputs.force }}" == "true" ]; then
-            echo "⚡ Force re-processing enabled"
-            ARGS="$ARGS --force"
+            if [ "${{ github.event.inputs.force }}" == "true" ]; then
+              echo "⚡ Force re-processing enabled"
+              ARGS="$ARGS --force"
+            fi
           fi
 
           echo "Invoking: python3 watch_slides.py $ARGS"
@@ -260,24 +283,6 @@ jobs:
 
           echo "Failed to push tracker after $MAX_ATTEMPTS attempts"
           exit 1
-
-      - name: Update last_run_at (BCE-1711)
-        if: always() && steps.gate.outputs.should_run == 'true'
-        env:
-          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-        run: |
-          set -uo pipefail
-          NOW=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-          curl -fsSL --max-time 15 -X PATCH \
-            "${SUPABASE_URL}/rest/v1/pipeline_schedules?pipeline_name=eq.slide-pipeline" \
-            -H "apikey: ${SUPABASE_SERVICE_KEY}" \
-            -H "Authorization: Bearer ${SUPABASE_SERVICE_KEY}" \
-            -H "Content-Type: application/json" \
-            -H "Prefer: return=minimal" \
-            -d "{\"last_run_at\":\"${NOW}\",\"updated_by\":\"cron\"}" \
-            && echo "last_run_at updated to ${NOW}" \
-            || echo "::warning::failed to update last_run_at"
 
       - name: Summary
         if: always()

@@ -37,9 +37,7 @@ import shutil
 import sys
 import tempfile
 import unicodedata
-import urllib.error
-import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
@@ -60,12 +58,62 @@ os.environ.setdefault(
     str(Path(__file__).resolve().parent / '.gdrive_service_account.json'),
 )
 
+import watch_slides_inspection as _inspection_helpers
+from watch_slides_inspection import (
+    SUPPORTED_LANGS,
+    _cjk_script_counts,
+    _cjk_script_signature,
+    _detect_language_content_mismatch,
+    _extract_pdf_meta_and_text,
+    _is_han_dominant_zh,
+    _lang_from_filename,
+    _lang_from_metadata,
+    _lang_from_text,
+    _pdf_page_profile,
+    _resolve_lang,
+)
+from watch_slides_matching import (
+    _detect_slug_content_mismatch,
+    _match_project_by_text,
+    _normalize_signal_text,
+    _project_signal,
+    _resolve_slug,
+)
+from watch_slides_telemetry import (
+    PAPERCLIP_BLOCKED_STATUSES,
+    PAPERCLIP_FAILURE_STATUSES,
+    PAPERCLIP_NODE_STAGES,
+    PAPERCLIP_PIPELINE_NAMES,
+    PAPERCLIP_SUCCESS_STATUSES,
+    PaperclipTelemetry,
+    _paperclip_auth_token,
+    _paperclip_configured,
+    _paperclip_counts_for_type,
+    _paperclip_pipeline_id_from_env,
+    _paperclip_pipeline_name_from_env,
+    _paperclip_status_for_counts,
+    _paperclip_utc_now,
+    build_paperclip_event_payload,
+    build_paperclip_node_run_payload,
+    build_paperclip_run_payload,
+)
+
+_TESSERACT_AVAILABLE: Optional[bool] = None
+
+
+def _ocr_first_page_text(pdf_path: str, max_pages: int = _inspection_helpers.PDF_TEXT_PAGES) -> str:
+    """Compatibility wrapper around the extracted OCR helper."""
+    global _TESSERACT_AVAILABLE
+    _inspection_helpers.shutil = shutil
+    _inspection_helpers._TESSERACT_AVAILABLE = _TESSERACT_AVAILABLE
+    text = _inspection_helpers._ocr_first_page_text(pdf_path, max_pages)
+    _TESSERACT_AVAILABLE = _inspection_helpers._TESSERACT_AVAILABLE
+    return text
+
 
 # ═══════════════════════════════════════════
 # Configuration
 # ═══════════════════════════════════════════
-
-SUPPORTED_LANGS = {'ko', 'en', 'fr', 'es', 'de', 'ja', 'zh'}
 
 # GDrive root folder per type (provided in BCE-1085 spec)
 TYPE_FOLDER_IDS: Dict[str, str] = {
@@ -105,124 +153,16 @@ REPO_ROOT = PIPELINE_DIR.parent.parent
 MANIFEST_PATH = PIPELINE_DIR / 'output' / '_slide_processed.json'
 LOG_DIR = REPO_ROOT / 'logs' / 'slide_pipeline'
 
-# Pages to extract for content-based identification (cheap; first page already
-# contains the title in NotebookLM exports).
-PDF_TEXT_PAGES = 3
-
 # NotebookLM slide decks are 16:9 landscape. Legacy PDF reports are portrait
 # documents and must not be published as slide HTML.
-MIN_SLIDE_ASPECT_RATIO = 1.25
 STALE_PROCESSING_AFTER_MINUTES = int(os.environ.get('SLIDE_PIPELINE_STALE_PROCESSING_MINUTES', '30'))
-
-# Tesseract trained-data codes per supported language. Used both for OCR of
-# raster-only PDFs and to control which language packs to install in CI.
-TESSERACT_LANG_CODES: Dict[str, str] = {
-    'ko': 'kor',
-    'en': 'eng',
-    'fr': 'fra',
-    'es': 'spa',
-    'de': 'deu',
-    'ja': 'jpn',
-    'zh': 'chi_sim',
-}
-_TESSERACT_AVAILABLE: Optional[bool] = None
-
-# Hints used when guessing language from PDF metadata strings.
-LANG_HINTS: List[Tuple[str, str]] = [
-    ('korean', 'ko'), ('한국어', 'ko'), ('한글', 'ko'),
-    ('english', 'en'),
-    ('français', 'fr'), ('francais', 'fr'), ('french', 'fr'),
-    ('español', 'es'), ('espanol', 'es'), ('spanish', 'es'),
-    ('deutsch', 'de'), ('german', 'de'),
-    ('日本語', 'ja'), ('japanese', 'ja'),
-    ('中文', 'zh'), ('简体', 'zh'), ('繁體', 'zh'), ('chinese', 'zh'),
-]
-
-FILENAME_LANG_HINTS: List[Tuple[str, str]] = [
-    ('ko', 'ko'), ('kor', 'ko'), ('kr', 'ko'),
-    ('en', 'en'), ('eng', 'en'),
-    ('fr', 'fr'), ('fre', 'fr'), ('fra', 'fr'),
-    ('es', 'es'), ('spa', 'es'),
-    ('de', 'de'), ('ger', 'de'), ('deu', 'de'),
-    ('ja', 'ja'), ('jp', 'ja'), ('jpn', 'ja'),
-    ('zh', 'zh'), ('cn', 'zh'), ('chn', 'zh'),
-]
-
-# Explicit watcher-only project aliases. These are intentionally narrow: aliases
-# may resolve a slug, but the existing content mismatch guard still blocks
-# publication when the PDF body points to another tracked project.
-PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
-    'ripple': ['xrpl', 'xrp ledger'],
-    'world-liberty-financial': ['wlf intelligence briefing', 'wlf economic architecture'],
-    'okx': ['x layer economic blueprint', 'x layer money chain analysis', 'x layer economic analysis'],
-    'ethereum': ['programmable trust blueprint'],
-    'bitcoin-cash': ['bch'],
-    'cardano': ['ada'],
-    'tether-gold': ['xaut'],
-    'global-dollar': ['usdg', 'global dollar usd'],
-    'mantle': ['mnt'],
-    'uniswap': ['uni'],
-    'polkadot': ['dot'],
-    'pi-network': ['pi'],
-    'cosmos-hub': ['cosmos'],
-    'worldcoin': ['world'],
-    'siren': ['sirenai', 'siren ai'],
-    'gate': ['gatechain', 'gate chain'],
-    'venice-token': ['venice ai', 'venice_ai'],
-}
+BLOCKED_RECHECK_AFTER_MINUTES = int(os.environ.get('SLIDE_PIPELINE_BLOCKED_RECHECK_MINUTES', '720'))
 
 TRACKED_PROJECT_GUARD_FIELDS = (
     'id, slug, name, symbol, status, '
     'last_econ_report_at, last_maturity_report_at, last_forensic_report_at, '
     'next_econ_due_at, next_maturity_due_at'
 )
-
-PAPERCLIP_PIPELINE_NAMES: Dict[str, str] = {
-    'econ': 'ECON Report Publishing',
-    'mat': 'MAT Report Publishing',
-    'for': 'FOR Report Publishing',
-}
-
-PAPERCLIP_NODE_STAGES: List[Tuple[str, str]] = [
-    ('source_collection', 'Slide PDF intake'),
-    ('research_synthesis', 'Analysis source confirmation'),
-    ('draft_report', 'Summary and marketing extraction'),
-    ('summary_marketing_localization', '7-language summary and marketing localization'),
-    ('editorial_review', 'Publication review'),
-    ('website_publish', 'Website publishing'),
-    ('post_publish_monitoring', 'Post-publish monitoring'),
-]
-
-PAPERCLIP_SUCCESS_STATUSES = {
-    'published',
-    'review_ready',
-    'review_ready_created',
-    'unchanged',
-    'dry_run',
-    'pruned_stale_languages',
-    'pruned_stale_storage',
-    'db_reconcile_ok',
-    'db_reconcile_cancelled',
-    'db_reconcile_timestamp_synced',
-    'db_reconcile_timestamp_cleared',
-    'dry_run_db_reconcile_cancel',
-    'dry_run_db_reconcile_timestamp_sync',
-    'dry_run_db_reconcile_timestamp_clear',
-}
-
-PAPERCLIP_FAILURE_STATUSES = {'failed'}
-
-PAPERCLIP_BLOCKED_STATUSES = {
-    'unresolved',
-    'mismatch',
-    'language_mismatch',
-    'blocked_missing_analysis_source',
-    'prune_skipped_no_publishable_pdf',
-    'prune_skipped_no_project_id',
-    'prune_skipped_no_supabase',
-    'prune_storage_failed',
-    'db_reconcile_skipped',
-}
 
 
 # ═══════════════════════════════════════════
@@ -247,11 +187,16 @@ def _get_drive_service():
 GDRIVE_FOLDER_MIME = 'application/vnd.google-apps.folder'
 
 
-def _list_pdfs_direct(service, parent_id: str) -> List[Dict]:
+def _list_pdfs_direct(service, parent_id: str, modified_since: Optional[datetime] = None) -> List[Dict]:
     """List PDFs in `parent_id` only (no subfolder traversal)."""
+    modified_filter = ''
+    if modified_since is not None:
+        cutoff = modified_since.astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+        modified_filter = f"and modifiedTime >= '{cutoff}' "
     query = (
         f"'{parent_id}' in parents "
         f"and mimeType = 'application/pdf' "
+        f"{modified_filter}"
         f"and trashed = false"
     )
     out: List[Dict] = []
@@ -270,6 +215,16 @@ def _list_pdfs_direct(service, parent_id: str) -> List[Dict]:
         if not page_token:
             break
     return out
+
+
+def _list_pdfs_direct_for_scope(
+    service,
+    parent_id: str,
+    modified_since: Optional[datetime],
+) -> List[Dict]:
+    if modified_since is None:
+        return _list_pdfs_direct(service, parent_id)
+    return _list_pdfs_direct(service, parent_id, modified_since)
 
 
 def _list_child_folders(service, parent_id: str) -> List[Dict]:
@@ -425,152 +380,39 @@ def _processing_manifest_diagnostic(
     }
 
 
-# ═══════════════════════════════════════════
-# PDF text + metadata extraction
-# ═══════════════════════════════════════════
-
-def _extract_pdf_meta_and_text(pdf_path: str, max_pages: int = PDF_TEXT_PAGES) -> Tuple[Dict[str, str], str]:
-    """Return (metadata, first-pages text). Best-effort; returns ({}, "") on failure."""
-    try:
-        import fitz  # pymupdf
-    except Exception:
-        return {}, ''
-    try:
-        doc = fitz.open(pdf_path)
-    except Exception:
-        return {}, ''
-    meta = dict(doc.metadata or {})
-    text_parts: List[str] = []
-    try:
-        for i in range(min(max_pages, doc.page_count)):
-            try:
-                text_parts.append(doc.load_page(i).get_text() or '')
-            except Exception:
-                continue
-    finally:
-        doc.close()
-    return meta, '\n'.join(text_parts)
-
-
-def _pdf_page_profile(pdf_path: str) -> Dict[str, float | int | bool]:
-    """Return basic first-page dimensions used to reject legacy portrait reports."""
-    try:
-        import fitz  # pymupdf
-        doc = fitz.open(pdf_path)
-    except Exception:
-        return {'page_count': 0, 'width': 0.0, 'height': 0.0, 'aspect_ratio': 0.0, 'is_landscape_slide': False}
-    try:
-        if doc.page_count <= 0:
-            return {'page_count': 0, 'width': 0.0, 'height': 0.0, 'aspect_ratio': 0.0, 'is_landscape_slide': False}
-        rect = doc.load_page(0).rect
-        width = float(rect.width)
-        height = float(rect.height)
-        aspect = width / height if height else 0.0
+def _blocked_manifest_diagnostic(
+    manifest_entry: Dict[str, Any],
+    *,
+    now: datetime,
+    recheck_after_minutes: int = BLOCKED_RECHECK_AFTER_MINUTES,
+) -> Optional[Dict[str, Any]]:
+    status = manifest_entry.get('status')
+    blocked_statuses = set(PAPERCLIP_BLOCKED_STATUSES) | {
+        'language_mismatch',
+        'skipped_legacy_portrait_pdf',
+    }
+    if status not in blocked_statuses:
+        return None
+    updated_at_raw = manifest_entry.get('updated_at') or manifest_entry.get('processed_at')
+    updated_at = _parse_manifest_datetime(updated_at_raw)
+    if updated_at is None:
         return {
-            'page_count': doc.page_count,
-            'width': width,
-            'height': height,
-            'aspect_ratio': aspect,
-            'is_landscape_slide': aspect >= MIN_SLIDE_ASPECT_RATIO,
+            'should_recheck': True,
+            'status': status,
+            'updated_at': updated_at_raw,
+            'age_minutes': None,
+            'recheck_after_minutes': recheck_after_minutes,
+            'reason': 'missing_or_invalid_updated_at',
         }
-    finally:
-        doc.close()
-
-
-def _ocr_first_page_text(pdf_path: str, max_pages: int = PDF_TEXT_PAGES) -> str:
-    """Render the first pages and OCR them with tesseract. Returns "" on failure.
-
-    Used for NotebookLM-style raster PDFs that have no text layer
-    (see project memory: project_notebooklm_pdf_full_page_raster.md).
-    Tesseract loads all supported language packs in one pass so script
-    detection works for mixed/Asian scripts. If tesseract or pytesseract
-    is unavailable, returns "" silently.
-    """
-    try:
-        import fitz  # pymupdf
-        import pytesseract
-        from PIL import Image
-    except Exception as e:
-        print(f"    [WARN] OCR deps unavailable: {e}")
-        return ''
-    global _TESSERACT_AVAILABLE
-    if _TESSERACT_AVAILABLE is None:
-        _TESSERACT_AVAILABLE = shutil.which('tesseract') is not None
-        if not _TESSERACT_AVAILABLE:
-            print("    [WARN] OCR binary unavailable: tesseract is not installed or not in PATH")
-    if not _TESSERACT_AVAILABLE:
-        return ''
-    try:
-        doc = fitz.open(pdf_path)
-    except Exception:
-        return ''
-
-    pages_to_ocr = min(max_pages, doc.page_count)
-    if pages_to_ocr <= 0:
-        doc.close()
-        return ''
-
-    tess_langs = '+'.join(TESSERACT_LANG_CODES[c] for c in sorted(SUPPORTED_LANGS))
-    text_parts: List[str] = []
-    try:
-        for i in range(pages_to_ocr):
-            try:
-                page = doc.load_page(i)
-                # 200 DPI is enough for tesseract on cover-style slides
-                pix = page.get_pixmap(matrix=fitz.Matrix(2.0, 2.0), alpha=False)
-                img = Image.frombytes('RGB', (pix.width, pix.height), pix.samples)
-                text_parts.append(pytesseract.image_to_string(img, lang=tess_langs) or '')
-            except Exception as e:
-                print(f"    [WARN] OCR page {i} failed: {e}")
-                continue
-    finally:
-        doc.close()
-    return '\n'.join(text_parts)
-
-
-# ═══════════════════════════════════════════
-# Slug resolution (filename → text → OCR)
-# ═══════════════════════════════════════════
-
-_TOKEN_RE = re.compile(r'[A-Za-z0-9]+')
-_ASCII_ONLY_RE = re.compile(r'^[a-z0-9 ]+$')
-_SIGNAL_SEPARATOR_RE = re.compile(r'[^a-z0-9]+')
-
-
-def _tokenize(text: str) -> List[str]:
-    return [t.lower() for t in _TOKEN_RE.findall(text or '')]
-
-
-def _normalize_signal_text(text: str) -> str:
-    return f" {_SIGNAL_SEPARATOR_RE.sub(' ', (text or '').lower()).strip()} "
-
-
-def _is_ascii_signal(sig: str) -> bool:
-    return bool(_ASCII_ONLY_RE.match(sig))
-
-
-def _score_signal_in_text(sig: str, t: str, normalized_text: str, tokens: Set[str]) -> int:
-    """Score one signal without allowing ASCII substring false positives."""
-    if not sig:
-        return 0
-
-    normalized_sig = _normalize_signal_text(sig)
-    normalized_sig_body = normalized_sig.strip()
-    ascii_signal = _is_ascii_signal(normalized_sig_body)
-    has_phrase_separator = bool(re.search(r'[\s-]', sig))
-
-    if ascii_signal:
-        if has_phrase_separator:
-            return len(sig) * 2 if normalized_sig in normalized_text else 0
-        return len(sig) * 2 if sig in tokens else 0
-
-    if has_phrase_separator and normalized_sig_body and normalized_sig in normalized_text:
-        return len(sig) * 2
-    if sig in tokens:
-        return len(sig) * 2
-    if len(sig) >= 2 and sig in t:
-        return len(sig) * 2
-    return 0
+    age_minutes = max(0, int((now.astimezone(timezone.utc) - updated_at).total_seconds() // 60))
+    return {
+        'should_recheck': age_minutes >= recheck_after_minutes,
+        'status': status,
+        'updated_at': updated_at.isoformat(),
+        'age_minutes': age_minutes,
+        'recheck_after_minutes': recheck_after_minutes,
+        'reason': 'age_exceeded_threshold' if age_minutes >= recheck_after_minutes else 'within_backoff',
+    }
 
 
 def _load_tracked_projects(sb) -> List[Dict[str, Any]]:
@@ -609,9 +451,19 @@ def _report_row_has_legacy_pdf_url(row: Dict[str, Any]) -> bool:
         for field in (
             'gdrive_urls_by_lang',
             'gdrive_url',
+            'file_urls_by_lang',
             'file_url',
             'gdrive_file_id',
         )
+    )
+
+
+def _is_for_coming_soon_placeholder_without_asset(row: Dict[str, Any]) -> bool:
+    return (
+        _rtype_for_db_type(row.get('report_type')) == 'for'
+        and row.get('status') == 'coming_soon'
+        and not _report_row_has_slide_html(row)
+        and not _report_row_has_legacy_pdf_url(row)
     )
 
 
@@ -738,665 +590,6 @@ def run_active_project_backlog_guard() -> List[Dict[str, Any]]:
 
 
 # ═══════════════════════════════════════════
-# Optional Paperclip telemetry
-# ═══════════════════════════════════════════
-
-def _paperclip_utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat()
-
-
-def _paperclip_configured() -> bool:
-    return bool(
-        os.environ.get('PAPERCLIP_API_URL')
-        and (
-            os.environ.get('PAPERCLIP_API_KEY')
-            or os.environ.get('PAPERCLIP_AGENT_TOKEN')
-            or os.environ.get('PAPERCLIP_TOKEN')
-        )
-    )
-
-
-def _paperclip_auth_token() -> Optional[str]:
-    return (
-        os.environ.get('PAPERCLIP_API_KEY')
-        or os.environ.get('PAPERCLIP_AGENT_TOKEN')
-        or os.environ.get('PAPERCLIP_TOKEN')
-    )
-
-
-def _paperclip_pipeline_id_from_env(rtype: str) -> Optional[str]:
-    suffix = rtype.upper()
-    return (
-        os.environ.get(f'PAPERCLIP_{suffix}_PIPELINE_ID')
-        or os.environ.get(f'PAPERCLIP_PIPELINE_ID_{suffix}')
-        or os.environ.get(f'PAPERCLIP_PIPELINE_{suffix}_ID')
-    )
-
-
-def _paperclip_pipeline_name_from_env(rtype: str) -> str:
-    suffix = rtype.upper()
-    return (
-        os.environ.get(f'PAPERCLIP_{suffix}_PIPELINE_NAME')
-        or os.environ.get(f'PAPERCLIP_PIPELINE_NAME_{suffix}')
-        or PAPERCLIP_PIPELINE_NAMES[rtype]
-    )
-
-
-def build_paperclip_run_payload(
-    *,
-    rtype: str,
-    scan_time: str,
-    dry_run: bool,
-    force: bool,
-    slug: Optional[str],
-) -> Dict[str, Any]:
-    return {
-        'status': 'running',
-        'triggerType': 'schedule' if os.environ.get('GITHUB_ACTIONS') else 'manual',
-        'startedAt': _paperclip_utc_now(),
-        'summary': f"{rtype.upper()} slide watcher started",
-        'metadata': {
-            'reportType': rtype,
-            'scanTime': scan_time,
-            'dryRun': dry_run,
-            'force': force,
-            'slug': slug,
-            'githubRunId': os.environ.get('GITHUB_RUN_ID'),
-            'githubRunNumber': os.environ.get('GITHUB_RUN_NUMBER'),
-            'githubWorkflow': os.environ.get('GITHUB_WORKFLOW'),
-            'githubSha': os.environ.get('GITHUB_SHA'),
-        },
-    }
-
-
-def build_paperclip_node_run_payload(
-    *,
-    pipeline_run_id: str,
-    node_id: str,
-    rtype: str,
-    stage_key: str,
-    stage_name: str,
-    status: str,
-    metrics: Dict[str, int],
-    log_path: Optional[str],
-) -> Dict[str, Any]:
-    now = _paperclip_utc_now()
-    return {
-        'runId': pipeline_run_id,
-        'nodeId': node_id,
-        'status': status,
-        'startedAt': now,
-        'finishedAt': now,
-        'summary': f"{stage_name}: {status}",
-        'metadata': {
-            'reportType': rtype,
-            'nodeKey': stage_key,
-            'nodeName': stage_name,
-            'metrics': metrics,
-            'logArtifactPath': log_path,
-            'source': 'watch_slides.py',
-        },
-    }
-
-
-def build_paperclip_event_payload(
-    *,
-    pipeline_run_id: str,
-    rtype: str,
-    status: str,
-    metrics: Dict[str, int],
-    log_path: Optional[str],
-    warnings: Optional[List[str]] = None,
-) -> Dict[str, Any]:
-    return {
-        'runId': pipeline_run_id,
-        'eventType': 'slide_watcher.completed',
-        'severity': 'error' if status == 'failed' else 'warning' if status == 'waiting_manual' else 'info',
-        'message': (
-            f"{rtype.upper()} slide watcher completed: "
-            f"scanned={metrics['scanned']} processed={metrics['processed']} "
-            f"review_ready={metrics['review_ready']} unresolved={metrics['unresolved']} "
-            f"failed={metrics['failed']}"
-        ),
-        'occurredAt': _paperclip_utc_now(),
-        'artifactRef': log_path,
-        'details': {
-            'reportType': rtype,
-            'status': status,
-            'metrics': metrics,
-            'logArtifactPath': log_path,
-            'warnings': warnings or [],
-            'source': 'watch_slides.py',
-        },
-    }
-
-
-def _paperclip_counts_for_type(
-    rtype: str,
-    scanned: List[Dict[str, Any]],
-    processed: List[Dict[str, Any]],
-) -> Dict[str, int]:
-    scanned_for_type = [r for r in scanned if r.get('rtype') == rtype]
-    processed_for_type = [r for r in processed if r.get('rtype') == rtype]
-    return {
-        'scanned': len(scanned_for_type),
-        'processed': len(processed_for_type),
-        'published': sum(1 for r in processed_for_type if r.get('status') == 'published'),
-        'review_ready': sum(1 for r in processed_for_type if r.get('status') == 'review_ready'),
-        'unresolved': sum(1 for r in processed_for_type if r.get('status') == 'unresolved'),
-        'failed': sum(1 for r in processed_for_type if r.get('status') in PAPERCLIP_FAILURE_STATUSES),
-        'blocked': sum(1 for r in processed_for_type if r.get('status') in PAPERCLIP_BLOCKED_STATUSES),
-    }
-
-
-def _paperclip_status_for_counts(metrics: Dict[str, int]) -> str:
-    if metrics.get('failed', 0) > 0:
-        return 'failed'
-    if metrics.get('blocked', 0) > 0 or metrics.get('unresolved', 0) > 0:
-        return 'waiting_manual'
-    return 'succeeded'
-
-
-class PaperclipTelemetry:
-    def __init__(self) -> None:
-        self.enabled = _paperclip_configured()
-        self.api_url = (os.environ.get('PAPERCLIP_API_URL') or '').rstrip('/')
-        self.company_id = os.environ.get('PAPERCLIP_COMPANY_ID')
-        self.token = _paperclip_auth_token()
-        self.pipeline_ids: Dict[str, str] = {}
-        self.node_ids: Dict[str, Dict[str, str]] = {}
-        self.run_ids: Dict[str, str] = {}
-        self.warnings: List[str] = []
-
-    def warn(self, message: str) -> None:
-        self.warnings.append(message)
-        print(f"  [WARN] Paperclip telemetry: {message}")
-
-    def _url_for_path(self, path: str) -> str:
-        if self.api_url.endswith('/api') and path.startswith('/api/'):
-            return f"{self.api_url}{path[4:]}"
-        return f"{self.api_url}{path}"
-
-    def _request_once(
-        self,
-        method: str,
-        path: str,
-        payload: Optional[Dict[str, Any]] = None,
-    ) -> Tuple[Optional[Any], Optional[str]]:
-        if not self.enabled:
-            return None, None
-        body = None
-        headers = {
-            'Accept': 'application/json',
-            'Authorization': f'Bearer {self.token}',
-        }
-        if payload is not None:
-            body = json.dumps(payload).encode('utf-8')
-            headers['Content-Type'] = 'application/json'
-        run_id = os.environ.get('PAPERCLIP_RUN_ID')
-        if run_id:
-            headers['X-Paperclip-Run-Id'] = run_id
-        url = self._url_for_path(path)
-        req = urllib.request.Request(url, data=body, headers=headers, method=method)
-        try:
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                raw = resp.read().decode('utf-8')
-                if not raw:
-                    return {}, None
-                content_type = resp.headers.get('content-type', '')
-                if 'application/json' not in content_type:
-                    raise RuntimeError(f"non-JSON response from {path}: {content_type}")
-                return json.loads(raw), None
-        except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, RuntimeError, json.JSONDecodeError) as e:
-            return None, str(e)
-
-    def request(self, method: str, path: str, payload: Optional[Dict[str, Any]] = None) -> Optional[Any]:
-        paths = [path]
-        if not path.startswith('/api/'):
-            paths.append(f'/api{path}')
-        last_error = None
-        for candidate in paths:
-            response, error = self._request_once(method, candidate, payload)
-            if error is None:
-                return response
-            last_error = error
-        self.warn(f"{method} {path} failed: {last_error}")
-        return None
-
-    def resolve_pipeline_id(self, rtype: str) -> Optional[str]:
-        configured_id = _paperclip_pipeline_id_from_env(rtype)
-        if configured_id:
-            self.resolve_pipeline_nodes(configured_id, rtype)
-            return configured_id
-        if not self.company_id:
-            self.warn(f"{rtype.upper()} pipeline id not configured and PAPERCLIP_COMPANY_ID is missing")
-            return None
-        response = self.request('GET', f'/api/companies/{self.company_id}/pipelines')
-        if not isinstance(response, list):
-            self.warn(f"{rtype.upper()} pipeline lookup returned no pipeline list")
-            return None
-        expected_name = _paperclip_pipeline_name_from_env(rtype)
-        for pipeline in response:
-            if (pipeline.get('name') or '').strip() == expected_name:
-                pipeline_id = pipeline.get('id')
-                if pipeline_id:
-                    self.resolve_pipeline_nodes(pipeline_id, rtype)
-                return pipeline_id
-        self.warn(f"{rtype.upper()} pipeline not found by name: {expected_name}")
-        return None
-
-    def resolve_pipeline_nodes(self, pipeline_id: str, rtype: str) -> None:
-        response = self.request('GET', f'/api/pipelines/{pipeline_id}')
-        if not isinstance(response, dict):
-            self.warn(f"{rtype.upper()} pipeline detail lookup failed for node ids")
-            return
-        nodes = response.get('nodes')
-        if not isinstance(nodes, list):
-            self.warn(f"{rtype.upper()} pipeline detail did not include nodes")
-            return
-        node_ids = {
-            str(node.get('nodeKey')): str(node.get('id'))
-            for node in nodes
-            if node.get('nodeKey') and node.get('id')
-        }
-        missing = [stage_key for stage_key, _stage_name in PAPERCLIP_NODE_STAGES if stage_key not in node_ids]
-        if missing:
-            self.warn(f"{rtype.upper()} pipeline missing node keys: {', '.join(missing)}")
-        self.node_ids[rtype] = node_ids
-
-    def start_runs(self, types: List[str], *, scan_time: str, dry_run: bool, force: bool, slug: Optional[str]) -> None:
-        if not self.enabled:
-            self.warn('disabled; set PAPERCLIP_API_URL and PAPERCLIP_API_KEY to publish pipeline telemetry')
-            return
-        for rtype in types:
-            pipeline_id = self.resolve_pipeline_id(rtype)
-            if not pipeline_id:
-                continue
-            self.pipeline_ids[rtype] = pipeline_id
-            payload = build_paperclip_run_payload(
-                rtype=rtype,
-                scan_time=scan_time,
-                dry_run=dry_run,
-                force=force,
-                slug=slug,
-            )
-            response = self.request('POST', f'/pipelines/{pipeline_id}/runs', payload)
-            run_id = (response or {}).get('id') or (response or {}).get('runId')
-            if run_id:
-                self.run_ids[rtype] = run_id
-            else:
-                self.warn(f"{rtype.upper()} run was not created")
-
-    def complete_runs(
-        self,
-        types: List[str],
-        *,
-        scanned: List[Dict[str, Any]],
-        processed: List[Dict[str, Any]],
-        log_path: Optional[str],
-    ) -> None:
-        if not self.enabled:
-            return
-        for rtype in types:
-            pipeline_id = self.pipeline_ids.get(rtype)
-            run_id = self.run_ids.get(rtype)
-            if not pipeline_id or not run_id:
-                continue
-            metrics = _paperclip_counts_for_type(rtype, scanned, processed)
-            status = _paperclip_status_for_counts(metrics)
-            node_ids = self.node_ids.get(rtype, {})
-            for stage_key, stage_name in PAPERCLIP_NODE_STAGES:
-                node_id = node_ids.get(stage_key)
-                if not node_id:
-                    self.warn(f"{rtype.upper()} node run skipped; missing node id for {stage_key}")
-                    continue
-                self.request(
-                    'POST',
-                    f'/pipeline-runs/{run_id}/node-runs',
-                    build_paperclip_node_run_payload(
-                        pipeline_run_id=run_id,
-                        node_id=node_id,
-                        rtype=rtype,
-                        stage_key=stage_key,
-                        stage_name=stage_name,
-                        status=status,
-                        metrics=metrics,
-                        log_path=log_path,
-                    ),
-                )
-            self.request(
-                'POST',
-                f'/pipelines/{pipeline_id}/events',
-                build_paperclip_event_payload(
-                    pipeline_run_id=run_id,
-                    rtype=rtype,
-                    status=status,
-                    metrics=metrics,
-                    log_path=log_path,
-                    warnings=self.warnings,
-                ),
-            )
-            self.request(
-                'PATCH',
-                f'/pipeline-runs/{run_id}',
-                {
-                    'status': status,
-                    'finishedAt': _paperclip_utc_now(),
-                    'summary': (
-                        f"{rtype.upper()} slide watcher completed: "
-                        f"scanned={metrics['scanned']} processed={metrics['processed']} "
-                        f"review_ready={metrics['review_ready']} unresolved={metrics['unresolved']} "
-                        f"failed={metrics['failed']}"
-                    ),
-                    'metadata': {
-                        'reportType': rtype,
-                        'metrics': metrics,
-                        'logArtifactPath': log_path,
-                        'telemetryWarnings': self.warnings,
-                        'source': 'watch_slides.py',
-                    },
-                },
-            )
-
-
-def _project_signal(project: Dict[str, Any]) -> List[str]:
-    """Return lowercase tokens that identify a project.
-
-    Uses only the full slug/name/symbol strings; hyphenated slug parts are
-    NOT exploded into independent tokens because generic fragments like
-    `protocol` or `network` cause cross-project false positives.
-    """
-    sigs: List[str] = []
-    for key in ('slug', 'name', 'symbol'):
-        v = (project.get(key) or '').strip().lower()
-        if v:
-            sigs.append(v)
-    aliases = project.get('aliases') or []
-    if isinstance(aliases, list):
-        sigs.extend(
-            alias.strip().lower()
-            for alias in aliases
-            if isinstance(alias, str) and alias.strip()
-        )
-    sigs.extend(PROJECT_ALIAS_REGISTRY.get((project.get('slug') or '').lower(), []))
-    return list({s for s in sigs if s})
-
-
-def _match_project_by_text(text: str, projects: List[Dict[str, str]]) -> Optional[Dict[str, str]]:
-    """Match `text` against project signals. Prefer longer/more specific signals."""
-    if not text:
-        return None
-    t = text.lower()
-    normalized_text = _normalize_signal_text(text)
-    tokens = set(_tokenize(text))
-    best: Optional[Tuple[int, Dict[str, str]]] = None
-    for proj in projects:
-        score = 0
-        for sig in _project_signal(proj):
-            score = max(score, _score_signal_in_text(sig, t, normalized_text, tokens))
-        if score and (best is None or score > best[0]):
-            best = (score, proj)
-    return best[1] if best else None
-
-
-def _resolve_slug(
-    pdf_name: str,
-    pdf_text: str,
-    ocr_text: str,
-    projects: List[Dict[str, str]],
-) -> Tuple[Optional[Dict[str, str]], str]:
-    """Return (project, source) where source ∈ {'filename','pdf_text','ocr','none'}."""
-    proj = _match_project_by_text(pdf_name, projects)
-    if proj:
-        return proj, 'filename'
-    proj = _match_project_by_text(pdf_text, projects)
-    if proj:
-        return proj, 'pdf_text'
-    proj = _match_project_by_text(ocr_text, projects)
-    if proj:
-        return proj, 'ocr'
-    return None, 'none'
-
-
-def _score_project_in_text(text: str, proj: Dict[str, str]) -> int:
-    """Return the per-project match score used by _match_project_by_text."""
-    if not text:
-        return 0
-    t = text.lower()
-    normalized_text = _normalize_signal_text(text)
-    tokens = set(_tokenize(text))
-    score = 0
-    for sig in _project_signal(proj):
-        score = max(score, _score_signal_in_text(sig, t, normalized_text, tokens))
-    return score
-
-
-def _detect_slug_content_mismatch(
-    resolved_project: Optional[Dict[str, str]],
-    pdf_text: str,
-    ocr_text: str,
-    projects: List[Dict[str, str]],
-) -> Optional[Dict[str, Any]]:
-    """Publish guard — flag PDFs whose body contradicts the filename-resolved slug.
-
-    Catches cases like a Bittensor PDF saved as bitcoin_*.pdf, where filename
-    matching alone would mis-publish content under the wrong project. Returns
-    a mismatch descriptor if body content matches a *different* project with
-    a meaningfully higher score than the resolved slug; returns None otherwise.
-
-    Heuristic: text-layer bodies keep the existing strict guard. OCR-only
-    bodies use a higher threshold because NotebookLM raster exports can produce
-    generic or noisy project signals.
-    """
-    if resolved_project is None:
-        return None
-    body = (pdf_text or '') + '\n' + (ocr_text or '')
-    if len(body.strip()) < 200:
-        return None  # not enough body text to decide reliably
-    has_interpretable_text_layer = len((pdf_text or '').strip()) >= 200
-    min_other_score = 12 if has_interpretable_text_layer else 24
-    min_score_margin = 1 if has_interpretable_text_layer else 12
-    expected_score = _score_project_in_text(body, resolved_project)
-    expected_slug = (resolved_project.get('slug') or '').lower()
-    best_other: Optional[Tuple[int, Dict[str, str]]] = None
-    for proj in projects:
-        if (proj.get('slug') or '').lower() == expected_slug:
-            continue
-        score = _score_project_in_text(body, proj)
-        if score >= min_other_score and (best_other is None or score > best_other[0]):
-            best_other = (score, proj)
-    if best_other and best_other[0] >= expected_score + min_score_margin:
-        other_slug = (best_other[1].get('slug') or '').lower()
-        return {
-            'expected_slug': expected_slug,
-            'expected_score': expected_score,
-            'detected_slug': other_slug,
-            'detected_score': best_other[0],
-        }
-    return None
-
-
-# ═══════════════════════════════════════════
-# Language resolution
-# ═══════════════════════════════════════════
-
-def _lang_from_metadata(meta: Dict[str, str]) -> Optional[str]:
-    haystack = ' '.join(
-        (meta.get(k) or '') for k in ('title', 'Title', 'subject', 'Subject', 'keywords', 'Keywords')
-    ).lower()
-    if not haystack:
-        return None
-    for hint, code in LANG_HINTS:
-        if hint in haystack:
-            return code
-    return None
-
-
-def _lang_from_filename(pdf_name: str) -> Optional[str]:
-    """Resolve explicit filename language tokens before content heuristics.
-
-    NotebookLM slide filenames often carry the intended target locale as a
-    suffix (`_en`, `_ko`, `_cn2`). The rendered PDF text/OCR can be sparse or
-    image-heavy, so statistical language detection can mislabel those decks and
-    overwrite the wrong storage object.
-    """
-    stem = Path(pdf_name).stem.lower()
-    tokens = [t for t in re.split(r'[^a-z0-9]+', stem) if t]
-    for token in reversed(tokens):
-        normalized = re.sub(r'\d+$', '', token)
-        for hint, code in FILENAME_LANG_HINTS:
-            if normalized == hint:
-                return code
-    return None
-
-
-def _cjk_script_counts(text: str) -> Dict[str, int]:
-    """Count CJK script families in a bounded sample."""
-    sample = (text or '')[:8000]
-    return {
-        'kana': sum(1 for ch in sample if '぀' <= ch <= 'ヿ'),
-        'hangul': sum(1 for ch in sample if '가' <= ch <= '힯'),
-        'han': sum(1 for ch in sample if '一' <= ch <= '鿿'),
-    }
-
-
-def _cjk_script_signature(text: str) -> Optional[str]:
-    """High-confidence CJK script detection by Unicode block counts.
-
-    Hiragana/katakana uniquely identify Japanese, hangul uniquely identifies
-    Korean, and han-only text (no kana/hangul) is treated as Chinese. This
-    runs before langdetect because short OCR text with mixed scripts
-    (image-heavy slides where OCR yields a brief title) often gets
-    misclassified by statistical detectors — e.g. a Japanese cover slide
-    fingerprinted as English.
-    """
-    counts = _cjk_script_counts(text)
-    hiragana_katakana = counts['kana']
-    hangul = counts['hangul']
-    han = counts['han']
-    if hiragana_katakana >= 4:
-        return 'ja'
-    if hangul >= 4:
-        return 'ko'
-    if han >= 10 and hiragana_katakana == 0 and hangul == 0:
-        return 'zh'
-    return None
-
-
-def _is_han_dominant_zh(counts: Dict[str, int]) -> bool:
-    """Return true when Chinese Han text clearly outweighs OCR kana noise."""
-    han = counts.get('han', 0)
-    kana = counts.get('kana', 0)
-    hangul = counts.get('hangul', 0)
-    return hangul == 0 and han >= 20 and (kana == 0 or han >= kana * 4)
-
-
-def _lang_from_text(text: str) -> Optional[str]:
-    if not text or len(text.strip()) < 30:
-        # Even on short text, kana/hangul presence is decisive enough.
-        return _cjk_script_signature(text or '')
-    cjk = _cjk_script_signature(text)
-    if cjk:
-        return cjk
-    try:
-        from langdetect import detect, DetectorFactory
-        DetectorFactory.seed = 0
-        code = detect(text[:4000])
-    except Exception:
-        return None
-    # langdetect returns codes like 'zh-cn'; normalize to our 2-letter set
-    code = code.split('-')[0].lower()
-    return code if code in SUPPORTED_LANGS else None
-
-
-def _resolve_lang(
-    pdf_name: str,
-    meta: Dict[str, str],
-    text: str,
-    ocr_text: str,
-) -> Tuple[Optional[str], str]:
-    code = _lang_from_filename(pdf_name)
-    if code:
-        return code, 'filename'
-    code = _lang_from_metadata(meta)
-    if code:
-        return code, 'metadata'
-    code = _lang_from_text(text)
-    if code:
-        return code, 'langdetect'
-    code = _lang_from_text(ocr_text)
-    if code:
-        return code, 'ocr_langdetect'
-    return None, 'none'
-
-
-def _detect_language_content_mismatch(
-    resolved_lang: Optional[str],
-    pdf_text: str,
-    ocr_text: str,
-    lang_source: Optional[str] = None,
-) -> Optional[Dict[str, str]]:
-    """Flag high-confidence CJK body text that contradicts resolved language.
-
-    PDF metadata is useful but not authoritative: mislabeled NotebookLM exports
-    can say "Japanese" while the slide body is Chinese. Use only the deterministic
-    CJK script signature here so Latin-script reports are not blocked by noisy
-    statistical language detection.
-    """
-    if not resolved_lang:
-        return None
-    if resolved_lang not in {'ko', 'ja', 'zh'}:
-        return None
-
-    for source, text in (('text', pdf_text), ('ocr', ocr_text)):
-        if source == 'ocr' and lang_source == 'filename':
-            continue
-        counts = _cjk_script_counts(text or '')
-        if resolved_lang == 'ja' and counts['hangul'] >= 4:
-            return {
-                'resolved_lang': resolved_lang,
-                'detected_lang': 'ko',
-                'source': source,
-                'reason': 'mixed_cjk_script',
-            }
-        if resolved_lang == 'zh':
-            if counts['hangul'] >= 4:
-                return {
-                    'resolved_lang': resolved_lang,
-                    'detected_lang': 'ko',
-                    'source': source,
-                    'reason': 'mixed_cjk_script',
-                }
-            if counts['kana'] >= 4:
-                if not _is_han_dominant_zh(counts):
-                    return {
-                        'resolved_lang': resolved_lang,
-                        'detected_lang': 'ja',
-                        'source': source,
-                        'reason': 'mixed_cjk_script',
-                    }
-        if resolved_lang == 'ko' and counts['kana'] >= 4:
-            return {
-                'resolved_lang': resolved_lang,
-                'detected_lang': 'ja',
-                'source': source,
-                'reason': 'mixed_cjk_script',
-            }
-
-        detected = _cjk_script_signature(text or '')
-        if resolved_lang == 'zh' and detected == 'ja' and _is_han_dominant_zh(counts):
-            continue
-        if detected and detected != resolved_lang:
-            return {
-                'resolved_lang': resolved_lang,
-                'detected_lang': detected,
-                'source': source,
-            }
-
-    return None
-
-
-# ═══════════════════════════════════════════
 # DB lookup helpers
 # ═══════════════════════════════════════════
 
@@ -1445,7 +638,7 @@ def _create_report_row_for_slide(
     lang: str,
     pdf_file_id: str,
     pdf_name: str,
-    public_url: str,
+    public_url: Optional[str],
     version: Optional[int],
     status: str = REVIEW_READY_STATUS,
 ) -> Tuple[Optional[str], Optional[int]]:
@@ -1465,7 +658,7 @@ def _create_report_row_for_slide(
         'gdrive_url': gdrive_url,
         'gdrive_file_id': pdf_file_id,
         'gdrive_urls_by_lang': {lang: gdrive_url},
-        'slide_html_urls_by_lang': {lang: public_url},
+        'slide_html_urls_by_lang': {lang: public_url} if public_url else {},
         'translation_status': {lang: status},
         'card_data': {
             'report_type': 'econ' if db_type == 'econ' else db_type,
@@ -1876,13 +1069,14 @@ def _fetch_all_table_rows(sb, table_name: str, columns: str) -> List[Dict[str, A
     return rows
 
 
-def _active_drive_report_pairs(
+def _active_drive_report_inventory(
     service,
     types: Iterable[str],
     projects: List[Dict[str, Any]],
-) -> Tuple[Set[Tuple[str, str, str]], List[Dict[str, Any]]]:
-    """Return active Slide/{TYPE} report keys as (db_type, slug, lang)."""
+) -> Tuple[Set[Tuple[str, str, str]], List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """Return active Slide/{TYPE} report keys plus resolved Drive PDF metadata."""
     pairs: Set[Tuple[str, str, str]] = set()
+    resolved_rows: List[Dict[str, Any]] = []
     unresolved: List[Dict[str, Any]] = []
     for rtype, pdf in _iter_active_slide_targets(service, types, projects=projects):
         project = _match_drive_pdf_project(pdf, projects)
@@ -1891,6 +1085,14 @@ def _active_drive_report_pairs(
         slug = (project or {}).get('slug')
         if db_type and slug and lang:
             pairs.add((db_type, slug, lang))
+            resolved_rows.append({
+                'rtype': rtype,
+                'db_type': db_type,
+                'slug': slug,
+                'lang': lang,
+                'project': project,
+                'pdf': pdf,
+            })
             continue
         unresolved.append({
             'rtype': rtype,
@@ -1901,6 +1103,16 @@ def _active_drive_report_pairs(
             'status': 'db_reconcile_unresolved_drive_pdf',
             'error': 'Drive PDF could not be reduced to (report_type, slug, lang)',
         })
+    return pairs, resolved_rows, unresolved
+
+
+def _active_drive_report_pairs(
+    service,
+    types: Iterable[str],
+    projects: List[Dict[str, Any]],
+) -> Tuple[Set[Tuple[str, str, str]], List[Dict[str, Any]]]:
+    """Return active Slide/{TYPE} report keys as (db_type, slug, lang)."""
+    pairs, _resolved_rows, unresolved = _active_drive_report_inventory(service, types, projects)
     return pairs, unresolved
 
 
@@ -1972,7 +1184,7 @@ def _reconcile_visible_reports_with_drive(
         }]
 
     results: List[Dict[str, Any]] = []
-    drive_pairs, unresolved = _active_drive_report_pairs(service, types, projects)
+    drive_pairs, drive_rows, unresolved = _active_drive_report_inventory(service, types, projects)
     results.extend(unresolved)
     db_types = {DB_REPORT_TYPE[rtype] for rtype in types if rtype in DB_REPORT_TYPE}
     project_by_id = {p.get('id'): p for p in projects}
@@ -1983,7 +1195,8 @@ def _reconcile_visible_reports_with_drive(
             'project_reports',
             (
                 'id, project_id, report_type, language, status, published_at, '
-                'updated_at, created_at, slide_html_urls_by_lang'
+                'updated_at, created_at, gdrive_urls_by_lang, gdrive_url, file_url, '
+                'file_urls_by_lang, gdrive_file_id, slide_html_urls_by_lang'
             ),
         )
         if row.get('report_type') in db_types
@@ -1994,12 +1207,78 @@ def _reconcile_visible_reports_with_drive(
     for db_type, slug, _lang in drive_pairs:
         active_slugs_by_type.setdefault(db_type, set()).add(slug)
 
+    visible_keys = {
+        (
+            row.get('report_type'),
+            (project_by_id.get(row.get('project_id')) or {}).get('slug'),
+            row.get('language'),
+        )
+        for row in report_rows
+        if row.get('status') in VISIBLE_REPORT_STATUSES
+    }
+    for drive_row in drive_rows:
+        project = drive_row.get('project') or {}
+        pdf = drive_row.get('pdf') or {}
+        key = (drive_row.get('db_type'), drive_row.get('slug'), drive_row.get('lang'))
+        if key in visible_keys:
+            continue
+        status = 'dry_run_db_reconcile_materialize' if dry_run else 'db_reconcile_materialized'
+        report_id = None
+        if not dry_run:
+            report_id, _version = _create_report_row_for_slide(
+                sb,
+                project_id=project.get('id'),
+                db_type=drive_row.get('db_type'),
+                slug=drive_row.get('slug'),
+                lang=drive_row.get('lang'),
+                pdf_file_id=pdf.get('id'),
+                pdf_name=pdf.get('name') or '',
+                public_url=None,
+                version=None,
+                status=REVIEW_READY_STATUS,
+            )
+        results.append({
+            'rtype': drive_row.get('rtype'),
+            'slug': drive_row.get('slug'),
+            'lang': drive_row.get('lang'),
+            'status': status,
+            'report_id': report_id,
+            'error': 'active Drive Slide PDF materialized as website-visible PDF-backed report row',
+        })
+        visible_keys.add(key)
+
     for row in report_rows:
         project = project_by_id.get(row.get('project_id')) or {}
         key = (row.get('report_type'), project.get('slug'), row.get('language'))
         if row.get('status') not in VISIBLE_REPORT_STATUSES or key in drive_pairs:
             continue
-        status = 'dry_run_db_reconcile_cancel' if dry_run else 'db_reconcile_cancelled'
+        is_for = _rtype_for_db_type(row.get('report_type')) == 'for'
+        if _is_for_coming_soon_placeholder_without_asset(row):
+            status = (
+                'dry_run_db_reconcile_for_placeholder_without_active_slide_pdf'
+                if dry_run
+                else 'db_reconcile_for_placeholder_without_active_slide_pdf'
+            )
+            results.append({
+                'rtype': 'for',
+                'slug': project.get('slug'),
+                'lang': row.get('language'),
+                'status': status,
+                'report_id': row.get('id'),
+                'error': (
+                    'FOR coming_soon placeholder has no active Drive Slide PDF yet; '
+                    'retained as a rapid-change pre-slide placeholder'
+                ),
+            })
+            continue
+        if is_for:
+            status = (
+                'dry_run_db_reconcile_cancel_missing_active_slide_pdf'
+                if dry_run
+                else 'db_reconcile_cancelled_missing_active_slide_pdf'
+            )
+        else:
+            status = 'dry_run_db_reconcile_cancel' if dry_run else 'db_reconcile_cancelled'
         if not dry_run:
             sb.table('project_reports').update({
                 'status': 'cancelled',
@@ -2011,7 +1290,7 @@ def _reconcile_visible_reports_with_drive(
             'lang': row.get('language'),
             'status': status,
             'report_id': row.get('id'),
-            'error': 'website-visible report row is absent from active Drive Slide folder',
+            'error': 'website-visible report row has no matching active Drive Slide PDF',
         })
 
     latest_by_type_slug: Dict[Tuple[str, str], str] = {}
@@ -2023,7 +1302,10 @@ def _reconcile_visible_reports_with_drive(
             continue
         if row.get('status') not in VISIBLE_REPORT_STATUSES:
             continue
-        if not _lang_map_has_value(row.get('slide_html_urls_by_lang')):
+        if (
+            not _lang_map_has_value(row.get('slide_html_urls_by_lang'))
+            and not _report_row_has_legacy_pdf_url(row)
+        ):
             continue
         ts = row.get('published_at') or row.get('updated_at') or row.get('created_at')
         if not ts or not slug:
@@ -2483,6 +1765,7 @@ def _iter_active_slide_targets(
     *,
     filter_slug: Optional[str] = None,
     projects: Optional[List[Dict[str, Any]]] = None,
+    modified_since: Optional[datetime] = None,
 ):
     """Yield (rtype, pdf_info) for active Slide roots only."""
     requested_types = set(types)
@@ -2495,7 +1778,7 @@ def _iter_active_slide_targets(
         if scan_mode == 'skip':
             continue
         root_folder = {'id': type_folder, 'name': root_rtype}
-        for pdf in _list_pdfs_direct(service, type_folder):
+        for pdf in _list_pdfs_direct_for_scope(service, type_folder, modified_since):
             if not _name_matches_slug_hint(
                 pdf.get('name') or '',
                 hint_tokens,
@@ -2542,7 +1825,7 @@ def _iter_active_slide_targets(
                 continue
             seen.add(folder_id)
 
-            for pdf in _list_pdfs_direct(service, folder_id):
+            for pdf in _list_pdfs_direct_for_scope(service, folder_id, modified_since):
                 if not _name_matches_slug_hint(
                     pdf.get('name') or '',
                     hint_tokens,
@@ -2597,6 +1880,7 @@ def _iter_targets(
     *,
     filter_slug: Optional[str] = None,
     projects: Optional[List[Dict[str, Any]]] = None,
+    modified_since: Optional[datetime] = None,
 ):
     """Yield (rtype, pdf_info) for active Slide roots only."""
     for rtype, pdf in _iter_active_slide_targets(
@@ -2604,6 +1888,7 @@ def _iter_targets(
         types,
         filter_slug=filter_slug,
         projects=projects,
+        modified_since=modified_since,
     ):
         yield rtype, pdf
 
@@ -2639,6 +1924,7 @@ def process(
     force: bool,
     reconcile_db: bool = True,
     language_overrides: Optional[Dict[str, str]] = None,
+    modified_since: Optional[datetime] = None,
 ) -> Tuple[List[Dict], List[Dict]]:
     if filter_file_ids:
         raise ValueError('--file-id targets are disabled; place PDFs under Slide/{TYPE} and use --slug/--type filters')
@@ -2678,7 +1964,13 @@ def process(
             print(f"  [WARN] tracked_projects fetch failed: {e}")
             projects = []
 
-    target_iter = _iter_targets(service, types, filter_slug=filter_slug, projects=projects)
+    target_iter = _iter_targets(
+        service,
+        types,
+        filter_slug=filter_slug,
+        projects=projects,
+        modified_since=modified_since,
+    )
 
     for rtype, pdf in target_iter:
         file_id = pdf['id']
@@ -2770,6 +2062,42 @@ def process(
                 f"threshold={stale_processing_diag.get('stale_after_minutes')}min); reprocessing"
             )
             record['stale_processing'] = stale_processing_diag
+        blocked_diag = _blocked_manifest_diagnostic(prev, now=now)
+        if (
+            blocked_diag
+            and prev.get('modifiedTime') == modified
+            and not force
+            and not blocked_diag.get('should_recheck')
+        ):
+            age = blocked_diag.get('age_minutes')
+            threshold = blocked_diag.get('recheck_after_minutes')
+            print(
+                f"  [SKIP] {rtype}/{pdf['name']}: manifest status={blocked_diag.get('status')} "
+                f"within blocked backoff ({age}min < {threshold}min)"
+            )
+            scanned.append({
+                **record,
+                'slug': prev.get('slug'),
+                'lang': prev.get('lang'),
+                'status': 'blocked_backoff',
+                'blocked_status': blocked_diag.get('status'),
+                'blocked_age_minutes': age,
+                'blocked_updated_at': blocked_diag.get('updated_at'),
+                'recheck_after_minutes': threshold,
+            })
+            continue
+        if (
+            blocked_diag
+            and prev.get('modifiedTime') == modified
+            and not force
+            and blocked_diag.get('should_recheck')
+        ):
+            print(
+                f"  [RECHECK] {rtype}/{pdf['name']}: manifest status={blocked_diag.get('status')} "
+                f"backoff elapsed (age={blocked_diag.get('age_minutes')}min, "
+                f"threshold={blocked_diag.get('recheck_after_minutes')}min)"
+            )
+            record['blocked_recheck'] = blocked_diag
         override_lang = language_overrides.get(file_id)
         override_changes_manifest_lang = bool(override_lang and prev.get('lang') != override_lang)
         unchanged_manifest_published = (
@@ -3372,14 +2700,24 @@ def process(
         elif sb is None or not projects:
             print("  [SKIP] DB availability reconcile skipped: Supabase/projects unavailable")
         else:
-            reconcile_results = _reconcile_visible_reports_with_drive(
-                sb,
-                service,
-                types=types,
-                projects=projects,
-                dry_run=dry_run,
-            )
-            processed.extend(reconcile_results)
+            try:
+                reconcile_results = _reconcile_visible_reports_with_drive(
+                    sb,
+                    service,
+                    types=types,
+                    projects=projects,
+                    dry_run=dry_run,
+                )
+                processed.extend(reconcile_results)
+            except Exception as e:
+                print(f"  [WARN] DB availability reconcile skipped: {e}")
+                processed.append({
+                    'rtype': ','.join(types),
+                    'slug': None,
+                    'lang': None,
+                    'status': 'db_reconcile_skipped',
+                    'error': str(e)[:300],
+                })
 
     return scanned, processed
 
@@ -3502,6 +2840,7 @@ def write_run_log(
     published = sum(1 for r in processed if r.get('status') == 'published')
     skipped_unchanged = sum(1 for r in scanned if r.get('status') == 'unchanged')
     skipped_legacy = sum(1 for r in scanned if r.get('status') == 'skipped_legacy_portrait_pdf')
+    skipped_blocked_backoff = sum(1 for r in scanned if r.get('status') == 'blocked_backoff')
     failed = sum(1 for r in processed if r.get('status') == 'failed')
     unresolved = sum(1 for r in processed if r.get('status') == 'unresolved')
     stale_processing_records = [
@@ -3518,6 +2857,7 @@ def write_run_log(
         f"- Files scanned: {len(scanned)}",
         f"- Skipped (unchanged): {skipped_unchanged}",
         f"- Skipped (legacy portrait PDFs): {skipped_legacy}",
+        f"- Skipped (blocked backoff): {skipped_blocked_backoff}",
         f"- Processed: {len(processed)}",
         f"- Published: {published}",
         f"- Unresolved: {unresolved}",
@@ -3581,6 +2921,31 @@ def write_run_log(
             )
     else:
         lines.append("*No processing manifest entries were stale or active-in-progress.*")
+    blocked_backoff_records = [
+        r for r in scanned
+        if r.get('status') == 'blocked_backoff' or r.get('blocked_recheck')
+    ]
+    lines += [
+        "",
+        "## Blocked Recheck Backoff",
+        "",
+    ]
+    if blocked_backoff_records:
+        for row in blocked_backoff_records:
+            path = _record_log_path(row)
+            diag = row.get('blocked_recheck') or {}
+            status = 'blocked_recheck' if diag else row.get('status')
+            age = diag.get('age_minutes', row.get('blocked_age_minutes'))
+            threshold = diag.get('recheck_after_minutes', row.get('recheck_after_minutes'))
+            blocked_status = diag.get('status', row.get('blocked_status'))
+            updated_at = diag.get('updated_at', row.get('blocked_updated_at'))
+            lines.append(
+                f"- [{status}] `{path}` "
+                f"(blocked_status={blocked_status}, slug={row.get('slug')}, lang={row.get('lang')}, "
+                f"updated_at={updated_at}, age_minutes={age}, threshold_minutes={threshold})"
+            )
+    else:
+        lines.append("*No blocked manifest entries were skipped or rechecked by backoff.*")
     lines += [
         "",
         "## Scanned",
@@ -3665,6 +3030,12 @@ def main() -> int:
         metavar='FILE_ID=LANG',
         help='Human-confirmed language for a specific Drive PDF file id; repeatable',
     )
+    parser.add_argument(
+        '--modified-since-minutes',
+        type=int,
+        default=None,
+        help='Only scan Drive PDFs modified within this many minutes; disables full DB reconciliation by default.',
+    )
     args = parser.parse_args()
 
     types = ['econ', 'mat', 'for'] if args.type == 'all' else [args.type]
@@ -3674,13 +3045,20 @@ def main() -> int:
         print(f"Error: {e}", file=sys.stderr)
         return 2
     scan_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+    modified_since = None
+    if args.modified_since_minutes is not None:
+        if args.modified_since_minutes <= 0:
+            print('Error: --modified-since-minutes must be greater than 0', file=sys.stderr)
+            return 2
+        modified_since = datetime.now(timezone.utc) - timedelta(minutes=args.modified_since_minutes)
 
     print('=' * 60)
     print('Slide Pipeline Watcher — BCE-1085/1099')
     print(f'Scan Time: {scan_time}')
     print(f'Types: {types}  Slug filter: {args.slug or "(none)"}  '
           f'Dry-run: {args.dry_run}  Force: {args.force}  '
-          f'Language overrides: {len(language_overrides)}')
+          f'Language overrides: {len(language_overrides)}  '
+          f'Modified since: {modified_since.isoformat() if modified_since else "(none)"}')
     print('=' * 60)
 
     paperclip_telemetry = PaperclipTelemetry()
@@ -3698,8 +3076,9 @@ def main() -> int:
         filter_file_ids=None,
         dry_run=args.dry_run,
         force=args.force,
-        reconcile_db=not args.skip_db_reconcile,
+        reconcile_db=not args.skip_db_reconcile and modified_since is None,
         language_overrides=language_overrides,
+        modified_since=modified_since,
     )
 
     guard_results = run_active_project_backlog_guard()

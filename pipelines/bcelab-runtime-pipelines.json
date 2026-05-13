@@ -12,6 +12,7 @@
     {
       "key": "econ-report-publishing",
       "paperclipName": "ECON Report Publishing",
+      "statePage": "knowledge/pipelines/econ.md",
       "owner": "CRO",
       "status": "active",
       "cadence": {
@@ -52,6 +53,8 @@
             "mode": "github_actions",
             "workflow": ".github/workflows/slide-pipeline-cron.yml",
             "entrypoint": "scripts/pipeline/marketing_content_pipeline.py",
+            "invokedBy": "scripts/pipeline/watch_slides.py",
+            "requiredImport": "from marketing_content_pipeline import build_project_report_patch_from_drive_source",
             "commandContains": "python3 watch_slides.py",
             "localAllowed": ["dry_run", "development"]
           }
@@ -63,6 +66,8 @@
             "mode": "github_actions",
             "workflow": ".github/workflows/slide-pipeline-cron.yml",
             "entrypoint": "scripts/pipeline/marketing_content_pipeline.py",
+            "invokedBy": "scripts/pipeline/watch_slides.py",
+            "requiredImport": "from marketing_content_pipeline import build_project_report_patch_from_drive_source",
             "commandContains": "python3 watch_slides.py",
             "localAllowed": ["dry_run", "development"]
           }
@@ -103,6 +108,7 @@
     {
       "key": "mat-report-publishing",
       "paperclipName": "MAT Report Publishing",
+      "statePage": "knowledge/pipelines/mat.md",
       "extends": "econ-report-publishing",
       "owner": "CRO",
       "status": "active",
@@ -111,6 +117,7 @@
     {
       "key": "for-report-publishing",
       "paperclipName": "FOR Report Publishing",
+      "statePage": "knowledge/pipelines/for.md",
       "extends": "econ-report-publishing",
       "owner": "CRO",
       "status": "active",
@@ -119,6 +126,7 @@
     {
       "key": "bcelab-website-development-and-operations",
       "paperclipName": "BCELab Website Development and Operations",
+      "statePage": "knowledge/pipelines/website.md",
       "owner": "CTO",
       "status": "active",
       "cadence": {
