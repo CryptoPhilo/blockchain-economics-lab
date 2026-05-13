@@ -93,6 +93,8 @@ for (const file of [
 
 requireText('src/app/[locale]/projects/[slug]/page.tsx', 'in_review', 'src/app/[locale]/projects/[slug]/page.tsx includes review-ready slide reports')
 requireText('src/app/[locale]/projects/[slug]/page.tsx', 'reportSupportsLocale', 'src/app/[locale]/projects/[slug]/page.tsx delegates locale asset checks')
+requireText('src/app/[locale]/reports/forensic/[slug]/page.tsx', 'getForensicReportsBySlug', 'src/app/[locale]/reports/forensic/[slug]/page.tsx uses shared forensic visibility query')
+requireText('src/app/[locale]/reports/forensic/[slug]/page.test.tsx', 'in-review forensic slide report', 'src/app/[locale]/reports/forensic/[slug]/page.test.tsx covers in-review canonical route rendering')
 requireText('src/lib/report-locale.ts', 'slide_html_urls_by_lang', 'src/lib/report-locale.ts requires slide HTML assets')
 
 if (failures.length > 0) {
