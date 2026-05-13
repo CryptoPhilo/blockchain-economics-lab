@@ -68,7 +68,7 @@ requireText('.github/workflows/ci.yml', 'npm test -- --passWithNoTests', 'CI run
 requireText('.github/workflows/ci.yml', 'npm run build', 'CI runs production build')
 requireText('.github/workflows/deploy-preview.yml', 'Preview Deployment', 'PR preview deployment posts URL')
 requireText('.github/workflows/production-deploy.yml', 'environment: production', 'Production deploy requires GitHub production environment')
-requireText('.github/workflows/production-deploy.yml', '--prod', 'Production deploy uses Vercel production flag')
+requireText('.github/workflows/production-deploy.yml', 'Vercel GitHub integration', 'Production deploy uses Vercel GitHub integration without duplicate deploy action')
 requireText('.github/PULL_REQUEST_TEMPLATE.md', 'Paperclip Pipeline Evidence', 'PR template captures Paperclip pipeline evidence')
 requireText('.github/PULL_REQUEST_TEMPLATE.md', 'Board approval', 'PR template captures board approval evidence')
 
@@ -88,7 +88,7 @@ for (const file of [
   'src/lib/repositories/reports.ts',
 ]) {
   requireText(file, 'in_review', `${file} includes review-ready slide reports`)
-  requireText(file, 'slide_html_urls_by_lang', `${file} requires slide HTML assets`)
+  requireText(file, 'reportSupportsLocale', `${file} delegates locale and Drive/PDF asset checks`)
 }
 
 requireText('src/app/[locale]/projects/[slug]/page.tsx', 'in_review', 'src/app/[locale]/projects/[slug]/page.tsx includes review-ready slide reports')

@@ -37,14 +37,16 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         .from('project_reports')
         .select('*, tracked_projects!inner(id, name, slug, symbol, chain, category)')
         .eq('report_type', 'forensic')
-        .eq('status', 'published')
+        .in('status', ['published', 'in_review'])
         .not('card_data', 'is', null)
-        .order('published_at', { ascending: false })
-        .limit(8),
+        .order('updated_at', { ascending: false })
+        .limit(40),
     ])
     featuredProducts = productsRes.data || []
     categories = categoriesRes.data || []
-    forensicReports = (forensicRes.data || []).filter((report) => reportSupportsLocale(report, locale))
+    forensicReports = (forensicRes.data || [])
+      .filter((report) => reportSupportsLocale(report, locale))
+      .slice(0, 8)
   } catch (e) {
     console.error('Failed to fetch data:', e)
   }
