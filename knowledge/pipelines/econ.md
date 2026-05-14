@@ -13,7 +13,7 @@ This pipeline publishes ECON slide reports for the Blockchain Economics Lab.
 - Input: slide-form PDFs in Google Drive `Slide/ECON`.
 - Source confirmation: Korean Markdown source in `analysis/ECON`.
 - Runtime: GitHub Actions workflow `.github/workflows/slide-pipeline-cron.yml`.
-- Schedule: workflow cron `*/5 * * * *`, gated by the Supabase `pipeline_schedules` row for `slide-pipeline`; expected effective check interval is 30 minutes.
+- Schedule: workflow cron `*/5 * * * *`, gated by the Supabase `pipeline_schedules` row for `slide-pipeline`; expected effective check interval is 30 minutes. Scheduled runs must enumerate the full active `Slide/ECON` tree and rely on `_slide_processed.json` to skip unchanged files, not a modified-time lookback that can strand unprocessed PDFs after downtime.
 - Local execution: dry-run, development, and incident reproduction only. Production writes must run remotely.
 - Output: website-visible report records and slide assets.
 
