@@ -1,252 +1,442 @@
 #!/usr/bin/env node
 /**
- * BCE-352: Audit and sync ECON/FOR report timestamps
+ * Audit report slide HTML and timestamp metadata.
  *
- * This script audits report timestamp mismatches between:
- * - project_reports (actual report documents)
- * - tracked_projects (timestamp fields for badge display)
- *
- * It identifies projects with reports but NULL timestamps.
+ * Produces a read-only JSON report covering:
+ * - rows with Drive/PDF URLs but missing slide_html_urls_by_lang
+ * - rows where Storage has latest/*.html objects missing from DB metadata
+ * - report/tracked_project timestamp mismatches
  */
 
 import { createClient } from '@supabase/supabase-js'
 import { config } from 'dotenv'
+import { existsSync } from 'fs'
+import { writeFile } from 'fs/promises'
 import { join } from 'path'
 
-// Load .env.local
-config({ path: join(__dirname, '..', '.env.local') })
+type JsonMap = Record<string, unknown>
+type ReportType = 'econ' | 'maturity' | 'forensic'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY!
-
-if (!supabaseUrl || !supabaseKey) {
-  console.error('❌ Missing Supabase credentials in environment')
-  console.error(`NEXT_PUBLIC_SUPABASE_URL: ${supabaseUrl ? 'set' : 'missing'}`)
-  console.error(`SUPABASE_SERVICE_KEY: ${supabaseKey ? 'set' : 'missing'}`)
-  process.exit(1)
+interface ReportTimestampRow {
+  id: string
+  project_id: string
+  report_type: ReportType
+  status: string | null
+  published_at: string | null
+  updated_at: string | null
+  created_at: string | null
+  card_data?: unknown
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey)
+interface TrackedProjectTimestampRow {
+  id: string
+  name: string
+  slug: string
+  last_econ_report_at: string | null
+  last_maturity_report_at: string | null
+  last_forensic_report_at: string | null
+}
 
-interface ReportSummary {
+interface TimestampUpdate {
   projectId: string
   projectName: string
   projectSlug: string
-  reportType: 'econ' | 'maturity' | 'forensic'
-  reportCount: number
-  latestPublishedAt: string | null
-  reportStatus: string[]
-  fileUrls: string[]
-  trackedTimestamp: string | null
-  hasMismatch: boolean
+  reportId: string
+  reportType: ReportType
+  timestampField: 'last_econ_report_at' | 'last_maturity_report_at' | 'last_forensic_report_at'
+  oldTimestamp: string | null
+  newTimestamp: string
+  source: string
+  reason: 'missing' | 'stale'
 }
 
-async function auditReportTimestamps() {
-  console.log('=== BCE-352: Report Timestamp Audit ===\n')
-  console.log('Checking for mismatches between project_reports and tracked_projects timestamps...\n')
+interface ProjectReportAuditRow extends ReportTimestampRow {
+  language: string | null
+  gdrive_url: string | null
+  gdrive_urls_by_lang: unknown
+  file_url: string | null
+  file_urls_by_lang: unknown
+  slide_html_urls_by_lang: unknown
+}
 
-  // 1. Get all project reports with their status
-  console.log('📊 Fetching all project reports...')
-  const { data: reports, error: reportsError } = await supabase
-    .from('project_reports')
-    .select('id, project_id, report_type, status, published_at, file_url, created_at')
-    .order('published_at', { ascending: false })
+interface AuditOptions {
+  output: string
+  pageSize: number
+}
 
-  if (reportsError) {
-    console.error('❌ Error fetching project_reports:', reportsError)
-    return
+interface StorageSlideObject {
+  lang: string
+  updatedAt: string | null
+  path: string
+}
+
+const STORAGE_TYPE_BY_REPORT_TYPE: Record<string, string> = {
+  econ: 'econ',
+  maturity: 'mat',
+  forensic: 'for',
+}
+
+const LANGS = ['ko', 'en', 'fr', 'es', 'de', 'ja', 'zh']
+const ACTIVE_STATUSES = new Set(['published', 'coming_soon'])
+
+export function hasMeaningfulUrl(value: unknown): boolean {
+  if (typeof value === 'string') return value.trim().length > 0
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  return Object.values(value as JsonMap).some(hasMeaningfulUrl)
+}
+
+export function getUrlLangs(value: unknown): string[] {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return []
+  return LANGS.filter(lang => hasMeaningfulUrl((value as JsonMap)[lang]))
+}
+
+export function getMissingSlideHtmlLangs(row: ProjectReportAuditRow): string[] {
+  const sourceLangs = new Set([
+    ...getUrlLangs(row.gdrive_urls_by_lang),
+    ...getUrlLangs(row.file_urls_by_lang),
+  ])
+  if (hasMeaningfulUrl(row.gdrive_url) || hasMeaningfulUrl(row.file_url)) {
+    sourceLangs.add(row.language || 'unknown')
   }
 
-  console.log(`✅ Found ${reports?.length || 0} total reports\n`)
+  const slideLangs = new Set(getUrlLangs(row.slide_html_urls_by_lang))
+  return [...sourceLangs].filter(lang => lang !== 'unknown' && !slideLangs.has(lang)).sort()
+}
 
-  // 2. Get all tracked projects with timestamp fields
-  console.log('📊 Fetching tracked projects with timestamp fields...')
-  const { data: projects, error: projectsError } = await supabase
-    .from('tracked_projects')
-    .select('id, name, slug, last_econ_report_at, last_maturity_report_at, last_forensic_report_at')
+function isForComingSoonPlaceholderWithoutAsset(row: ProjectReportAuditRow): boolean {
+  return (
+    row.report_type === 'forensic'
+    && row.status === 'coming_soon'
+    && !hasMeaningfulUrl(row.gdrive_url)
+    && !hasMeaningfulUrl(row.gdrive_urls_by_lang)
+    && !hasMeaningfulUrl(row.file_url)
+    && !hasMeaningfulUrl(row.file_urls_by_lang)
+    && !hasMeaningfulUrl(row.slide_html_urls_by_lang)
+  )
+}
 
-  if (projectsError) {
-    console.error('❌ Error fetching tracked_projects:', projectsError)
-    return
+function timestampFieldForReportType(reportType: ReportType): TimestampUpdate['timestampField'] {
+  if (reportType === 'econ') return 'last_econ_report_at'
+  if (reportType === 'maturity') return 'last_maturity_report_at'
+  return 'last_forensic_report_at'
+}
+
+function resolveReportTimestamp(
+  report: Pick<ReportTimestampRow, 'published_at' | 'updated_at' | 'created_at' | 'card_data'>,
+): { timestamp: string; source: string } | null {
+  const cardData = report.card_data
+  if (cardData && typeof cardData === 'object' && !Array.isArray(cardData)) {
+    const generatedAt = (cardData as Record<string, unknown>).generated_at
+    if (typeof generatedAt === 'string' && generatedAt.trim()) {
+      return { timestamp: generatedAt, source: 'card_data.generated_at' }
+    }
+  }
+  if (report.published_at) return { timestamp: report.published_at, source: 'published_at' }
+  if (report.updated_at) return { timestamp: report.updated_at, source: 'updated_at' }
+  if (report.created_at) return { timestamp: report.created_at, source: 'created_at' }
+  return null
+}
+
+function isNewerTimestamp(left: string, right: string): boolean {
+  return new Date(left).getTime() > new Date(right).getTime()
+}
+
+function buildTimestampUpdates(
+  reports: ReportTimestampRow[],
+  projects: TrackedProjectTimestampRow[],
+): TimestampUpdate[] {
+  const projectMap = new Map(projects.map(project => [project.id, project]))
+  const latestReports = new Map<string, { report: ReportTimestampRow; timestamp: string; source: string }>()
+
+  for (const report of reports) {
+    if (!ACTIVE_STATUSES.has(String(report.status ?? ''))) continue
+    const resolved = resolveReportTimestamp(report)
+    if (!resolved) continue
+
+    const key = `${report.project_id}:${report.report_type}`
+    const existing = latestReports.get(key)
+    if (!existing || isNewerTimestamp(resolved.timestamp, existing.timestamp)) {
+      latestReports.set(key, { report, ...resolved })
+    }
   }
 
-  console.log(`✅ Found ${projects?.length || 0} tracked projects\n`)
+  const updates: TimestampUpdate[] = []
+  for (const { report, timestamp, source } of latestReports.values()) {
+    const project = projectMap.get(report.project_id)
+    if (!project) continue
 
-  // 3. Build a map of projects by ID
-  const projectMap = new Map(projects?.map(p => [p.id, p]) || [])
+    const timestampField = timestampFieldForReportType(report.report_type)
+    const oldTimestamp = project[timestampField]
+    if (oldTimestamp === timestamp) continue
+    if (oldTimestamp && !isNewerTimestamp(timestamp, oldTimestamp)) continue
 
-  // 4. Group reports by project and type
+    updates.push({
+      projectId: project.id,
+      projectName: project.name,
+      projectSlug: project.slug,
+      reportId: report.id,
+      reportType: report.report_type,
+      timestampField,
+      oldTimestamp,
+      newTimestamp: timestamp,
+      source,
+      reason: !oldTimestamp ? 'missing' : 'stale',
+    })
+  }
+
+  return updates
+}
+
+function parseArgs(argv: string[]): AuditOptions {
+  const options: AuditOptions = {
+    output: 'report-slide-html-timestamp-audit.json',
+    pageSize: 1000,
+  }
+
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i]
+    const next = argv[i + 1]
+    if (arg === '--output') {
+      if (!next || next.startsWith('--')) throw new Error('--output requires a path')
+      options.output = next
+      i++
+    } else if (arg.startsWith('--output=')) {
+      options.output = arg.slice('--output='.length)
+    } else if (arg === '--page-size') {
+      if (!next || next.startsWith('--')) throw new Error('--page-size requires a value')
+      options.pageSize = Number(next)
+      i++
+    } else if (arg.startsWith('--page-size=')) {
+      options.pageSize = Number(arg.slice('--page-size='.length))
+    } else if (arg === '--help' || arg === '-h') {
+      printHelp()
+      process.exit(0)
+    } else {
+      throw new Error(`Unknown argument: ${arg}`)
+    }
+  }
+
+  if (!Number.isInteger(options.pageSize) || options.pageSize <= 0) {
+    throw new Error('--page-size must be a positive integer')
+  }
+
+  return options
+}
+
+function loadEnv(): void {
+  for (const envPath of [
+    join(process.cwd(), '.env.local'),
+    join(process.cwd(), '.env.d', 'supabase-service.env'),
+  ]) {
+    if (existsSync(envPath)) config({ path: envPath, override: false, quiet: true })
+  }
+}
+
+function getSupabaseCredentials(): { url: string; key: string } {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) {
+    console.error('Missing Supabase credentials.')
+    console.error(`NEXT_PUBLIC_SUPABASE_URL/SUPABASE_URL: ${url ? 'set' : 'missing'}`)
+    console.error(`SUPABASE_SERVICE_KEY/SUPABASE_SERVICE_ROLE_KEY: ${key ? 'set' : 'missing'}`)
+    process.exit(1)
+  }
+  return { url, key }
+}
+
+async function fetchAllRows<T>(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const reportsByProject = new Map<string, Map<string, any[]>>()
+  queryFactory: () => any,
+  pageSize: number,
+): Promise<T[]> {
+  const rows: T[] = []
+  let from = 0
 
-  reports?.forEach(report => {
-    if (!reportsByProject.has(report.project_id)) {
-      reportsByProject.set(report.project_id, new Map())
-    }
-    const projectReports = reportsByProject.get(report.project_id)!
-
-    if (!projectReports.has(report.report_type)) {
-      projectReports.set(report.report_type, [])
-    }
-    projectReports.get(report.report_type)!.push(report)
-  })
-
-  // 5. Analyze mismatches
-  const mismatches: ReportSummary[] = []
-  const reportTypes: ('econ' | 'maturity' | 'forensic')[] = ['econ', 'maturity', 'forensic']
-
-  reportsByProject.forEach((reportsByType, projectId) => {
-    const project = projectMap.get(projectId)
-    if (!project) {
-      console.warn(`⚠️  Project ${projectId} not found in tracked_projects`)
-      return
-    }
-
-    reportTypes.forEach(reportType => {
-      const reports = reportsByType.get(reportType) || []
-      if (reports.length === 0) return
-
-      // Get published/coming_soon reports
-      const publishedReports = reports.filter(r =>
-        r.status === 'published' || r.status === 'coming_soon'
-      )
-
-      // Get the latest published_at timestamp
-      const latestPublishedAt = publishedReports
-        .map(r => r.published_at)
-        .filter(Boolean)
-        .sort()
-        .reverse()[0] || null
-
-      // Get tracked timestamp
-      const timestampField = reportType === 'econ'
-        ? 'last_econ_report_at'
-        : reportType === 'maturity'
-        ? 'last_maturity_report_at'
-        : 'last_forensic_report_at'
-
-      const trackedTimestamp = project[timestampField]
-
-      // Check for mismatch
-      const hasMismatch = publishedReports.length > 0 && !trackedTimestamp
-
-      if (hasMismatch) {
-        mismatches.push({
-          projectId,
-          projectName: project.name,
-          projectSlug: project.slug,
-          reportType,
-          reportCount: reports.length,
-          latestPublishedAt,
-          reportStatus: reports.map(r => r.status),
-          fileUrls: reports.map(r => r.file_url).filter(Boolean),
-          trackedTimestamp,
-          hasMismatch: true
-        })
-      }
-    })
-  })
-
-  // 6. Print summary
-  console.log('=== AUDIT SUMMARY ===\n')
-  console.log(`Total reports in database: ${reports?.length || 0}`)
-  console.log(`Total tracked projects: ${projects?.length || 0}`)
-  console.log(`Projects with timestamp mismatches: ${mismatches.length}\n`)
-
-  // 7. Print detailed mismatches
-  if (mismatches.length > 0) {
-    console.log('=== TIMESTAMP MISMATCHES ===')
-    console.log('Projects with published reports but NULL timestamps:\n')
-
-    const groupedByType = {
-      econ: mismatches.filter(m => m.reportType === 'econ'),
-      maturity: mismatches.filter(m => m.reportType === 'maturity'),
-      forensic: mismatches.filter(m => m.reportType === 'forensic')
-    }
-
-    Object.entries(groupedByType).forEach(([type, items]) => {
-      if (items.length === 0) return
-
-      console.log(`\n📝 ${type.toUpperCase()} Reports (${items.length} projects):`)
-      console.log('─'.repeat(80))
-
-      items.forEach((item, idx) => {
-        console.log(`${idx + 1}. ${item.projectName} (${item.projectSlug})`)
-        console.log(`   Project ID: ${item.projectId}`)
-        console.log(`   Report count: ${item.reportCount}`)
-        console.log(`   Report statuses: ${item.reportStatus.join(', ')}`)
-        console.log(`   Latest published_at: ${item.latestPublishedAt || 'NULL'}`)
-        console.log(`   Tracked timestamp: ${item.trackedTimestamp || 'NULL ❌'}`)
-        console.log(`   File URLs: ${item.fileUrls.length > 0 ? item.fileUrls.join(', ') : 'None'}`)
-        console.log()
-      })
-    })
-
-    // 8. Generate summary statistics
-    console.log('\n=== STATISTICS BY REPORT TYPE ===')
-    console.log(`ECON reports with NULL timestamps: ${groupedByType.econ.length}`)
-    console.log(`Maturity reports with NULL timestamps: ${groupedByType.maturity.length}`)
-    console.log(`Forensic reports with NULL timestamps: ${groupedByType.forensic.length}`)
-
-    // 9. Write report to file
-    const reportData = {
-      auditDate: new Date().toISOString(),
-      totalReports: reports?.length || 0,
-      totalProjects: projects?.length || 0,
-      mismatchCount: mismatches.length,
-      mismatches,
-      summary: {
-        econ: groupedByType.econ.length,
-        maturity: groupedByType.maturity.length,
-        forensic: groupedByType.forensic.length
-      }
-    }
-
-    const fs = await import('fs/promises')
-    await fs.writeFile(
-      'report-timestamp-audit.json',
-      JSON.stringify(reportData, null, 2)
-    )
-
-    console.log('\n✅ Detailed report saved to: report-timestamp-audit.json')
-
-  } else {
-    console.log('✅ No timestamp mismatches found! All reports have correct timestamps.')
+  while (true) {
+    const to = from + pageSize - 1
+    const { data, error } = await queryFactory().range(from, to)
+    if (error) throw new Error(error.message)
+    rows.push(...((data ?? []) as T[]))
+    if ((data ?? []).length < pageSize) break
+    from += pageSize
   }
 
-  // 10. Additional checks
-  console.log('\n=== ADDITIONAL CHECKS ===')
-
-  // Check for reports with NULL published_at
-  const reportsWithNullPublishedAt = reports?.filter(r =>
-    (r.status === 'published' || r.status === 'coming_soon') && !r.published_at
-  ) || []
-
-  if (reportsWithNullPublishedAt.length > 0) {
-    console.log(`\n⚠️  Found ${reportsWithNullPublishedAt.length} published reports with NULL published_at:`)
-    reportsWithNullPublishedAt.forEach(r => {
-      const project = projectMap.get(r.project_id)
-      console.log(`   - ${project?.name || 'Unknown'} (${r.report_type}) - Status: ${r.status}`)
-    })
-  } else {
-    console.log('✅ All published reports have published_at timestamps')
-  }
-
-  // Check for reports with file_url but wrong status
-  const reportsWithFilesButNotPublished = reports?.filter(r =>
-    r.file_url && r.status !== 'published' && r.status !== 'coming_soon'
-  ) || []
-
-  if (reportsWithFilesButNotPublished.length > 0) {
-    console.log(`\n⚠️  Found ${reportsWithFilesButNotPublished.length} reports with file_url but not published:`)
-    reportsWithFilesButNotPublished.forEach(r => {
-      const project = projectMap.get(r.project_id)
-      console.log(`   - ${project?.name || 'Unknown'} (${r.report_type}) - Status: ${r.status}`)
-    })
-  }
-
-  console.log('\n=== AUDIT COMPLETE ===')
+  return rows
 }
 
-// Run the audit
-auditReportTimestamps().catch(console.error)
+async function listLatestStorageSlides(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  reportType: string,
+  slug: string,
+): Promise<StorageSlideObject[]> {
+  const storageType = STORAGE_TYPE_BY_REPORT_TYPE[reportType]
+  if (!storageType || !slug) return []
+
+  const prefix = `${storageType}/${slug}/latest`
+  const { data, error } = await supabase.storage.from('slides').list(prefix, { limit: 100 })
+  if (error) throw new Error(`Storage list failed for ${prefix}: ${error.message}`)
+
+  return (data ?? [])
+    .filter((item: { name?: string }) => typeof item.name === 'string' && item.name.endsWith('.html'))
+    .map((item: { name: string; updated_at?: string; created_at?: string }) => ({
+      lang: item.name.replace(/\.html$/, ''),
+      updatedAt: item.updated_at ?? item.created_at ?? null,
+      path: `${prefix}/${item.name}`,
+    }))
+}
+
+function toReportTimestampRows(rows: ProjectReportAuditRow[]): ReportTimestampRow[] {
+  return rows.map(row => ({
+    id: row.id,
+    project_id: row.project_id,
+    report_type: row.report_type,
+    status: row.status,
+    published_at: row.published_at,
+    updated_at: row.updated_at,
+    created_at: row.created_at,
+    card_data: row.card_data,
+  }))
+}
+
+function printHelp(): void {
+  console.log(`Usage:
+  npx ts-node scripts/audit-report-timestamps.ts [options]
+
+Options:
+  --output PATH       JSON output path. Default: report-slide-html-timestamp-audit.json.
+  --page-size VALUE   Supabase page size. Default: 1000.
+  --help              Show this help.
+`)
+}
+
+async function main(): Promise<void> {
+  const options = parseArgs(process.argv.slice(2))
+  loadEnv()
+
+  const { url, key } = getSupabaseCredentials()
+  const supabase = createClient(url, key, { auth: { persistSession: false } })
+
+  const reports = await fetchAllRows<ProjectReportAuditRow>(
+    () => supabase
+      .from('project_reports')
+      .select([
+        'id',
+        'project_id',
+        'report_type',
+        'status',
+        'language',
+        'published_at',
+        'updated_at',
+        'created_at',
+        'card_data',
+        'gdrive_url',
+        'gdrive_urls_by_lang',
+        'file_url',
+        'file_urls_by_lang',
+        'slide_html_urls_by_lang',
+      ].join(', '))
+      .in('status', ['published', 'coming_soon'])
+      .order('updated_at', { ascending: false }),
+    options.pageSize,
+  )
+  const projects = await fetchAllRows<TrackedProjectTimestampRow>(
+    () => supabase
+      .from('tracked_projects')
+      .select('id, name, slug, last_econ_report_at, last_maturity_report_at, last_forensic_report_at')
+      .order('slug', { ascending: true }),
+    options.pageSize,
+  )
+  const projectById = new Map(projects.map(project => [project.id, project]))
+
+  const driveUrlMissingHtml = reports
+    .map(row => ({
+      id: row.id,
+      projectSlug: projectById.get(row.project_id)?.slug ?? null,
+      reportType: row.report_type,
+      language: row.language,
+      missingLangs: getMissingSlideHtmlLangs(row),
+      hasSlideHtml: hasMeaningfulUrl(row.slide_html_urls_by_lang),
+    }))
+    .filter(row => row.missingLangs.length > 0)
+
+  const storagePresentDbMissing = []
+  for (const row of reports) {
+    const slug = projectById.get(row.project_id)?.slug ?? ''
+    const storageObjects = await listLatestStorageSlides(supabase, row.report_type, slug)
+    if (storageObjects.length === 0) continue
+
+    const dbSlideLangs = new Set(getUrlLangs(row.slide_html_urls_by_lang))
+    const missingLangs = storageObjects
+      .filter(object => LANGS.includes(object.lang) && !dbSlideLangs.has(object.lang))
+      .map(object => object.lang)
+      .sort()
+
+    if (missingLangs.length > 0) {
+      storagePresentDbMissing.push({
+        id: row.id,
+        projectSlug: slug,
+        reportType: row.report_type,
+        language: row.language,
+        missingLangs,
+        storageObjects,
+      })
+    }
+  }
+
+  const timestampUpdates = buildTimestampUpdates(
+    toReportTimestampRows(reports.filter(row => !isForComingSoonPlaceholderWithoutAsset(row))),
+    projects,
+  )
+  const reportTimestampPolicyRows = reports
+    .map(row => {
+      const resolved = resolveReportTimestamp(row)
+      return {
+        id: row.id,
+        projectSlug: projectById.get(row.project_id)?.slug ?? null,
+        reportType: row.report_type,
+        publishedAt: row.published_at,
+        updatedAt: row.updated_at,
+        policyTimestamp: resolved?.timestamp ?? null,
+        policySource: resolved?.source ?? null,
+      }
+    })
+    .filter(row => (
+      row.policyTimestamp
+      && row.publishedAt
+      && new Date(row.policyTimestamp).getTime() - new Date(row.publishedAt).getTime() > 60_000
+    ))
+
+  const audit = {
+    auditDate: new Date().toISOString(),
+    totals: {
+      reports: reports.length,
+      projects: projects.length,
+      driveUrlMissingHtml: driveUrlMissingHtml.length,
+      storagePresentDbMissing: storagePresentDbMissing.length,
+      trackedTimestampCorrections: timestampUpdates.length,
+      reportPublishedAtPolicyMismatches: reportTimestampPolicyRows.length,
+    },
+    driveUrlMissingHtml,
+    storagePresentDbMissing,
+    trackedTimestampCorrections: timestampUpdates,
+    reportPublishedAtPolicyMismatches: reportTimestampPolicyRows,
+  }
+
+  await writeFile(options.output, JSON.stringify(audit, null, 2))
+
+  console.log('=== Report Slide HTML / Timestamp Audit ===')
+  console.log(`Reports scanned: ${reports.length}`)
+  console.log(`Drive/PDF URL present but DB HTML missing: ${driveUrlMissingHtml.length}`)
+  console.log(`Storage latest HTML present but DB HTML missing: ${storagePresentDbMissing.length}`)
+  console.log(`Tracked project timestamp corrections: ${timestampUpdates.length}`)
+  console.log(`Report published_at policy mismatches: ${reportTimestampPolicyRows.length}`)
+  console.log(`JSON written: ${options.output}`)
+}
+
+if (process.argv[1]?.endsWith('audit-report-timestamps.ts')) {
+  main().catch(error => {
+    console.error(error instanceof Error ? error.message : error)
+    process.exit(1)
+  })
+}
