@@ -31,6 +31,15 @@ visibility baseline as follows:
 - Pipeline, report, and website diagnostics must use `a16addc1` or a later
   production baseline before comparing current behavior to prior fixes.
 
+## BCE-1894 Scoreboard Availability Boundary
+
+As of 2026-05-14, `/[locale]/score` reads report badge availability through a
+server-only Supabase service-role boundary and still applies
+`reportSupportsLocale` before exposing badges. This keeps `project_reports` RLS
+private for anon clients while allowing scoreboard badges to reflect
+website-visible `published`, `coming_soon`, and `in_review` report rows that
+have localized Google Drive/PDF/file/slide assets.
+
 ## BCE-1869 Relationship
 
 BCE-1869 affected the report-publishing watcher boundary, not this website

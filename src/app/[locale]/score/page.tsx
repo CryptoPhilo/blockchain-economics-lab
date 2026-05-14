@@ -1,8 +1,10 @@
 import { getTranslations } from 'next-intl/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 import { createProjectsRepository } from '@/lib/repositories/projects'
 import { reportSupportsLocale } from '@/lib/report-locale'
 import type { ProjectReport } from '@/lib/types'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import ScoreTableGate from '@/components/ScoreTableGate'
 import SubscribeForm from '@/components/SubscribeForm'
 
@@ -19,6 +21,7 @@ export const revalidate = 0
 
 const ITEMS_PER_PAGE = 100
 const MAX_RANK = 200
+const REPORT_AVAILABILITY_QUERY_CHUNK_SIZE = 80
 export const MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS = 200
 const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'ethena-usde', slug: 'ethena' },
@@ -37,6 +40,18 @@ type ReportTypeKey = 'econ' | 'maturity' | 'forensic'
 type ReportAvailability = {
   reportTypes: string[]
   reportDates: Record<ReportTypeKey, string | null>
+}
+
+type ScoreboardVisibleReportRow = {
+  project_id: string
+  report_type: ReportTypeKey
+  language?: ProjectReport['language'] | null
+  published_at?: string | null
+  updated_at?: string | null
+  created_at?: string | null
+  gdrive_urls_by_lang?: ProjectReport['gdrive_urls_by_lang']
+  file_urls_by_lang?: ProjectReport['file_urls_by_lang']
+  slide_html_urls_by_lang?: unknown
 }
 
 function normalizeKey(value: unknown): string | null {
@@ -161,17 +176,7 @@ function getReportAvailability(
 }
 
 export function buildReportAvailabilityByProjectId(
-  reports: Array<{
-    project_id: string
-    report_type: ReportTypeKey
-    language?: ProjectReport['language'] | null
-    published_at?: string | null
-    updated_at?: string | null
-    created_at?: string | null
-    gdrive_urls_by_lang?: ProjectReport['gdrive_urls_by_lang']
-    file_urls_by_lang?: ProjectReport['file_urls_by_lang']
-    slide_html_urls_by_lang?: unknown
-  }>,
+  reports: ScoreboardVisibleReportRow[],
   locale: string,
 ) {
   const map = new Map<string, ReportAvailability>()
@@ -197,6 +202,51 @@ export function buildReportAvailabilityByProjectId(
   }
 
   return map
+}
+
+export async function fetchVisibleReportsForScoreboard(
+  projectIds: string[],
+  reportSupabase?: SupabaseClient,
+): Promise<{ reports: ScoreboardVisibleReportRow[]; loaded: boolean }> {
+  if (projectIds.length === 0) {
+    return { reports: [], loaded: true }
+  }
+
+  const supabase = reportSupabase ?? createSupabaseAdminClient()
+  const reports: ScoreboardVisibleReportRow[] = []
+
+  for (let index = 0; index < projectIds.length; index += REPORT_AVAILABILITY_QUERY_CHUNK_SIZE) {
+    const chunk = projectIds.slice(index, index + REPORT_AVAILABILITY_QUERY_CHUNK_SIZE)
+    const { data, error } = await supabase
+      .from('project_reports')
+      .select([
+        'project_id',
+        'report_type',
+        'language',
+        'published_at',
+        'updated_at',
+        'created_at',
+        'gdrive_urls_by_lang',
+        'file_urls_by_lang',
+        'slide_html_urls_by_lang',
+      ].join(', '))
+      .in('project_id', chunk)
+      .in('report_type', ['econ', 'maturity', 'forensic'])
+      .in('status', ['published', 'coming_soon', 'in_review'])
+
+    if (error) {
+      console.error('Failed to fetch scoreboard report availability', {
+        message: error.message,
+        chunkStart: index,
+        chunkSize: chunk.length,
+      })
+      return { reports: [], loaded: false }
+    }
+
+    reports.push(...((data || []) as unknown as ScoreboardVisibleReportRow[]))
+  }
+
+  return { reports, loaded: true }
 }
 
 export function snapshotRowsToScoreRows(
@@ -275,38 +325,18 @@ export default async function ScorePage({
     projectsRepository.getLatestScoreboardMarketSnapshot(MAX_RANK),
   ])
   const trackedProjectIds = trackedProjects.map((project) => project.id).filter(Boolean)
-  const { data: visibleReports } = trackedProjectIds.length > 0
-    ? await supabase
-      .from('project_reports')
-      .select([
-        'project_id',
-        'report_type',
-        'language',
-        'published_at',
-        'updated_at',
-        'created_at',
-        'gdrive_urls_by_lang',
-        'file_urls_by_lang',
-        'slide_html_urls_by_lang',
-      ].join(', '))
-      .in('project_id', trackedProjectIds)
-      .in('report_type', ['econ', 'maturity', 'forensic'])
-      .in('status', ['published', 'coming_soon', 'in_review'])
-    : { data: [] }
-  const reportAvailabilityByProjectId = buildReportAvailabilityByProjectId(
-    (visibleReports || []) as unknown as Array<{
-      project_id: string
-      report_type: ReportTypeKey
-      language?: ProjectReport['language'] | null
-      published_at?: string | null
-      updated_at?: string | null
-      created_at?: string | null
-      gdrive_urls_by_lang?: ProjectReport['gdrive_urls_by_lang']
-      file_urls_by_lang?: ProjectReport['file_urls_by_lang']
-      slide_html_urls_by_lang?: unknown
-    }>,
-    locale,
-  )
+  let visibleReportResult: Awaited<ReturnType<typeof fetchVisibleReportsForScoreboard>>
+  try {
+    visibleReportResult = await fetchVisibleReportsForScoreboard(trackedProjectIds)
+  } catch (error) {
+    console.error('Failed to initialize scoreboard report availability boundary', {
+      message: error instanceof Error ? error.message : String(error),
+    })
+    visibleReportResult = { reports: [], loaded: false }
+  }
+  const reportAvailabilityByProjectId = visibleReportResult.loaded
+    ? buildReportAvailabilityByProjectId(visibleReportResult.reports, locale)
+    : undefined
 
   const allRows = canonicalSnapshotRowsToScoreRows(
     cmcSnapshotRows,

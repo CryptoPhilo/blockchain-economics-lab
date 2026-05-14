@@ -1,10 +1,23 @@
 import {
+  buildReportAvailabilityByProjectId,
   buildTrackedProjectLookup,
   canonicalSnapshotRowsToScoreRows,
+  fetchVisibleReportsForScoreboard,
   hasCompleteCmcCanonicalTop200Snapshot,
   MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS,
   snapshotRowsToScoreRows,
 } from './page'
+
+function makeSnapshotRow(rank: number, slug = `cmc-project-${rank}`) {
+  return {
+    slug,
+    price_usd: rank,
+    market_cap: 1_000_000 - rank,
+    change_24h: 0,
+    recorded_at: '2026-05-12',
+    cmc_rank: rank,
+  }
+}
 
 jest.mock('next-intl/server', () => ({
   getTranslations: jest.fn(),
@@ -28,12 +41,33 @@ jest.mock('@/components/SubscribeForm', () => function SubscribeForm() {
 
 describe('score page CMC canonical Top 200 snapshot guard', () => {
   it('rejects partial snapshots as non-canonical Top 200 data', () => {
-    expect(hasCompleteCmcCanonicalTop200Snapshot(1)).toBe(false)
-    expect(hasCompleteCmcCanonicalTop200Snapshot(199)).toBe(false)
+    expect(hasCompleteCmcCanonicalTop200Snapshot([makeSnapshotRow(1)])).toBe(false)
+    expect(hasCompleteCmcCanonicalTop200Snapshot(
+      Array.from({ length: 199 }, (_, index) => makeSnapshotRow(index + 1)),
+    )).toBe(false)
   })
 
-  it('accepts only snapshots with at least 200 rows as canonical Top 200 data', () => {
-    expect(hasCompleteCmcCanonicalTop200Snapshot(MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS)).toBe(true)
+  it('rejects 200-row snapshots without canonical CMC ranks', () => {
+    const rowsWithoutCmcRank = Array.from({ length: 200 }, (_, index) => ({
+      ...makeSnapshotRow(index + 1),
+      cmc_rank: null,
+    }))
+
+    expect(hasCompleteCmcCanonicalTop200Snapshot(rowsWithoutCmcRank)).toBe(false)
+    expect(canonicalSnapshotRowsToScoreRows(rowsWithoutCmcRank, [])).toEqual([])
+  })
+
+  it('accepts only snapshots with contiguous CMC ranks 1 through 200', () => {
+    const canonicalRows = Array.from(
+      { length: MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS },
+      (_, index) => makeSnapshotRow(index + 1),
+    )
+    const duplicateRankRows = canonicalRows.map((row, index) => (
+      index === 199 ? { ...row, cmc_rank: 199 } : row
+    ))
+
+    expect(hasCompleteCmcCanonicalTop200Snapshot(canonicalRows)).toBe(true)
+    expect(hasCompleteCmcCanonicalTop200Snapshot(duplicateRankRows)).toBe(false)
   })
 
   it('does not substitute tracked projects when the CMC snapshot is incomplete', () => {
@@ -54,15 +88,28 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
         last_forensic_report_at: null,
       },
     ]
-    const partialSnapshotRows = Array.from({ length: 199 }, (_, index) => ({
-      slug: index === 0 ? 'bitcoin' : `cmc-project-${index}`,
-      price_usd: index + 1,
-      market_cap: 1_000_000 - index,
-      change_24h: 0,
-      recorded_at: '2026-05-12',
-    }))
+    const partialSnapshotRows = Array.from(
+      { length: 199 },
+      (_, index) => makeSnapshotRow(index + 1, index === 0 ? 'bitcoin' : `cmc-project-${index}`),
+    )
 
     expect(canonicalSnapshotRowsToScoreRows(partialSnapshotRows, trackedProjects)).toEqual([])
+  })
+
+  it('excludes rows outside the canonical CMC Top 200 before rendering', () => {
+    const snapshotRows = [
+      ...Array.from({ length: 200 }, (_, index) => makeSnapshotRow(index + 1)),
+      makeSnapshotRow(201, 'rain'),
+      makeSnapshotRow(203, 'htx'),
+    ].reverse()
+
+    const rows = canonicalSnapshotRowsToScoreRows(snapshotRows, [])
+
+    expect(rows).toHaveLength(200)
+    expect(rows[0]).toMatchObject({ rank: 1, slug: 'cmc-project-1' })
+    expect(rows[199]).toMatchObject({ rank: 200, slug: 'cmc-project-200' })
+    expect(rows.map((row) => row.slug)).not.toContain('rain')
+    expect(rows.map((row) => row.slug)).not.toContain('htx')
   })
 })
 
@@ -92,6 +139,7 @@ describe('score page tracked project aliases', () => {
         market_cap: 500,
         change_24h: 0.1,
         recorded_at: '2026-05-03',
+        cmc_rank: 37,
       },
     ]
 
@@ -134,6 +182,7 @@ describe('score page tracked project aliases', () => {
         market_cap: 500,
         change_24h: 0.1,
         recorded_at: '2026-05-03',
+        cmc_rank: 37,
       },
     ]
 
@@ -173,6 +222,7 @@ describe('score page tracked project aliases', () => {
         market_cap: 100,
         change_24h: 0.1,
         recorded_at: '2026-05-08',
+        cmc_rank: 1,
       },
     ]
 
@@ -188,6 +238,179 @@ describe('score page tracked project aliases', () => {
         econ: null,
         maturity: null,
         forensic: null,
+      },
+    })
+  })
+})
+
+describe('score page report availability policy', () => {
+  it('uses the injected server-side report client when reading scoreboard availability', async () => {
+    const query = {
+      select: jest.fn().mockReturnThis(),
+      in: jest.fn().mockReturnThis(),
+      then: undefined,
+    }
+    query.in
+      .mockReturnValueOnce(query)
+      .mockReturnValueOnce(query)
+      .mockResolvedValueOnce({
+        data: [
+          {
+            project_id: 'bitcoin-project',
+            report_type: 'econ',
+            language: 'ko',
+            published_at: '2026-05-01T00:00:00.000Z',
+            gdrive_urls_by_lang: {
+              ko: { url: 'https://drive.google.com/file/d/bitcoin-ko/view' },
+            },
+          },
+        ],
+        error: null,
+      })
+    const reportSupabase = {
+      from: jest.fn().mockReturnValue(query),
+    }
+
+    const result = await fetchVisibleReportsForScoreboard(
+      ['bitcoin-project'],
+      reportSupabase as never,
+    )
+
+    expect(reportSupabase.from).toHaveBeenCalledWith('project_reports')
+    expect(query.in).toHaveBeenNthCalledWith(1, 'project_id', ['bitcoin-project'])
+    expect(query.in).toHaveBeenNthCalledWith(2, 'report_type', ['econ', 'maturity', 'forensic'])
+    expect(query.in).toHaveBeenNthCalledWith(3, 'status', ['published', 'coming_soon', 'in_review'])
+    expect(result.loaded).toBe(true)
+    expect(result.reports).toHaveLength(1)
+  })
+
+  it('counts PDF-only localized reports as available for scoreboard badges', () => {
+    const availability = buildReportAvailabilityByProjectId([
+      {
+        project_id: 'dexe-project',
+        report_type: 'econ',
+        language: 'en',
+        published_at: '2026-05-01T00:00:00.000Z',
+        gdrive_urls_by_lang: {
+          en: { url: 'https://drive.google.com/file/d/dexe-en/view' },
+        },
+        slide_html_urls_by_lang: null,
+      },
+    ], 'en')
+
+    expect(availability.get('dexe-project')).toEqual({
+      reportTypes: ['econ'],
+      reportDates: {
+        econ: '2026-05-01T00:00:00.000Z',
+        maturity: null,
+        forensic: null,
+      },
+    })
+  })
+
+  it('does not count reports without an asset for the requested locale', () => {
+    const availability = buildReportAvailabilityByProjectId([
+      {
+        project_id: 'alpha-project',
+        report_type: 'econ',
+        language: 'zh',
+        published_at: '2026-05-01T00:00:00.000Z',
+        gdrive_urls_by_lang: {
+          zh: { url: 'https://drive.google.com/file/d/alpha-zh/view' },
+        },
+        slide_html_urls_by_lang: null,
+      },
+    ], 'ko')
+
+    expect(availability.has('alpha-project')).toBe(false)
+  })
+
+  it('renders active ECON availability for Bitcoin when a Korean localized asset exists', () => {
+    const trackedProjects = [
+      {
+        id: 'bitcoin-project',
+        name: 'Bitcoin',
+        slug: 'bitcoin',
+        symbol: 'BTC',
+        category: 'L1',
+        market_cap_usd: 100,
+        coingecko_id: 'bitcoin',
+        cmc_id: 'bitcoin',
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const availability = buildReportAvailabilityByProjectId([
+      {
+        project_id: 'bitcoin-project',
+        report_type: 'econ',
+        language: 'ko',
+        published_at: '2026-05-01T00:00:00.000Z',
+        gdrive_urls_by_lang: {
+          ko: { url: 'https://drive.google.com/file/d/bitcoin-ko/view' },
+        },
+      },
+    ], 'ko')
+
+    const [row] = snapshotRowsToScoreRows(
+      [makeSnapshotRow(1, 'bitcoin')],
+      buildTrackedProjectLookup(trackedProjects),
+      availability,
+    )
+
+    expect(row).toMatchObject({
+      slug: 'bitcoin',
+      reportTypes: ['econ'],
+      reportDates: {
+        econ: '2026-05-01T00:00:00.000Z',
+      },
+    })
+  })
+
+  it('renders active ECON availability for Aave when an English localized asset exists', () => {
+    const trackedProjects = [
+      {
+        id: 'aave-project',
+        name: 'Aave',
+        slug: 'aave',
+        symbol: 'AAVE',
+        category: 'DeFi',
+        market_cap_usd: 100,
+        coingecko_id: 'aave',
+        cmc_id: 'aave',
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const availability = buildReportAvailabilityByProjectId([
+      {
+        project_id: 'aave-project',
+        report_type: 'econ',
+        language: 'en',
+        published_at: '2026-05-02T00:00:00.000Z',
+        gdrive_urls_by_lang: {
+          en: { url: 'https://drive.google.com/file/d/aave-en/view' },
+        },
+      },
+    ], 'en')
+
+    const [row] = snapshotRowsToScoreRows(
+      [makeSnapshotRow(48, 'aave')],
+      buildTrackedProjectLookup(trackedProjects),
+      availability,
+    )
+
+    expect(row).toMatchObject({
+      slug: 'aave',
+      reportTypes: ['econ'],
+      reportDates: {
+        econ: '2026-05-02T00:00:00.000Z',
       },
     })
   })
