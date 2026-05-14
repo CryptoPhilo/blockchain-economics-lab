@@ -1246,6 +1246,24 @@ def _reconcile_visible_reports_with_drive(
             'error': 'active Drive Slide PDF materialized as website-visible PDF-backed report row',
         })
         visible_keys.add(key)
+        if not dry_run:
+            gdrive_url = f"https://drive.google.com/file/d/{pdf.get('id')}/view?usp=drivesdk"
+            report_rows.append({
+                'id': report_id,
+                'project_id': project.get('id'),
+                'report_type': drive_row.get('db_type'),
+                'language': drive_row.get('lang'),
+                'status': REVIEW_READY_STATUS,
+                'published_at': None,
+                'updated_at': now,
+                'created_at': now,
+                'gdrive_urls_by_lang': {drive_row.get('lang'): gdrive_url},
+                'gdrive_url': gdrive_url,
+                'file_url': gdrive_url,
+                'file_urls_by_lang': None,
+                'gdrive_file_id': pdf.get('id'),
+                'slide_html_urls_by_lang': {},
+            })
 
     for row in report_rows:
         project = project_by_id.get(row.get('project_id')) or {}

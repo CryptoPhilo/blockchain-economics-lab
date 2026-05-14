@@ -2638,7 +2638,9 @@ def test_db_reconcile_materializes_active_drive_pdf_only_report_row(ws, monkeypa
         'zh': 'https://drive.google.com/file/d/drive-flare-cn/view?usp=drivesdk',
     }
     assert tables['project_reports'][0]['slide_html_urls_by_lang'] == {}
+    assert tables['tracked_projects'][0]['last_econ_report_at'] is not None
     assert any(result['status'] == 'db_reconcile_materialized' for result in results)
+    assert any(result['status'] == 'db_reconcile_timestamp_synced' for result in results)
 
 
 def test_db_reconcile_dry_run_materialization_does_not_mutate_rows(ws, monkeypatch):
