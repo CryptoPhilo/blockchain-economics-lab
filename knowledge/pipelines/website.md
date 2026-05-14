@@ -40,6 +40,17 @@ private for anon clients while allowing scoreboard badges to reflect
 website-visible `published`, `coming_soon`, and `in_review` report rows that
 have localized Google Drive/PDF/file/slide assets.
 
+## BCE-1896 Production Deploy Hang
+
+As of 2026-05-14, production deploy runs for BCE-1893 at commit
+`671faba1360f2be7a2838ce1490106c8da6006d6` repeatedly passed deployment
+evidence verification but hung in the `amondnet/vercel-action@v25` Vercel
+production deployment step before a GitHub production deployment success status
+was emitted. The workflow now uses the Vercel CLI `pull`, `build`, and
+`deploy --prebuilt --prod` path with explicit job and step timeouts so future
+production deploy attempts fail closed instead of remaining indefinitely
+in-progress.
+
 ## BCE-1869 Relationship
 
 BCE-1869 affected the report-publishing watcher boundary, not this website
