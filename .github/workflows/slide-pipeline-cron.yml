@@ -31,6 +31,11 @@ on:
         required: false
         type: boolean
         default: false
+      reconcile_only:
+        description: 'Run only Drive-vs-DB report availability reconciliation'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -226,6 +231,11 @@ jobs:
             if [ "${{ github.event.inputs.force }}" == "true" ]; then
               echo "⚡ Force re-processing enabled"
               ARGS="$ARGS --force"
+            fi
+
+            if [ "${{ github.event.inputs.reconcile_only }}" == "true" ]; then
+              echo "🔁 Reconcile-only mode enabled"
+              ARGS="$ARGS --reconcile-only"
             fi
           fi
 

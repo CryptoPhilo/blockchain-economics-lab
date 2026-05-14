@@ -3024,6 +3024,11 @@ def main() -> int:
         help='Skip final Drive-vs-DB availability reconciliation for full type scans',
     )
     parser.add_argument(
+        '--reconcile-only',
+        action='store_true',
+        help='Run only final Drive-vs-DB availability reconciliation; skip slide processing',
+    )
+    parser.add_argument(
         '--language-override',
         action='append',
         default=[],
@@ -3057,6 +3062,7 @@ def main() -> int:
     print(f'Scan Time: {scan_time}')
     print(f'Types: {types}  Slug filter: {args.slug or "(none)"}  '
           f'Dry-run: {args.dry_run}  Force: {args.force}  '
+          f'Reconcile-only: {args.reconcile_only}  '
           f'Language overrides: {len(language_overrides)}  '
           f'Modified since: {modified_since.isoformat() if modified_since else "(none)"}')
     print('=' * 60)
@@ -3069,6 +3075,55 @@ def main() -> int:
         force=args.force,
         slug=args.slug,
     )
+
+    if args.reconcile_only:
+        if args.slug:
+            print('Error: --reconcile-only cannot be combined with --slug', file=sys.stderr)
+            return 2
+        try:
+            service = _get_drive_service()
+            from supabase_storage import get_supabase_storage_client
+            sb = get_supabase_storage_client()
+            projects = _load_tracked_projects(sb)
+            scanned = []
+            processed = _reconcile_visible_reports_with_drive(
+                sb,
+                service,
+                types=types,
+                projects=projects,
+                dry_run=args.dry_run,
+            )
+        except Exception as e:
+            print(f"Error: reconcile-only run failed: {e}", file=sys.stderr)
+            return 1
+
+        log_path = write_run_log(
+            scan_time,
+            types,
+            scanned,
+            processed,
+            guard_results=[],
+            source_diagnostics=[],
+            telemetry_warnings=paperclip_telemetry.warnings,
+        )
+        paperclip_telemetry.complete_runs(
+            types,
+            scanned=scanned,
+            processed=processed,
+            log_path=log_path,
+        )
+        append_telemetry_warnings_to_run_log(log_path, paperclip_telemetry.warnings)
+
+        print('\n' + '=' * 60)
+        print(
+            f"DONE: reconcile-only processed={len(processed)}  "
+            f"materialized={sum(1 for r in processed if r.get('status') == 'db_reconcile_materialized')}  "
+            f"placeholders={sum(1 for r in processed if r.get('status') == 'db_reconcile_for_placeholder_without_active_slide_pdf')}  "
+            f"cancelled={sum(1 for r in processed if str(r.get('status')).startswith('db_reconcile_cancelled'))}  "
+            f"unresolved={sum(1 for r in processed if r.get('status') == 'db_reconcile_unresolved_drive_pdf')}"
+        )
+        print('=' * 60)
+        return 0
 
     scanned, processed = process(
         types,
