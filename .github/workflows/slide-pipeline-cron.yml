@@ -201,8 +201,11 @@ jobs:
         run: |
           ARGS=""
           if [ "${{ github.event_name }}" = "schedule" ]; then
-            LOOKBACK_MINUTES="${SLIDE_PIPELINE_SCHEDULE_LOOKBACK_MINUTES:-180}"
-            ARGS="--type all --modified-since-minutes ${LOOKBACK_MINUTES} --skip-db-reconcile"
+            # Scheduled runs must enumerate the full active Slide tree. The
+            # watcher manifest skips already processed files cheaply, while a
+            # modified-since window can strand unprocessed PDFs forever if the
+            # workflow is paused, delayed, or failing longer than the window.
+            ARGS="--type all --skip-db-reconcile"
           else
             TYPE_INPUT="${{ github.event.inputs.type }}"
             if [ -n "$TYPE_INPUT" ]; then
