@@ -1197,7 +1197,7 @@
   },
   "13lUpfPdF6rzV6kll1klAexgSYjpwRM-b": {
     "error": null,
-    "finished_at": "2026-05-14T10:40:14.070479+00:00",
+    "finished_at": "2026-05-14T12:18:12.699910+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T09:24:49.000Z",
@@ -1219,11 +1219,11 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/mat/Trump_MAT_cn.pdf",
-    "started_at": "2026-05-14T10:40:09.686960+00:00",
+    "started_at": "2026-05-14T12:18:04.078330+00:00",
     "status": "review_ready",
-    "updated_at": "2026-05-14T10:40:14.070497+00:00",
+    "updated_at": "2026-05-14T12:18:12.699924+00:00",
     "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/official-trump/latest/zh.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/official-trump/1/zh.html"
   },
   "13psbtpgy0dDPZr6MhlVSZfgXt7p7LJbh": {
     "error": null,
@@ -2424,7 +2424,7 @@
   },
   "19Edr6jj3y0y9wC8nammF9-vqbaOgPoXT": {
     "error": null,
-    "finished_at": "2026-05-14T10:39:50.702706+00:00",
+    "finished_at": "2026-05-14T12:17:21.054997+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T10:00:47.000Z",
@@ -2446,11 +2446,11 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/mat/injective_MAT_cn.pdf",
-    "started_at": "2026-05-14T10:39:40.778644+00:00",
+    "started_at": "2026-05-14T12:17:07.978681+00:00",
     "status": "review_ready",
-    "updated_at": "2026-05-14T10:39:50.702723+00:00",
+    "updated_at": "2026-05-14T12:17:21.055012+00:00",
     "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/injective/latest/zh.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/injective/1/zh.html"
   },
   "19F0Dzkxf5zvsPgw5UXPEmIceH53h-MLW": {
     "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
@@ -3307,6 +3307,36 @@
     "updated_at": "2026-05-14T05:58:26.718246+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/monero/1/zh.html"
+  },
+  "1CtnepL8Qib0882dku7trbxu4v-sjkPYl": {
+    "error": null,
+    "finished_at": "2026-05-14T12:17:45.812565+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-14T09:35:17.000Z",
+    "name": "BONK_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 540.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 960.0
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bonk1/latest/en.html",
+    "report_id": "3efe0b83-1483-49a8-b7d1-812723407e5f",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "bonk1",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/BONK_MAT_en.pdf",
+    "started_at": "2026-05-14T12:17:40.934062+00:00",
+    "status": "review_ready",
+    "updated_at": "2026-05-14T12:17:45.812578+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bonk1/latest/en.html"
   },
   "1Cxb8tWY_jl_w3fmeoAJINgGgULZJdwVC": {
     "error": null,
@@ -4758,6 +4788,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/injective/1/zh.html"
   },
+  "1I5TDzN2qDXSNU9x4ljDFaq2iBy0Khet7": {
+    "error": null,
+    "finished_at": "2026-05-14T12:14:57.722245+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-14T11:23:41.000Z",
+    "name": "nexo_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/nexo/latest/zh.html",
+    "report_id": "b67bdb7c-e5f7-48cf-b6bb-bbb39820693b",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "nexo",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/nexo_MAT_cn.pdf",
+    "started_at": "2026-05-14T12:14:52.867578+00:00",
+    "status": "review_ready",
+    "updated_at": "2026-05-14T12:14:57.722260+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/nexo/latest/zh.html"
+  },
   "1IAZspKiiPm3MvQkGMEIdXRPL9PJaIy2a": {
     "error": null,
     "finished_at": "2026-05-14T08:15:59.375552+00:00",
@@ -5654,6 +5714,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ethena/1/zh.html"
   },
+  "1L0jUA0BWTYo_nEMCLlTmx73LCVK04VdF": {
+    "error": null,
+    "finished_at": "2026-05-14T12:15:17.078292+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-14T11:15:37.000Z",
+    "name": "nexo_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/nexo/latest/ja.html",
+    "report_id": "c3a27ca2-60f9-4576-b2ea-63ec0f4cde9d",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "nexo",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/nexo_MAT_jp.pdf",
+    "started_at": "2026-05-14T12:15:11.982463+00:00",
+    "status": "review_ready",
+    "updated_at": "2026-05-14T12:15:17.078307+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/nexo/latest/ja.html"
+  },
   "1L1IBhGfnRQ7hMnn2EGZh4DIuDbWaQ6-1": {
     "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
     "lang": "en",
@@ -5865,6 +5955,36 @@
     "updated_at": "2026-05-14T06:55:23.670447+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ethereum/1/ja.html"
+  },
+  "1LurF9k3cEJZx3wOPO0bX8bYhSjkl0hjc": {
+    "error": null,
+    "finished_at": "2026-05-14T12:17:38.506951+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-14T09:58:16.000Z",
+    "name": "BONK_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 470.5,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 836.0
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bonk1/latest/ko.html",
+    "report_id": "5d9b1355-87e5-47a3-8a10-f9b262b4c826",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "bonk1",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/BONK_MAT_ko.pdf",
+    "started_at": "2026-05-14T12:17:32.576547+00:00",
+    "status": "review_ready",
+    "updated_at": "2026-05-14T12:17:38.506966+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bonk1/latest/ko.html"
   },
   "1M5eeavxMD6G1cs3ucnC67JrJUJWgw5g4": {
     "error": null,
@@ -8109,7 +8229,7 @@
   },
   "1WHUChDeOWziAxzFvSml6mBLolE_RJgL_": {
     "error": null,
-    "finished_at": "2026-05-14T10:30:55.133844+00:00",
+    "finished_at": "2026-05-14T12:13:21.240043+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T10:06:07.000Z",
@@ -8131,11 +8251,11 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/Nexo_ECON_cn.pdf",
-    "started_at": "2026-05-14T10:30:49.396332+00:00",
+    "started_at": "2026-05-14T12:13:12.807669+00:00",
     "status": "review_ready",
-    "updated_at": "2026-05-14T10:30:55.133861+00:00",
+    "updated_at": "2026-05-14T12:13:21.240058+00:00",
     "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/nexo/latest/zh.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/nexo/1/zh.html"
   },
   "1WIjymgAaPvaMpo74XlwG1Yi_QJKryPbc": {
     "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
@@ -10105,7 +10225,7 @@
   },
   "1e1VKv4S_QFxj8Q28RccP2fyqCJ05R9db": {
     "error": null,
-    "finished_at": "2026-05-14T10:32:08.075941+00:00",
+    "finished_at": "2026-05-14T12:14:39.611955+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T09:33:27.000Z",
@@ -10127,11 +10247,11 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/Trump_ECON_jp.pdf",
-    "started_at": "2026-05-14T10:32:02.692494+00:00",
+    "started_at": "2026-05-14T12:14:31.805065+00:00",
     "status": "review_ready",
-    "updated_at": "2026-05-14T10:32:08.075959+00:00",
+    "updated_at": "2026-05-14T12:14:39.611968+00:00",
     "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/official-trump/latest/ja.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/official-trump/1/ja.html"
   },
   "1e7JEz0YZ1d90IQJuGZ7KbVYgAZCPohvq": {
     "error": null,
@@ -10922,6 +11042,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/official-trump/latest/en.html"
   },
+  "1h2KrIChu1-WOcSZwLLEDc5oZL8QPfgYT": {
+    "error": null,
+    "finished_at": "2026-05-14T12:15:59.287456+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-14T10:54:01.000Z",
+    "name": "nexo_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 540.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 960.0
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/nexo/latest/ko.html",
+    "report_id": "90d85b71-3866-47b6-a6a3-a467198c856a",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "nexo",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/nexo_MAT_ko.pdf",
+    "started_at": "2026-05-14T12:15:52.751653+00:00",
+    "status": "review_ready",
+    "updated_at": "2026-05-14T12:15:59.287469+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/nexo/latest/ko.html"
+  },
   "1hEIHVoOKgo2gdqe01Zs5j3o5C4fmX9PV": {
     "error": null,
     "finished_at": "2026-05-14T05:36:56.699151+00:00",
@@ -10960,7 +11110,7 @@
   },
   "1hOv6Y1kzAGMEKAEKue3S_D1wUZEKFSXP": {
     "error": null,
-    "finished_at": "2026-05-14T10:31:42.936809+00:00",
+    "finished_at": "2026-05-14T12:14:11.680705+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T09:47:10.000Z",
@@ -10982,11 +11132,11 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/Trump_ECON_cn.pdf",
-    "started_at": "2026-05-14T10:31:37.856554+00:00",
+    "started_at": "2026-05-14T12:14:03.927958+00:00",
     "status": "review_ready",
-    "updated_at": "2026-05-14T10:31:42.936827+00:00",
+    "updated_at": "2026-05-14T12:14:11.680720+00:00",
     "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/official-trump/latest/zh.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/official-trump/1/zh.html"
   },
   "1hQPSG6-KivJoOHir5ck6GvjN5FINXAQx": {
     "error": null,
@@ -11962,7 +12112,7 @@
   },
   "1lFtvRSDuBqkOLalWTBgBrWXOxqZzMTgS": {
     "error": null,
-    "finished_at": "2026-05-14T10:31:17.970819+00:00",
+    "finished_at": "2026-05-14T12:13:44.208256+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T09:52:41.000Z",
@@ -11984,11 +12134,11 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/PENGU_ECON_cn.pdf",
-    "started_at": "2026-05-14T10:31:12.915085+00:00",
+    "started_at": "2026-05-14T12:13:37.392051+00:00",
     "status": "review_ready",
-    "updated_at": "2026-05-14T10:31:17.970835+00:00",
+    "updated_at": "2026-05-14T12:13:44.208270+00:00",
     "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pudgy-penguins/latest/zh.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pudgy-penguins/1/zh.html"
   },
   "1lH_iQR7BHnZFgQVXabGRLROLTe6O8m3s": {
     "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
@@ -13385,6 +13535,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/hedera-hashgraph/1/ja.html"
   },
+  "1rnajApfbjFluvipdMpvn7wiSSyG7gHQf": {
+    "error": null,
+    "finished_at": "2026-05-14T12:16:16.188571+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-14T10:19:41.000Z",
+    "name": "BONK_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 470.5,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 836.0
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bonk1/latest/ja.html",
+    "report_id": "211f1c1f-6548-4583-b6c2-e1e805a00e10",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "bonk1",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/BONK_MAT_jp.pdf",
+    "started_at": "2026-05-14T12:16:10.154481+00:00",
+    "status": "review_ready",
+    "updated_at": "2026-05-14T12:16:16.188585+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bonk1/latest/ja.html"
+  },
   "1rxJM5zDNPT9yo-JJtp9OwyLx1qrXn7dV": {
     "error": null,
     "finished_at": "2026-05-11T08:48:16.592242+00:00",
@@ -14279,6 +14459,36 @@
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/filecoin/latest/ko.html"
   },
+  "1urumyEE6GmbLjo6ON4PqQyoWEVyP2HYD": {
+    "error": null,
+    "finished_at": "2026-05-14T12:16:34.327330+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-14T10:17:45.000Z",
+    "name": "nexo_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/nexo/latest/en.html",
+    "report_id": "400a228c-6142-445c-b81e-5feaedfca7c6",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "nexo",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/nexo_MAT_en.pdf",
+    "started_at": "2026-05-14T12:16:23.378783+00:00",
+    "status": "review_ready",
+    "updated_at": "2026-05-14T12:16:34.327344+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/nexo/latest/en.html"
+  },
   "1vESWSIv7gGBjn6uGLixixtwR8jL6ZU89": {
     "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
     "lang": "en",
@@ -14551,6 +14761,36 @@
     "updated_at": "2026-05-14T10:34:55.602782+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ripple/1/ko.html"
+  },
+  "1wd985UqdxEVXWy2P3bDFdseJZac1Y0pl": {
+    "error": null,
+    "finished_at": "2026-05-14T12:15:33.224058+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-14T11:07:49.000Z",
+    "name": "BONK_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bonk1/latest/zh.html",
+    "report_id": "ba59536f-6c97-4106-830b-5b95faffab88",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "bonk1",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/BONK_MAT_cn.pdf",
+    "started_at": "2026-05-14T12:15:28.520949+00:00",
+    "status": "review_ready",
+    "updated_at": "2026-05-14T12:15:33.224072+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bonk1/latest/zh.html"
   },
   "1whS-whuzxEq15lSXVgRzRNGenbOQlq8J": {
     "error": null,
