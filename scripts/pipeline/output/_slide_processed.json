@@ -3977,7 +3977,7 @@
   },
   "1EC4O_ssB2CVmzO23iHs-cTTbI-eTKGI-": {
     "error": null,
-    "finished_at": "2026-05-14T16:38:31.772154+00:00",
+    "finished_at": "2026-05-14T18:21:42.542253+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T16:10:34.000Z",
@@ -3999,11 +3999,11 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/OKX_ECON_jp.pdf",
-    "started_at": "2026-05-14T16:38:23.442706+00:00",
+    "started_at": "2026-05-14T18:21:31.060701+00:00",
     "status": "review_ready",
-    "updated_at": "2026-05-14T16:38:31.772168+00:00",
+    "updated_at": "2026-05-14T18:21:42.542265+00:00",
     "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/okx/latest/ja.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/okx/1/ja.html"
   },
   "1EHwcaitcUFwWpL3TwWJhKorBD7F_4OIG": {
     "error": null,
@@ -5056,7 +5056,7 @@
   },
   "1Iic0lAE3LBYdxyvd0CBU4zahj9v9MTtg": {
     "error": null,
-    "finished_at": "2026-05-14T16:39:57.506137+00:00",
+    "finished_at": "2026-05-14T18:23:14.585671+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T15:50:24.000Z",
@@ -5078,11 +5078,11 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/mat/OKX_MAT_ko.pdf",
-    "started_at": "2026-05-14T16:39:54.158847+00:00",
+    "started_at": "2026-05-14T18:23:08.456404+00:00",
     "status": "review_ready",
-    "updated_at": "2026-05-14T16:39:57.506151+00:00",
+    "updated_at": "2026-05-14T18:23:14.585684+00:00",
     "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/okx/latest/ko.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/okx/1/ko.html"
   },
   "1IjNSqnsf6vI42M4EfYs-_aXKChkkA0Km": {
     "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
@@ -6968,7 +6968,7 @@
   },
   "1PJadOIlbmZp1jjQ4xQuYmEZyCkWSnTa4": {
     "error": null,
-    "finished_at": "2026-05-14T16:38:58.134106+00:00",
+    "finished_at": "2026-05-14T18:22:10.614480+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T16:32:34.000Z",
@@ -6990,11 +6990,11 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/mat/OKX_MAT_cn.pdf",
-    "started_at": "2026-05-14T16:38:53.219877+00:00",
+    "started_at": "2026-05-14T18:22:04.291901+00:00",
     "status": "review_ready",
-    "updated_at": "2026-05-14T16:38:58.134121+00:00",
+    "updated_at": "2026-05-14T18:22:10.614491+00:00",
     "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/okx/latest/zh.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/okx/1/zh.html"
   },
   "1PPUWewjixBwPYOW-L_Xv8fNeJsATReLj": {
     "error": null,
@@ -7380,7 +7380,7 @@
   },
   "1Qv2LCZPs1AHYroOUtHgj3zTXHIEq7_ed": {
     "error": null,
-    "finished_at": "2026-05-14T16:37:42.161585+00:00",
+    "finished_at": "2026-05-14T18:20:45.271380+00:00",
     "lang": "en",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T16:26:14.000Z",
@@ -7402,11 +7402,11 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/OKX_ECON_en.pdf",
-    "started_at": "2026-05-14T16:37:39.955760+00:00",
+    "started_at": "2026-05-14T18:20:39.950949+00:00",
     "status": "review_ready",
-    "updated_at": "2026-05-14T16:37:42.161600+00:00",
+    "updated_at": "2026-05-14T18:20:45.271394+00:00",
     "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/okx/latest/en.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/okx/1/en.html"
   },
   "1QzMXF8YpCWv5mUDxHWFCvrGXnOL8OLRD": {
     "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
@@ -8835,7 +8835,7 @@
   },
   "1XhCgECpP9MEkIKaUkVrX0aPtGL1dCY6K": {
     "error": null,
-    "finished_at": "2026-05-14T16:39:39.063023+00:00",
+    "finished_at": "2026-05-14T18:22:53.811774+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T16:09:13.000Z",
@@ -8857,11 +8857,11 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/mat/OKX_MAT_jp.pdf",
-    "started_at": "2026-05-14T16:39:29.332492+00:00",
+    "started_at": "2026-05-14T18:22:41.060848+00:00",
     "status": "review_ready",
-    "updated_at": "2026-05-14T16:39:39.063038+00:00",
+    "updated_at": "2026-05-14T18:22:53.811787+00:00",
     "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/okx/latest/ja.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/okx/1/ja.html"
   },
   "1XklCFO_krqrILLH_nyJ8Cgp28Yjw07GZ": {
     "error": null,
@@ -9838,7 +9838,7 @@
   },
   "1ajaoDU8AgLqMXdHzI23Jq2p5n04xX9ak": {
     "error": null,
-    "finished_at": "2026-05-14T16:37:58.198681+00:00",
+    "finished_at": "2026-05-14T18:21:05.449679+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T16:24:49.000Z",
@@ -9860,11 +9860,11 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/OKX_ECON_cn.pdf",
-    "started_at": "2026-05-14T16:37:54.777588+00:00",
+    "started_at": "2026-05-14T18:20:58.029680+00:00",
     "status": "review_ready",
-    "updated_at": "2026-05-14T16:37:58.198697+00:00",
+    "updated_at": "2026-05-14T18:21:05.449693+00:00",
     "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/okx/latest/zh.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/okx/1/zh.html"
   },
   "1akMCEIo7MlJps5aSbX9sHvmoHYSxjUeV": {
     "error": null,
