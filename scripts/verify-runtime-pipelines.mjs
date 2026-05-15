@@ -143,6 +143,18 @@ assertContains('package.json', '"verify:runtime-pipelines"', 'package script ver
 assertContains('.github/workflows/ci.yml', 'npm run verify:runtime-pipelines', 'CI runs runtime pipeline verification')
 assertContains('.github/workflows/slide-pipeline-cron.yml', 'npm run verify:runtime-pipelines', 'Slide workflow verifies runtime manifest before execution')
 
+const slideWorkflow = read('.github/workflows/slide-pipeline-cron.yml')
+for (const localOnlyPaperclipEnv of [
+  'PAPERCLIP_API_URL',
+  'PAPERCLIP_API_KEY',
+  'PAPERCLIP_AGENT_TOKEN',
+  'PAPERCLIP_TOKEN',
+]) {
+  if (slideWorkflow.includes(localOnlyPaperclipEnv)) {
+    fail(`Slide workflow must not inject ${localOnlyPaperclipEnv}; GitHub Actions cannot depend on local Paperclip`)
+  }
+}
+
 if (exists('.github/workflows/production-deploy.yml')) {
   assertContains(
     '.github/workflows/production-deploy.yml',
