@@ -129,6 +129,10 @@ jobs:
         if: steps.gate.outputs.should_run == 'true'
         run: npm run verify:runtime-pipelines
 
+      - name: Verify report publication policy
+        if: steps.gate.outputs.should_run == 'true'
+        run: npm run verify:report-publication-policy
+
       - name: Set up Python
         if: steps.gate.outputs.should_run == 'true'
         uses: actions/setup-python@v5

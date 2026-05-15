@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "jest",
     "verify:runtime-pipelines": "node scripts/verify-runtime-pipelines.mjs",
+    "verify:report-publication-policy": "node scripts/verify-report-publication-policy.mjs",
     "verify:pipeline": "node scripts/verify-website-pipeline.mjs"
   },
   "dependencies": {
