@@ -39,14 +39,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         .eq('report_type', 'forensic')
         .in('status', ['published', 'in_review'])
         .not('card_data', 'is', null)
+        .not('slide_html_urls_by_lang', 'is', null)
         .order('updated_at', { ascending: false })
-        .limit(40),
+        .limit(8),
     ])
     featuredProducts = productsRes.data || []
     categories = categoriesRes.data || []
-    forensicReports = (forensicRes.data || [])
-      .filter((report) => reportSupportsLocale(report, locale))
-      .slice(0, 8)
+    forensicReports = (forensicRes.data || []).filter((report) => reportSupportsLocale(report, locale))
   } catch (e) {
     console.error('Failed to fetch data:', e)
   }

@@ -37,6 +37,26 @@ function hasLocalizedAsset(report: Partial<ProjectReport>, locale: string): bool
     || hasNonEmptyValue(slideUrls?.[locale])
 }
 
+function hasLocalizedSlideAsset(report: Partial<ProjectReport>, locale: string): boolean {
+  const slideUrls = report.slide_html_urls_by_lang as Record<string, unknown> | undefined
+  return hasNonEmptyValue(slideUrls?.[locale])
+}
+
+export function reportHasSlideAssetForLocale(
+  report: Partial<ProjectReport>,
+  locale: string,
+): boolean {
+  if (!locale) {
+    return true
+  }
+
+  if (hasLocalizedSlideAsset(report, locale)) {
+    return true
+  }
+
+  return ENGLISH_ASSET_FALLBACK_LOCALES.has(locale) && hasLocalizedSlideAsset(report, 'en')
+}
+
 export function reportSupportsLocale(report: ProjectReport, locale: string): boolean {
   if (!locale) {
     return true

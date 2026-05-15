@@ -12,6 +12,7 @@
     {
       "key": "econ-report-publishing",
       "paperclipName": "ECON Report Publishing",
+      "statePage": "knowledge/pipelines/econ.md",
       "owner": "CRO",
       "status": "active",
       "cadence": {
@@ -25,6 +26,64 @@
         {
           "key": "source_collection",
           "paperclipLabel": "Slide PDF intake",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/slide-pipeline-cron.yml",
+            "entrypoint": "scripts/pipeline/watch_slides.py",
+            "commandContains": "python3 watch_slides.py",
+            "args": ["--type", "econ"],
+            "localAllowed": ["dry_run", "development"]
+          }
+        },
+        {
+          "key": "research_synthesis",
+          "paperclipLabel": "Analysis source confirmation",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/slide-pipeline-cron.yml",
+            "entrypoint": "scripts/pipeline/watch_slides.py",
+            "commandContains": "python3 watch_slides.py",
+            "localAllowed": ["dry_run", "development"]
+          }
+        },
+        {
+          "key": "draft_report",
+          "paperclipLabel": "Summary and marketing extraction",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/slide-pipeline-cron.yml",
+            "entrypoint": "scripts/pipeline/marketing_content_pipeline.py",
+            "invokedBy": "scripts/pipeline/watch_slides.py",
+            "requiredImport": "from marketing_content_pipeline import build_project_report_patch_from_drive_source",
+            "commandContains": "python3 watch_slides.py",
+            "localAllowed": ["dry_run", "development"]
+          }
+        },
+        {
+          "key": "summary_marketing_localization",
+          "paperclipLabel": "7-language summary and marketing localization",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/slide-pipeline-cron.yml",
+            "entrypoint": "scripts/pipeline/marketing_content_pipeline.py",
+            "invokedBy": "scripts/pipeline/watch_slides.py",
+            "requiredImport": "from marketing_content_pipeline import build_project_report_patch_from_drive_source",
+            "commandContains": "python3 watch_slides.py",
+            "localAllowed": ["dry_run", "development"]
+          }
+        },
+        {
+          "key": "editorial_review",
+          "paperclipLabel": "Publication review",
+          "approvalGate": {
+            "system": "Paperclip",
+            "required": true,
+            "owner": "COO"
+          }
+        },
+        {
+          "key": "website_publish",
+          "paperclipLabel": "Website publishing",
           "execution": {
             "mode": "github_actions",
             "workflow": ".github/workflows/slide-pipeline-cron.yml",
@@ -49,6 +108,7 @@
     {
       "key": "mat-report-publishing",
       "paperclipName": "MAT Report Publishing",
+      "statePage": "knowledge/pipelines/mat.md",
       "extends": "econ-report-publishing",
       "owner": "CRO",
       "status": "active",
@@ -57,10 +117,100 @@
     {
       "key": "for-report-publishing",
       "paperclipName": "FOR Report Publishing",
+      "statePage": "knowledge/pipelines/for.md",
       "extends": "econ-report-publishing",
       "owner": "CRO",
       "status": "active",
       "reportType": "for"
+    },
+    {
+      "key": "bcelab-website-development-and-operations",
+      "paperclipName": "BCELab Website Development and Operations",
+      "statePage": "knowledge/pipelines/website.md",
+      "owner": "CTO",
+      "status": "active",
+      "cadence": {
+        "kind": "change_driven",
+        "postDeployCron": "/api/cron/heartbeat"
+      },
+      "nodes": [
+        {
+          "key": "change_request_intake",
+          "paperclipLabel": "Website change request intake",
+          "execution": {
+            "mode": "paperclip_issue",
+            "localAllowed": ["development"]
+          }
+        },
+        {
+          "key": "impact_and_scope_review",
+          "paperclipLabel": "Impact and scope review",
+          "execution": {
+            "mode": "paperclip_agent",
+            "owner": "CTO",
+            "localAllowed": ["development"]
+          }
+        },
+        {
+          "key": "temporary_workspace_implementation",
+          "paperclipLabel": "Temporary workspace implementation",
+          "execution": {
+            "mode": "isolated_branch_or_workspace",
+            "owner": "FullStackEngineer",
+            "localAllowed": ["development"]
+          }
+        },
+        {
+          "key": "pipeline_definition_alignment",
+          "paperclipLabel": "Pipeline definition alignment check",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/ci.yml",
+            "entrypoint": "scripts/verify-website-pipeline.mjs",
+            "commandContains": "npm run verify:pipeline",
+            "localAllowed": ["development"]
+          }
+        },
+        {
+          "key": "quality_and_build_verification",
+          "paperclipLabel": "Quality and build verification",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/ci.yml",
+            "commandContains": "npm run build",
+            "localAllowed": ["development"]
+          }
+        },
+        {
+          "key": "board_deployment_approval",
+          "paperclipLabel": "Board deployment approval",
+          "approvalGate": {
+            "system": "Paperclip + GitHub production environment",
+            "required": true,
+            "owner": "CEO"
+          }
+        },
+        {
+          "key": "production_deployment",
+          "paperclipLabel": "Production deployment",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/production-deploy.yml",
+            "commandContains": "--prod",
+            "localAllowed": []
+          }
+        },
+        {
+          "key": "post_deploy_monitoring",
+          "paperclipLabel": "Post-deploy monitoring",
+          "execution": {
+            "mode": "vercel_cron",
+            "route": "/api/cron/heartbeat",
+            "entrypoint": "src/app/api/cron/heartbeat/route.ts",
+            "localAllowed": ["development"]
+          }
+        }
+      ]
     }
   ]
 }

@@ -1,5 +1,8 @@
 import { SlideReportPage } from '../_components/SlideReportPage'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 interface Props {
   params: Promise<{ locale: string; slug: string }>
 }
