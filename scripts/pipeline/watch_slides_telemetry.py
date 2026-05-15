@@ -100,11 +100,14 @@ def build_pipeline_run_payload(
     slug: Optional[str],
 ) -> Dict[str, Any]:
     return {
-        'pipeline_name': _pipeline_name_from_env(rtype),
+        'pipeline_name': 'slide-pipeline',
+        'paperclip_pipeline_name': _pipeline_name_from_env(rtype),
         'report_type': rtype,
-        'project_slug': slug,
+        'project_slug': slug or '__all__',
+        'version': 1,
         'status': 'processing',
         'trigger_type': 'schedule' if os.environ.get('GITHUB_ACTIONS') else 'manual',
+        'summary': f"{rtype.upper()} slide watcher started",
         'started_at': _pipeline_utc_now(),
         'dry_run': dry_run,
         'force': force,
@@ -136,7 +139,7 @@ def build_pipeline_node_run_payload(
     now = _pipeline_utc_now()
     return {
         'pipeline_run_id': pipeline_run_id,
-        'pipeline_name': _pipeline_name_from_env(rtype),
+        'pipeline_name': 'slide-pipeline',
         'node_key': stage_key,
         'node_name': stage_name,
         'status': status,
@@ -162,7 +165,7 @@ def build_pipeline_event_payload(
 ) -> Dict[str, Any]:
     return {
         'pipeline_run_id': pipeline_run_id,
-        'pipeline_name': _pipeline_name_from_env(rtype),
+        'pipeline_name': 'slide-pipeline',
         'event_type': 'slide_watcher.completed',
         'severity': 'error' if status == 'failed' else 'warning' if status == 'waiting_manual' else 'info',
         'message': (
@@ -206,7 +209,7 @@ def _pipeline_status_for_counts(metrics: Dict[str, int]) -> str:
         return 'failed'
     if metrics.get('blocked', 0) > 0 or metrics.get('unresolved', 0) > 0:
         return 'waiting_manual'
-    return 'published'
+    return 'done'
 
 
 class RemotePipelineState:
@@ -334,8 +337,15 @@ class RemotePipelineState:
                     'status': status,
                     'completed_at': _pipeline_utc_now(),
                     'languages_completed': metrics,
-                    'log_artifact_path': log_path,
-                    'error_detail': None if status == 'published' else (
+                    'artifact_path': log_path,
+                    'summary': (
+                        f"{rtype.upper()} slide watcher completed: "
+                        f"scanned={metrics['scanned']} processed={metrics['processed']} "
+                        f"published={metrics['published']} unresolved={metrics['unresolved']} "
+                        f"failed={metrics['failed']}"
+                    ),
+                    'metrics': metrics,
+                    'error_detail': None if status == 'done' else (
                         f"scanned={metrics['scanned']} processed={metrics['processed']} "
                         f"unresolved={metrics['unresolved']} failed={metrics['failed']}"
                     ),

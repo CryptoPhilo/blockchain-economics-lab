@@ -2710,7 +2710,8 @@ def test_build_paperclip_run_payload_has_expected_metadata(ws, monkeypatch):
         slug='bitcoin',
     )
 
-    assert payload['pipeline_name'] == 'ECON Report Publishing'
+    assert payload['pipeline_name'] == 'slide-pipeline'
+    assert payload['paperclip_pipeline_name'] == 'ECON Report Publishing'
     assert payload['report_type'] == 'econ'
     assert payload['status'] == 'processing'
     assert payload['trigger_type'] == 'manual'
@@ -2775,7 +2776,7 @@ def test_paperclip_counts_and_event_payload_include_required_metrics(ws):
     assert status == 'failed'
     assert payload['pipeline_run_id'] == 'run-1'
     assert payload['severity'] == 'error'
-    assert payload['pipeline_name'] == 'ECON Report Publishing'
+    assert payload['pipeline_name'] == 'slide-pipeline'
     assert payload['details']['metrics']['published'] == 1
     assert payload['details']['logArtifactPath'] == 'logs/slide_pipeline/20260510_120000.md'
 
@@ -2834,7 +2835,8 @@ def test_paperclip_telemetry_start_and_complete_builds_expected_calls(ws, monkey
 
     assert calls[0][0:2] == ('POST', 'pipeline_runs')
     assert calls[0][2]['metadata']['reportType'] == 'econ'
-    assert calls[0][2]['pipeline_name'] == 'ECON Report Publishing'
+    assert calls[0][2]['pipeline_name'] == 'slide-pipeline'
+    assert calls[0][2]['paperclip_pipeline_name'] == 'ECON Report Publishing'
 
     node_run_calls = [call for call in calls if call[1] == 'pipeline_node_runs']
     assert len(node_run_calls) == len(ws.PAPERCLIP_NODE_STAGES)
@@ -2854,6 +2856,7 @@ def test_paperclip_telemetry_start_and_complete_builds_expected_calls(ws, monkey
     assert patch_call[1] == 'pipeline_runs'
     assert patch_call[2]['status'] == 'waiting_manual'
     assert patch_call[2]['languages_completed']['published'] == 1
+    assert patch_call[2]['artifact_path'] == 'logs/slide_pipeline/20260510_120000.md'
     assert patch_call[2]['metadata']['source'] == 'watch_slides.py'
     assert patch_call[3] == '?id=eq.run-econ'
 
