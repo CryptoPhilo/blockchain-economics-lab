@@ -1,10 +1,14 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+import { getLocalizedMarketingContent } from '@/lib/report-marketing-content'
 import { cleanCardSummary } from '@/lib/report-summary'
 import { pickLocaleReport, reportSupportsLocale } from '@/lib/report-locale'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import type { ProjectReport, ReportType, TrackedProject } from '@/lib/types'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>
@@ -250,6 +254,7 @@ export default async function ProjectDetailPage({ params }: Props) {
               const typeLabel = isKo ? theme.labelKo : theme.labelEn
               const title = pickLocalizedTitle(report, locale, project.symbol)
               const summary = pickLocalizedSummary(report, locale)
+              const marketingContent = getLocalizedMarketingContent(report, locale, summary)
               const href = buildReportHref(locale, project.slug, report.report_type)
               const publishedAt = report.published_at
                 ? new Date(report.published_at).toLocaleDateString(dateLocale, {
@@ -280,6 +285,17 @@ export default async function ProjectDetailPage({ params }: Props) {
                     <p className="text-sm text-gray-400 leading-relaxed mb-6 line-clamp-3 flex-1">
                       {summary}
                     </p>
+                  )}
+
+                  {marketingContent && (
+                    <div className="mb-6 rounded-xl border border-white/10 bg-gray-950/40 px-4 py-3">
+                      <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">
+                        {isKo ? '투자 관점' : 'Investment View'}
+                      </p>
+                      <p className="line-clamp-3 text-sm leading-relaxed text-gray-300">
+                        {marketingContent}
+                      </p>
+                    </div>
                   )}
 
                   {/* Footer */}

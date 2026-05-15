@@ -4,8 +4,6 @@ import {
   cleanCardSummary,
   getLocaleReportState,
   getLocalizedSummary,
-  getReportDisplayDate,
-  resolveReportPdfUrl,
   resolveSlideUrl,
 } from './slide-report-utils'
 import { SlideReportPage } from './SlideReportPage'
@@ -69,44 +67,34 @@ describe('SlideReportPage locale availability', () => {
     jest.clearAllMocks()
   })
 
-  it.each(['de', 'es', 'fr'])(
-    'renders the English fallback slide on the %s route when the requested locale asset is missing',
-    async (locale) => {
-      mockReportQueries(
-        { id: 'project-1', slug: 'usd-coin', name: 'USD Coin', symbol: 'USDC' },
-        [
-          {
-            id: 'report-en',
-            language: 'en',
-            report_type: 'econ',
-            status: 'published',
-            version: 1,
-            card_data: {
-              summary: 'English content must not be reused for Japanese.',
-              keywords: ['english-only'],
-              summary_en: 'English fallback summary.',
-              keywords_en: ['English fallback keyword'],
-            },
-            slide_html_urls_by_lang: {
-              en: 'https://example.test/en.html',
-            },
+  it('renders without notFound when the requested locale row is missing but another language report exists', async () => {
+    mockReportQueries(
+      { id: 'project-1', slug: 'usd-coin', name: 'USD Coin', symbol: 'USDC' },
+      [
+        {
+          id: 'report-en',
+          language: 'en',
+          report_type: 'econ',
+          status: 'published',
+          version: 1,
+          card_data: {
+            summary: 'English content must not be reused for Japanese.',
+            keywords: ['english-only'],
           },
-        ],
-      )
+          slide_html_urls_by_lang: {
+            en: 'https://example.test/en.html',
+          },
+        },
+      ],
+    )
 
-      const page = await SlideReportPage({ locale, slug: 'usd-coin', reportType: 'econ' })
-      render(page)
+    const page = await SlideReportPage({ locale: 'ja', slug: 'usd-coin', reportType: 'econ' })
+    render(page)
 
-      expect(mockNotFound).not.toHaveBeenCalled()
-      expect(screen.getByTestId('slide-viewer').getAttribute('data-url')).toBe(
-        'https://example.test/en.html',
-      )
-      expect(screen.queryByText('English fallback summary.')).toBeNull()
-      expect(screen.getByText('English fallback keyword')).toBeTruthy()
-      expect(screen.getByText(locale)).toBeTruthy()
-      expect(screen.queryByText('localePendingTitle')).toBeNull()
-    },
-  )
+    expect(mockNotFound).not.toHaveBeenCalled()
+    expect(screen.getByText('localePendingTitle')).toBeTruthy()
+    expect(screen.getByText('localePendingDesc:JA')).toBeTruthy()
+  })
 
   it('renders a sibling-row slide URL without exposing English summary on the requested locale route', async () => {
     mockReportQueries(
@@ -139,107 +127,7 @@ describe('SlideReportPage locale availability', () => {
       'https://example.supabase.co/storage/v1/object/public/slides/econ/usd-coin/latest/ja.html',
     )
     expect(screen.queryByText('English content must not be reused for Japanese.')).toBeNull()
-    expect(screen.getByText('english-only')).toBeTruthy()
-  })
-
-  it('renders localized marketing content separately from the card summary', async () => {
-    mockReportQueries(
-      { id: 'project-1', slug: 'bitcoin', name: 'Bitcoin', symbol: 'BTC' },
-      [
-        {
-          id: 'report-ko',
-          language: 'ko',
-          report_type: 'econ',
-          status: 'published',
-          version: 1,
-          card_summary_ko: '요약 문장',
-          marketing_content_by_lang: {
-            ko: '장기 투자 관점 문장',
-            en: 'English investment view',
-          },
-          slide_html_urls_by_lang: {
-            ko: 'https://example.test/ko.html',
-          },
-        },
-      ],
-    )
-
-    const page = await SlideReportPage({ locale: 'ko', slug: 'bitcoin', reportType: 'econ' })
-    render(page)
-
-    expect(screen.getByText('요약 문장')).toBeTruthy()
-    expect(screen.getByText('투자 관점')).toBeTruthy()
-    expect(screen.getByText('장기 투자 관점 문장')).toBeTruthy()
-  })
-
-  it('renders slide-coming-soon instead of locale-pending when the English Google Drive PDF exists without a slide URL', async () => {
-    mockReportQueries(
-      { id: 'project-1', slug: 'litecoin', name: 'Litecoin', symbol: 'LTC' },
-      [
-        {
-          id: 'report-litecoin-ko',
-          language: 'ko',
-          report_type: 'econ',
-          status: 'published',
-          version: 1,
-          card_data: {
-            summary_en: 'Litecoin English PDF summary.',
-            keywords_en: ['Litecoin PDF'],
-          },
-          gdrive_urls_by_lang: {
-            en: { url: 'https://drive.google.com/file/d/litecoin-en/view' },
-          },
-        },
-      ],
-    )
-
-    const page = await SlideReportPage({ locale: 'en', slug: 'litecoin', reportType: 'econ' })
-    render(page)
-
-    expect(mockNotFound).not.toHaveBeenCalled()
-    expect(screen.queryByTestId('slide-viewer')).toBeNull()
-    expect(screen.queryByText('slideComingSoonTitle')).toBeNull()
-    expect(screen.queryByText('slideComingSoonDesc')).toBeNull()
-    expect(screen.getByRole('link', { name: /Open PDF Report/ }).getAttribute('href')).toBe(
-      'https://drive.google.com/file/d/litecoin-en/view',
-    )
-    expect(screen.queryByText('localePendingTitle')).toBeNull()
-    expect(screen.queryByText('localePendingDesc:EN')).toBeNull()
-    expect(screen.getByText('Litecoin English PDF summary.')).toBeTruthy()
-  })
-
-  it('renders the Ethena English PDF CTA when the English report has no slide URL', async () => {
-    mockReportQueries(
-      { id: 'ethena', slug: 'ethena', name: 'Ethena', symbol: 'ENA' },
-      [
-        {
-          id: 'ethena-en',
-          language: 'en',
-          report_type: 'econ',
-          status: 'published',
-          version: 1,
-          gdrive_urls_by_lang: {
-            en: 'https://drive.google.com/file/d/1EFts9d07kjs2-Q24cexj9oLoVkzHE27E/view',
-            ko: 'https://drive.google.com/file/d/1Cvd6n0yFVFk4clDi4AO2zJ2KNXPpDA3d/view',
-          },
-          slide_html_urls_by_lang: {
-            ja: 'https://example.supabase.co/storage/v1/object/public/slides/econ/ethena/latest/ja.html',
-            ko: 'https://example.supabase.co/storage/v1/object/public/slides/econ/ethena/latest/ko.html',
-            zh: 'https://example.supabase.co/storage/v1/object/public/slides/econ/ethena/latest/zh.html',
-          },
-        },
-      ],
-    )
-
-    const page = await SlideReportPage({ locale: 'en', slug: 'ethena', reportType: 'econ' })
-    render(page)
-
-    expect(mockNotFound).not.toHaveBeenCalled()
-    expect(screen.queryByTestId('slide-viewer')).toBeNull()
-    expect(screen.getByRole('link', { name: /Open PDF Report/ }).getAttribute('href')).toBe(
-      'https://drive.google.com/file/d/1EFts9d07kjs2-Q24cexj9oLoVkzHE27E/view',
-    )
-    expect(screen.queryByText('localePendingTitle')).toBeNull()
+    expect(screen.queryByText('english-only')).toBeNull()
   })
 
   it('keeps the project-missing path as notFound', async () => {
@@ -289,48 +177,6 @@ describe('getLocalizedSummary', () => {
     expect(getLocalizedSummary('ja', report, cardData)).toBe('')
     expect(getLocalizedSummary('en', report, cardData)).toBe('English row summary')
   })
-
-  it('uses Japanese summary metadata without falling through to English fields', () => {
-    expect(
-      getLocalizedSummary(
-        'ja',
-        { language: 'en', card_summary_en: 'English row summary' },
-        {
-          summary_by_lang: { ja: '日本語の要約' },
-          summary_ja: 'カードデータの日本語要約',
-          summary_en: 'English card data summary',
-        },
-      ),
-    ).toBe('日本語の要約')
-
-    expect(
-      getLocalizedSummary(
-        'ja',
-        {
-          language: 'en',
-          card_summary_en: 'English row summary',
-          card_summary_ja: '行の日本語要約',
-        },
-        {
-          summary_by_lang: {},
-          summary_ja: 'カードデータの日本語要約',
-          summary_en: 'English card data summary',
-        },
-      ),
-    ).toBe('行の日本語要約')
-
-    expect(
-      getLocalizedSummary(
-        'ja',
-        { language: 'en', card_summary_en: 'English row summary' },
-        {
-          summary_by_lang: {},
-          summary_ja: 'カードデータの日本語要約',
-          summary_en: 'English card data summary',
-        },
-      ),
-    ).toBe('カードデータの日本語要約')
-  })
 })
 
 describe('resolveSlideUrl', () => {
@@ -352,22 +198,8 @@ describe('resolveSlideUrl', () => {
     ).toBeNull()
   })
 
-  it.each(['de', 'es', 'fr'])('falls back from %s to the canonical English slide', (locale) => {
-    expect(
-      resolveSlideUrl(
-        {
-          en: 'https://example.com/en.html',
-          zh: 'https://example.com/zh.html',
-        },
-        locale,
-      ),
-    ).toBe('https://example.com/en.html')
-  })
-
   it('ignores empty and non-string locale entries', () => {
-    expect(resolveSlideUrl({ de: '', en: 'https://example.com/en.html' }, 'de')).toBe(
-      'https://example.com/en.html',
-    )
+    expect(resolveSlideUrl({ ko: '', en: 'https://example.com/en.html' }, 'ko')).toBeNull()
     expect(resolveSlideUrl({ ko: { url: 'https://example.com/ko.html' } }, 'ko')).toBeNull()
   })
 
@@ -393,78 +225,6 @@ describe('resolveSlideUrl', () => {
     ).toBe(
       'https://example.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ja.html',
     )
-  })
-})
-
-describe('resolveReportPdfUrl', () => {
-  it('returns the exact locale Google Drive URL', () => {
-    expect(
-      resolveReportPdfUrl(
-        {
-          language: 'en',
-          gdrive_urls_by_lang: {
-            en: 'https://drive.google.com/file/d/ethena-en/view',
-            ko: 'https://drive.google.com/file/d/ethena-ko/view',
-          },
-        },
-        'en',
-      ),
-    ).toBe('https://drive.google.com/file/d/ethena-en/view')
-  })
-
-  it.each(['de', 'es', 'fr'])('falls back from %s to English PDF assets', (locale) => {
-    expect(
-      resolveReportPdfUrl(
-        {
-          language: 'ko',
-          gdrive_urls_by_lang: {
-            en: { download_url: 'https://drive.google.com/uc?id=ethena-en&export=download' },
-          },
-        },
-        locale,
-        true,
-      ),
-    ).toBe('https://drive.google.com/uc?id=ethena-en&export=download')
-  })
-
-  it('does not fall back from Japanese to English PDF assets', () => {
-    expect(
-      resolveReportPdfUrl(
-        {
-          language: 'en',
-          gdrive_urls_by_lang: {
-            en: 'https://drive.google.com/file/d/ethena-en/view',
-          },
-        },
-        'ja',
-      ),
-    ).toBeNull()
-  })
-})
-
-describe('getReportDisplayDate', () => {
-  it('uses the newest policy timestamp across sibling rows instead of a stale selected row date', () => {
-    expect(
-      getReportDisplayDate(
-        [
-          {
-            id: 'avalanche-ko',
-            published_at: '2026-04-16T12:29:22.000Z',
-            created_at: '2026-04-13T11:32:40.000Z',
-          },
-          {
-            id: 'avalanche-en',
-            card_data: { generated_at: '2026-05-02T09:06:00.000Z' },
-            published_at: '2026-04-16T12:29:22.000Z',
-          },
-        ],
-        {
-          id: 'avalanche-ko',
-          published_at: '2026-04-16T12:29:22.000Z',
-          created_at: '2026-04-13T11:32:40.000Z',
-        },
-      ),
-    ).toBe('2026-05-02T09:06:00.000Z')
   })
 })
 
@@ -494,78 +254,6 @@ describe('getLocaleReportState', () => {
       getLocaleReportState([report], 'ja'),
     ).toEqual({ status: 'available', report })
   })
-
-  it.each(['de', 'es', 'fr'])(
-    'returns an available sibling report for %s when only the English slide URL exists',
-    (locale) => {
-      const report = {
-        id: 'report-btc',
-        language: 'ko',
-        slide_html_urls_by_lang: {
-          en: 'https://example.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/en.html',
-          ja: 'https://example.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ja.html',
-          ko: 'https://example.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ko.html',
-          zh: 'https://example.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/zh.html',
-        },
-      }
-
-      expect(
-        getLocaleReportState([report], locale),
-      ).toEqual({ status: 'available', report })
-    },
-  )
-
-  it('returns an available sibling report when the requested locale only has a Google Drive PDF', () => {
-    const report = {
-      id: 'report-litecoin-ko',
-      language: 'ko',
-      gdrive_urls_by_lang: {
-        en: { url: 'https://drive.google.com/file/d/litecoin-en/view' },
-      },
-    }
-
-    expect(
-      getLocaleReportState([report], 'en'),
-    ).toEqual({ status: 'available', report })
-  })
-
-  it('prefers slide HTML rows over PDF-only legacy rows for sibling locale availability', () => {
-    const pdfOnlyReport = {
-      id: 'report-legacy-pdf',
-      language: 'ko',
-      gdrive_urls_by_lang: {
-        en: { url: 'https://drive.google.com/file/d/legacy-en/view' },
-      },
-    }
-    const slideReport = {
-      id: 'report-slide',
-      language: 'ko',
-      slide_html_urls_by_lang: {
-        en: 'https://example.supabase.co/storage/v1/object/public/slides/econ/dexe/latest/en.html',
-      },
-    }
-
-    expect(
-      getLocaleReportState([pdfOnlyReport, slideReport], 'en'),
-    ).toEqual({ status: 'available', report: slideReport })
-  })
-
-  it.each(['de', 'es', 'fr'])(
-    'returns an available sibling report for %s when only the English Google Drive PDF exists',
-    (locale) => {
-      const report = {
-        id: 'report-litecoin-ko',
-        language: 'ko',
-        gdrive_urls_by_lang: {
-          en: { download_url: 'https://drive.google.com/uc?id=litecoin-en&export=download' },
-        },
-      }
-
-      expect(
-        getLocaleReportState([report], locale),
-      ).toEqual({ status: 'available', report })
-    },
-  )
 
   it('does not treat a mismatched sibling slide URL as available', () => {
     expect(

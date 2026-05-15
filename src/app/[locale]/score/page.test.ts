@@ -1,6 +1,8 @@
 import {
+  buildReportAvailabilityByProjectId,
   buildTrackedProjectLookup,
   canonicalSnapshotRowsToScoreRows,
+  fetchVisibleReportsForScoreboard,
   hasCompleteCmcCanonicalTop200Snapshot,
   MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS,
   snapshotRowsToScoreRows,
@@ -291,6 +293,234 @@ describe('score page tracked project aliases', () => {
         econ: null,
         maturity: null,
         forensic: null,
+      },
+    })
+  })
+})
+
+describe('score page report availability policy', () => {
+  it('uses the injected server-side report client when reading scoreboard availability', async () => {
+    const query = {
+      select: jest.fn().mockReturnThis(),
+      in: jest.fn().mockReturnThis(),
+      then: undefined,
+    }
+    query.in
+      .mockReturnValueOnce(query)
+      .mockReturnValueOnce(query)
+      .mockResolvedValueOnce({
+        data: [
+          {
+            project_id: 'bitcoin-project',
+            report_type: 'econ',
+            language: 'ko',
+            published_at: '2026-05-01T00:00:00.000Z',
+            gdrive_urls_by_lang: {
+              ko: { url: 'https://drive.google.com/file/d/bitcoin-ko/view' },
+            },
+          },
+        ],
+        error: null,
+      })
+    const reportSupabase = {
+      from: jest.fn().mockReturnValue(query),
+    }
+
+    const result = await fetchVisibleReportsForScoreboard(
+      ['bitcoin-project'],
+      reportSupabase as never,
+    )
+
+    expect(reportSupabase.from).toHaveBeenCalledWith('project_reports')
+    expect(query.in).toHaveBeenNthCalledWith(1, 'project_id', ['bitcoin-project'])
+    expect(query.in).toHaveBeenNthCalledWith(2, 'report_type', ['econ', 'maturity', 'forensic'])
+    expect(query.in).toHaveBeenNthCalledWith(3, 'status', ['published', 'coming_soon', 'in_review'])
+    expect(result.loaded).toBe(true)
+    expect(result.reports).toHaveLength(1)
+  })
+
+  it('counts PDF-only localized reports as available for scoreboard badges', () => {
+    const availability = buildReportAvailabilityByProjectId([
+      {
+        project_id: 'dexe-project',
+        report_type: 'econ',
+        language: 'en',
+        published_at: '2026-05-01T00:00:00.000Z',
+        gdrive_urls_by_lang: {
+          en: { url: 'https://drive.google.com/file/d/dexe-en/view' },
+        },
+        slide_html_urls_by_lang: null,
+      },
+    ], 'en')
+
+    expect(availability.get('dexe-project')).toEqual({
+      reportTypes: ['econ'],
+      reportDates: {
+        econ: '2026-05-01T00:00:00.000Z',
+        maturity: null,
+        forensic: null,
+      },
+    })
+  })
+
+  it('does not count reports without an asset for the requested locale', () => {
+    const availability = buildReportAvailabilityByProjectId([
+      {
+        project_id: 'alpha-project',
+        report_type: 'econ',
+        language: 'zh',
+        published_at: '2026-05-01T00:00:00.000Z',
+        gdrive_urls_by_lang: {
+          zh: { url: 'https://drive.google.com/file/d/alpha-zh/view' },
+        },
+        slide_html_urls_by_lang: null,
+      },
+    ], 'ko')
+
+    expect(availability.has('alpha-project')).toBe(false)
+  })
+
+  it('renders active ECON availability for Bitcoin when a Korean localized asset exists', () => {
+    const trackedProjects = [
+      {
+        id: 'bitcoin-project',
+        name: 'Bitcoin',
+        slug: 'bitcoin',
+        symbol: 'BTC',
+        category: 'L1',
+        market_cap_usd: 100,
+        coingecko_id: 'bitcoin',
+        cmc_id: 'bitcoin',
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const availability = buildReportAvailabilityByProjectId([
+      {
+        project_id: 'bitcoin-project',
+        report_type: 'econ',
+        language: 'ko',
+        published_at: '2026-05-01T00:00:00.000Z',
+        gdrive_urls_by_lang: {
+          ko: { url: 'https://drive.google.com/file/d/bitcoin-ko/view' },
+        },
+      },
+    ], 'ko')
+
+    const [row] = snapshotRowsToScoreRows(
+      [makeSnapshotRow(1, 'bitcoin')],
+      buildTrackedProjectLookup(trackedProjects),
+      availability,
+    )
+
+    expect(row).toMatchObject({
+      slug: 'bitcoin',
+      reportTypes: ['econ'],
+      reportDates: {
+        econ: '2026-05-01T00:00:00.000Z',
+      },
+    })
+  })
+
+  it('renders active ECON availability for Aave when an English localized asset exists', () => {
+    const trackedProjects = [
+      {
+        id: 'aave-project',
+        name: 'Aave',
+        slug: 'aave',
+        symbol: 'AAVE',
+        category: 'DeFi',
+        market_cap_usd: 100,
+        coingecko_id: 'aave',
+        cmc_id: 'aave',
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const availability = buildReportAvailabilityByProjectId([
+      {
+        project_id: 'aave-project',
+        report_type: 'econ',
+        language: 'en',
+        published_at: '2026-05-02T00:00:00.000Z',
+        gdrive_urls_by_lang: {
+          en: { url: 'https://drive.google.com/file/d/aave-en/view' },
+        },
+      },
+    ], 'en')
+
+    const [row] = snapshotRowsToScoreRows(
+      [makeSnapshotRow(48, 'aave')],
+      buildTrackedProjectLookup(trackedProjects),
+      availability,
+    )
+
+    expect(row).toMatchObject({
+      slug: 'aave',
+      reportTypes: ['econ'],
+      reportDates: {
+        econ: '2026-05-02T00:00:00.000Z',
+      },
+    })
+  })
+
+  it('renders OKX ECON and MAT badges when localized assets exist', () => {
+    const trackedProjects = [
+      {
+        id: 'okx-project',
+        name: 'OKX',
+        slug: 'okx',
+        symbol: 'OKB',
+        category: 'Exchange',
+        market_cap_usd: 100,
+        coingecko_id: 'okb',
+        cmc_id: 'okb',
+        aliases: ['okx'],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const availability = buildReportAvailabilityByProjectId([
+      {
+        project_id: 'okx-project',
+        report_type: 'econ',
+        language: 'ko',
+        published_at: '2026-05-14T10:00:00.000Z',
+        gdrive_urls_by_lang: {
+          ko: { url: 'https://drive.google.com/file/d/okx-econ-ko/view' },
+        },
+      },
+      {
+        project_id: 'okx-project',
+        report_type: 'maturity',
+        language: 'ko',
+        published_at: '2026-05-14T11:00:00.000Z',
+        slide_html_urls_by_lang: {
+          ko: 'https://www.bcelab.xyz/reports/okx/maturity',
+        },
+      },
+    ], 'ko')
+
+    const [row] = snapshotRowsToScoreRows(
+      [makeSnapshotRow(39, 'okx')],
+      buildTrackedProjectLookup(trackedProjects),
+      availability,
+    )
+
+    expect(row).toMatchObject({
+      slug: 'okx',
+      reportTypes: ['econ', 'maturity'],
+      reportDates: {
+        econ: '2026-05-14T10:00:00.000Z',
+        maturity: '2026-05-14T11:00:00.000Z',
       },
     })
   })

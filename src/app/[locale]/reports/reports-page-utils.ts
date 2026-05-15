@@ -1,8 +1,8 @@
 import type { ProjectReport } from '@/lib/types'
 import { reportSupportsLocale } from '@/lib/report-locale'
 
-function getEffectiveTimestamp(report: Pick<ProjectReport, 'published_at' | 'created_at'>): number {
-  const source = report.published_at || report.created_at
+function getEffectiveTimestamp(report: Pick<ProjectReport, 'published_at' | 'created_at' | 'updated_at'>): number {
+  const source = report.published_at || report.updated_at || report.created_at
 
   if (!source) {
     return Number.NEGATIVE_INFINITY
@@ -13,11 +13,13 @@ function getEffectiveTimestamp(report: Pick<ProjectReport, 'published_at' | 'cre
 }
 
 function getStatusRank(report: Pick<ProjectReport, 'status'>): number {
-  return report.status === 'published' ? 1 : 0
+  if (report.status === 'published') return 2
+  if (report.status === 'in_review') return 1
+  return 0
 }
 
 function isRapidChangeCandidate(report: ProjectReport): boolean {
-  return report.status === 'coming_soon' && report.report_type === 'forensic'
+  return (report.status === 'coming_soon' || report.status === 'in_review') && report.report_type === 'forensic'
 }
 
 function compareRapidChangeReports(a: ProjectReport, b: ProjectReport): number {
@@ -33,9 +35,11 @@ function compareRapidChangeReports(a: ProjectReport, b: ProjectReport): number {
 
   const createdAtDelta = getEffectiveTimestamp({
     published_at: undefined,
+    updated_at: undefined,
     created_at: a.created_at,
   }) - getEffectiveTimestamp({
     published_at: undefined,
+    updated_at: undefined,
     created_at: b.created_at,
   })
   if (createdAtDelta !== 0) {

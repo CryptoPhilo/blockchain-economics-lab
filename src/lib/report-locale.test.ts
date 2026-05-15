@@ -1,4 +1,4 @@
-import { pickLocaleReport, reportSupportsLocale } from './report-locale'
+import { pickLocaleReport, reportHasSlideAssetForLocale, reportSupportsLocale } from './report-locale'
 import type { ProjectReport } from './types'
 
 function createReport(overrides: Partial<ProjectReport> = {}): ProjectReport {
@@ -81,6 +81,26 @@ describe('report locale helpers', () => {
     expect(pickLocaleReport([report], 'de')).toBe(report)
     expect(pickLocaleReport([report], 'es')).toBe(report)
     expect(pickLocaleReport([report], 'fr')).toBe(report)
+  })
+
+  it('distinguishes slide HTML availability from legacy PDF-only locale assets', () => {
+    const pdfOnlyReport = createReport({
+      language: 'ko',
+      gdrive_urls_by_lang: {
+        en: { url: 'https://drive.google.com/file/d/report-en/view' },
+      },
+    } as Partial<ProjectReport>)
+    const slideReport = createReport({
+      language: 'ko',
+      slide_html_urls_by_lang: {
+        en: 'https://example.com/en.html',
+      },
+    })
+
+    expect(reportSupportsLocale(pdfOnlyReport, 'en')).toBe(true)
+    expect(reportHasSlideAssetForLocale(pdfOnlyReport, 'en')).toBe(false)
+    expect(reportHasSlideAssetForLocale(slideReport, 'en')).toBe(true)
+    expect(reportHasSlideAssetForLocale(slideReport, 'de')).toBe(true)
   })
 
   it('still prefers exact locale rows over asset-bearing sibling rows', () => {

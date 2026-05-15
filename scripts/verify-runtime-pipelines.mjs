@@ -29,6 +29,14 @@ function fail(message) {
   failures.push(message)
 }
 
+function basename(file) {
+  return path.basename(file)
+}
+
+function moduleName(file) {
+  return basename(file).replace(/\.[^.]+$/, '')
+}
+
 function routeToFile(route) {
   return route.replace(/^\/api\//, 'src/app/api/').replace(/$/, '/route.ts')
 }
@@ -45,6 +53,67 @@ function assertContains(file, needle, label) {
   }
   if (read(file).includes(needle)) pass(label)
   else fail(`${label}: ${file} does not contain ${needle}`)
+}
+
+function assertEntrypointWorkflowRelationship(execution, prefix) {
+  if (!execution.workflow || !execution.entrypoint) return
+
+  const entrypointName = basename(execution.entrypoint)
+  const workflowText = exists(execution.workflow) ? read(execution.workflow) : ''
+  const commandText = execution.commandContains ?? ''
+  const commandMentionsEntrypoint =
+    commandText.includes(entrypointName) || workflowText.includes(entrypointName)
+
+  if (commandMentionsEntrypoint) {
+    pass(`${prefix}: workflow directly invokes entrypoint`)
+    return
+  }
+
+  if (exists('package.json')) {
+    const packageJson = JSON.parse(read('package.json'))
+    const scripts = packageJson.scripts ?? {}
+    for (const [scriptName, scriptCommand] of Object.entries(scripts)) {
+      if (
+        commandText.includes(`npm run ${scriptName}`) &&
+        String(scriptCommand).includes(entrypointName)
+      ) {
+        pass(`${prefix}: workflow invokes entrypoint through package script ${scriptName}`)
+        return
+      }
+    }
+  }
+
+  if (!execution.invokedBy) {
+    fail(
+      `${prefix}: entrypoint ${execution.entrypoint} is not directly invoked by ` +
+        `${execution.workflow}; declare invokedBy plus requiredImport when it is called by another runtime script`,
+    )
+    return
+  }
+
+  assertFile(execution.invokedBy, `${prefix}: declared runtime caller exists`)
+
+  const callerName = basename(execution.invokedBy)
+  const commandMentionsCaller =
+    commandText.includes(callerName) || workflowText.includes(callerName)
+  if (commandMentionsCaller) {
+    pass(`${prefix}: workflow invokes declared runtime caller`)
+  } else {
+    fail(`${prefix}: workflow does not invoke declared runtime caller ${execution.invokedBy}`)
+  }
+
+  if (!exists(execution.invokedBy)) return
+
+  const callerText = read(execution.invokedBy)
+  const importNeedle = execution.requiredImport ?? moduleName(execution.entrypoint)
+  if (callerText.includes(importNeedle)) {
+    pass(`${prefix}: runtime caller references entrypoint module`)
+  } else {
+    fail(
+      `${prefix}: ${execution.invokedBy} does not reference ${importNeedle}; ` +
+        'entrypoint/caller relationship is not explainable',
+    )
+  }
 }
 
 function resolvePipeline(pipeline, byKey) {
@@ -79,6 +148,18 @@ const pipelineByKey = new Map((manifest.pipelines ?? []).map((pipeline) => [pipe
 for (const rawPipeline of manifest.pipelines ?? []) {
   const pipeline = resolvePipeline(rawPipeline, pipelineByKey)
   if (!pipeline.key || !pipeline.paperclipName) fail('Every pipeline needs key and paperclipName')
+
+  if (!rawPipeline.statePage) {
+    fail(`${rawPipeline.key}: statePage is required`)
+  } else {
+    assertFile(rawPipeline.statePage, `${rawPipeline.key}: state page exists`)
+    assertContains(rawPipeline.statePage, rawPipeline.key, `${rawPipeline.key}: state page names manifest key`)
+    assertContains(
+      rawPipeline.statePage,
+      rawPipeline.paperclipName,
+      `${rawPipeline.key}: state page names Paperclip pipeline`,
+    )
+  }
 
   if (pipeline.status === 'active') {
     if (!pipeline.owner) fail(`${pipeline.key}: active pipeline needs owner`)
@@ -117,6 +198,10 @@ for (const rawPipeline of manifest.pipelines ?? []) {
       pass(`${prefix}: execution mode ${execution.mode}`)
     }
 
+    if (execution.mode === 'local_only') {
+      fail(`${prefix}: local_only execution is forbidden for active pipelines`)
+    }
+
     if (execution.workflow) {
       assertFile(execution.workflow, `${prefix}: workflow exists`)
       if (execution.commandContains) {
@@ -126,6 +211,7 @@ for (const rawPipeline of manifest.pipelines ?? []) {
 
     if (execution.entrypoint) {
       assertFile(execution.entrypoint, `${prefix}: entrypoint exists`)
+      assertEntrypointWorkflowRelationship(execution, prefix)
     }
 
     if (execution.route) {
