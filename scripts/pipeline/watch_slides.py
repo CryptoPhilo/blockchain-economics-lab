@@ -630,11 +630,13 @@ def _create_report_row_for_slide(
     pdf_name: str,
     public_url: str,
     version: Optional[int],
-    status: str = REVIEW_READY_STATUS,
+    status: str = PUBLICATION_PUBLISHED_STATUS,
 ) -> Tuple[Optional[str], Optional[int]]:
     """Create a project_reports row when a slide PDF has no report shell yet."""
     now = datetime.now(timezone.utc).isoformat()
     resolved_version = version or 1
+    if status in {REVIEW_READY_STATUS, PUBLICATION_APPROVED_STATUS}:
+        status = PUBLICATION_PUBLISHED_STATUS
     gdrive_url = f"https://drive.google.com/file/d/{pdf_file_id}/view?usp=drivesdk"
     row = {
         'project_id': project_id,
@@ -642,7 +644,7 @@ def _create_report_row_for_slide(
         'version': resolved_version,
         'language': lang,
         'status': status,
-        'review_at': now if status == REVIEW_READY_STATUS else None,
+        'review_at': None,
         'published_at': now if status == PUBLICATION_PUBLISHED_STATUS else None,
         'file_url': gdrive_url,
         'gdrive_url': gdrive_url,
@@ -679,10 +681,8 @@ def _create_report_row_for_slide(
 
 
 def _target_publication_status(current_status: Optional[str]) -> str:
-    """Keep generated assets in review until an editor approves publication."""
-    if current_status == PUBLICATION_APPROVED_STATUS:
-        return PUBLICATION_PUBLISHED_STATUS
-    return REVIEW_READY_STATUS
+    """Treat an active Drive Slide PDF as the publication trigger."""
+    return PUBLICATION_PUBLISHED_STATUS
 
 
 def _tracked_timestamp_field(report_type: str) -> Optional[str]:
@@ -704,6 +704,8 @@ def _merge_slide_url(
     published_at: Optional[str] = None,
 ) -> None:
     publish_ts = published_at or datetime.now(timezone.utc).isoformat()
+    if status in {REVIEW_READY_STATUS, PUBLICATION_APPROVED_STATUS}:
+        status = PUBLICATION_PUBLISHED_STATUS
     current = sb.table('project_reports').select(
         'slide_html_urls_by_lang, card_data, project_id, report_type'
     ) \
@@ -722,9 +724,6 @@ def _merge_slide_url(
     }
     if status == PUBLICATION_PUBLISHED_STATUS:
         update_payload['published_at'] = publish_ts
-    elif status == REVIEW_READY_STATUS:
-        update_payload['review_at'] = publish_ts
-        update_payload['published_at'] = None
     if isinstance(card_data, dict):
         update_payload['card_data'] = card_data
     sb.table('project_reports').update(update_payload).eq('id', report_id).execute()
@@ -844,7 +843,7 @@ def _repair_unchanged_manifest_publication(
 
     if report_id:
         _merge_slide_url(sb, report_id, lang, public_url, status=target_status)
-        return report_id, resolved_version, 'published' if target_status == PUBLICATION_PUBLISHED_STATUS else 'review_ready'
+        return report_id, resolved_version, 'published'
 
     report_id, created_version = _create_report_row_for_slide(
         sb,
@@ -858,7 +857,7 @@ def _repair_unchanged_manifest_publication(
         version=resolved_version,
         status=target_status,
     )
-    return report_id, created_version or resolved_version, 'review_ready_created' if report_id else 'create_failed'
+    return report_id, created_version or resolved_version, 'published_created' if report_id else 'create_failed'
 
 
 def _remove_slide_url_if_matches(sb, report_id: str, lang: str, public_url: str) -> bool:
@@ -2461,10 +2460,7 @@ def process(
 
                 if report_id:
                     _merge_slide_url(sb, report_id, lang, public_url, status=target_status)
-                    if target_status == PUBLICATION_PUBLISHED_STATUS:
-                        print(f"    ✓ DB published after editorial approval: project_reports[{report_id}].slide_html_urls_by_lang.{lang}")
-                    else:
-                        print(f"    ✓ DB prepared for editorial review: project_reports[{report_id}].slide_html_urls_by_lang.{lang}")
+                    print(f"    ✓ DB published from Drive Slide PDF: project_reports[{report_id}].slide_html_urls_by_lang.{lang}")
                 else:
                     report_id, version = _create_report_row_for_slide(
                         sb,
@@ -2480,7 +2476,7 @@ def process(
                     )
                     if report_id:
                         print(
-                            f"    ✓ DB created for editorial review: project_reports[{report_id}] "
+                            f"    ✓ DB created and published from Drive Slide PDF: project_reports[{report_id}] "
                             f"for ({slug}, {db_type}, {lang})"
                         )
                     else:
@@ -2500,7 +2496,7 @@ def process(
                 )
 
                 manifest[file_id].update({
-                    'status': 'published' if target_status == PUBLICATION_PUBLISHED_STATUS else 'review_ready',
+                    'status': 'published',
                     'public_url': public_url,
                     'versioned_url': upload_result['versioned_url'],
                     'report_id': report_id,
@@ -2512,7 +2508,7 @@ def process(
                 _save_manifest(manifest)
                 processed.append({
                     **record,
-                    'status': 'published' if target_status == PUBLICATION_PUBLISHED_STATUS else 'review_ready',
+                    'status': 'published',
                     'public_url': public_url,
                     'report_id': report_id,
                 })
@@ -3011,7 +3007,6 @@ def main() -> int:
     print(
         f"DONE: scanned={len(scanned)} processed={len(processed)}  "
         f"published={sum(1 for r in processed if r.get('status') == 'published')}  "
-        f"review_ready={sum(1 for r in processed if r.get('status') == 'review_ready')}  "
         f"unresolved={sum(1 for r in processed if r.get('status') == 'unresolved')}  "
         f"failed={sum(1 for r in processed if r.get('status') == 'failed')}  "
         f"guard_candidates={len(guard_results)}  "

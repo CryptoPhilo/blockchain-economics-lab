@@ -1649,11 +1649,11 @@ def test_unchanged_manifest_repair_creates_missing_report_shell(ws, monkeypatch)
 
     assert report_id == 'report-created'
     assert version == 1
-    assert status == 'review_ready_created'
+    assert status == 'published_created'
     assert calls[0]['project_id'] == 'project-bitcoin'
     assert calls[0]['db_type'] == 'econ'
     assert calls[0]['public_url'] == 'https://storage/econ/bitcoin/latest/en.html'
-    assert calls[0]['status'] == ws.REVIEW_READY_STATUS
+    assert calls[0]['status'] == ws.PUBLICATION_PUBLISHED_STATUS
 
 
 def test_file_id_filtered_unchanged_run_is_rejected(ws, monkeypatch):
@@ -2162,9 +2162,9 @@ def test_create_report_row_for_slide_upserts_missing_report_shell(ws):
     assert payload['project_id'] == 'project-shib'
     assert payload['report_type'] == 'econ'
     assert payload['language'] == 'ko'
-    assert payload['status'] == ws.REVIEW_READY_STATUS
-    assert payload['review_at']
-    assert payload['published_at'] is None
+    assert payload['status'] == ws.PUBLICATION_PUBLISHED_STATUS
+    assert payload['review_at'] is None
+    assert payload['published_at']
     assert payload['gdrive_file_id'] == 'drive-pdf-id'
     assert payload['gdrive_urls_by_lang'] == {
         'ko': 'https://drive.google.com/file/d/drive-pdf-id/view?usp=drivesdk',
@@ -2173,7 +2173,7 @@ def test_create_report_row_for_slide_upserts_missing_report_shell(ws):
         'ko': 'https://storage/slides/econ/shiba-inu/latest/ko.html',
     }
     assert payload['card_data']['slug'] == 'shiba-inu'
-    assert sb.tracked_projects.patch is None
+    assert sb.tracked_projects.patch is not None
 
 
 def test_merge_slide_url_updates_publish_metadata_and_project_timestamp(ws):
