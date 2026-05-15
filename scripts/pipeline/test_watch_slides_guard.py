@@ -2710,16 +2710,20 @@ def test_build_paperclip_run_payload_has_expected_metadata(ws, monkeypatch):
         slug='bitcoin',
     )
 
-    assert payload['status'] == 'running'
-    assert payload['triggerType'] == 'manual'
-    assert payload['summary'] == 'ECON slide watcher started'
+    assert payload['pipeline_name'] == 'ECON Report Publishing'
+    assert payload['report_type'] == 'econ'
+    assert payload['status'] == 'processing'
+    assert payload['trigger_type'] == 'manual'
+    assert payload['project_slug'] == 'bitcoin'
+    assert payload['dry_run'] is True
+    assert payload['force'] is False
     assert payload['metadata']['reportType'] == 'econ'
     assert payload['metadata']['scanTime'] == '2026-05-10 12:00:00 UTC'
     assert payload['metadata']['dryRun'] is True
     assert payload['metadata']['force'] is False
     assert payload['metadata']['slug'] == 'bitcoin'
-    assert payload['metadata']['githubRunId'] == '12345'
-    assert payload['metadata']['githubSha'] == 'abc123'
+    assert payload['github_run_id'] == '12345'
+    assert payload['github_sha'] == 'abc123'
 
 
 def test_build_paperclip_run_payload_uses_schedule_trigger_in_github_actions(ws, monkeypatch):
@@ -2733,7 +2737,7 @@ def test_build_paperclip_run_payload_uses_schedule_trigger_in_github_actions(ws,
         slug=None,
     )
 
-    assert payload['triggerType'] == 'schedule'
+    assert payload['trigger_type'] == 'schedule'
 
 
 def test_paperclip_counts_and_event_payload_include_required_metrics(ws):
@@ -2743,7 +2747,7 @@ def test_paperclip_counts_and_event_payload_include_required_metrics(ws):
         {'rtype': 'mat', 'status': 'target'},
     ]
     processed = [
-        {'rtype': 'econ', 'status': 'review_ready'},
+        {'rtype': 'econ', 'status': 'published'},
         {'rtype': 'econ', 'status': 'unresolved'},
         {'rtype': 'econ', 'status': 'failed'},
         {'rtype': 'mat', 'status': 'published'},
@@ -2763,16 +2767,16 @@ def test_paperclip_counts_and_event_payload_include_required_metrics(ws):
     assert metrics == {
         'scanned': 2,
         'processed': 3,
-        'published': 0,
-        'review_ready': 1,
+        'published': 1,
         'unresolved': 1,
         'failed': 1,
         'blocked': 1,
     }
     assert status == 'failed'
-    assert payload['runId'] == 'run-1'
+    assert payload['pipeline_run_id'] == 'run-1'
     assert payload['severity'] == 'error'
-    assert payload['details']['metrics']['review_ready'] == 1
+    assert payload['pipeline_name'] == 'ECON Report Publishing'
+    assert payload['details']['metrics']['published'] == 1
     assert payload['details']['logArtifactPath'] == 'logs/slide_pipeline/20260510_120000.md'
 
 
@@ -2788,32 +2792,21 @@ def test_write_run_log_includes_paperclip_telemetry_warnings(ws, monkeypatch, tm
     )
 
     body = Path(log_path).read_text(encoding='utf-8')
-    assert '## Paperclip Telemetry' in body
+    assert '## Remote Pipeline State' in body
     assert '- Warnings: 1' in body
     assert 'POST /pipelines/run failed: timeout' in body
 
 
 def test_paperclip_telemetry_start_and_complete_builds_expected_calls(ws, monkeypatch):
-    monkeypatch.setenv('PAPERCLIP_API_URL', 'http://paperclip.test')
-    monkeypatch.setenv('PAPERCLIP_API_KEY', 'token')
-    monkeypatch.setenv('PAPERCLIP_COMPANY_ID', 'company-1')
+    monkeypatch.setenv('SUPABASE_URL', 'https://state-store.test')
+    monkeypatch.setenv('SUPABASE_SERVICE_KEY', 'token')
 
     calls = []
 
-    def fake_request(self, method, path, payload=None):
-        calls.append((method, path, payload))
-        if path == '/api/companies/company-1/pipelines':
-            return [{'id': 'pipeline-econ', 'name': 'ECON Report Publishing'}]
-        if path == '/api/pipelines/pipeline-econ':
-            return {
-                'id': 'pipeline-econ',
-                'nodes': [
-                    {'id': f'node-{stage_key}', 'nodeKey': stage_key}
-                    for stage_key, _stage_name in ws.PAPERCLIP_NODE_STAGES
-                ],
-            }
-        if path == '/pipelines/pipeline-econ/runs':
-            return {'id': 'run-econ'}
+    def fake_request(self, method, table, payload=None, query=''):
+        calls.append((method, table, payload, query))
+        if method == 'POST' and table == 'pipeline_runs':
+            return [{'id': 'run-econ'}]
         return {'ok': True}
 
     monkeypatch.setattr(ws.PaperclipTelemetry, 'request', fake_request)
@@ -2833,42 +2826,44 @@ def test_paperclip_telemetry_start_and_complete_builds_expected_calls(ws, monkey
             {'rtype': 'econ', 'status': 'unchanged'},
         ],
         processed=[
-            {'rtype': 'econ', 'status': 'review_ready'},
+            {'rtype': 'econ', 'status': 'published'},
             {'rtype': 'econ', 'status': 'unresolved'},
         ],
         log_path='logs/slide_pipeline/20260510_120000.md',
     )
 
-    assert calls[0] == ('GET', '/api/companies/company-1/pipelines', None)
-    assert calls[1] == ('GET', '/api/pipelines/pipeline-econ', None)
-    assert calls[2][0:2] == ('POST', '/pipelines/pipeline-econ/runs')
-    assert calls[2][2]['metadata']['reportType'] == 'econ'
+    assert calls[0][0:2] == ('POST', 'pipeline_runs')
+    assert calls[0][2]['metadata']['reportType'] == 'econ'
+    assert calls[0][2]['pipeline_name'] == 'ECON Report Publishing'
 
-    node_run_calls = [call for call in calls if call[1] == '/pipeline-runs/run-econ/node-runs']
+    node_run_calls = [call for call in calls if call[1] == 'pipeline_node_runs']
     assert len(node_run_calls) == len(ws.PAPERCLIP_NODE_STAGES)
-    assert node_run_calls[0][2]['runId'] == 'run-econ'
-    assert node_run_calls[0][2]['nodeId'] == 'node-source_collection'
+    assert node_run_calls[0][2]['pipeline_run_id'] == 'run-econ'
+    assert node_run_calls[0][2]['node_key'] == 'source_collection'
     assert node_run_calls[0][2]['status'] == 'waiting_manual'
-    assert node_run_calls[0][2]['metadata']['metrics']['scanned'] == 2
-    assert node_run_calls[0][2]['metadata']['metrics']['review_ready'] == 1
-    assert node_run_calls[0][2]['metadata']['metrics']['unresolved'] == 1
+    assert node_run_calls[0][2]['metrics']['scanned'] == 2
+    assert node_run_calls[0][2]['metrics']['published'] == 1
+    assert node_run_calls[0][2]['metrics']['unresolved'] == 1
 
-    event_call = next(call for call in calls if call[1] == '/pipelines/pipeline-econ/events')
-    assert event_call[2]['eventType'] == 'slide_watcher.completed'
+    event_call = next(call for call in calls if call[1] == 'pipeline_events')
+    assert event_call[2]['event_type'] == 'slide_watcher.completed'
     assert event_call[2]['severity'] == 'warning'
     assert event_call[2]['details']['logArtifactPath'] == 'logs/slide_pipeline/20260510_120000.md'
 
     patch_call = next(call for call in calls if call[0] == 'PATCH')
-    assert patch_call[1] == '/pipeline-runs/run-econ'
+    assert patch_call[1] == 'pipeline_runs'
     assert patch_call[2]['status'] == 'waiting_manual'
+    assert patch_call[2]['languages_completed']['published'] == 1
     assert patch_call[2]['metadata']['source'] == 'watch_slides.py'
+    assert patch_call[3] == '?id=eq.run-econ'
 
 
 def test_paperclip_telemetry_disabled_warns_without_raising(ws, monkeypatch):
-    monkeypatch.delenv('PAPERCLIP_API_URL', raising=False)
-    monkeypatch.delenv('PAPERCLIP_API_KEY', raising=False)
-    monkeypatch.delenv('PAPERCLIP_AGENT_TOKEN', raising=False)
-    monkeypatch.delenv('PAPERCLIP_TOKEN', raising=False)
+    monkeypatch.delenv('SUPABASE_URL', raising=False)
+    monkeypatch.delenv('NEXT_PUBLIC_SUPABASE_URL', raising=False)
+    monkeypatch.delenv('SUPABASE_SERVICE_KEY', raising=False)
+    monkeypatch.delenv('SUPABASE_SERVICE_ROLE_KEY', raising=False)
+    monkeypatch.delenv('NEXT_PUBLIC_SUPABASE_ANON_KEY', raising=False)
 
     telemetry = ws.PaperclipTelemetry()
 
@@ -2883,5 +2878,5 @@ def test_paperclip_telemetry_disabled_warns_without_raising(ws, monkeypatch):
 
     assert telemetry.run_ids == {}
     assert telemetry.warnings == [
-        'disabled; set PAPERCLIP_API_URL and PAPERCLIP_API_KEY to publish pipeline telemetry'
+        'disabled; set SUPABASE_URL and SUPABASE_SERVICE_KEY to publish pipeline state'
     ]

@@ -142,6 +142,20 @@ for (const rawPipeline of manifest.pipelines ?? []) {
 assertContains('package.json', '"verify:runtime-pipelines"', 'package script verify:runtime-pipelines is registered')
 assertContains('.github/workflows/ci.yml', 'npm run verify:runtime-pipelines', 'CI runs runtime pipeline verification')
 assertContains('.github/workflows/slide-pipeline-cron.yml', 'npm run verify:runtime-pipelines', 'Slide workflow verifies runtime manifest before execution')
+assertFile(
+  'supabase/migrations/20260515_add_pipeline_telemetry_tables.sql',
+  'Remote pipeline state store migration exists',
+)
+assertContains(
+  'scripts/pipeline/watch_slides_telemetry.py',
+  'class RemotePipelineState',
+  'Slide watcher writes remote pipeline state',
+)
+assertContains(
+  'scripts/pipeline/watch_slides_telemetry.py',
+  "self.request('POST', 'pipeline_runs'",
+  'Slide watcher creates Supabase pipeline run records',
+)
 
 const slideWorkflow = read('.github/workflows/slide-pipeline-cron.yml')
 for (const localOnlyPaperclipEnv of [

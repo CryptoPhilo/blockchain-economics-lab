@@ -80,21 +80,24 @@ from watch_slides_matching import (
     _resolve_slug,
 )
 from watch_slides_telemetry import (
-    PAPERCLIP_BLOCKED_STATUSES,
-    PAPERCLIP_FAILURE_STATUSES,
+    PIPELINE_BLOCKED_STATUSES,
+    PIPELINE_FAILURE_STATUSES,
+    PIPELINE_NODE_STAGES,
+    PIPELINE_NAMES,
+    PIPELINE_SUCCESS_STATUSES,
+    RemotePipelineState,
+    _pipeline_counts_for_type,
+    _pipeline_name_from_env,
+    _pipeline_status_for_counts,
+    _pipeline_utc_now,
+    build_pipeline_event_payload,
+    build_pipeline_node_run_payload,
+    build_pipeline_run_payload,
     PAPERCLIP_NODE_STAGES,
-    PAPERCLIP_PIPELINE_NAMES,
-    PAPERCLIP_SUCCESS_STATUSES,
     PaperclipTelemetry,
-    _paperclip_auth_token,
-    _paperclip_configured,
     _paperclip_counts_for_type,
-    _paperclip_pipeline_id_from_env,
-    _paperclip_pipeline_name_from_env,
     _paperclip_status_for_counts,
-    _paperclip_utc_now,
     build_paperclip_event_payload,
-    build_paperclip_node_run_payload,
     build_paperclip_run_payload,
 )
 
@@ -387,7 +390,7 @@ def _blocked_manifest_diagnostic(
     recheck_after_minutes: int = BLOCKED_RECHECK_AFTER_MINUTES,
 ) -> Optional[Dict[str, Any]]:
     status = manifest_entry.get('status')
-    blocked_statuses = set(PAPERCLIP_BLOCKED_STATUSES) | {
+    blocked_statuses = set(PIPELINE_BLOCKED_STATUSES) | {
         'language_mismatch',
         'skipped_legacy_portrait_pdf',
     }
@@ -2762,7 +2765,7 @@ def write_run_log(
         f"- Stale processing recovered: {recovered_stale_processing}",
         f"- Active processing skipped: {active_processing}",
         "",
-        "## Paperclip Telemetry",
+        "## Remote Pipeline State",
         "",
         f"- Warnings: {len(telemetry_warnings or [])}",
     ]
@@ -2770,7 +2773,7 @@ def write_run_log(
         for warning in telemetry_warnings:
             lines.append(f"- {warning}")
     else:
-        lines.append("*No Paperclip telemetry warnings.*")
+        lines.append("*No remote pipeline state warnings.*")
     lines += [
         "",
         "## Active Project Backlog Guard",
@@ -2883,7 +2886,7 @@ def append_telemetry_warnings_to_run_log(log_path: str, telemetry_warnings: List
     try:
         path = Path(log_path)
         existing = path.read_text(encoding='utf-8')
-        marker = "## Paperclip Telemetry"
+        marker = "## Remote Pipeline State"
         if marker not in existing:
             return
         lines = existing.splitlines()
@@ -2900,7 +2903,7 @@ def append_telemetry_warnings_to_run_log(log_path: str, telemetry_warnings: List
         ]
         path.write_text('\n'.join(lines[:start] + replacement + lines[end:]) + '\n', encoding='utf-8')
     except Exception as e:
-        print(f"  [WARN] Paperclip telemetry log warning append failed: {e}")
+        print(f"  [WARN] Remote pipeline state log warning append failed: {e}")
 
 
 # ═══════════════════════════════════════════
@@ -2958,8 +2961,8 @@ def main() -> int:
           f'Modified since: {modified_since.isoformat() if modified_since else "(none)"}')
     print('=' * 60)
 
-    paperclip_telemetry = PaperclipTelemetry()
-    paperclip_telemetry.start_runs(
+    remote_pipeline_state = RemotePipelineState()
+    remote_pipeline_state.start_runs(
         types,
         scan_time=scan_time,
         dry_run=args.dry_run,
@@ -2993,15 +2996,15 @@ def main() -> int:
         processed,
         guard_results=guard_results,
         source_diagnostics=source_diagnostics,
-        telemetry_warnings=paperclip_telemetry.warnings,
+        telemetry_warnings=remote_pipeline_state.warnings,
     )
-    paperclip_telemetry.complete_runs(
+    remote_pipeline_state.complete_runs(
         types,
         scanned=scanned,
         processed=processed,
         log_path=log_path,
     )
-    append_telemetry_warnings_to_run_log(log_path, paperclip_telemetry.warnings)
+    append_telemetry_warnings_to_run_log(log_path, remote_pipeline_state.warnings)
 
     print('\n' + '=' * 60)
     print(
