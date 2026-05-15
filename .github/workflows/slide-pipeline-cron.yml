@@ -196,12 +196,6 @@ jobs:
         working-directory: scripts/pipeline
         env:
           GDRIVE_SERVICE_ACCOUNT_FILE: ${{ github.workspace }}/scripts/pipeline/.gdrive_service_account.json
-          PAPERCLIP_API_URL: ${{ secrets.PAPERCLIP_API_URL }}
-          PAPERCLIP_API_KEY: ${{ secrets.PAPERCLIP_API_KEY }}
-          PAPERCLIP_COMPANY_ID: ${{ secrets.PAPERCLIP_COMPANY_ID }}
-          PAPERCLIP_ECON_PIPELINE_ID: ${{ secrets.PAPERCLIP_ECON_PIPELINE_ID }}
-          PAPERCLIP_MAT_PIPELINE_ID: ${{ secrets.PAPERCLIP_MAT_PIPELINE_ID }}
-          PAPERCLIP_FOR_PIPELINE_ID: ${{ secrets.PAPERCLIP_FOR_PIPELINE_ID }}
         run: |
           ARGS=""
           if [ "${{ github.event_name }}" = "schedule" ]; then

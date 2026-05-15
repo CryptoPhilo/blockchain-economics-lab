@@ -1,4 +1,9 @@
-"""Optional Paperclip telemetry helpers for the slide watcher."""
+"""Supabase-first telemetry helpers for the slide watcher.
+
+Paperclip REST telemetry is intentionally a secondary, explicit opt-in sink.
+GitHub Actions must not depend on a local Paperclip API to record report
+pipeline state.
+"""
 from __future__ import annotations
 
 import json
@@ -60,8 +65,35 @@ def _paperclip_utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _truthy_env(name: str) -> bool:
+    return (os.environ.get(name) or '').strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+def _supabase_url() -> Optional[str]:
+    return os.environ.get('SUPABASE_URL') or os.environ.get('NEXT_PUBLIC_SUPABASE_URL')
+
+
+def _supabase_service_key() -> Optional[str]:
+    return os.environ.get('SUPABASE_SERVICE_KEY')
+
+
+def _supabase_configured() -> bool:
+    return bool(_supabase_url() and _supabase_service_key())
+
+
+def _supabase_client():
+    url = _supabase_url()
+    key = _supabase_service_key()
+    if not url or not key:
+        raise RuntimeError('SUPABASE_URL/NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_KEY are required')
+    from supabase import create_client
+    return create_client(url, key)
+
+
 def _paperclip_configured() -> bool:
     return bool(
+        _truthy_env('PAPERCLIP_TELEMETRY_SECONDARY_ENABLED')
+        and
         os.environ.get('PAPERCLIP_API_URL')
         and (
             os.environ.get('PAPERCLIP_API_KEY')
@@ -186,6 +218,109 @@ def build_paperclip_event_payload(
     }
 
 
+def build_supabase_run_row(
+    *,
+    rtype: str,
+    scan_time: str,
+    dry_run: bool,
+    force: bool,
+    slug: Optional[str],
+) -> Dict[str, Any]:
+    payload = build_paperclip_run_payload(
+        rtype=rtype,
+        scan_time=scan_time,
+        dry_run=dry_run,
+        force=force,
+        slug=slug,
+    )
+    metadata = payload['metadata']
+    return {
+        'pipeline_name': 'slide-pipeline',
+        'paperclip_pipeline_name': _paperclip_pipeline_name_from_env(rtype),
+        'report_type': rtype,
+        'project_slug': slug,
+        'version': 1,
+        'status': 'processing',
+        'trigger_type': payload['triggerType'],
+        'summary': payload['summary'],
+        'started_at': payload['startedAt'],
+        'dry_run': dry_run,
+        'force': force,
+        'slug_filter': slug,
+        'source_filename': None,
+        'retry_count': 0,
+        'languages_completed': {},
+        'metadata': metadata,
+        'github_run_id': metadata.get('githubRunId'),
+        'github_run_number': metadata.get('githubRunNumber'),
+        'github_workflow': metadata.get('githubWorkflow'),
+        'github_sha': metadata.get('githubSha'),
+    }
+
+
+def build_supabase_node_run_row(
+    *,
+    pipeline_run_id: str,
+    rtype: str,
+    stage_key: str,
+    stage_name: str,
+    status: str,
+    metrics: Dict[str, int],
+    log_path: Optional[str],
+) -> Dict[str, Any]:
+    payload = build_paperclip_node_run_payload(
+        pipeline_run_id=pipeline_run_id,
+        node_id=stage_key,
+        rtype=rtype,
+        stage_key=stage_key,
+        stage_name=stage_name,
+        status=status,
+        metrics=metrics,
+        log_path=log_path,
+    )
+    return {
+        'pipeline_run_id': pipeline_run_id,
+        'node_key': stage_key,
+        'node_name': stage_name,
+        'report_type': rtype,
+        'status': status,
+        'started_at': payload['startedAt'],
+        'finished_at': payload['finishedAt'],
+        'summary': payload['summary'],
+        'metrics': metrics,
+        'artifact_path': log_path,
+        'metadata': payload['metadata'],
+    }
+
+
+def build_supabase_event_row(
+    *,
+    pipeline_run_id: str,
+    rtype: str,
+    status: str,
+    metrics: Dict[str, int],
+    log_path: Optional[str],
+    warnings: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    payload = build_paperclip_event_payload(
+        pipeline_run_id=pipeline_run_id,
+        rtype=rtype,
+        status=status,
+        metrics=metrics,
+        log_path=log_path,
+        warnings=warnings,
+    )
+    return {
+        'pipeline_run_id': pipeline_run_id,
+        'event_type': payload['eventType'],
+        'severity': payload['severity'],
+        'message': payload['message'],
+        'occurred_at': payload['occurredAt'],
+        'artifact_path': payload['artifactRef'],
+        'details': payload['details'],
+    }
+
+
 def _paperclip_counts_for_type(
     rtype: str,
     scanned: List[Dict[str, Any]],
@@ -212,20 +347,42 @@ def _paperclip_status_for_counts(metrics: Dict[str, int]) -> str:
     return 'succeeded'
 
 
+def _supabase_run_status_for_paperclip_status(status: str, *, dry_run: bool = False) -> str:
+    """Map watcher telemetry status onto the existing pipeline_runs status check."""
+    if dry_run:
+        return 'dry_run'
+    if status == 'succeeded':
+        return 'done'
+    if status == 'failed':
+        return 'content_failed_terminal'
+    return 'processing_error'
+
+
 class PaperclipTelemetry:
     def __init__(self) -> None:
-        self.enabled = _paperclip_configured()
+        self.enabled = _supabase_configured()
+        self.supabase_enabled = self.enabled
+        self.paperclip_secondary_enabled = _paperclip_configured()
+        self._supabase = None
         self.api_url = (os.environ.get('PAPERCLIP_API_URL') or '').rstrip('/')
         self.company_id = os.environ.get('PAPERCLIP_COMPANY_ID')
         self.token = _paperclip_auth_token()
         self.pipeline_ids: Dict[str, str] = {}
         self.node_ids: Dict[str, Dict[str, str]] = {}
         self.run_ids: Dict[str, str] = {}
+        self.paperclip_run_ids: Dict[str, str] = {}
+        self.dry_run_by_type: Dict[str, bool] = {}
         self.warnings: List[str] = []
 
     def warn(self, message: str) -> None:
         self.warnings.append(message)
-        print(f"  [WARN] Paperclip telemetry: {message}")
+        print(f"  [WARN] Slide telemetry: {message}")
+
+    @property
+    def supabase(self):
+        if self._supabase is None:
+            self._supabase = _supabase_client()
+        return self._supabase
 
     def _url_for_path(self, path: str) -> str:
         if self.api_url.endswith('/api') and path.startswith('/api/'):
@@ -238,7 +395,7 @@ class PaperclipTelemetry:
         path: str,
         payload: Optional[Dict[str, Any]] = None,
     ) -> Tuple[Optional[Any], Optional[str]]:
-        if not self.enabled:
+        if not self.paperclip_secondary_enabled:
             return None, None
         body = None
         headers = {
@@ -320,27 +477,50 @@ class PaperclipTelemetry:
         self.node_ids[rtype] = node_ids
 
     def start_runs(self, types: List[str], *, scan_time: str, dry_run: bool, force: bool, slug: Optional[str]) -> None:
-        if not self.enabled:
-            self.warn('disabled; set PAPERCLIP_API_URL and PAPERCLIP_API_KEY to publish pipeline telemetry')
-            return
         for rtype in types:
-            pipeline_id = self.resolve_pipeline_id(rtype)
-            if not pipeline_id:
+            self.dry_run_by_type[rtype] = dry_run
+            run_id = None
+            if self.supabase_enabled:
+                try:
+                    response = self.supabase.table('pipeline_runs').insert(
+                        build_supabase_run_row(
+                            rtype=rtype,
+                            scan_time=scan_time,
+                            dry_run=dry_run,
+                            force=force,
+                            slug=slug,
+                        )
+                    ).execute()
+                    row = (response.data or [{}])[0]
+                    run_id = row.get('id')
+                    if run_id:
+                        self.run_ids[rtype] = run_id
+                    else:
+                        self.warn(f"{rtype.upper()} Supabase run insert returned no id")
+                except Exception as e:
+                    self.warn(f"{rtype.upper()} Supabase run insert failed: {e}")
+
+            if not self.paperclip_secondary_enabled:
                 continue
-            self.pipeline_ids[rtype] = pipeline_id
-            payload = build_paperclip_run_payload(
-                rtype=rtype,
-                scan_time=scan_time,
-                dry_run=dry_run,
-                force=force,
-                slug=slug,
-            )
-            response = self.request('POST', f'/pipelines/{pipeline_id}/runs', payload)
-            run_id = (response or {}).get('id') or (response or {}).get('runId')
-            if run_id:
-                self.run_ids[rtype] = run_id
-            else:
-                self.warn(f"{rtype.upper()} run was not created")
+
+            pipeline_id = self.resolve_pipeline_id(rtype)
+            if pipeline_id:
+                self.pipeline_ids[rtype] = pipeline_id
+                payload = build_paperclip_run_payload(
+                    rtype=rtype,
+                    scan_time=scan_time,
+                    dry_run=dry_run,
+                    force=force,
+                    slug=slug,
+                )
+                response = self.request('POST', f'/pipelines/{pipeline_id}/runs', payload)
+                paperclip_run_id = (response or {}).get('id') or (response or {}).get('runId')
+                if paperclip_run_id:
+                    self.paperclip_run_ids[rtype] = paperclip_run_id
+                    if not run_id:
+                        self.run_ids[rtype] = paperclip_run_id
+                else:
+                    self.warn(f"{rtype.upper()} secondary Paperclip run was not created")
 
     def complete_runs(
         self,
@@ -350,26 +530,83 @@ class PaperclipTelemetry:
         processed: List[Dict[str, Any]],
         log_path: Optional[str],
     ) -> None:
-        if not self.enabled:
-            return
         for rtype in types:
-            pipeline_id = self.pipeline_ids.get(rtype)
             run_id = self.run_ids.get(rtype)
-            if not pipeline_id or not run_id:
+            if not run_id:
                 continue
             metrics = _paperclip_counts_for_type(rtype, scanned, processed)
             status = _paperclip_status_for_counts(metrics)
+            summary = (
+                f"{rtype.upper()} slide watcher completed: "
+                f"scanned={metrics['scanned']} processed={metrics['processed']} "
+                f"review_ready={metrics['review_ready']} unresolved={metrics['unresolved']} "
+                f"failed={metrics['failed']}"
+            )
+
+            if self.supabase_enabled:
+                try:
+                    rows = [
+                        build_supabase_node_run_row(
+                            pipeline_run_id=run_id,
+                            rtype=rtype,
+                            stage_key=stage_key,
+                            stage_name=stage_name,
+                            status=status,
+                            metrics=metrics,
+                            log_path=log_path,
+                        )
+                        for stage_key, stage_name in PAPERCLIP_NODE_STAGES
+                    ]
+                    self.supabase.table('pipeline_node_runs').insert(rows).execute()
+                    self.supabase.table('pipeline_events').insert(
+                        build_supabase_event_row(
+                            pipeline_run_id=run_id,
+                            rtype=rtype,
+                            status=status,
+                            metrics=metrics,
+                            log_path=log_path,
+                            warnings=self.warnings,
+                        )
+                    ).execute()
+                    self.supabase.table('pipeline_runs').update({
+                        'status': _supabase_run_status_for_paperclip_status(
+                            status,
+                            dry_run=self.dry_run_by_type.get(rtype, False),
+                        ),
+                        'completed_at': _paperclip_utc_now(),
+                        'summary': summary,
+                        'metrics': metrics,
+                        'artifact_path': log_path,
+                        'error_detail': '; '.join(self.warnings)[:500] if self.warnings else None,
+                        'metadata': {
+                            'reportType': rtype,
+                            'metrics': metrics,
+                            'logArtifactPath': log_path,
+                            'telemetryWarnings': self.warnings,
+                            'source': 'watch_slides.py',
+                        },
+                    }).eq('id', run_id).execute()
+                except Exception as e:
+                    self.warn(f"{rtype.upper()} Supabase completion write failed: {e}")
+
+            if not self.paperclip_secondary_enabled:
+                continue
+
+            pipeline_id = self.pipeline_ids.get(rtype)
+            paperclip_run_id = self.paperclip_run_ids.get(rtype)
+            if not pipeline_id or not paperclip_run_id:
+                continue
             node_ids = self.node_ids.get(rtype, {})
             for stage_key, stage_name in PAPERCLIP_NODE_STAGES:
                 node_id = node_ids.get(stage_key)
                 if not node_id:
-                    self.warn(f"{rtype.upper()} node run skipped; missing node id for {stage_key}")
+                    self.warn(f"{rtype.upper()} secondary Paperclip node run skipped; missing node id for {stage_key}")
                     continue
                 self.request(
                     'POST',
-                    f'/pipeline-runs/{run_id}/node-runs',
+                    f'/pipeline-runs/{paperclip_run_id}/node-runs',
                     build_paperclip_node_run_payload(
-                        pipeline_run_id=run_id,
+                        pipeline_run_id=paperclip_run_id,
                         node_id=node_id,
                         rtype=rtype,
                         stage_key=stage_key,
@@ -383,7 +620,7 @@ class PaperclipTelemetry:
                 'POST',
                 f'/pipelines/{pipeline_id}/events',
                 build_paperclip_event_payload(
-                    pipeline_run_id=run_id,
+                    pipeline_run_id=paperclip_run_id,
                     rtype=rtype,
                     status=status,
                     metrics=metrics,
@@ -393,16 +630,11 @@ class PaperclipTelemetry:
             )
             self.request(
                 'PATCH',
-                f'/pipeline-runs/{run_id}',
+                f'/pipeline-runs/{paperclip_run_id}',
                 {
                     'status': status,
                     'finishedAt': _paperclip_utc_now(),
-                    'summary': (
-                        f"{rtype.upper()} slide watcher completed: "
-                        f"scanned={metrics['scanned']} processed={metrics['processed']} "
-                        f"review_ready={metrics['review_ready']} unresolved={metrics['unresolved']} "
-                        f"failed={metrics['failed']}"
-                    ),
+                    'summary': summary,
                     'metadata': {
                         'reportType': rtype,
                         'metrics': metrics,

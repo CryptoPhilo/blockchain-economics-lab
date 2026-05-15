@@ -2794,9 +2794,13 @@ def test_write_run_log_includes_paperclip_telemetry_warnings(ws, monkeypatch, tm
 
 
 def test_paperclip_telemetry_start_and_complete_builds_expected_calls(ws, monkeypatch):
+    monkeypatch.setenv('PAPERCLIP_TELEMETRY_SECONDARY_ENABLED', 'true')
     monkeypatch.setenv('PAPERCLIP_API_URL', 'http://paperclip.test')
     monkeypatch.setenv('PAPERCLIP_API_KEY', 'token')
     monkeypatch.setenv('PAPERCLIP_COMPANY_ID', 'company-1')
+    monkeypatch.delenv('SUPABASE_URL', raising=False)
+    monkeypatch.delenv('NEXT_PUBLIC_SUPABASE_URL', raising=False)
+    monkeypatch.delenv('SUPABASE_SERVICE_KEY', raising=False)
 
     calls = []
 
@@ -2864,11 +2868,15 @@ def test_paperclip_telemetry_start_and_complete_builds_expected_calls(ws, monkey
     assert patch_call[2]['metadata']['source'] == 'watch_slides.py'
 
 
-def test_paperclip_telemetry_disabled_warns_without_raising(ws, monkeypatch):
+def test_paperclip_telemetry_disabled_without_supabase_is_quiet(ws, monkeypatch):
     monkeypatch.delenv('PAPERCLIP_API_URL', raising=False)
     monkeypatch.delenv('PAPERCLIP_API_KEY', raising=False)
     monkeypatch.delenv('PAPERCLIP_AGENT_TOKEN', raising=False)
     monkeypatch.delenv('PAPERCLIP_TOKEN', raising=False)
+    monkeypatch.delenv('PAPERCLIP_TELEMETRY_SECONDARY_ENABLED', raising=False)
+    monkeypatch.delenv('SUPABASE_URL', raising=False)
+    monkeypatch.delenv('NEXT_PUBLIC_SUPABASE_URL', raising=False)
+    monkeypatch.delenv('SUPABASE_SERVICE_KEY', raising=False)
 
     telemetry = ws.PaperclipTelemetry()
 
@@ -2882,6 +2890,152 @@ def test_paperclip_telemetry_disabled_warns_without_raising(ws, monkeypatch):
     telemetry.complete_runs(['econ'], scanned=[], processed=[], log_path=None)
 
     assert telemetry.run_ids == {}
-    assert telemetry.warnings == [
-        'disabled; set PAPERCLIP_API_URL and PAPERCLIP_API_KEY to publish pipeline telemetry'
-    ]
+    assert telemetry.warnings == []
+
+
+def test_supabase_telemetry_is_primary_sink(telemetry_helpers, monkeypatch):
+    monkeypatch.setenv('SUPABASE_URL', 'https://supabase.test')
+    monkeypatch.setenv('SUPABASE_SERVICE_KEY', 'service-key')
+    monkeypatch.delenv('PAPERCLIP_TELEMETRY_SECONDARY_ENABLED', raising=False)
+    monkeypatch.delenv('PAPERCLIP_API_URL', raising=False)
+
+    operations = []
+
+    class FakeResponse:
+        def __init__(self, data):
+            self.data = data
+
+    class FakeQuery:
+        def __init__(self, table, action, payload):
+            self.table = table
+            self.action = action
+            self.payload = payload
+            self.filters = []
+
+        def eq(self, column, value):
+            self.filters.append((column, value))
+            return self
+
+        def execute(self):
+            operations.append((self.table, self.action, self.payload, self.filters))
+            if self.table == 'pipeline_runs' and self.action == 'insert':
+                return FakeResponse([{**self.payload, 'id': 'run-supabase-econ'}])
+            if isinstance(self.payload, list):
+                return FakeResponse(self.payload)
+            return FakeResponse([{**self.payload}])
+
+    class FakeTable:
+        def __init__(self, name):
+            self.name = name
+
+        def insert(self, payload):
+            return FakeQuery(self.name, 'insert', payload)
+
+        def update(self, payload):
+            return FakeQuery(self.name, 'update', payload)
+
+    class FakeClient:
+        def table(self, name):
+            return FakeTable(name)
+
+    monkeypatch.setattr(telemetry_helpers, '_supabase_client', lambda: FakeClient())
+
+    telemetry = telemetry_helpers.PaperclipTelemetry()
+    telemetry.start_runs(
+        ['econ'],
+        scan_time='2026-05-10 12:00:00 UTC',
+        dry_run=False,
+        force=False,
+        slug=None,
+    )
+    telemetry.complete_runs(
+        ['econ'],
+        scanned=[{'rtype': 'econ', 'status': 'target'}],
+        processed=[{'rtype': 'econ', 'status': 'review_ready'}],
+        log_path='logs/slide_pipeline/20260510_120000.md',
+    )
+
+    assert telemetry.run_ids == {'econ': 'run-supabase-econ'}
+    assert telemetry.paperclip_run_ids == {}
+
+    run_insert = operations[0]
+    assert run_insert[0:2] == ('pipeline_runs', 'insert')
+    assert run_insert[2]['pipeline_name'] == 'slide-pipeline'
+    assert run_insert[2]['report_type'] == 'econ'
+    assert run_insert[2]['status'] == 'processing'
+
+    node_insert = next(op for op in operations if op[0] == 'pipeline_node_runs')
+    assert len(node_insert[2]) == len(telemetry_helpers.PAPERCLIP_NODE_STAGES)
+    assert node_insert[2][0]['pipeline_run_id'] == 'run-supabase-econ'
+    assert node_insert[2][0]['metrics']['review_ready'] == 1
+
+    event_insert = next(op for op in operations if op[0] == 'pipeline_events')
+    assert event_insert[2]['event_type'] == 'slide_watcher.completed'
+    assert event_insert[2]['pipeline_run_id'] == 'run-supabase-econ'
+
+    run_update = next(op for op in operations if op[0] == 'pipeline_runs' and op[1] == 'update')
+    assert run_update[2]['status'] == 'done'
+    assert run_update[2]['artifact_path'] == 'logs/slide_pipeline/20260510_120000.md'
+    assert run_update[3] == [('id', 'run-supabase-econ')]
+
+
+def test_supabase_telemetry_dry_run_uses_legacy_status(telemetry_helpers, monkeypatch):
+    monkeypatch.setenv('SUPABASE_URL', 'https://supabase.test')
+    monkeypatch.setenv('SUPABASE_SERVICE_KEY', 'service-key')
+
+    operations = []
+
+    class FakeResponse:
+        def __init__(self, data):
+            self.data = data
+
+    class FakeQuery:
+        def __init__(self, table, action, payload):
+            self.table = table
+            self.action = action
+            self.payload = payload
+            self.filters = []
+
+        def eq(self, column, value):
+            self.filters.append((column, value))
+            return self
+
+        def execute(self):
+            operations.append((self.table, self.action, self.payload, self.filters))
+            if self.table == 'pipeline_runs' and self.action == 'insert':
+                return FakeResponse([{**self.payload, 'id': 'run-supabase-econ'}])
+            return FakeResponse([self.payload])
+
+    class FakeTable:
+        def __init__(self, name):
+            self.name = name
+
+        def insert(self, payload):
+            return FakeQuery(self.name, 'insert', payload)
+
+        def update(self, payload):
+            return FakeQuery(self.name, 'update', payload)
+
+    class FakeClient:
+        def table(self, name):
+            return FakeTable(name)
+
+    monkeypatch.setattr(telemetry_helpers, '_supabase_client', lambda: FakeClient())
+
+    telemetry = telemetry_helpers.PaperclipTelemetry()
+    telemetry.start_runs(
+        ['econ'],
+        scan_time='2026-05-10 12:00:00 UTC',
+        dry_run=True,
+        force=False,
+        slug='bitcoin',
+    )
+    telemetry.complete_runs(
+        ['econ'],
+        scanned=[{'rtype': 'econ', 'status': 'target'}],
+        processed=[{'rtype': 'econ', 'status': 'dry_run'}],
+        log_path='logs/slide_pipeline/20260510_120000.md',
+    )
+
+    run_update = next(op for op in operations if op[0] == 'pipeline_runs' and op[1] == 'update')
+    assert run_update[2]['status'] == 'dry_run'
