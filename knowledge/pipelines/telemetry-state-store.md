@@ -37,6 +37,29 @@ values there (`processing`, `dry_run`, `done`, `content_failed_terminal`, or
 `processing_error`) and keep richer watcher status values in child node/event
 telemetry.
 
+2026-05-15 CTO operations cancelled stuck scheduled run
+`25895158073` after it held the `slide-pipeline-cron` concurrency group for
+about two hours with no progress beyond `Run slide pipeline`. This unblocked
+the BCE-1905 branch validation dry run.
+
+Remote validation dry run:
+`https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/25898582625`
+on branch `codex/bce-1905-supabase-telemetry` at
+`ee4968175de98984999128e30bbad649214c4a32` completed successfully.
+
+Validation results:
+
+- Workflow result: success, `DONE: scanned=4 processed=4 published=0
+  unresolved=0 failed=0`.
+- Log artifact `logs/slide_pipeline/20260515_032944.md` reported
+  `Paperclip Telemetry` warnings `0`.
+- Production Supabase row `pipeline_runs.id =
+  0119f857-f1ce-4278-881a-413c1931d500` was written with
+  `github_run_id = 25898582625`, `status = dry_run`,
+  `report_type = econ`, and `project_slug = bitcoin`.
+- Child telemetry rows were present for the run: `pipeline_node_runs = 7`,
+  `pipeline_events = 1`.
+
 ## Required Environment
 
 The primary sink is enabled when both are present:
