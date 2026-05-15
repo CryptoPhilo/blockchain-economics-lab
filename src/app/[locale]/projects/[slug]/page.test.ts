@@ -1,4 +1,4 @@
-import { buildReportHref, selectReportsByType } from './page'
+import { buildReportHistoryByType, buildReportHref, selectReportsByType } from './page'
 import type { ProjectReport } from '@/lib/types'
 
 function createReport(overrides: Partial<ProjectReport> = {}): ProjectReport {
@@ -82,6 +82,73 @@ describe('project detail report selection', () => {
     expect(selectReportsByType([zhOnly], 'ko').has('econ')).toBe(false)
     expect(selectReportsByType([zhOnly], 'en').has('econ')).toBe(false)
     expect(selectReportsByType([zhOnly], 'zh').get('econ')).toBe(zhOnly)
+  })
+
+  it('selects the latest localized version and exposes older versions as history', () => {
+    const oldReport = createReport({
+      id: 'btc-econ-v1',
+      version: 1,
+      is_latest: false,
+      language: 'ko',
+      report_type: 'econ',
+      published_at: '2026-05-01T00:00:00.000Z',
+      gdrive_urls_by_lang: { ko: 'https://drive.google.com/file/d/btc-v1-ko/view' },
+    } as Partial<ProjectReport>)
+    const latestReport = createReport({
+      id: 'btc-econ-v2',
+      version: 2,
+      is_latest: true,
+      language: 'ko',
+      report_type: 'econ',
+      published_at: '2026-05-10T00:00:00.000Z',
+      gdrive_urls_by_lang: { ko: 'https://drive.google.com/file/d/btc-v2-ko/view' },
+    } as Partial<ProjectReport>)
+
+    const selected = selectReportsByType([oldReport, latestReport], 'ko')
+
+    expect(selected.get('econ')).toBe(latestReport)
+    expect(buildReportHistoryByType([oldReport, latestReport], selected, 'ko').get('econ')).toEqual([
+      oldReport,
+    ])
+  })
+
+  it('does not expose same-version alternate language rows as history', () => {
+    const oldReport = createReport({
+      id: 'btc-econ-v1-ko',
+      version: 1,
+      is_latest: false,
+      language: 'ko',
+      report_type: 'econ',
+      published_at: '2026-05-01T00:00:00.000Z',
+      gdrive_urls_by_lang: { ko: 'https://drive.google.com/file/d/btc-v1-ko/view' },
+    } as Partial<ProjectReport>)
+    const latestKo = createReport({
+      id: 'btc-econ-v2-ko',
+      version: 2,
+      is_latest: true,
+      language: 'ko',
+      report_type: 'econ',
+      published_at: '2026-05-10T00:00:00.000Z',
+      gdrive_urls_by_lang: { ko: 'https://drive.google.com/file/d/btc-v2-ko/view' },
+    } as Partial<ProjectReport>)
+    const latestEnSibling = createReport({
+      id: 'btc-econ-v2-en',
+      version: 2,
+      is_latest: true,
+      language: 'en',
+      report_type: 'econ',
+      published_at: '2026-05-10T00:00:00.000Z',
+      gdrive_urls_by_lang: { en: 'https://drive.google.com/file/d/btc-v2-en/view' },
+    } as Partial<ProjectReport>)
+
+    const selected = selectReportsByType([oldReport, latestKo, latestEnSibling], 'ko')
+
+    expect(selected.get('econ')).toBe(latestKo)
+    expect(
+      buildReportHistoryByType([oldReport, latestKo, latestEnSibling], selected, 'ko')
+        .get('econ')
+        ?.map((report) => report.id),
+    ).toEqual(['btc-econ-v1-ko'])
   })
 })
 

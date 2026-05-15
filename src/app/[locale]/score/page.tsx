@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 import { createProjectsRepository } from '@/lib/repositories/projects'
 import { reportSupportsLocale } from '@/lib/report-locale'
+import { pickLatestReport } from '@/lib/report-versioning'
 import type { ProjectReport } from '@/lib/types'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import ScoreTableGate from '@/components/ScoreTableGate'
@@ -45,6 +46,9 @@ type ReportAvailability = {
 type ScoreboardVisibleReportRow = {
   project_id: string
   report_type: ReportTypeKey
+  id?: string
+  version?: number
+  is_latest?: boolean | null
   language?: ProjectReport['language'] | null
   published_at?: string | null
   updated_at?: string | null
@@ -181,9 +185,17 @@ export function buildReportAvailabilityByProjectId(
   locale: string,
 ) {
   const map = new Map<string, ReportAvailability>()
+  const latestByProjectType = new Map<string, ScoreboardVisibleReportRow>()
 
   for (const report of reports) {
-    if (!report.project_id || !reportSupportsLocale(report as ProjectReport, locale)) continue
+    if (!report.project_id) continue
+    const key = `${report.project_id}:${report.report_type}`
+    const latest = pickLatestReport([latestByProjectType.get(key), report].filter(Boolean) as ScoreboardVisibleReportRow[])
+    if (latest) latestByProjectType.set(key, latest)
+  }
+
+  for (const report of latestByProjectType.values()) {
+    if (!reportSupportsLocale(report as ProjectReport, locale)) continue
     const existing = map.get(report.project_id) ?? {
       reportTypes: [],
       reportDates: { econ: null, maturity: null, forensic: null },
@@ -222,7 +234,10 @@ export async function fetchVisibleReportsForScoreboard(
       .from('project_reports')
       .select([
         'project_id',
+        'id',
         'report_type',
+        'version',
+        'is_latest',
         'language',
         'published_at',
         'updated_at',

@@ -1,5 +1,6 @@
 import type { ProjectReport } from '@/lib/types'
 import { reportSupportsLocale } from '@/lib/report-locale'
+import { compareReportVersions, sortReportsLatestFirst } from '@/lib/report-versioning'
 
 function getEffectiveTimestamp(report: Pick<ProjectReport, 'published_at' | 'created_at' | 'updated_at'>): number {
   const source = report.published_at || report.updated_at || report.created_at
@@ -23,6 +24,11 @@ function isRapidChangeCandidate(report: ProjectReport): boolean {
 }
 
 function compareRapidChangeReports(a: ProjectReport, b: ProjectReport): number {
+  const versionDelta = compareReportVersions(a, b)
+  if (versionDelta !== 0) {
+    return versionDelta
+  }
+
   const effectiveTimeDelta = getEffectiveTimestamp(a) - getEffectiveTimestamp(b)
   if (effectiveTimeDelta !== 0) {
     return effectiveTimeDelta
@@ -83,6 +89,24 @@ export function dedupeLatestReportsByProject(reports: ProjectReport[]): ProjectR
   return Array.from(latestByProject.values()).sort((a, b) => compareRapidChangeReports(b, a))
 }
 
+export function buildReportHistoryByProject(reports: ProjectReport[], latestReports: ProjectReport[]) {
+  const latestByProject = new Map(latestReports.map((report) => [report.project_id, report]))
+  const historyByProject = new Map<string, ProjectReport[]>()
+
+  for (const report of sortReportsLatestFirst(reports)) {
+    const latest = latestByProject.get(report.project_id)
+    if (!latest) continue
+    if (report.report_type !== latest.report_type) continue
+    if (Number(report.version || 0) >= Number(latest.version || 0)) continue
+
+    const list = historyByProject.get(report.project_id) || []
+    list.push(report)
+    historyByProject.set(report.project_id, list)
+  }
+
+  return historyByProject
+}
+
 export function prepareRapidChangeReports(args: {
   reports: ProjectReport[]
   locale: string
@@ -91,24 +115,28 @@ export function prepareRapidChangeReports(args: {
   searchQuery?: string
 }) {
   const normalizedQuery = args.searchQuery?.trim().toLowerCase() || ''
-  const localizedReports = args.reports.filter((report) => (
+  const filteredReports = normalizedQuery
+    ? args.reports.filter((report) => getSearchableText(report).includes(normalizedQuery))
+    : args.reports
+
+  const latestReports = dedupeLatestReportsByProject(filteredReports)
+    .filter((report) => isRapidChangeCandidate(report) || reportSupportsLocale(report, args.locale))
+  const localizedHistoryReports = filteredReports.filter((report) => (
     isRapidChangeCandidate(report) || reportSupportsLocale(report, args.locale)
   ))
-  const filteredReports = normalizedQuery
-    ? localizedReports.filter((report) => getSearchableText(report).includes(normalizedQuery))
-    : localizedReports
-
-  const dedupedReports = dedupeLatestReportsByProject(filteredReports)
-  const totalCount = dedupedReports.length
+  const historyByProject = buildReportHistoryByProject(localizedHistoryReports, latestReports)
+  const totalCount = latestReports.length
   const totalPages = totalCount > 0 ? Math.ceil(totalCount / args.pageSize) : 0
   const currentPage = totalCount > 0
     ? Math.min(Math.max(1, args.page), totalPages)
     : 1
   const from = (currentPage - 1) * args.pageSize
   const to = from + args.pageSize
+  const pageReports = latestReports.slice(from, to)
 
   return {
-    reports: dedupedReports.slice(from, to),
+    reports: pageReports,
+    historyByProject,
     totalCount,
     totalPages,
     currentPage,

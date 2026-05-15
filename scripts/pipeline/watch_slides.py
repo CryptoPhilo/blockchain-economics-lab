@@ -454,9 +454,19 @@ def _report_row_has_legacy_pdf_url(row: Dict[str, Any]) -> bool:
         for field in (
             'gdrive_urls_by_lang',
             'gdrive_url',
+            'file_urls_by_lang',
             'file_url',
             'gdrive_file_id',
         )
+    )
+
+
+def _is_for_coming_soon_placeholder_without_asset(row: Dict[str, Any]) -> bool:
+    return (
+        _rtype_for_db_type(row.get('report_type')) == 'for'
+        and row.get('status') == 'coming_soon'
+        and not _report_row_has_slide_html(row)
+        and not _report_row_has_legacy_pdf_url(row)
     )
 
 
@@ -586,6 +596,137 @@ def run_active_project_backlog_guard() -> List[Dict[str, Any]]:
 # DB lookup helpers
 # ═══════════════════════════════════════════
 
+def _source_identity_part(value: Any) -> str:
+    return re.sub(r'\s+', ' ', str(value or '').strip())
+
+
+def _build_report_source_identity(
+    *,
+    project: Dict[str, Any],
+    db_type: str,
+    lang: str,
+    pdf_file_id: str,
+    pdf_modified_time: Optional[str],
+    pdf_size: Optional[Any],
+    pdf_name: str,
+    checksum: Optional[str] = None,
+) -> str:
+    """Return the stable source/version identity for a Drive-backed report."""
+    parts = [
+        'gdrive',
+        _source_identity_part(project.get('id')),
+        _source_identity_part(project.get('slug')),
+        _source_identity_part(db_type),
+        _source_identity_part(lang),
+        _source_identity_part(pdf_file_id),
+        _source_identity_part(pdf_modified_time),
+        _source_identity_part(pdf_size),
+        _source_identity_part(checksum),
+        _source_identity_part(pdf_name),
+    ]
+    return '|'.join(parts)
+
+
+def _report_source_patch(
+    *,
+    project: Dict[str, Any],
+    db_type: str,
+    lang: str,
+    pdf_file_id: str,
+    pdf_modified_time: Optional[str],
+    pdf_size: Optional[Any],
+    pdf_name: str,
+    checksum: Optional[str] = None,
+) -> Dict[str, Any]:
+    return {
+        'source_identity': _build_report_source_identity(
+            project=project,
+            db_type=db_type,
+            lang=lang,
+            pdf_file_id=pdf_file_id,
+            pdf_modified_time=pdf_modified_time,
+            pdf_size=pdf_size,
+            pdf_name=pdf_name,
+            checksum=checksum,
+        ),
+        'source_file_id': pdf_file_id,
+        'source_modified_time': pdf_modified_time,
+        'source_size': int(pdf_size) if str(pdf_size or '').isdigit() else None,
+        'source_checksum': checksum,
+        'source_filename': pdf_name,
+    }
+
+
+def _find_report_for_source_identity(
+    sb,
+    *,
+    project_id: str,
+    db_type: str,
+    lang: str,
+    source_identity: str,
+    pdf_file_id: str,
+) -> Optional[Dict[str, Any]]:
+    """Find the report row for an already-ingested Drive PDF source."""
+    select_cols = 'id, version, status, source_identity, source_file_id, gdrive_file_id'
+    try:
+        res = sb.table('project_reports').select(select_cols) \
+            .eq('project_id', project_id) \
+            .eq('report_type', db_type) \
+            .eq('language', lang) \
+            .eq('source_identity', source_identity) \
+            .limit(1) \
+            .execute()
+        if res.data:
+            return res.data[0]
+    except Exception:
+        pass
+
+    try:
+        res = sb.table('project_reports').select(select_cols) \
+            .eq('project_id', project_id) \
+            .eq('report_type', db_type) \
+            .eq('language', lang) \
+            .eq('source_file_id', pdf_file_id) \
+            .limit(1) \
+            .execute()
+        if res.data:
+            return res.data[0]
+    except Exception:
+        pass
+
+    try:
+        res = sb.table('project_reports').select('id, version, status, gdrive_file_id') \
+            .eq('project_id', project_id) \
+            .eq('report_type', db_type) \
+            .eq('language', lang) \
+            .eq('gdrive_file_id', pdf_file_id) \
+            .limit(1) \
+            .execute()
+        if res.data:
+            return res.data[0]
+    except Exception:
+        pass
+    return None
+
+
+def _latest_report_row_for_lang(sb, project_id: str, db_type: str, lang: str) -> Optional[Dict[str, Any]]:
+    rep = sb.table('project_reports').select(
+        'id, version, status, published_at, updated_at, is_latest'
+    ) \
+        .eq('project_id', project_id) \
+        .eq('report_type', db_type) \
+        .eq('language', lang) \
+        .in_('status', [PUBLICATION_PUBLISHED_STATUS, 'coming_soon', PUBLICATION_APPROVED_STATUS, REVIEW_READY_STATUS]) \
+        .order('is_latest', desc=True) \
+        .order('version', desc=True) \
+        .order('updated_at', desc=True) \
+        .limit(1) \
+        .execute()
+    if not rep.data:
+        return None
+    return rep.data[0]
+
+
 def _find_report_for_lang(sb, project_id: str, db_type: str, lang: str) -> Tuple[Optional[str], Optional[int], Optional[str]]:
     """Find the latest published project_reports row for (project, type, language).
 
@@ -593,19 +734,12 @@ def _find_report_for_lang(sb, project_id: str, db_type: str, lang: str) -> Tuple
     language filter the URL for one language would be merged into another
     language's row.
     """
-    rep = sb.table('project_reports').select('id, version, status, published_at, updated_at') \
-        .eq('project_id', project_id) \
-        .eq('report_type', db_type) \
-        .eq('language', lang) \
-        .in_('status', [PUBLICATION_PUBLISHED_STATUS, 'coming_soon', PUBLICATION_APPROVED_STATUS, REVIEW_READY_STATUS]) \
-        .order('updated_at', desc=True) \
-        .limit(1) \
-        .execute()
-    if not rep.data:
+    latest = _latest_report_row_for_lang(sb, project_id, db_type, lang)
+    if not latest:
         return None, None, None
-    report_id = rep.data[0]['id']
-    version = rep.data[0].get('version')
-    status = rep.data[0].get('status')
+    report_id = latest['id']
+    version = latest.get('version')
+    status = latest.get('status')
 
     try:
         rv = sb.table('report_versions').select('version') \
@@ -622,6 +756,57 @@ def _find_report_for_lang(sb, project_id: str, db_type: str, lang: str) -> Tuple
     return report_id, version, status
 
 
+def _resolve_report_version_target(
+    sb,
+    *,
+    project: Dict[str, Any],
+    db_type: str,
+    lang: str,
+    source_patch: Dict[str, Any],
+) -> Tuple[Optional[str], int, Optional[str], Optional[str], bool]:
+    """Resolve idempotent source row or allocate the next report version."""
+    project_id = project.get('id')
+    existing = _find_report_for_source_identity(
+        sb,
+        project_id=project_id,
+        db_type=db_type,
+        lang=lang,
+        source_identity=source_patch['source_identity'],
+        pdf_file_id=source_patch['source_file_id'],
+    )
+    if existing:
+        return (
+            existing.get('id'),
+            int(existing.get('version') or 1),
+            existing.get('status'),
+            None,
+            True,
+        )
+
+    try:
+        latest = _latest_report_row_for_lang(sb, project_id, db_type, lang)
+    except Exception:
+        latest_report_id, latest_version, latest_status = _find_report_for_lang(
+            sb,
+            project_id,
+            db_type,
+            lang,
+        )
+        if not latest_report_id:
+            return None, 1, None, None, False
+        return (
+            latest_report_id,
+            int(latest_version or 1),
+            latest_status,
+            None,
+            True,
+        )
+    if not latest:
+        return None, 1, None, None, False
+    next_version = int(latest.get('version') or 1) + 1
+    return None, next_version, latest.get('status'), latest.get('id'), False
+
+
 def _create_report_row_for_slide(
     sb,
     *,
@@ -631,14 +816,16 @@ def _create_report_row_for_slide(
     lang: str,
     pdf_file_id: str,
     pdf_name: str,
-    public_url: str,
+    public_url: Optional[str],
     version: Optional[int],
     status: str = PUBLICATION_PUBLISHED_STATUS,
+    source_patch: Optional[Dict[str, Any]] = None,
+    previous_report_id: Optional[str] = None,
 ) -> Tuple[Optional[str], Optional[int]]:
     """Create a project_reports row when a slide PDF has no report shell yet."""
     now = datetime.now(timezone.utc).isoformat()
     resolved_version = version or 1
-    if status in {REVIEW_READY_STATUS, PUBLICATION_APPROVED_STATUS}:
+    if status == REVIEW_READY_STATUS:
         status = PUBLICATION_PUBLISHED_STATUS
     gdrive_url = f"https://drive.google.com/file/d/{pdf_file_id}/view?usp=drivesdk"
     row = {
@@ -653,18 +840,32 @@ def _create_report_row_for_slide(
         'gdrive_url': gdrive_url,
         'gdrive_file_id': pdf_file_id,
         'gdrive_urls_by_lang': {lang: gdrive_url},
-        'slide_html_urls_by_lang': {lang: public_url},
+        'slide_html_urls_by_lang': {lang: public_url} if public_url else {},
         'translation_status': {lang: status},
         'card_data': {
             'report_type': 'econ' if db_type == 'econ' else db_type,
             'slug': slug,
             'generated_at': now,
         },
+        'previous_report_id': previous_report_id,
+        'is_latest': True,
         'updated_at': now,
     }
+    if source_patch:
+        row.update(source_patch)
     title_col = f"title_{lang}"
     if lang in SUPPORTED_LANGS:
         row[title_col] = Path(pdf_name).stem.replace('_', ' ')
+
+    if previous_report_id:
+        sb.table('project_reports').update({
+            'is_latest': False,
+            'updated_at': now,
+        }) \
+            .eq('project_id', project_id) \
+            .eq('report_type', db_type) \
+            .eq('language', lang) \
+            .execute()
 
     result = sb.table('project_reports').upsert(
         row,
@@ -789,6 +990,111 @@ def _generate_summary_after_slide_publish(
         return False
 
 
+MATURITY_SCORE_PATTERNS = (
+    re.compile(r'(?:Overall|Final)?\s*Maturity\s*Score\s*:?\s*\**\s*(\d+(?:\.\d+)?)\s*(?:/100|%)?', re.I),
+    re.compile(r'성숙도\s*점수\s*:?\s*\**\s*(\d+(?:\.\d+)?)\s*(?:/100|%)?', re.I),
+    re.compile(r'종합\s*성숙도\s*:?\s*\**\s*(\d+(?:\.\d+)?)\s*(?:/\s*100|%)?', re.I),
+    re.compile(r'종합\s*점수\s*:?\s*\**\s*(\d+(?:\.\d+)?)\s*(?:/\s*100|%)?', re.I),
+    re.compile(r'최종\s*점수\s*:?\s*\**\s*(\d+(?:\.\d+)?)\s*(?:/\s*100|%)?', re.I),
+    re.compile(r'합계\s*달성률.*?(\d+(?:\.\d+)?)\s*%', re.I | re.S),
+    re.compile(r'종합\s*진행률.*?(\d+(?:\.\d+)?)\s*%', re.I | re.S),
+    re.compile(r'최종\s*합계.*?(\d+(?:\.\d+)?)\s*%', re.I | re.S),
+    re.compile(r'\*\*(\d+(?:\.\d+)?)%\*\*로\s*(?:평가|산출)', re.I),
+)
+
+MATURITY_STAGE_PATTERNS = (
+    re.compile(r'(?:Maturity\s*)?Stage\s*:?\s*\**\s*([A-Za-z][A-Za-z _-]{2,30})', re.I),
+    re.compile(r'단계\s*:?\s*\**\s*([A-Za-z가-힣][A-Za-z가-힣 _-]{1,30})', re.I),
+)
+
+MATURITY_STAGE_ALIASES = {
+    'nascent': 'nascent',
+    'bootstrap': 'nascent',
+    '초기': 'nascent',
+    'growing': 'growing',
+    'growth': 'growing',
+    '성장': 'growing',
+    'mature': 'mature',
+    'maturity': 'mature',
+    '성숙': 'mature',
+    'established': 'established',
+    '확립': 'established',
+}
+
+
+def _classify_maturity_stage(score: float) -> str:
+    if score < 25:
+        return 'nascent'
+    if score < 50:
+        return 'growing'
+    if score < 75:
+        return 'mature'
+    return 'established'
+
+
+def _extract_maturity_score_from_text(text: str) -> Optional[float]:
+    if not text:
+        return None
+    for pattern in MATURITY_SCORE_PATTERNS:
+        match = pattern.search(text)
+        if not match:
+            continue
+        try:
+            score = float(match.group(1))
+        except (TypeError, ValueError):
+            continue
+        if 0 <= score <= 100:
+            return score
+    return None
+
+
+def _extract_maturity_stage_from_text(text: str, score: float) -> str:
+    for pattern in MATURITY_STAGE_PATTERNS:
+        match = pattern.search(text or '')
+        if not match:
+            continue
+        raw = (match.group(1) or '').strip().lower()
+        raw = re.sub(r'[^a-z가-힣_-]+.*$', '', raw)
+        normalized = MATURITY_STAGE_ALIASES.get(raw)
+        if normalized:
+            return normalized
+    return _classify_maturity_stage(score)
+
+
+def _persist_maturity_score_from_source(
+    sb,
+    *,
+    project: Dict[str, Any],
+    source: Optional[Any],
+) -> bool:
+    """Persist MAT score from the required analysis/MAT source after slide publication."""
+    if not source or not getattr(source, 'text', None):
+        return False
+
+    score = _extract_maturity_score_from_text(source.text)
+    if score is None:
+        print(f"    [WARN] MAT score not found in analysis/MAT source: {getattr(source, 'name', 'unknown')}")
+        return False
+
+    project_id = project.get('id')
+    if not project_id:
+        print("    [WARN] MAT score not persisted: project id missing")
+        return False
+
+    stage = _extract_maturity_stage_from_text(source.text, score)
+    patch = {
+        'maturity_score': score,
+        'maturity_stage': stage,
+        'updated_at': datetime.now(timezone.utc).isoformat(),
+    }
+    sb.table('tracked_projects').update(patch).eq('id', project_id).execute()
+    print(
+        f"    ✓ tracked_projects.maturity_score updated from analysis/MAT: "
+        f"{project.get('slug')}={score:.2f} ({stage})"
+    )
+    return True
+
+
 def _find_analysis_source_for_slide(
     drive_service,
     *,
@@ -823,6 +1129,8 @@ def _repair_unchanged_manifest_publication(
     public_url: Optional[str],
     pdf_file_id: str,
     pdf_name: str,
+    pdf_modified_time: Optional[str] = None,
+    pdf_size: Optional[Any] = None,
     version: Optional[int],
 ) -> Tuple[Optional[str], Optional[int], str]:
     """Repair DB publication state for an unchanged already-converted PDF.
@@ -840,13 +1148,28 @@ def _repair_unchanged_manifest_publication(
         return None, version, 'missing_project_id'
 
     db_type = DB_REPORT_TYPE[rtype]
-    report_id, db_version, current_status = _find_report_for_lang(sb, project_id, db_type, lang)
-    resolved_version = db_version or version
+    source_patch = _report_source_patch(
+        project=project or {},
+        db_type=db_type,
+        lang=lang,
+        pdf_file_id=pdf_file_id,
+        pdf_modified_time=pdf_modified_time,
+        pdf_size=pdf_size,
+        pdf_name=pdf_name,
+    )
+    report_id, resolved_version, current_status, previous_report_id, existing_source = _resolve_report_version_target(
+        sb,
+        project=project or {},
+        db_type=db_type,
+        lang=lang,
+        source_patch=source_patch,
+    )
+    resolved_version = resolved_version or version
     target_status = _target_publication_status(current_status)
 
     if report_id:
         _merge_slide_url(sb, report_id, lang, public_url, status=target_status)
-        return report_id, resolved_version, 'published'
+        return report_id, resolved_version, 'published_existing_source' if existing_source else 'published'
 
     report_id, created_version = _create_report_row_for_slide(
         sb,
@@ -859,6 +1182,8 @@ def _repair_unchanged_manifest_publication(
         public_url=public_url,
         version=resolved_version,
         status=target_status,
+        source_patch=source_patch,
+        previous_report_id=previous_report_id,
     )
     return report_id, created_version or resolved_version, 'published_created' if report_id else 'create_failed'
 
@@ -1061,13 +1386,14 @@ def _fetch_all_table_rows(sb, table_name: str, columns: str) -> List[Dict[str, A
     return rows
 
 
-def _active_drive_report_pairs(
+def _active_drive_report_inventory(
     service,
     types: Iterable[str],
     projects: List[Dict[str, Any]],
-) -> Tuple[Set[Tuple[str, str, str]], List[Dict[str, Any]]]:
-    """Return active Slide/{TYPE} report keys as (db_type, slug, lang)."""
+) -> Tuple[Set[Tuple[str, str, str]], List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """Return active Slide/{TYPE} report keys plus resolved Drive PDF metadata."""
     pairs: Set[Tuple[str, str, str]] = set()
+    resolved_rows: List[Dict[str, Any]] = []
     unresolved: List[Dict[str, Any]] = []
     for rtype, pdf in _iter_active_slide_targets(service, types, projects=projects):
         project = _match_drive_pdf_project(pdf, projects)
@@ -1076,6 +1402,14 @@ def _active_drive_report_pairs(
         slug = (project or {}).get('slug')
         if db_type and slug and lang:
             pairs.add((db_type, slug, lang))
+            resolved_rows.append({
+                'rtype': rtype,
+                'db_type': db_type,
+                'slug': slug,
+                'lang': lang,
+                'project': project,
+                'pdf': pdf,
+            })
             continue
         unresolved.append({
             'rtype': rtype,
@@ -1086,6 +1420,16 @@ def _active_drive_report_pairs(
             'status': 'db_reconcile_unresolved_drive_pdf',
             'error': 'Drive PDF could not be reduced to (report_type, slug, lang)',
         })
+    return pairs, resolved_rows, unresolved
+
+
+def _active_drive_report_pairs(
+    service,
+    types: Iterable[str],
+    projects: List[Dict[str, Any]],
+) -> Tuple[Set[Tuple[str, str, str]], List[Dict[str, Any]]]:
+    """Return active Slide/{TYPE} report keys as (db_type, slug, lang)."""
+    pairs, _resolved_rows, unresolved = _active_drive_report_inventory(service, types, projects)
     return pairs, unresolved
 
 
@@ -1157,7 +1501,7 @@ def _reconcile_visible_reports_with_drive(
         }]
 
     results: List[Dict[str, Any]] = []
-    drive_pairs, unresolved = _active_drive_report_pairs(service, types, projects)
+    drive_pairs, drive_rows, unresolved = _active_drive_report_inventory(service, types, projects)
     results.extend(unresolved)
     db_types = {DB_REPORT_TYPE[rtype] for rtype in types if rtype in DB_REPORT_TYPE}
     project_by_id = {p.get('id'): p for p in projects}
@@ -1168,7 +1512,8 @@ def _reconcile_visible_reports_with_drive(
             'project_reports',
             (
                 'id, project_id, report_type, language, status, published_at, '
-                'updated_at, created_at, slide_html_urls_by_lang'
+                'updated_at, created_at, gdrive_urls_by_lang, gdrive_url, file_url, '
+                'file_urls_by_lang, gdrive_file_id, slide_html_urls_by_lang'
             ),
         )
         if row.get('report_type') in db_types
@@ -1179,12 +1524,96 @@ def _reconcile_visible_reports_with_drive(
     for db_type, slug, _lang in drive_pairs:
         active_slugs_by_type.setdefault(db_type, set()).add(slug)
 
+    visible_keys = {
+        (
+            row.get('report_type'),
+            (project_by_id.get(row.get('project_id')) or {}).get('slug'),
+            row.get('language'),
+        )
+        for row in report_rows
+        if row.get('status') in VISIBLE_REPORT_STATUSES
+    }
+    for drive_row in drive_rows:
+        project = drive_row.get('project') or {}
+        pdf = drive_row.get('pdf') or {}
+        key = (drive_row.get('db_type'), drive_row.get('slug'), drive_row.get('lang'))
+        if key in visible_keys:
+            continue
+        status = 'dry_run_db_reconcile_materialize' if dry_run else 'db_reconcile_materialized'
+        report_id = None
+        if not dry_run:
+            report_id, _version = _create_report_row_for_slide(
+                sb,
+                project_id=project.get('id'),
+                db_type=drive_row.get('db_type'),
+                slug=drive_row.get('slug'),
+                lang=drive_row.get('lang'),
+                pdf_file_id=pdf.get('id'),
+                pdf_name=pdf.get('name') or '',
+                public_url=None,
+                version=None,
+                status=PUBLICATION_PUBLISHED_STATUS,
+            )
+        results.append({
+            'rtype': drive_row.get('rtype'),
+            'slug': drive_row.get('slug'),
+            'lang': drive_row.get('lang'),
+            'status': status,
+            'report_id': report_id,
+            'error': 'active Drive Slide PDF materialized as website-visible PDF-backed report row',
+        })
+        visible_keys.add(key)
+        if not dry_run:
+            gdrive_url = f"https://drive.google.com/file/d/{pdf.get('id')}/view?usp=drivesdk"
+            report_rows.append({
+                'id': report_id,
+                'project_id': project.get('id'),
+                'report_type': drive_row.get('db_type'),
+                'language': drive_row.get('lang'),
+                'status': PUBLICATION_PUBLISHED_STATUS,
+                'published_at': now,
+                'updated_at': now,
+                'created_at': now,
+                'gdrive_urls_by_lang': {drive_row.get('lang'): gdrive_url},
+                'gdrive_url': gdrive_url,
+                'file_url': gdrive_url,
+                'file_urls_by_lang': None,
+                'gdrive_file_id': pdf.get('id'),
+                'slide_html_urls_by_lang': {},
+            })
+
     for row in report_rows:
         project = project_by_id.get(row.get('project_id')) or {}
         key = (row.get('report_type'), project.get('slug'), row.get('language'))
         if row.get('status') not in VISIBLE_REPORT_STATUSES or key in drive_pairs:
             continue
-        status = 'dry_run_db_reconcile_cancel' if dry_run else 'db_reconcile_cancelled'
+        is_for = _rtype_for_db_type(row.get('report_type')) == 'for'
+        if _is_for_coming_soon_placeholder_without_asset(row):
+            status = (
+                'dry_run_db_reconcile_for_placeholder_without_active_slide_pdf'
+                if dry_run
+                else 'db_reconcile_for_placeholder_without_active_slide_pdf'
+            )
+            results.append({
+                'rtype': 'for',
+                'slug': project.get('slug'),
+                'lang': row.get('language'),
+                'status': status,
+                'report_id': row.get('id'),
+                'error': (
+                    'FOR coming_soon placeholder has no active Drive Slide PDF yet; '
+                    'retained as a rapid-change pre-slide placeholder'
+                ),
+            })
+            continue
+        if is_for:
+            status = (
+                'dry_run_db_reconcile_cancel_missing_active_slide_pdf'
+                if dry_run
+                else 'db_reconcile_cancelled_missing_active_slide_pdf'
+            )
+        else:
+            status = 'dry_run_db_reconcile_cancel' if dry_run else 'db_reconcile_cancelled'
         if not dry_run:
             sb.table('project_reports').update({
                 'status': 'cancelled',
@@ -1196,7 +1625,7 @@ def _reconcile_visible_reports_with_drive(
             'lang': row.get('language'),
             'status': status,
             'report_id': row.get('id'),
-            'error': 'website-visible report row is absent from active Drive Slide folder',
+            'error': 'website-visible report row has no matching active Drive Slide PDF',
         })
 
     latest_by_type_slug: Dict[Tuple[str, str], str] = {}
@@ -1208,7 +1637,10 @@ def _reconcile_visible_reports_with_drive(
             continue
         if row.get('status') not in VISIBLE_REPORT_STATUSES:
             continue
-        if not _lang_map_has_value(row.get('slide_html_urls_by_lang')):
+        if (
+            not _lang_map_has_value(row.get('slide_html_urls_by_lang'))
+            and not _report_row_has_legacy_pdf_url(row)
+        ):
             continue
         ts = row.get('published_at') or row.get('updated_at') or row.get('created_at')
         if not ts or not slug:
@@ -2132,6 +2564,8 @@ def process(
                             public_url=public_url,
                             pdf_file_id=file_id,
                             pdf_name=pdf['name'],
+                            pdf_modified_time=modified,
+                            pdf_size=pdf.get('size'),
                             version=prev.get('version'),
                         )
                         if report_id:
@@ -2435,7 +2869,22 @@ def process(
             _save_manifest(manifest)
 
             db_type = DB_REPORT_TYPE[rtype]
-            report_id, version, current_status = _find_report_for_lang(sb, project_id, db_type, lang)
+            source_patch = _report_source_patch(
+                project=project,
+                db_type=db_type,
+                lang=lang,
+                pdf_file_id=file_id,
+                pdf_modified_time=modified,
+                pdf_size=pdf.get('size'),
+                pdf_name=pdf['name'],
+            )
+            report_id, version, current_status, previous_report_id, existing_source = _resolve_report_version_target(
+                sb,
+                project=project,
+                db_type=db_type,
+                lang=lang,
+                source_patch=source_patch,
+            )
             target_status = _target_publication_status(current_status)
             analysis_source = _find_analysis_source_for_slide(
                 service,
@@ -2448,6 +2897,16 @@ def process(
                     f"    [WARN] analysis/{rtype.upper()} Markdown source missing for "
                     f"{slug}/{DB_REPORT_TYPE[rtype]}/v{version or 1}; "
                     "continuing because Slide PDF presence is the publication trigger"
+                )
+            if existing_source:
+                print(
+                    f"    [VERSION] existing Drive source identity reused: "
+                    f"project_reports[{report_id}] v{version}"
+                )
+            else:
+                print(
+                    f"    [VERSION] new Drive source identity: "
+                    f"{slug}/{db_type}/{lang} -> v{version}"
                 )
 
             try:
@@ -2476,6 +2935,8 @@ def process(
                         public_url=public_url,
                         version=version,
                         status=target_status,
+                        source_patch=source_patch,
+                        previous_report_id=previous_report_id,
                     )
                     if report_id:
                         print(
@@ -2497,6 +2958,12 @@ def process(
                     version=version,
                     source=analysis_source,
                 )
+                if rtype == 'mat':
+                    _persist_maturity_score_from_source(
+                        sb,
+                        project=project,
+                        source=analysis_source,
+                    )
 
                 manifest[file_id].update({
                     'status': 'published',

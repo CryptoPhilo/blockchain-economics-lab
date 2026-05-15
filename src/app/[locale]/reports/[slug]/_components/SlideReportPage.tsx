@@ -3,21 +3,37 @@ import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 
 import SlideViewer from '@/components/SlideViewer'
+import { getLocalizedMarketingContent } from '@/lib/report-marketing-content'
 import { cleanCardSummary } from '@/lib/report-summary'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import {
+  pickRequestedOrLatestReport,
+  sortReportsLatestFirst,
+} from '@/lib/report-versioning'
 import {
   type CardDataRecord,
   getLocaleReportState,
   getLocalizedSummary,
+  getReportDisplayDate,
+  resolveReportPdfUrl,
   resolveSlideUrl,
 } from './slide-report-utils'
 
 type ReportTypeKey = 'econ' | 'maturity'
 
 type ReportRecord = Record<string, unknown> & {
+  id: string
+  project_id: string
+  report_type: ReportTypeKey
+  version: number
   card_keywords?: string[] | null
   card_summary_en?: string | null
   language?: string | null
+  published_at?: string | null
+  updated_at?: string | null
+  created_at?: string | null
+  is_latest?: boolean | null
+  marketing_content_by_lang?: Record<string, unknown> | null
 }
 
 const localeMap: Record<string, string> = {
@@ -75,13 +91,11 @@ function getLocalizedKeywords(
     if (genericKeywords.length > 0) return genericKeywords
   }
 
-  if (locale !== 'en') return []
-
   return asStringArray(
     keywordsByLang?.en
     ?? cardData?.keywords_en
-    ?? report.card_keywords
-    ?? cardData?.keywords,
+    ?? (report.language === 'en' ? report.card_keywords : undefined)
+    ?? (report.language === 'en' ? cardData?.keywords : undefined),
   )
 }
 
@@ -89,9 +103,17 @@ interface SlideReportPageProps {
   locale: string
   slug: string
   reportType: ReportTypeKey
+  requestedVersion?: number | null
+  requestedLanguage?: string | null
 }
 
-export async function SlideReportPage({ locale, slug, reportType }: SlideReportPageProps) {
+export async function SlideReportPage({
+  locale,
+  slug,
+  reportType,
+  requestedVersion,
+  requestedLanguage,
+}: SlideReportPageProps) {
   const t = await getTranslations('slideReportDetail')
   const supabase = await createServerSupabaseClient()
 
@@ -108,17 +130,25 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
     .select('*')
     .eq('project_id', project.id)
     .eq('report_type', reportType)
-    .in('status', ['published', 'coming_soon'])
-    .order('published_at', { ascending: false })
+    .in('status', ['published', 'coming_soon', 'in_review'])
+    .order('updated_at', { ascending: false })
 
-  const reportState = getLocaleReportState(allRows, locale)
+  const sortedRows = sortReportsLatestFirst((allRows || []) as ReportRecord[])
+  const requestedOrLatest = pickRequestedOrLatestReport(sortedRows, {
+    version: requestedVersion,
+    language: requestedLanguage,
+  })
+  const versionRows = requestedOrLatest
+    ? sortedRows.filter((row) => row.version === requestedOrLatest.version)
+    : []
+  const reportState = getLocaleReportState(versionRows, locale)
   if (reportState.status === 'not_found') notFound()
 
   const report = reportState.status === 'available' ? reportState.report : null
   const isLocalePending = reportState.status === 'locale_pending'
 
   const mergedSlideUrls: Record<string, string> = {}
-  for (const row of allRows ?? []) {
+  for (const row of versionRows ?? []) {
     const urls = row?.slide_html_urls_by_lang as Record<string, unknown> | null | undefined
     if (urls && typeof urls === 'object') {
       for (const [k, v] of Object.entries(urls)) {
@@ -134,9 +164,11 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
 
   const cardData = report?.card_data as CardDataRecord | null
   const slideUrl = report ? resolveSlideUrl(mergedSlideUrls, locale) : null
+  const reportPdfUrl = report ? resolveReportPdfUrl(report, locale) : null
 
   const keywords = report ? getLocalizedKeywords(locale, report, cardData) : []
   const summary = report ? cleanCardSummary(getLocalizedSummary(locale, report, cardData)) : ''
+  const marketingContent = report ? getLocalizedMarketingContent(report, locale, summary) : ''
 
   const score =
     report && reportType === 'maturity'
@@ -145,7 +177,7 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
         ? (cardData?.economy_score ?? cardData?.score ?? null)
         : null
 
-  const generatedAt = report ? (cardData?.generated_at || report.published_at || report.created_at) : null
+  const generatedAt = getReportDisplayDate(versionRows, report)
 
   return (
     <div className="min-h-screen">
@@ -192,6 +224,16 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
                   {t('localePendingHeroDesc', { locale: locale.toUpperCase() })}
                 </p>
               )}
+              {marketingContent && (
+                <div className="mt-6 max-w-2xl rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                    {locale === 'ko' ? '투자 관점' : 'Investment View'}
+                  </p>
+                  <p className="whitespace-pre-line text-base leading-7 text-gray-300">
+                    {marketingContent}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -216,6 +258,25 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
                 {t('localePendingDesc', { locale: locale.toUpperCase() })}
               </p>
             </div>
+          ) : reportPdfUrl ? (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-10 text-center">
+              <p className="text-base font-semibold text-white mb-2">
+                {locale === 'ko' ? 'PDF 보고서를 열 수 있습니다' : 'PDF report is available'}
+              </p>
+              <p className="text-sm text-gray-400 mb-6">
+                {locale === 'ko'
+                  ? '슬라이드 뷰어는 아직 준비 중이지만 원문 PDF 보고서는 공개되어 있습니다.'
+                  : 'The slide viewer is still being prepared, but the source PDF report is published.'}
+              </p>
+              <a
+                href={reportPdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex items-center justify-center rounded-lg border px-5 py-3 text-sm font-semibold transition-colors ${theme.badgeBg} ${theme.badgeText} ${theme.badgeBorder} hover:bg-white/10`}
+              >
+                {locale === 'ko' ? 'PDF 보고서 열기' : 'Open PDF Report'} →
+              </a>
+            </div>
           ) : (
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-10 text-center">
               <p className="text-base font-semibold text-white mb-2">
@@ -227,6 +288,31 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
             </div>
           )}
         </div>
+
+        {slideUrl && reportPdfUrl && (
+          <div className="mb-10 rounded-xl border border-white/10 bg-white/[0.03] p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-white">
+                  {locale === 'ko' ? '원문 PDF' : 'Source PDF'}
+                </p>
+                <p className="mt-1 text-sm text-gray-500">
+                  {locale === 'ko'
+                    ? '슬라이드와 함께 PDF 보고서도 열람할 수 있습니다.'
+                    : 'The PDF report is available alongside the slide viewer.'}
+                </p>
+              </div>
+              <a
+                href={reportPdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex shrink-0 items-center justify-center rounded-lg border px-4 py-2 text-sm font-semibold transition-colors ${theme.badgeBg} ${theme.badgeText} ${theme.badgeBorder} hover:bg-white/10`}
+              >
+                {locale === 'ko' ? 'PDF 열기' : 'Open PDF'} →
+              </a>
+            </div>
+          </div>
+        )}
 
         {/* Keywords */}
         {keywords.length > 0 && (

@@ -206,4 +206,93 @@ describe('ReportsPage rapid change cards', () => {
     expect(screen.getByText('대규모 고래 이체와 거래소 유입이 동시에 감지되었습니다.')).toBeTruthy()
     expect(screen.getByText(/준비 중/).closest('a')).toBeNull()
   })
+
+  it('renders previous version links without same-version language siblings', async () => {
+    mockReportsQuery([
+      {
+        id: 'alpha-v2-ko',
+        project_id: 'alpha',
+        report_type: 'forensic',
+        version: 2,
+        is_latest: true,
+        status: 'published',
+        language: 'ko',
+        assigned_at: '2026-05-08T00:00:00.000Z',
+        created_at: '2026-05-08T12:00:00.000Z',
+        published_at: '2026-05-08T12:00:00.000Z',
+        title_ko: 'Alpha 포렌식 분석 v2',
+        gdrive_urls_by_lang: {
+          ko: { url: 'https://example.test/alpha-v2-ko.pdf' },
+        },
+        project: {
+          id: 'alpha',
+          name: 'Alpha',
+          slug: 'alpha',
+          symbol: 'ALPHA',
+          chain: 'Ethereum',
+          category: 'DeFi',
+        },
+      },
+      {
+        id: 'alpha-v2-en',
+        project_id: 'alpha',
+        report_type: 'forensic',
+        version: 2,
+        is_latest: true,
+        status: 'published',
+        language: 'en',
+        assigned_at: '2026-05-08T00:00:00.000Z',
+        created_at: '2026-05-08T11:00:00.000Z',
+        published_at: '2026-05-08T11:00:00.000Z',
+        title_en: 'Alpha Forensic Analysis v2',
+        gdrive_urls_by_lang: {
+          en: { url: 'https://example.test/alpha-v2-en.pdf' },
+        },
+        project: {
+          id: 'alpha',
+          name: 'Alpha',
+          slug: 'alpha',
+          symbol: 'ALPHA',
+          chain: 'Ethereum',
+          category: 'DeFi',
+        },
+      },
+      {
+        id: 'alpha-v1-ko',
+        project_id: 'alpha',
+        report_type: 'forensic',
+        version: 1,
+        is_latest: false,
+        status: 'published',
+        language: 'ko',
+        assigned_at: '2026-05-08T00:00:00.000Z',
+        created_at: '2026-05-08T10:00:00.000Z',
+        published_at: '2026-05-08T10:00:00.000Z',
+        title_ko: 'Alpha 포렌식 분석 v1',
+        gdrive_urls_by_lang: {
+          ko: { url: 'https://example.test/alpha-v1-ko.pdf' },
+        },
+        project: {
+          id: 'alpha',
+          name: 'Alpha',
+          slug: 'alpha',
+          symbol: 'ALPHA',
+          chain: 'Ethereum',
+          category: 'DeFi',
+        },
+      },
+    ])
+
+    const page = await ReportsPage({
+      params: Promise.resolve({ locale: 'ko' }),
+      searchParams: Promise.resolve({}),
+    })
+    render(page)
+
+    expect(screen.getByText('이전 버전')).toBeTruthy()
+    expect(screen.getByRole('link', { name: /v1 · KO · FORENSIC/ }).getAttribute('href')).toBe(
+      '/ko/reports/forensic/alpha?version=1&lang=ko&type=forensic',
+    )
+    expect(screen.queryByRole('link', { name: /v2 · EN · FORENSIC/ })).toBeNull()
+  })
 })
