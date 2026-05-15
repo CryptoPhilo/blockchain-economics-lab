@@ -1,5 +1,9 @@
 import type { ProjectReport } from '@/lib/types'
-import { dedupeLatestReportsByProject, prepareRapidChangeReports } from './reports-page-utils'
+import {
+  buildReportHistoryByProject,
+  dedupeLatestReportsByProject,
+  prepareRapidChangeReports,
+} from './reports-page-utils'
 
 function createReport(overrides: Partial<ProjectReport> & { project_id: string }): ProjectReport {
   const { project_id, ...rest } = overrides
@@ -107,7 +111,68 @@ describe('rapid change report list helpers', () => {
     expect(result.reports.map((report) => report.id)).toEqual(['alpha-new'])
   })
 
-  it('filters by locale before deduping so an older Korean report can beat a newer Chinese-only report', () => {
+  it('prefers is_latest and keeps older project versions available for history links', () => {
+    const oldReport = createReport({
+      id: 'alpha-v1',
+      project_id: 'alpha',
+      version: 1,
+      is_latest: false,
+      created_at: '2026-04-24T12:00:00.000Z',
+    })
+    const latestReport = createReport({
+      id: 'alpha-v2',
+      project_id: 'alpha',
+      version: 2,
+      is_latest: true,
+      created_at: '2026-04-24T10:00:00.000Z',
+    })
+
+    const latest = dedupeLatestReportsByProject([oldReport, latestReport])
+
+    expect(latest).toEqual([latestReport])
+    expect(buildReportHistoryByProject([oldReport, latestReport], latest).get('alpha')).toEqual([
+      oldReport,
+    ])
+  })
+
+  it('excludes same-version sibling language rows from report history', () => {
+    const oldReport = createReport({
+      id: 'alpha-v1-ko',
+      project_id: 'alpha',
+      version: 1,
+      language: 'ko',
+      is_latest: false,
+      published_at: '2026-04-20T00:00:00.000Z',
+      gdrive_urls_by_lang: { ko: { url: 'https://example.com/alpha-v1-ko.pdf' } },
+    })
+    const latestKo = createReport({
+      id: 'alpha-v2-ko',
+      project_id: 'alpha',
+      version: 2,
+      language: 'ko',
+      is_latest: true,
+      published_at: '2026-04-24T10:00:00.000Z',
+      gdrive_urls_by_lang: { ko: { url: 'https://example.com/alpha-v2-ko.pdf' } },
+    })
+    const latestEnSibling = createReport({
+      id: 'alpha-v2-en',
+      project_id: 'alpha',
+      version: 2,
+      language: 'en',
+      is_latest: true,
+      published_at: '2026-04-24T10:00:00.000Z',
+      gdrive_urls_by_lang: { en: { url: 'https://example.com/alpha-v2-en.pdf' } },
+    })
+
+    const history = buildReportHistoryByProject(
+      [oldReport, latestKo, latestEnSibling],
+      [latestKo],
+    )
+
+    expect(history.get('alpha')?.map((report) => report.id)).toEqual(['alpha-v1-ko'])
+  })
+
+  it('does not fall back to an older localized report when the latest version lacks locale support', () => {
     const reports = [
       createReport({
         id: 'alpha-zh-new',
@@ -133,8 +198,8 @@ describe('rapid change report list helpers', () => {
       pageSize: 20,
     })
 
-    expect(result.totalCount).toBe(1)
-    expect(result.reports.map((report) => report.id)).toEqual(['alpha-ko-old'])
+    expect(result.totalCount).toBe(0)
+    expect(result.reports).toEqual([])
   })
 
   it('includes language-scoped rows in another locale when that locale has a real asset', () => {

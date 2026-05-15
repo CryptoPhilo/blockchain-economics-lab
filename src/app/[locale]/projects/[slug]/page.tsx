@@ -4,6 +4,12 @@ import { notFound } from 'next/navigation'
 import { getLocalizedMarketingContent } from '@/lib/report-marketing-content'
 import { cleanCardSummary } from '@/lib/report-summary'
 import { pickLocaleReport, reportSupportsLocale } from '@/lib/report-locale'
+import {
+  buildReportVersionHref,
+  getReportVersionLabel,
+  pickLatestReport,
+  sortReportsLatestFirst,
+} from '@/lib/report-versioning'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import type { ProjectReport, ReportType, TrackedProject } from '@/lib/types'
 
@@ -123,11 +129,38 @@ export function selectReportsByType(
 
   const selected = new Map<ReportType, ProjectReport>()
   for (const [type, list] of byType.entries()) {
-    const eligible = list.filter((report) => reportSupportsLocale(report, locale))
+    const latest = pickLatestReport(list)
+    const eligible = latest
+      ? sortReportsLatestFirst(
+          list.filter((report) => report.version === latest.version && reportSupportsLocale(report, locale)),
+        )
+      : []
     const pick = pickLocaleReport(eligible, locale)
     if (pick) selected.set(type, pick)
   }
   return selected
+}
+
+export function buildReportHistoryByType(
+  reports: ProjectReport[],
+  selectedReports: Map<ReportType, ProjectReport>,
+  locale: string,
+): Map<ReportType, ProjectReport[]> {
+  const history = new Map<ReportType, ProjectReport[]>()
+
+  for (const type of REPORT_TYPE_ORDER) {
+    const selected = selectedReports.get(type)
+    const rows = sortReportsLatestFirst(
+      reports.filter((report) => (
+        report.report_type === type
+        && Number(report.version || 0) < Number(selected?.version || 0)
+        && reportSupportsLocale(report, locale)
+      )),
+    )
+    if (rows.length > 0) history.set(type, rows)
+  }
+
+  return history
 }
 
 const REPORT_TYPE_ORDER: ReportType[] = ['econ', 'maturity', 'forensic']
@@ -152,10 +185,12 @@ export default async function ProjectDetailPage({ params }: Props) {
     .select('*')
     .eq('project_id', project.id)
     .in('status', ['published', 'in_review'])
+    .order('is_latest', { ascending: false })
     .order('updated_at', { ascending: false })
 
   const reports = (reportsRaw || []) as ProjectReport[]
   const reportsByType = selectReportsByType(reports, locale)
+  const historyByType = buildReportHistoryByType(reports, reportsByType, locale)
   const orderedReports = REPORT_TYPE_ORDER
     .map((type) => reportsByType.get(type))
     .filter((r): r is ProjectReport => Boolean(r))
@@ -256,6 +291,7 @@ export default async function ProjectDetailPage({ params }: Props) {
               const summary = pickLocalizedSummary(report, locale)
               const marketingContent = getLocalizedMarketingContent(report, locale, summary)
               const href = buildReportHref(locale, project.slug, report.report_type)
+              const history = historyByType.get(report.report_type) || []
               const publishedAt = report.published_at
                 ? new Date(report.published_at).toLocaleDateString(dateLocale, {
                     year: 'numeric', month: 'short', day: 'numeric',
@@ -263,9 +299,8 @@ export default async function ProjectDetailPage({ params }: Props) {
                 : null
 
               return (
-                <Link
+                <div
                   key={report.id}
-                  href={href}
                   className={`relative group flex flex-col p-6 rounded-2xl bg-white/[0.03] border ${theme.cardBorder} ${theme.hoverBorder} hover:bg-white/[0.05] transition-all`}
                 >
                   {/* Type chip - top right */}
@@ -276,9 +311,11 @@ export default async function ProjectDetailPage({ params }: Props) {
                   </span>
 
                   {/* Title */}
-                  <h3 className="text-lg font-semibold text-white mb-3 pr-20 line-clamp-2 group-hover:text-indigo-300 transition-colors">
-                    {title}
-                  </h3>
+                  <Link href={href}>
+                    <h3 className="text-lg font-semibold text-white mb-3 pr-20 line-clamp-2 hover:text-indigo-300 transition-colors">
+                      {title}
+                    </h3>
+                  </Link>
 
                   {/* Summary */}
                   {summary && (
@@ -303,7 +340,36 @@ export default async function ProjectDetailPage({ params }: Props) {
                     <span>{publishedAt || '—'}</span>
                     <span className="font-mono">v{report.version}</span>
                   </div>
-                </Link>
+
+                  {history.length > 0 && (
+                    <div className="mt-4 border-t border-white/5 pt-3">
+                      <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-600">
+                        {isKo ? '이전 버전' : 'Previous Versions'}
+                      </p>
+                      <div className="flex flex-col gap-1.5">
+                        {history.map((item) => {
+                          const label = getReportVersionLabel(item)
+                          return (
+                            <Link
+                              key={item.id}
+                              href={buildReportVersionHref({
+                                baseHref: href,
+                                version: label.version,
+                                language: label.language,
+                                reportType: label.reportType,
+                              })}
+                              className="rounded-md border border-white/10 bg-black/10 px-2.5 py-1 text-[11px] text-gray-500 transition-colors hover:border-indigo-500/30 hover:text-indigo-300"
+                            >
+                              {new Date(label.date || item.created_at).toLocaleDateString(dateLocale, {
+                                year: 'numeric', month: 'short', day: 'numeric',
+                              })} · v{label.version} · {label.language.toUpperCase()} · {label.reportType.toUpperCase()}
+                            </Link>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
               )
             })}
           </div>

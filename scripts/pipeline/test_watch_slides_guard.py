@@ -988,6 +988,255 @@ def test_iter_targets_does_not_recurse_unrequested_slide_roots(ws, monkeypatch):
     assert 'folder-mat-heavy' not in child_calls
 
 
+class MutableFakeQuery:
+    def __init__(self, table_rows):
+        self.table_rows = table_rows
+        self.rows = list(table_rows)
+        self.update_payload = None
+        self.upsert_row = None
+        self.conflict_cols = []
+
+    def select(self, *_args, **_kwargs):
+        return self
+
+    def eq(self, field, value):
+        self.rows = [row for row in self.rows if row.get(field) == value]
+        return self
+
+    def in_(self, field, values):
+        self.rows = [row for row in self.rows if row.get(field) in values]
+        return self
+
+    def order(self, field, desc=False):
+        self.rows = sorted(
+            self.rows,
+            key=lambda row: (row.get(field) is not None, row.get(field)),
+            reverse=desc,
+        )
+        return self
+
+    def limit(self, count):
+        self.rows = self.rows[:count]
+        return self
+
+    def single(self):
+        return self
+
+    def update(self, payload):
+        self.update_payload = payload
+        return self
+
+    def upsert(self, row, on_conflict=None):
+        self.upsert_row = row
+        self.conflict_cols = [col.strip() for col in (on_conflict or '').split(',') if col.strip()]
+        return self
+
+    def execute(self):
+        if self.update_payload is not None:
+            selected_ids = {id(row) for row in self.rows}
+            for row in self.table_rows:
+                if id(row) in selected_ids:
+                    row.update(self.update_payload)
+            return SimpleNamespace(data=[row for row in self.table_rows if id(row) in selected_ids])
+
+        if self.upsert_row is not None:
+            match = None
+            if self.conflict_cols:
+                for row in self.table_rows:
+                    if all(row.get(col) == self.upsert_row.get(col) for col in self.conflict_cols):
+                        match = row
+                        break
+            if match is None:
+                match = {'id': f"r{len(self.table_rows) + 1}"}
+                self.table_rows.append(match)
+            match.update(self.upsert_row)
+            return SimpleNamespace(data=[match])
+
+        return SimpleNamespace(data=list(self.rows))
+
+
+class MutableFakeSupabase:
+    def __init__(self, tables):
+        self.tables = tables
+
+    def table(self, name):
+        return MutableFakeQuery(self.tables[name])
+
+
+def test_report_source_identity_reuses_existing_drive_source(ws):
+    project = {'id': 'p-bitcoin', 'slug': 'bitcoin'}
+    source_patch = ws._report_source_patch(
+        project=project,
+        db_type='econ',
+        lang='ko',
+        pdf_file_id='drive-1',
+        pdf_modified_time='2026-05-15T00:00:00Z',
+        pdf_size='1234',
+        pdf_name='bitcoin_ECON_ko.pdf',
+    )
+    sb = MutableFakeSupabase({
+        'project_reports': [{
+            'id': 'r-existing',
+            'project_id': 'p-bitcoin',
+            'report_type': 'econ',
+            'language': 'ko',
+            'version': 2,
+            'status': 'published',
+            'is_latest': True,
+            'source_identity': source_patch['source_identity'],
+            'source_file_id': 'drive-1',
+        }],
+    })
+
+    report_id, version, status, previous_report_id, existing_source = ws._resolve_report_version_target(
+        sb,
+        project=project,
+        db_type='econ',
+        lang='ko',
+        source_patch=source_patch,
+    )
+
+    assert report_id == 'r-existing'
+    assert version == 2
+    assert status == 'published'
+    assert previous_report_id is None
+    assert existing_source is True
+
+
+def test_report_source_identity_allocates_next_version_for_new_drive_pdf(ws):
+    project = {'id': 'p-bitcoin', 'slug': 'bitcoin'}
+    source_patch = ws._report_source_patch(
+        project=project,
+        db_type='econ',
+        lang='ko',
+        pdf_file_id='drive-new',
+        pdf_modified_time='2026-05-15T00:05:00Z',
+        pdf_size='2234',
+        pdf_name='bitcoin_ECON_ko_v3.pdf',
+    )
+    sb = MutableFakeSupabase({
+        'project_reports': [{
+            'id': 'r-latest',
+            'project_id': 'p-bitcoin',
+            'report_type': 'econ',
+            'language': 'ko',
+            'version': 2,
+            'status': 'published',
+            'is_latest': True,
+            'updated_at': '2026-05-14T00:00:00Z',
+            'source_identity': 'old-source',
+            'source_file_id': 'drive-old',
+        }],
+    })
+
+    report_id, version, status, previous_report_id, existing_source = ws._resolve_report_version_target(
+        sb,
+        project=project,
+        db_type='econ',
+        lang='ko',
+        source_patch=source_patch,
+    )
+
+    assert report_id is None
+    assert version == 3
+    assert status == 'published'
+    assert previous_report_id == 'r-latest'
+    assert existing_source is False
+
+
+def test_create_report_row_for_slide_moves_latest_pointer_and_stores_source(ws):
+    project = {'id': 'p-bitcoin', 'slug': 'bitcoin'}
+    source_patch = ws._report_source_patch(
+        project=project,
+        db_type='econ',
+        lang='ko',
+        pdf_file_id='drive-new',
+        pdf_modified_time='2026-05-15T00:05:00Z',
+        pdf_size='2234',
+        pdf_name='bitcoin_ECON_ko_v3.pdf',
+    )
+    rows = [{
+        'id': 'r-latest',
+        'project_id': 'p-bitcoin',
+        'report_type': 'econ',
+        'language': 'ko',
+        'version': 2,
+        'status': 'published',
+        'is_latest': True,
+    }]
+    sb = MutableFakeSupabase({
+        'project_reports': rows,
+        'tracked_projects': [{'id': 'p-bitcoin'}],
+    })
+
+    report_id, version = ws._create_report_row_for_slide(
+        sb,
+        project_id='p-bitcoin',
+        db_type='econ',
+        slug='bitcoin',
+        lang='ko',
+        pdf_file_id='drive-new',
+        pdf_name='bitcoin_ECON_ko_v3.pdf',
+        public_url='https://storage.example/econ/bitcoin/latest/ko.html',
+        version=3,
+        source_patch=source_patch,
+        previous_report_id='r-latest',
+    )
+
+    assert report_id == 'r2'
+    assert version == 3
+    assert rows[0]['is_latest'] is False
+    assert rows[1]['is_latest'] is True
+    assert rows[1]['previous_report_id'] == 'r-latest'
+    assert rows[1]['source_identity'] == source_patch['source_identity']
+    assert rows[1]['source_file_id'] == 'drive-new'
+
+
+def test_report_source_identity_migration_backfill_prefers_version_before_timestamp():
+    migration_sql = (
+        Path(__file__).parents[2]
+        / 'supabase'
+        / 'migrations'
+        / '20260515_add_report_source_identity_and_latest_contract.sql'
+    ).read_text()
+
+    order_start = migration_sql.index('ORDER BY')
+    order_end = migration_sql.index(') AS rn', order_start)
+    order_clause = migration_sql[order_start:order_end]
+
+    assert order_clause.index('version DESC') < order_clause.index(
+        'COALESCE(published_at, updated_at, created_at) DESC NULLS LAST'
+    )
+
+    rows = [
+        {
+            'id': 'v1-later-timestamp',
+            'status': 'published',
+            'version': 1,
+            'published_at': '2026-05-15T12:00:00Z',
+            'updated_at': '2026-05-15T12:00:00Z',
+            'created_at': '2026-05-15T12:00:00Z',
+        },
+        {
+            'id': 'v2-older-timestamp',
+            'status': 'published',
+            'version': 2,
+            'published_at': '2026-05-14T12:00:00Z',
+            'updated_at': '2026-05-14T12:00:00Z',
+            'created_at': '2026-05-14T12:00:00Z',
+        },
+    ]
+
+    def migration_rank_key(row):
+        visible_rank = 0 if row['status'] in {'published', 'approved', 'in_review', 'coming_soon'} else 1
+        timestamp = row.get('published_at') or row.get('updated_at') or row.get('created_at') or ''
+        return (visible_rank, -row['version'], timestamp, row['id'])
+
+    latest = sorted(rows, key=migration_rank_key)[0]
+
+    assert latest['id'] == 'v2-older-timestamp'
+
+
 def test_iter_targets_slug_filter_prunes_nonmatching_folders_and_pdfs(ws, monkeypatch):
     monkeypatch.setattr(ws, 'TYPE_FOLDER_IDS', {'econ': 'root-econ'})
     pdfs_by_parent = {
@@ -2019,8 +2268,15 @@ class _FakeReconcileTable:
         self.filters = {}
         self.patch = None
         self.range_bounds = None
+        self.upsert_payload = None
+        self.on_conflict = None
 
     def select(self, *_args):
+        return self
+
+    def upsert(self, payload, on_conflict=None):
+        self.upsert_payload = payload
+        self.on_conflict = on_conflict
         return self
 
     def range(self, start, end):
@@ -2036,6 +2292,10 @@ class _FakeReconcileTable:
         return self
 
     def execute(self):
+        if self.upsert_payload is not None:
+            row = {**self.upsert_payload, 'id': f"created-{len(self.rows) + 1}"}
+            self.rows.append(row)
+            return _FakeReconcileExecuteResult([row])
         matched = [
             row for row in self.rows
             if all(row.get(key) == value for key, value in self.filters.items())
@@ -2207,6 +2467,43 @@ def test_merge_slide_url_updates_publish_metadata_and_project_timestamp(ws):
     assert report['card_data']['summary'] == 'Avalanche summary'
     assert project['last_econ_report_at'] == publish_ts
     assert project['updated_at'] == publish_ts
+
+
+def test_extract_maturity_score_from_analysis_markdown(ws):
+    text = """
+    # Hyperliquid MAT
+
+    **Maturity Score: 85.0 | Stage: ESTABLISHED**
+    """
+
+    assert ws._extract_maturity_score_from_text(text) == 85.0
+    assert ws._extract_maturity_stage_from_text(text, 85.0) == 'established'
+
+
+def test_extract_maturity_score_from_korean_summary_forms(ws):
+    assert ws._extract_maturity_score_from_text('종합 점수 82.6% 기준 Aave는 성숙 서사 구간이다.') == 82.6
+    assert ws._extract_maturity_score_from_text('**최종 판정:** 전개 서사 단계, 종합 성숙도 57.4 / 100') == 57.4
+
+
+def test_persist_maturity_score_from_source_updates_tracked_project(ws):
+    class Source:
+        name = 'hyperliquid_mat_v1_en.md'
+        text = '**Overall Maturity Score: 85.0**\n\nStage: Established\n'
+
+    report = {'project_id': 'project-hype', 'report_type': 'maturity'}
+    project = {'id': 'project-hype', 'slug': 'hyperliquid'}
+    sb = _FakeMergeSupabase(report, project)
+
+    persisted = ws._persist_maturity_score_from_source(
+        sb,
+        project=project,
+        source=Source(),
+    )
+
+    assert persisted is True
+    assert project['maturity_score'] == 85.0
+    assert project['maturity_stage'] == 'established'
+    assert project['updated_at']
 
 
 def test_prune_stale_languages_removes_db_json_and_latest_storage(ws):
@@ -2441,6 +2738,93 @@ def test_db_reconcile_dry_run_does_not_mutate_rows(ws, monkeypatch):
     }
 
 
+def test_db_reconcile_for_rows_without_active_slide_pdf_are_classified_as_missing_active_slide_pdf(ws, monkeypatch):
+    projects = [
+        {'id': 'project-ton', 'slug': 'ton', 'name': 'TON', 'symbol': 'TON'},
+    ]
+    tables = {
+        'project_reports': [{
+            'id': 'report-ton-en',
+            'project_id': 'project-ton',
+            'report_type': 'forensic',
+            'language': 'en',
+            'status': 'published',
+            'published_at': '2026-05-01T00:00:00Z',
+            'updated_at': '2026-05-01T00:00:00Z',
+            'created_at': '2026-05-01T00:00:00Z',
+            'slide_html_urls_by_lang': {'en': 'https://storage/for/ton/latest/en.html'},
+        }],
+        'tracked_projects': [{
+            'id': 'project-ton',
+            'slug': 'ton',
+            'last_econ_report_at': None,
+            'last_maturity_report_at': None,
+            'last_forensic_report_at': None,
+        }],
+    }
+    monkeypatch.setattr(ws, '_iter_active_slide_targets', lambda *_args, **_kwargs: [])
+
+    results = ws._reconcile_visible_reports_with_drive(
+        _FakeReconcileSupabase(tables),
+        object(),
+        types=['for'],
+        projects=projects,
+        dry_run=False,
+    )
+
+    assert tables['project_reports'][0]['status'] == 'cancelled'
+    assert tables['tracked_projects'][0]['last_forensic_report_at'] is None
+    assert {row['status'] for row in results} == {
+        'db_reconcile_cancelled_missing_active_slide_pdf',
+    }
+
+
+def test_db_reconcile_keeps_for_coming_soon_placeholder_without_active_slide_pdf(ws, monkeypatch):
+    projects = [
+        {'id': 'project-aztec', 'slug': 'aztec', 'name': 'Aztec', 'symbol': 'AZTEC'},
+    ]
+    tables = {
+        'project_reports': [{
+            'id': 'report-aztec-en',
+            'project_id': 'project-aztec',
+            'report_type': 'forensic',
+            'language': 'en',
+            'status': 'coming_soon',
+            'published_at': None,
+            'updated_at': '2026-05-13T00:00:00Z',
+            'created_at': '2026-05-13T00:00:00Z',
+            'gdrive_urls_by_lang': None,
+            'gdrive_url': None,
+            'file_urls_by_lang': None,
+            'file_url': None,
+            'gdrive_file_id': None,
+            'slide_html_urls_by_lang': None,
+        }],
+        'tracked_projects': [{
+            'id': 'project-aztec',
+            'slug': 'aztec',
+            'last_econ_report_at': None,
+            'last_maturity_report_at': None,
+            'last_forensic_report_at': None,
+        }],
+    }
+    monkeypatch.setattr(ws, '_iter_active_slide_targets', lambda *_args, **_kwargs: [])
+
+    results = ws._reconcile_visible_reports_with_drive(
+        _FakeReconcileSupabase(tables),
+        object(),
+        types=['for'],
+        projects=projects,
+        dry_run=False,
+    )
+
+    assert tables['project_reports'][0]['status'] == 'coming_soon'
+    assert tables['tracked_projects'][0]['last_forensic_report_at'] is None
+    assert {row['status'] for row in results} == {
+        'db_reconcile_for_placeholder_without_active_slide_pdf',
+    }
+
+
 def test_db_reconcile_resolves_compact_drive_filename_slug(ws, monkeypatch):
     projects = [
         {'id': 'project-pump', 'slug': 'pump-fun', 'name': 'Pump.fun', 'symbol': 'PUMP'},
@@ -2485,6 +2869,85 @@ def test_db_reconcile_resolves_compact_drive_filename_slug(ws, monkeypatch):
         'status': 'db_reconcile_ok',
         'error': 'visible DB report availability already matches active Drive Slide folders',
     }]
+
+
+def test_db_reconcile_materializes_active_drive_pdf_only_report_row(ws, monkeypatch):
+    projects = [
+        {'id': 'project-pump', 'slug': 'pump-fun', 'name': 'Pump.fun', 'symbol': 'PUMP'},
+    ]
+    tables = {
+        'project_reports': [],
+        'tracked_projects': [{
+            'id': 'project-pump',
+            'slug': 'pump-fun',
+            'last_econ_report_at': None,
+            'last_maturity_report_at': None,
+            'last_forensic_report_at': None,
+        }],
+    }
+    monkeypatch.setattr(ws, '_iter_active_slide_targets', lambda *_args, **_kwargs: [
+        ('econ', {
+            'id': 'drive-pump-cn',
+            'name': 'Pump.fun_Cryptoeconomic_Blueprint_cn.pdf',
+            'source_path': 'Slide/econ/Pump.fun_Cryptoeconomic_Blueprint_cn.pdf',
+        }),
+    ])
+
+    results = ws._reconcile_visible_reports_with_drive(
+        _FakeReconcileSupabase(tables),
+        object(),
+        types=['econ'],
+        projects=projects,
+        dry_run=False,
+    )
+
+    assert tables['project_reports'][0]['project_id'] == 'project-pump'
+    assert tables['project_reports'][0]['report_type'] == 'econ'
+    assert tables['project_reports'][0]['language'] == 'zh'
+    assert tables['project_reports'][0]['status'] == ws.PUBLICATION_PUBLISHED_STATUS
+    assert tables['project_reports'][0]['published_at'] is not None
+    assert tables['project_reports'][0]['gdrive_file_id'] == 'drive-pump-cn'
+    assert tables['project_reports'][0]['gdrive_urls_by_lang'] == {
+        'zh': 'https://drive.google.com/file/d/drive-pump-cn/view?usp=drivesdk',
+    }
+    assert tables['project_reports'][0]['slide_html_urls_by_lang'] == {}
+    assert tables['tracked_projects'][0]['last_econ_report_at'] is not None
+    assert any(result['status'] == 'db_reconcile_materialized' for result in results)
+    assert any(result['status'] == 'db_reconcile_timestamp_synced' for result in results)
+
+
+def test_db_reconcile_dry_run_materialization_does_not_mutate_rows(ws, monkeypatch):
+    projects = [
+        {'id': 'project-pump', 'slug': 'pump-fun', 'name': 'Pump.fun', 'symbol': 'PUMP'},
+    ]
+    tables = {
+        'project_reports': [],
+        'tracked_projects': [{
+            'id': 'project-pump',
+            'slug': 'pump-fun',
+            'last_econ_report_at': None,
+            'last_maturity_report_at': None,
+            'last_forensic_report_at': None,
+        }],
+    }
+    monkeypatch.setattr(ws, '_iter_active_slide_targets', lambda *_args, **_kwargs: [
+        ('econ', {
+            'id': 'drive-pump-cn',
+            'name': 'Pump.fun_Cryptoeconomic_Blueprint_cn.pdf',
+            'source_path': 'Slide/econ/Pump.fun_Cryptoeconomic_Blueprint_cn.pdf',
+        }),
+    ])
+
+    results = ws._reconcile_visible_reports_with_drive(
+        _FakeReconcileSupabase(tables),
+        object(),
+        types=['econ'],
+        projects=projects,
+        dry_run=True,
+    )
+
+    assert tables['project_reports'] == []
+    assert any(result['status'] == 'dry_run_db_reconcile_materialize' for result in results)
 
 
 def test_write_run_log_handles_prune_records_without_name(ws, monkeypatch, tmp_path):

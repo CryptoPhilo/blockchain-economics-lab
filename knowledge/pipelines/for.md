@@ -4,7 +4,7 @@ Manifest key: `for-report-publishing`
 Paperclip pipeline: `FOR Report Publishing`
 Owner: CRO
 Status: active
-Last reconciliation: 2026-05-14
+Last reconciliation: 2026-05-15
 
 ## Operating Definition
 
@@ -16,6 +16,9 @@ inherits the shared report-publishing node structure from
 - Source confirmation: Korean Markdown source in `analysis/FOR`.
 - Runtime: GitHub Actions workflow `.github/workflows/slide-pipeline-cron.yml`.
 - Schedule: workflow cron `*/5 * * * *`, gated by the Supabase `pipeline_schedules` row for `slide-pipeline`; expected effective check interval is 30 minutes.
+- Telemetry state store: Supabase `pipeline_runs`, `pipeline_node_runs`, and
+  `pipeline_events`. Paperclip REST telemetry is secondary opt-in only via
+  `PAPERCLIP_TELEMETRY_SECONDARY_ENABLED=true`.
 - Local execution: dry-run, development, and incident reproduction only. Production writes must run remotely.
 - Output: website-visible report records and slide assets.
 
@@ -56,10 +59,39 @@ boundary used by this inherited pipeline:
 
 - `scripts/pipeline/watch_slides_inspection.py` owns PDF page profiling, text/OCR extraction, and language resolution helpers.
 - `scripts/pipeline/watch_slides_matching.py` owns project signal matching, watcher-only aliases, and slug/content mismatch guards.
-- `scripts/pipeline/watch_slides_telemetry.py` owns optional Paperclip run/node/event payloads and watcher status taxonomy.
+- `scripts/pipeline/watch_slides_telemetry.py` owns Supabase run/node/event telemetry, optional secondary Paperclip payloads, and watcher status taxonomy.
 - `scripts/pipeline/watch_slides.py` remains the CLI and orchestration boundary, including DB/storage write orchestration.
 
 The runtime manifest records that the `draft_report` and
 `summary_marketing_localization` nodes use `marketing_content_pipeline` through
 the `watch_slides.py` runtime caller. `npm run verify:runtime-pipelines` must
 pass before deployment or remote execution.
+
+## BCE-1900 Telemetry State Store Update
+
+BCE-1900 moved report pipeline telemetry from default Paperclip REST writes to
+the Supabase durable state store. `scripts/pipeline/watch_slides_telemetry.py`
+now writes run rows, node snapshots, completion events, counts, GitHub metadata,
+and log artifact paths to Supabase by default when `SUPABASE_URL` or
+`NEXT_PUBLIC_SUPABASE_URL` plus `SUPABASE_SERVICE_KEY` are present. GitHub
+Actions no longer exports Paperclip API secrets in the default slide pipeline
+run step.
+
+## BCE-1907 Report Version Identity Update
+
+BCE-1907 keeps the same FOR pipeline nodes and runtime caller, but changes the
+DB publication contract behind `website_publish`:
+
+- `scripts/pipeline/watch_slides.py` derives a stable Drive source identity from
+  canonical project identity, report type, locale, Drive file id, modifiedTime,
+  file size, optional checksum, and filename.
+- Reprocessing the same Drive PDF reuses the existing `project_reports` version.
+- A new Drive PDF for the same project/report_type/locale creates the next
+  versioned `project_reports` row, links `previous_report_id`, and moves the
+  `is_latest` default pointer to the new row.
+- Backfill chooses the default row by visible/publishable status first, highest
+  `version` second, and timestamp only as a tie-breaker.
+- Slide-backed rows with website-visible assets are published/default latest;
+  FOR `coming_soon` placeholders without assets remain governed by the existing
+  placeholder policy. Production DB rollout requires the BCE-1907
+  migration/backfill before remote production writes.

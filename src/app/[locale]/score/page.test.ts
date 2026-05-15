@@ -470,6 +470,75 @@ describe('score page report availability policy', () => {
     })
   })
 
+  it('uses the latest localized report version for scoreboard badge dates', () => {
+    const availability = buildReportAvailabilityByProjectId([
+      {
+        id: 'aave-econ-v1',
+        project_id: 'aave-project',
+        report_type: 'econ',
+        version: 1,
+        is_latest: false,
+        language: 'en',
+        published_at: '2026-05-10T00:00:00.000Z',
+        gdrive_urls_by_lang: {
+          en: { url: 'https://drive.google.com/file/d/aave-v1-en/view' },
+        },
+      },
+      {
+        id: 'aave-econ-v2',
+        project_id: 'aave-project',
+        report_type: 'econ',
+        version: 2,
+        is_latest: true,
+        language: 'en',
+        published_at: '2026-05-08T00:00:00.000Z',
+        gdrive_urls_by_lang: {
+          en: { url: 'https://drive.google.com/file/d/aave-v2-en/view' },
+        },
+      },
+    ], 'en')
+
+    expect(availability.get('aave-project')).toEqual({
+      reportTypes: ['econ'],
+      reportDates: {
+        econ: '2026-05-08T00:00:00.000Z',
+        maturity: null,
+        forensic: null,
+      },
+    })
+  })
+
+  it('does not fall back to an older localized version when the latest version lacks locale support', () => {
+    const availability = buildReportAvailabilityByProjectId([
+      {
+        id: 'alpha-econ-v1-ko',
+        project_id: 'alpha-project',
+        report_type: 'econ',
+        version: 1,
+        is_latest: false,
+        language: 'ko',
+        published_at: '2026-05-10T00:00:00.000Z',
+        gdrive_urls_by_lang: {
+          ko: { url: 'https://drive.google.com/file/d/alpha-v1-ko/view' },
+        },
+      },
+      {
+        id: 'alpha-econ-v2-zh',
+        project_id: 'alpha-project',
+        report_type: 'econ',
+        version: 2,
+        is_latest: true,
+        language: 'zh',
+        published_at: '2026-05-11T00:00:00.000Z',
+        gdrive_urls_by_lang: {
+          zh: { url: 'https://drive.google.com/file/d/alpha-v2-zh/view' },
+        },
+      },
+    ], 'ko')
+
+    expect(availability.has('alpha-project')).toBe(false)
+  })
+
   it('renders OKX ECON and MAT badges when localized assets exist', () => {
     const trackedProjects = [
       {

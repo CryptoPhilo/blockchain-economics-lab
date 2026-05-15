@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import Link from 'next/link'
 import type { ProjectReport } from '@/lib/types'
 import { getLocalizedMarketingContent } from '@/lib/report-marketing-content'
+import { buildReportVersionHref, getReportVersionLabel } from '@/lib/report-versioning'
 import { prepareRapidChangeReports } from './reports-page-utils'
 
 interface Props {
@@ -93,11 +94,18 @@ export default async function ReportsPage({ params, searchParams }: Props) {
     .in('status', ['published', 'coming_soon', 'in_review'])
     .eq('report_type', 'forensic')
     .gte('created_at', seventyTwoHoursAgo.toISOString())
+    .order('is_latest', { ascending: false })
     .order('updated_at', { ascending: false })
     .order('created_at', { ascending: false })
 
   const { data: rawReports } = await dataQuery
-  const { reports, totalCount, totalPages, currentPage: activePage } = prepareRapidChangeReports({
+  const {
+    reports,
+    historyByProject,
+    totalCount,
+    totalPages,
+    currentPage: activePage,
+  } = prepareRapidChangeReports({
     reports: (rawReports || []) as ProjectReport[],
     locale,
     page: currentPage,
@@ -192,6 +200,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
             const summary = getLocalizedSummary(report, locale)
             const rapidChangeReason = getRapidChangeReason(report, locale)
             const marketingContent = getLocalizedMarketingContent(report, locale, summary)
+            const history = historyByProject.get(report.project_id) || []
 
             const translationStatus = report.translation_status || {}
             const gdriveUrls = report.gdrive_urls_by_lang || {}
@@ -308,6 +317,33 @@ export default async function ReportsPage({ params, searchParams }: Props) {
                       }
                       return badge
                     })}
+                  </div>
+                )}
+
+                {history.length > 0 && project && (
+                  <div className="pt-3 border-t border-white/5">
+                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-600">
+                      {locale === 'ko' ? '이전 버전' : 'Previous Versions'}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {history.map((item) => {
+                        const label = getReportVersionLabel(item)
+                        return (
+                          <Link
+                            key={item.id}
+                            href={buildReportVersionHref({
+                              baseHref: `/${locale}/reports/forensic/${project.slug}`,
+                              version: label.version,
+                              language: label.language || null,
+                              reportType: label.reportType,
+                            })}
+                            className="rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] text-gray-500 transition-colors hover:border-red-500/30 hover:text-red-300"
+                          >
+                            {formatDate(label.date || null)} · v{label.version} · {label.language.toUpperCase()} · {label.reportType.toUpperCase()}
+                          </Link>
+                        )
+                      })}
+                    </div>
                   </div>
                 )}
               </div>

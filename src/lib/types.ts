@@ -186,6 +186,9 @@ export interface ProjectReport {
   product_id?: string
   report_type: ReportType
   version: number
+  previous_report_id?: string
+  is_latest?: boolean
+  whitepaper_revision_ref?: string
   status: ReportStatus
   language: SupportedLanguage
   assigned_to?: string
