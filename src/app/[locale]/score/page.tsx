@@ -27,6 +27,13 @@ export const MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS = 200
 const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'ethena-usde', slug: 'ethena' },
   { alias: 'usde', slug: 'ethena' },
+  { alias: 'sei-network', slug: 'sei' },
+  { alias: 'pancakeswap-token', slug: 'pancakeswap' },
+  { alias: 'injective-protocol', slug: 'injective' },
+  { alias: 'curve-dao-token', slug: 'curve-dao' },
+  { alias: 'blockstack', slug: 'stacks' },
+  { alias: 'fetch-ai', slug: 'artificial-superintelligence-alliance' },
+  { alias: 'euro-coin', slug: 'eurc' },
 ] as const
 
 type TrackedScoreboardProject = Awaited<

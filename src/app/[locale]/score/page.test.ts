@@ -252,6 +252,90 @@ describe('score page tracked project aliases', () => {
     })
   })
 
+  it('maps CMC market slugs to report-bearing canonical projects for ECON badges', () => {
+    const trackedProjects = [
+      {
+        id: 'sei-project',
+        name: 'Sei',
+        slug: 'sei',
+        symbol: 'SEI',
+        category: 'L1',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: '2026-05-16T09:28:23.671777Z',
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+      {
+        id: 'pancakeswap-project',
+        name: 'PancakeSwap',
+        slug: 'pancakeswap',
+        symbol: 'CAKE',
+        category: 'DEX',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: '2026-05-16T10:32:06.905923Z',
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+      {
+        id: 'injective-project',
+        name: 'Injective',
+        slug: 'injective',
+        symbol: 'INJ',
+        category: 'L1',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: '2026-05-16T09:46:57.158395Z',
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+      {
+        id: 'curve-project',
+        name: 'Curve DAO',
+        slug: 'curve-dao',
+        symbol: 'CRV',
+        category: 'DEX',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: '2026-05-16T09:25:39.814357Z',
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const snapshotRows = [
+      makeSnapshotRow(89, 'sei-network'),
+      makeSnapshotRow(90, 'pancakeswap-token'),
+      makeSnapshotRow(95, 'injective-protocol'),
+      makeSnapshotRow(100, 'curve-dao-token'),
+    ]
+
+    const rows = snapshotRowsToScoreRows(snapshotRows, buildTrackedProjectLookup(trackedProjects))
+
+    expect(rows.map((row) => ({
+      name: row.name,
+      slug: row.slug,
+      reportTypes: row.reportTypes,
+    }))).toEqual([
+      { name: 'Sei', slug: 'sei', reportTypes: ['econ'] },
+      { name: 'PancakeSwap', slug: 'pancakeswap', reportTypes: ['econ'] },
+      { name: 'Injective', slug: 'injective', reportTypes: ['econ'] },
+      { name: 'Curve DAO', slug: 'curve-dao', reportTypes: ['econ'] },
+    ])
+  })
+
   it('does not show timestamp-only report badges when live report availability was loaded', () => {
     const trackedProjects = [
       {
