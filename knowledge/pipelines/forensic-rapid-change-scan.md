@@ -83,3 +83,12 @@ itself. The telemetry records disabled/skipped, successful, and failed bridge
 outcomes even though card-anchor writes remain default-off; the email result is
 recorded as `not_applicable` for this runtime because it does not invoke the
 legacy email registration path.
+
+BCE-1919 wired the default-off bridge workflow to pass Supabase telemetry
+secrets and aligned the telemetry row shape with the deployed Supabase
+`pipeline_runs` constraints. A workflow_dispatch dry run on branch
+`bce-1919-forensic-telemetry-secrets` produced GitHub run `25962140028` at SHA
+`8cf9642d456ef04fe3a74aedb453b8265e056796`, artifact
+`scripts/pipeline/output/sudden_movers_card_anchor_25962140028.json`, one
+`pipeline_runs` row, three `pipeline_node_runs` rows, and one `pipeline_events`
+row for pipeline key `forensic-rapid-change-scan`.
