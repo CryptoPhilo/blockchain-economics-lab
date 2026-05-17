@@ -1719,20 +1719,14 @@ def _convert_and_upload(
     version: Optional[int],
     storage_client,
 ) -> Dict[str, str]:
-    from pdf_to_html_slides import compress_slide_pdf, convert_pdf_to_html_slides
+    from pdf_to_html_slides import convert_pdf_to_html_slides
     from supabase_storage import upload_html
 
     with tempfile.TemporaryDirectory() as tmp:
-        compressed = os.path.join(tmp, 'compressed.pdf')
-        try:
-            compress_slide_pdf(pdf_local_path, compressed)
-            source_pdf = compressed
-        except Exception as e:
-            print(f"    ⚠ compress_slide_pdf failed ({e}); using original PDF")
-            source_pdf = pdf_local_path
-
         html_path = os.path.join(tmp, f'{lang}.html')
-        convert_pdf_to_html_slides(source_pdf, output_path=html_path, title=slug, lang=lang)
+        # Preserve the Drive PDF as the visual source of truth. Pre-compressing
+        # here lowered slide HTML resolution even when the original PDF was sharp.
+        convert_pdf_to_html_slides(pdf_local_path, output_path=html_path, title=slug, lang=lang)
         html_bytes = Path(html_path).read_bytes()
 
     version_segment = str(version) if version else 'latest'

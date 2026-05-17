@@ -49,6 +49,16 @@ PDF in active `Slide/econ` is reported as slide generation pending/missing.
 python scripts/pipeline/watch_slides.py --type econ --slug shiba-inu --force
 ```
 
+Slide HTML generation preserves source PDF quality by default. The watcher
+converts the active Drive PDF directly, without pre-compressing it, and
+`pdf_to_html_slides.py` renders pages as 300 DPI PNG images. If storage limits
+require a lossy emergency fallback, set `SLIDE_HTML_IMAGE_FORMAT=jpeg` and
+`SLIDE_HTML_JPEG_QUALITY=100` explicitly for that run; do not lower quality as a
+default pipeline behavior. If a regenerated HTML viewer is still blurry after
+direct 300 DPI PNG rendering, treat the source PDF as the likely low-resolution
+artifact and request a gated AI upscaling or source-slide regeneration issue
+instead of silently sharpening in the publication pipeline.
+
 Direct Drive file-id targeting is disabled. Put PDFs under the appropriate
 `Slide/{TYPE}` folder and use `--type` plus `--slug` filters so the run follows
 the defined pipeline path.
