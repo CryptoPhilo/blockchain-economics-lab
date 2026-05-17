@@ -126,7 +126,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/vechain/1/ja.html"
   },
   "1-GZgn-8FrMZ02MIOksrUGWCnxqqHdh8_": {
-    "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:25:56.896242+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "language_mismatch": {
@@ -136,11 +137,28 @@
     },
     "modifiedTime": "2026-05-11T11:34:11.000Z",
     "name": "DAG_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/constellation/latest/zh.html",
+    "report_id": "86d6762f-5696-48e1-aaec-d718edf97401",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "constellation",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:37:02.575621+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/DAG_FOR_cn.pdf",
+    "started_at": "2026-05-17T13:25:28.153441+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:25:56.896257+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/constellation/1/zh.html"
   },
   "1-I8Mn62B0NkJw3O01JMp4YtT19zTCFUq": {
     "error": null,
@@ -649,7 +667,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/litecoin/latest/en.html"
   },
   "111Mu8RGCRk_xKaaTSkKcUlCUxOm3YZ8E": {
-    "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:27:40.778066+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "language_mismatch": {
@@ -659,11 +678,28 @@
     },
     "modifiedTime": "2026-05-11T11:10:37.000Z",
     "name": "VELO_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/velo/latest/zh.html",
+    "report_id": "c2408151-9a13-4776-b190-138346430fc0",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "velo",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:37:21.054514+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/VELO_FOR_cn.pdf",
+    "started_at": "2026-05-17T13:27:10.275453+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:27:40.778077+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/velo/1/zh.html"
   },
   "114Gzdy_7r34t2AINDVU-FEVmTW-wst2b": {
     "error": null,
@@ -948,7 +984,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/near/1/ja.html"
   },
   "123Hpe0iTDyEREoRRJZZRw7WLmNQkseUv": {
-    "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:54:20.605611+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "language_mismatch": {
@@ -958,11 +995,28 @@
     },
     "modifiedTime": "2026-05-10T14:54:27.000Z",
     "name": "ZEREBRO_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 470.5,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 836.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zerebro/latest/ko.html",
+    "report_id": "a11b6faf-f37d-4049-abfa-27648a474021",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "zerebro",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:47:21.682070+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/ZEREBRO_FOR_ko.pdf",
+    "started_at": "2026-05-17T13:54:07.670085+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:54:20.605625+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zerebro/1/ko.html"
   },
   "12DtdcyCUsmQaZcNSJNq_KvwtECAvRgBp": {
     "error": null,
@@ -1189,7 +1243,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/1/ja.html"
   },
   "12qhqcGIQR5i5AF2yOdCpQ9vUU8HdHoNV": {
-    "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:28:50.788777+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "language_mismatch": {
@@ -1199,11 +1254,28 @@
     },
     "modifiedTime": "2026-05-11T10:45:13.000Z",
     "name": "REZ_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 7,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/renzo/latest/zh.html",
+    "report_id": "25625bbb-ce73-4efb-8e75-0cc5dad8c572",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "renzo",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:37:44.481797+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/REZ_FOR_cn.pdf",
+    "started_at": "2026-05-17T13:28:04.215041+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:28:50.788792+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/renzo/1/zh.html"
   },
   "136V9lOl3x_EiwHYgFKTV-8yVgAy_WqgO": {
     "error": null,
@@ -1676,36 +1748,37 @@
   },
   "14aNVrHjmI6GM_J7BILt-FWDrSv9ZlEz9": {
     "error": null,
-    "finished_at": "2026-05-10T18:16:22.188451+00:00",
+    "finished_at": "2026-05-17T13:52:13.492358+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-10T16:30:33.000Z",
     "name": "AERO_FOR_jp.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 11,
-      "width": 1376
+      "width": 1376.0
     },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/aerodrome-finance/latest/ja.html",
-    "report_id": "0bd6b203-ea5f-46f3-ae74-cfa213a6fd6d",
+    "report_id": "5d672250-812b-45a4-9e69-b01eea65ac41",
     "retry_count": 0,
     "rtype": "for",
     "slug": "aerodrome-finance",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/AERO_FOR_jp.pdf",
-    "started_at": "2026-05-10T18:16:15.215906+00:00",
+    "started_at": "2026-05-17T13:51:51.907171+00:00",
     "status": "published",
-    "updated_at": "2026-05-12T18:46:13.428101+00:00",
-    "version": null,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/aerodrome-finance/latest/ja.html"
+    "updated_at": "2026-05-17T13:52:13.492373+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/aerodrome-finance/1/ja.html"
   },
   "14hQA2FgsPW-DruEdJ3AB5897pqZFeQHs": {
-    "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:24:54.310660+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "language_mismatch": {
@@ -1715,11 +1788,28 @@
     },
     "modifiedTime": "2026-05-11T11:53:49.000Z",
     "name": "CARDS_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/collector-crypt/latest/zh.html",
+    "report_id": "d885e7e8-ccc8-4d82-86b7-4adf2973c641",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "collector-crypt",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:36:29.520971+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/CARDS_FOR_cn.pdf",
+    "started_at": "2026-05-17T13:24:15.495801+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:24:54.310674+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/collector-crypt/1/zh.html"
   },
   "14iAGXIsAgRA0xVS6tDMH5rxL405RRE5D": {
     "error": null,
@@ -1752,7 +1842,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/matic-network/2/ja.html"
   },
   "14igVNl2dql7zyQmEBb6-WI7ZTrQYnz4B": {
-    "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:41:57.975001+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "language_mismatch": {
@@ -1762,11 +1853,28 @@
     },
     "modifiedTime": "2026-05-11T05:30:24.000Z",
     "name": "VELO_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/velo/latest/ko.html",
+    "report_id": "06aaf127-15fe-40e4-a217-838994b92372",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "velo",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:42:34.906909+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/VELO_FOR_ko.pdf",
+    "started_at": "2026-05-17T13:41:40.793493+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:41:57.975017+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/velo/1/ko.html"
   },
   "14ub2O2mtMn9BXf4g7LxMT_Pd3OZYd01w": {
     "error": null,
@@ -2034,33 +2142,33 @@
   },
   "161t6aUraI-WuwEG9tGUPu4YYNW_hkq4B": {
     "error": null,
-    "finished_at": "2026-05-10T14:30:31.773540+00:00",
+    "finished_at": "2026-05-17T13:58:05.797320+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-10T13:33:13.000Z",
     "name": "BAS_FOR_jp.pdf",
     "page_profile": {
       "aspect_ratio": 1.7777777777777777,
-      "height": 540,
+      "height": 540.0,
       "is_landscape_slide": true,
       "page_count": 8,
-      "width": 960
+      "width": 960.0
     },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bnb-attestation-service/latest/ja.html",
-    "report_id": "cdfec169-f848-46f5-9c55-db1b9812bd37",
+    "report_id": "ae998ef6-6246-4d00-bd94-e11420fb566a",
     "retry_count": 0,
     "rtype": "for",
     "slug": "bnb-attestation-service",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/BAS_FOR_jp.pdf",
-    "started_at": "2026-05-10T14:30:26.490168+00:00",
+    "started_at": "2026-05-17T13:57:53.203613+00:00",
     "status": "published",
-    "updated_at": "2026-05-12T18:48:46.462443+00:00",
-    "version": null,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bnb-attestation-service/latest/ja.html"
+    "updated_at": "2026-05-17T13:58:05.797333+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bnb-attestation-service/1/ja.html"
   },
   "164seQoF4wZDeljPCp1labTL-7MCauom-": {
     "error": null,
@@ -2129,17 +2237,17 @@
   },
   "16FAobzG92cW7UDDaFmHJ9_cKVT_c-GU0": {
     "error": null,
-    "finished_at": "2026-05-11T12:37:04.434174+00:00",
+    "finished_at": "2026-05-17T13:39:36.244100+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-11T06:36:31.000Z",
     "name": "SAHARA_FOR_jp.pdf",
     "page_profile": {
       "aspect_ratio": 1.7777777777777777,
-      "height": 540,
+      "height": 540.0,
       "is_landscape_slide": true,
       "page_count": 6,
-      "width": 960
+      "width": 960.0
     },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
@@ -2151,9 +2259,9 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/SAHARA_FOR_jp.pdf",
-    "started_at": "2026-05-11T12:36:55.765901+00:00",
+    "started_at": "2026-05-17T13:39:21.963164+00:00",
     "status": "published",
-    "updated_at": "2026-05-12T18:40:40.835171+00:00",
+    "updated_at": "2026-05-17T13:39:36.244114+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/sahara-ai/1/ja.html"
   },
@@ -2355,33 +2463,33 @@
   },
   "16thZfUj7KQB05lM1l9jpiqwv4zd0N9fa": {
     "error": null,
-    "finished_at": "2026-05-10T14:31:49.058473+00:00",
+    "finished_at": "2026-05-17T14:02:01.743412+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "modifiedTime": "2026-05-10T11:37:39.000Z",
     "name": "BAS_FOR_ko.pdf",
     "page_profile": {
       "aspect_ratio": 1.7768331562167907,
-      "height": 941,
+      "height": 941.0,
       "is_landscape_slide": true,
       "page_count": 8,
-      "width": 1672
+      "width": 1672.0
     },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bnb-attestation-service/latest/ko.html",
-    "report_id": "cdfec169-f848-46f5-9c55-db1b9812bd37",
+    "report_id": "dfb5a4bb-6d8d-4162-8c7a-1c14609c9f0f",
     "retry_count": 0,
     "rtype": "for",
     "slug": "bnb-attestation-service",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/BAS_FOR_ko.pdf",
-    "started_at": "2026-05-10T14:31:40.541176+00:00",
+    "started_at": "2026-05-17T14:01:32.848074+00:00",
     "status": "published",
-    "updated_at": "2026-05-12T18:50:46.961540+00:00",
-    "version": null,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bnb-attestation-service/latest/ko.html"
+    "updated_at": "2026-05-17T14:02:01.743422+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bnb-attestation-service/1/ko.html"
   },
   "16zmAA85fv5DGSynxewIvC2-BEWuUoC7V": {
     "error": null,
@@ -2557,33 +2665,33 @@
   },
   "184IsCXmyDKl-S4EdLYB6oEF_H9cz_YLX": {
     "error": null,
-    "finished_at": "2026-05-10T18:15:09.790713+00:00",
+    "finished_at": "2026-05-17T13:49:49.016640+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-10T16:32:16.000Z",
     "name": "CCD_FOR_jp.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 11,
-      "width": 1376
+      "width": 1376.0
     },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/concordium/latest/ja.html",
-    "report_id": "81bafc7e-c4d8-4980-927f-ef2a0c654627",
+    "report_id": "7fcc7850-3d6f-4444-861c-2bf640c42472",
     "retry_count": 0,
     "rtype": "for",
     "slug": "concordium",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/CCD_FOR_jp.pdf",
-    "started_at": "2026-05-10T18:15:02.894992+00:00",
+    "started_at": "2026-05-17T13:49:30.022670+00:00",
     "status": "published",
-    "updated_at": "2026-05-12T18:46:00.777380+00:00",
-    "version": null,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/concordium/latest/ja.html"
+    "updated_at": "2026-05-17T13:49:49.016652+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/concordium/1/ja.html"
   },
   "18IjlS9J3712Tm_1EtQ9up-ej87C8IvkG": {
     "error": null,
@@ -2848,7 +2956,8 @@
     "updated_at": "2026-05-12T18:20:09.946013+00:00"
   },
   "19NIMfnWqfT1Z3thInUY3sQhLOsCNcFMY": {
-    "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:55:12.293980+00:00",
     "lang": "en",
     "lang_source": "filename",
     "language_mismatch": {
@@ -2858,11 +2967,28 @@
     },
     "modifiedTime": "2026-05-10T14:53:32.000Z",
     "name": "XP_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/xphere/latest/en.html",
+    "report_id": "dacaeae4-2f6a-4db0-bfe2-9e7eced513ba",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "xphere",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:48:02.122893+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/XP_FOR_en.pdf",
+    "started_at": "2026-05-17T13:54:53.860291+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:55:12.293995+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/xphere/1/en.html"
   },
   "19PrpQpSPgbZiv4rUODsLEN96FfdPdYN3": {
     "error": null,
@@ -2943,7 +3069,7 @@
   },
   "19g-dC9psR4UcHzaXA7TEm4tdlMCfn3db": {
     "error": null,
-    "finished_at": "2026-05-11T09:05:15.044174+00:00",
+    "finished_at": "2026-05-17T13:53:07.919204+00:00",
     "lang": "en",
     "lang_source": "filename",
     "modifiedTime": "2026-05-10T15:04:33.000Z",
@@ -2958,18 +3084,18 @@
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/quack-ai/latest/en.html",
-    "report_id": "79025053-9cb9-44c0-8ad2-e50ed5e55346",
+    "report_id": "7e0da885-928c-43d7-a857-8a4971e49e79",
     "retry_count": 0,
     "rtype": "for",
     "slug": "quack-ai",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/Q_FOR_en.pdf",
-    "started_at": "2026-05-11T09:05:10.329034+00:00",
+    "started_at": "2026-05-17T13:52:50.235865+00:00",
     "status": "published",
-    "updated_at": "2026-05-12T18:46:37.109440+00:00",
-    "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/quack-ai/1/en.html"
+    "updated_at": "2026-05-17T13:53:07.919219+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/quack-ai/2/en.html"
   },
   "19yNOomA3hYjDt1TKNb7pbEjONGNP-VG6": {
     "error": null,
@@ -3140,33 +3266,33 @@
   },
   "1AKf2RzOcmnNkM8mnYzwjp4Bjn6kiynz7": {
     "error": null,
-    "finished_at": "2026-05-10T18:15:36.348302+00:00",
+    "finished_at": "2026-05-17T13:50:56.212359+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "modifiedTime": "2026-05-10T16:31:21.000Z",
     "name": "AERO_FOR_ko.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 11,
-      "width": 1376
+      "width": 1376.0
     },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/aerodrome-finance/latest/ko.html",
-    "report_id": "0bd6b203-ea5f-46f3-ae74-cfa213a6fd6d",
+    "report_id": "ba7e03bc-60cd-4a8c-beda-a4c8eaebc2c5",
     "retry_count": 0,
     "rtype": "for",
     "slug": "aerodrome-finance",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/AERO_FOR_ko.pdf",
-    "started_at": "2026-05-10T18:15:29.263981+00:00",
+    "started_at": "2026-05-17T13:50:33.506362+00:00",
     "status": "published",
-    "updated_at": "2026-05-12T18:46:12.745917+00:00",
-    "version": null,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/aerodrome-finance/latest/ko.html"
+    "updated_at": "2026-05-17T13:50:56.212374+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/aerodrome-finance/1/ko.html"
   },
   "1ALcFUZEaWM4cAiSzuwv-uWXSqRaya69K": {
     "error": null,
@@ -4211,7 +4337,7 @@
   },
   "1DoyQuooZ1E-hA4sgql_NSEtzQA_TQnFD": {
     "error": null,
-    "finished_at": "2026-05-11T12:42:52.707713+00:00",
+    "finished_at": "2026-05-17T13:58:50.040379+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "modifiedTime": "2026-05-10T13:28:40.000Z",
@@ -4233,9 +4359,9 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/SAHARA_FOR_ko.pdf",
-    "started_at": "2026-05-11T12:42:47.444324+00:00",
+    "started_at": "2026-05-17T13:58:25.614922+00:00",
     "status": "published",
-    "updated_at": "2026-05-12T18:48:46.828123+00:00",
+    "updated_at": "2026-05-17T13:58:50.040393+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/sahara-ai/1/ko.html"
   },
@@ -4270,7 +4396,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/solana/1/zh.html"
   },
   "1DseHwl_Tq1TxGGW4G5s_aKknDSdonMq3": {
-    "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:23:03.989738+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "language_mismatch": {
@@ -4280,11 +4407,28 @@
     },
     "modifiedTime": "2026-05-11T12:20:19.000Z",
     "name": "XP_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/xphere/latest/ko.html",
+    "report_id": "f2393ced-8ed5-4ccb-b7cd-6bbb6b9e2cab",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "xphere",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:36:10.220614+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/XP_FOR_ko.pdf",
+    "started_at": "2026-05-17T13:22:45.716750+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:23:03.989753+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/xphere/1/ko.html"
   },
   "1DuPbz8T9rhgtKLd64uDwAR8yi8xIkK7W": {
     "error": null,
@@ -4389,7 +4533,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/polkadot/1/zh.html"
   },
   "1DzEEG_T4LCOYH8VrXUroWbLmofCROKn9": {
-    "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:46:02.573771+00:00",
     "lang": "en",
     "lang_source": "filename",
     "language_mismatch": {
@@ -4399,25 +4544,42 @@
     },
     "modifiedTime": "2026-05-10T20:17:15.000Z",
     "name": "CARDS_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 540.0,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 960.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/collector-crypt/latest/en.html",
+    "report_id": "9a284aea-e97b-4ae4-9daa-519b5b2ce276",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "collector-crypt",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:44:45.827173+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/CARDS_FOR_en.pdf",
+    "started_at": "2026-05-17T13:45:45.304804+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:46:02.573786+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/collector-crypt/1/en.html"
   },
   "1E3JUOmwpHyQR5yfkY7bt9AYJFQrMYFR5": {
     "error": null,
-    "finished_at": "2026-05-11T12:30:20.143550+00:00",
+    "finished_at": "2026-05-17T13:26:52.792918+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-11T11:18:29.000Z",
     "name": "DAG_FOR_jp.pdf",
     "page_profile": {
       "aspect_ratio": 1.7768331562167907,
-      "height": 941,
+      "height": 941.0,
       "is_landscape_slide": true,
       "page_count": 6,
-      "width": 1672
+      "width": 1672.0
     },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
@@ -4429,9 +4591,9 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/DAG_FOR_jp.pdf",
-    "started_at": "2026-05-11T12:30:08.436429+00:00",
+    "started_at": "2026-05-17T13:26:32.433985+00:00",
     "status": "published",
-    "updated_at": "2026-05-12T18:37:03.433895+00:00",
+    "updated_at": "2026-05-17T13:26:52.792932+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/constellation/1/ja.html"
   },
@@ -4706,7 +4868,7 @@
   },
   "1Eif4ZnQR8G7sBjwT6x7RVOMj7DuISc57": {
     "error": null,
-    "finished_at": "2026-05-11T14:58:21.142573+00:00",
+    "finished_at": "2026-05-17T13:23:56.083496+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-11T12:19:17.000Z",
@@ -4721,22 +4883,22 @@
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/venice-token/latest/ja.html",
-    "report_id": null,
+    "report_id": "3db5aca5-712b-465c-a89a-ca6447d7da9f",
     "retry_count": 0,
     "rtype": "for",
     "slug": "venice-token",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/VVV_FOR_jp.pdf",
-    "started_at": "2026-05-11T14:58:17.773649+00:00",
+    "started_at": "2026-05-17T13:23:30.845432+00:00",
     "status": "published",
-    "updated_at": "2026-05-12T18:36:10.648091+00:00",
-    "version": null,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/venice-token/latest/ja.html"
+    "updated_at": "2026-05-17T13:23:56.083511+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/venice-token/1/ja.html"
   },
   "1ElG7pxE_GQgfRLW5Ia4A4G-gBR8xG57d": {
     "error": null,
-    "finished_at": "2026-05-14T08:20:48.617129+00:00",
+    "finished_at": "2026-05-17T13:11:39.135008+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "language_mismatch": {
@@ -4748,10 +4910,10 @@
     "name": "TON_FOR_ko.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 11,
-      "width": 1376
+      "width": 1376.0
     },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
@@ -4763,25 +4925,25 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/TON_FOR_ko.pdf",
-    "started_at": "2026-05-14T08:20:39.058996+00:00",
-    "status": "review_ready",
-    "updated_at": "2026-05-14T08:20:48.617143+00:00",
+    "started_at": "2026-05-17T13:11:03.151212+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:11:39.135024+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/the-open-network/1/ko.html"
   },
   "1Et_YXTmETG4Dy4dIdL6JaX4ITxd5Oq1P": {
     "error": null,
-    "finished_at": "2026-05-14T08:21:45.684856+00:00",
+    "finished_at": "2026-05-17T13:13:11.674617+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T05:15:19.619Z",
     "name": "TON_FOR_cn.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 12,
-      "width": 1376
+      "width": 1376.0
     },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
@@ -4793,9 +4955,9 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/TON_FOR_cn.pdf",
-    "started_at": "2026-05-14T08:21:35.321455+00:00",
-    "status": "review_ready",
-    "updated_at": "2026-05-14T08:21:45.684871+00:00",
+    "started_at": "2026-05-17T13:12:47.561153+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:13:11.674631+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/the-open-network/1/zh.html"
   },
@@ -5036,7 +5198,8 @@
     "updated_at": "2026-05-12T18:25:19.741178+00:00"
   },
   "1G0IQnPddxoXMHvzTF5zgn4UnQuZ7fUWu": {
-    "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:35:59.955873+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "language_mismatch": {
@@ -5046,11 +5209,28 @@
     },
     "modifiedTime": "2026-05-11T09:10:21.000Z",
     "name": "SAHARA_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.777733357747396,
+      "height": 540.0,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 959.9760131835938
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/sahara-ai/latest/zh.html",
+    "report_id": "d00da034-19bf-46ba-b3bf-eb2670dc253f",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "sahara-ai",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:40:18.687653+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/SAHARA_FOR_cn.pdf",
+    "started_at": "2026-05-17T13:35:35.334324+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:35:59.955888+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/sahara-ai/1/zh.html"
   },
   "1G5yc-od7KVuABXYLRpi51DeJ0-rgDmdp": {
     "error": null,
@@ -5088,7 +5268,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/world-liberty-financial-wlfi/2/en.html"
   },
   "1G9yVFWKCtdjHW-NFfOlOHSHSe9537-ek": {
-    "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:42:27.824657+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "language_mismatch": {
@@ -5098,11 +5279,28 @@
     },
     "modifiedTime": "2026-05-11T04:29:32.000Z",
     "name": "CARDS_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 470.5,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 836.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/collector-crypt/latest/ko.html",
+    "report_id": "559c52b6-b3c1-4d59-8181-eacfb4905c54",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "collector-crypt",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:42:51.015567+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/CARDS_FOR_ko.pdf",
+    "started_at": "2026-05-17T13:42:14.025183+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:42:27.824673+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/collector-crypt/1/ko.html"
   },
   "1GKXmJULFi_bt4jiPQvKSzSNurD9y4vvn": {
     "error": null,
@@ -5770,7 +5968,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/okx/1/ko.html"
   },
   "1IjNSqnsf6vI42M4EfYs-_aXKChkkA0Km": {
-    "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T14:00:41.245545+00:00",
     "lang": "en",
     "lang_source": "filename",
     "language_mismatch": {
@@ -5780,11 +5979,28 @@
     },
     "modifiedTime": "2026-05-10T11:59:41.000Z",
     "name": "ZEREBRO_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zerebro/latest/en.html",
+    "report_id": "598a5025-496a-4a1c-a291-43309cd01390",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "zerebro",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:50:23.610391+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/ZEREBRO_FOR_en.pdf",
+    "started_at": "2026-05-17T14:00:11.796379+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T14:00:41.245560+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zerebro/1/en.html"
   },
   "1IlLLK5D4vzGtB_GtXDiT-aQIoO2n0UNH": {
     "error": null,
@@ -5968,7 +6184,7 @@
   },
   "1J5_2HZqmd_iDALfKI6pnzkB7lr4HFWhr": {
     "error": null,
-    "finished_at": "2026-05-10T14:32:09.014113+00:00",
+    "finished_at": "2026-05-17T14:02:53.721973+00:00",
     "lang": "en",
     "lang_source": "filename",
     "modifiedTime": "2026-05-10T11:11:23.000Z",
@@ -5978,37 +6194,37 @@
       "height": 470.5,
       "is_landscape_slide": true,
       "page_count": 6,
-      "width": 836
+      "width": 836.0
     },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/unibase/latest/en.html",
-    "report_id": "516b38a9-99f9-44a2-877b-5f72d59443c3",
+    "report_id": "19c4a559-0e5a-4a1c-be37-f71a9df4f316",
     "retry_count": 0,
     "rtype": "for",
     "slug": "unibase",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/UB_FOR_en.pdf",
-    "started_at": "2026-05-10T14:32:03.090540+00:00",
+    "started_at": "2026-05-17T14:02:42.528119+00:00",
     "status": "published",
-    "updated_at": "2026-05-12T18:51:15.312927+00:00",
-    "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/unibase/1/en.html"
+    "updated_at": "2026-05-17T14:02:53.721988+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/unibase/2/en.html"
   },
   "1J6UD56BlvA2DBc5LtEcpgEIXfitHyjWN": {
     "error": null,
-    "finished_at": "2026-05-11T12:35:23.202469+00:00",
+    "finished_at": "2026-05-17T13:37:17.170594+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-11T09:06:54.000Z",
     "name": "CARDS_FOR_jp.pdf",
     "page_profile": {
       "aspect_ratio": 1.7768331562167907,
-      "height": 941,
+      "height": 941.0,
       "is_landscape_slide": true,
       "page_count": 8,
-      "width": 1672
+      "width": 1672.0
     },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
@@ -6020,14 +6236,15 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/CARDS_FOR_jp.pdf",
-    "started_at": "2026-05-11T12:35:08.460413+00:00",
+    "started_at": "2026-05-17T13:36:34.836703+00:00",
     "status": "published",
-    "updated_at": "2026-05-12T18:40:19.373070+00:00",
+    "updated_at": "2026-05-17T13:37:17.170608+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/collector-crypt/1/ja.html"
   },
   "1J7SOcxx1dZzsflWSvE5FzKP12tH0xt0P": {
-    "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T14:04:06.169309+00:00",
     "lang": "en",
     "lang_source": "filename",
     "language_mismatch": {
@@ -6037,11 +6254,28 @@
     },
     "modifiedTime": "2026-05-10T11:05:15.000Z",
     "name": "BAS_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bnb-attestation-service/latest/en.html",
+    "report_id": "e4a2cf8a-f96c-438e-83df-9d776bbe3810",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "bnb-attestation-service",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:51:53.761269+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/BAS_FOR_en.pdf",
+    "started_at": "2026-05-17T14:03:15.904329+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T14:04:06.169323+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bnb-attestation-service/2/en.html"
   },
   "1J8CslXL_fRUZbAPo90Rd3bf2ADRtgr4n": {
     "error": null,
@@ -6736,7 +6970,7 @@
   },
   "1L1_NfLhCM2otwlwxa8owB17A1QnoDt5d": {
     "error": null,
-    "finished_at": "2026-05-12T06:00:59.015197+00:00",
+    "finished_at": "2026-05-17T13:18:28.738376+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-11T23:54:19.000Z",
@@ -6751,32 +6985,32 @@
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/xphere/latest/ja.html",
-    "report_id": null,
+    "report_id": "3e49fe73-3643-4e39-ad2f-0f0b46497c87",
     "retry_count": 0,
     "rtype": "for",
     "slug": "xphere",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/XP_FOR_jp.pdf",
-    "started_at": "2026-05-12T06:00:56.810326+00:00",
+    "started_at": "2026-05-17T13:18:15.663670+00:00",
     "status": "published",
-    "updated_at": "2026-05-12T18:34:50.756221+00:00",
-    "version": null,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/xphere/latest/ja.html"
+    "updated_at": "2026-05-17T13:18:28.738391+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/xphere/1/ja.html"
   },
   "1L2-YA5N12PsYONMXu0C2U6786-bIdY-4": {
     "error": null,
-    "finished_at": "2026-05-11T12:36:23.238330+00:00",
+    "finished_at": "2026-05-17T13:38:50.625293+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-11T08:56:57.000Z",
     "name": "BILL_FOR_jp.pdf",
     "page_profile": {
       "aspect_ratio": 1.7777777777777777,
-      "height": 540,
+      "height": 540.0,
       "is_landscape_slide": true,
       "page_count": 6,
-      "width": 960
+      "width": 960.0
     },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
@@ -6788,9 +7022,9 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/BILL_FOR_jp.pdf",
-    "started_at": "2026-05-11T12:36:14.674946+00:00",
+    "started_at": "2026-05-17T13:38:35.632306+00:00",
     "status": "published",
-    "updated_at": "2026-05-12T18:40:40.462130+00:00",
+    "updated_at": "2026-05-17T13:38:50.625304+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/billions-network/1/ja.html"
   },
@@ -7098,7 +7332,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/litecoin/latest/ja.html"
   },
   "1MKKVq3DafNNpydEX0iHZt9SdPe_BEyTH": {
-    "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:32:38.625425+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "language_mismatch": {
@@ -7108,15 +7343,28 @@
     },
     "modifiedTime": "2026-05-11T10:19:45.000Z",
     "name": "BILL_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 1672.0
+    },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/billions-network/latest/zh.html",
+    "report_id": "03f5142f-107a-4a8a-9cc9-cceef21019ab",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "billions-network",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/BILL_FOR_cn.pdf",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:39:09.450812+00:00"
+    "started_at": "2026-05-17T13:32:10.190698+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:32:38.625439+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/billions-network/1/zh.html"
   },
   "1MMBmj4qy1hcQ6umYj3_9DDx-m527SwNH": {
     "error": null,
@@ -7858,7 +8106,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ripple/2/en.html"
   },
   "1OkgYtcppjz_kQMEaJQlvXGG4yXv6wq1h": {
-    "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T14:03:14.266945+00:00",
     "lang": "en",
     "lang_source": "filename",
     "language_mismatch": {
@@ -7868,11 +8117,28 @@
     },
     "modifiedTime": "2026-05-10T11:10:44.000Z",
     "name": "BILL_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/billions-network/latest/en.html",
+    "report_id": "314ba8cf-780d-450b-9ecf-e5bca14c2ef4",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "billions-network",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:51:41.902389+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/BILL_FOR_en.pdf",
+    "started_at": "2026-05-17T14:02:58.302649+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T14:03:14.266961+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/billions-network/2/en.html"
   },
   "1Oy9Rdmth8Jgup4vNQFxh88XW46dE95J6": {
     "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
@@ -8147,7 +8413,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/render/1/zh.html"
   },
   "1PmaoljMXjzgK-2UWAbw-Nr-mvWVSHMP9": {
-    "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:43:07.510293+00:00",
     "lang": "en",
     "lang_source": "filename",
     "language_mismatch": {
@@ -8157,11 +8424,28 @@
     },
     "modifiedTime": "2026-05-11T02:08:26.000Z",
     "name": "VVV_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 540.0,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 960.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/venice-token/latest/en.html",
+    "report_id": "ecf5c85b-86b6-4116-aaaa-99ef1e6288c6",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "venice-token",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:43:33.985137+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/VVV_FOR_en.pdf",
+    "started_at": "2026-05-17T13:42:53.288063+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:43:07.510309+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/venice-token/1/en.html"
   },
   "1PnF7NqvVvoYfV-Hx7dF2pE_X5SWay8BN": {
     "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
@@ -8609,7 +8893,7 @@
   },
   "1RdpxH55eMOS1KDrZrhViBX02TFDx1Bw7": {
     "error": null,
-    "finished_at": "2026-05-10T14:29:43.208878+00:00",
+    "finished_at": "2026-05-17T13:56:53.147758+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "modifiedTime": "2026-05-10T13:46:49.000Z",
@@ -8624,18 +8908,18 @@
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/unibase/latest/ko.html",
-    "report_id": "516b38a9-99f9-44a2-877b-5f72d59443c3",
+    "report_id": "f4c9583f-aee6-4491-9636-03df5ff88118",
     "retry_count": 0,
     "rtype": "for",
     "slug": "unibase",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/UB_FOR_ko.pdf",
-    "started_at": "2026-05-10T14:29:40.005693+00:00",
+    "started_at": "2026-05-17T13:56:28.840077+00:00",
     "status": "published",
-    "updated_at": "2026-05-12T18:48:22.366074+00:00",
-    "version": null,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/unibase/latest/ko.html"
+    "updated_at": "2026-05-17T13:56:53.147773+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/unibase/1/ko.html"
   },
   "1RhrlTRnGuUUAnAk_IF1dGnnPACW2DSEo": {
     "error": null,
@@ -8729,33 +9013,33 @@
   },
   "1Rya8LFaMimkSZN1HVRKN--74GzzVGC76": {
     "error": null,
-    "finished_at": "2026-05-10T18:15:57.948375+00:00",
+    "finished_at": "2026-05-17T13:51:31.552160+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "modifiedTime": "2026-05-10T16:30:59.000Z",
     "name": "AERO_FOR_cn.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 11,
-      "width": 1376
+      "width": 1376.0
     },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/aerodrome-finance/latest/zh.html",
-    "report_id": "0bd6b203-ea5f-46f3-ae74-cfa213a6fd6d",
+    "report_id": "03f9b36f-85f3-4f14-8bcc-a290cf705727",
     "retry_count": 0,
     "rtype": "for",
     "slug": "aerodrome-finance",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/AERO_FOR_cn.pdf",
-    "started_at": "2026-05-10T18:15:50.829830+00:00",
+    "started_at": "2026-05-17T13:51:12.226331+00:00",
     "status": "published",
-    "updated_at": "2026-05-12T18:46:13.095543+00:00",
-    "version": null,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/aerodrome-finance/latest/zh.html"
+    "updated_at": "2026-05-17T13:51:31.552175+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/aerodrome-finance/1/zh.html"
   },
   "1S167ivDZ_QxGVaNG3Hxk3zDXr2gX8NrG": {
     "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
@@ -8865,7 +9149,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/matic-network/latest/ko.html"
   },
   "1SLZkpyhMBb6BS2d4cK7EZb9X2oPjt4cB": {
-    "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:22:17.522708+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "language_mismatch": {
@@ -8875,11 +9160,28 @@
     },
     "modifiedTime": "2026-05-11T12:48:16.000Z",
     "name": "VVV_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 470.5,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 836.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/venice-token/latest/zh.html",
+    "report_id": "862c1550-0892-4e99-a01f-888685bc5925",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "venice-token",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:35:41.974280+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/VVV_FOR_cn.pdf",
+    "started_at": "2026-05-17T13:21:53.693445+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:22:17.522723+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/venice-token/1/zh.html"
   },
   "1SXE-lpYC0lM8x-96pZs4tpSVWik1uZ8q": {
     "error": null,
@@ -9079,7 +9381,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/1/ko.html"
   },
   "1TQA7ZI-VutIoTAjlOHelkAhPBDhxFja6": {
-    "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:47:22.138952+00:00",
     "lang": "en",
     "lang_source": "filename",
     "language_mismatch": {
@@ -9089,11 +9392,28 @@
     },
     "modifiedTime": "2026-05-10T18:42:12.000Z",
     "name": "ORE_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/ore-new/latest/en.html",
+    "report_id": "5a0a4a63-71dd-4276-a665-c9e8d4a075d2",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "ore-new",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:45:48.810632+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/ORE_FOR_en.pdf",
+    "started_at": "2026-05-17T13:47:02.465524+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:47:22.138965+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/ore-new/1/en.html"
   },
   "1TWu-5WcsR71QbRgguF06mM6jRtYWxo_2": {
     "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
@@ -9143,7 +9463,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pudgy-penguins/1/ja.html"
   },
   "1TmruDaKnni_XHGF6P1QLK72clyeyNH6_": {
-    "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:17:55.977521+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "language_mismatch": {
@@ -9153,11 +9474,28 @@
     },
     "modifiedTime": "2026-05-11T23:58:23.000Z",
     "name": "JUP_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 470.5,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 836.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/jupiter-ag/latest/zh.html",
+    "report_id": "9ab98d1b-af9d-423f-b4f4-eb1ee2cb794e",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "jupiter-ag",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:34:49.485834+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/JUP_FOR_cn.pdf",
+    "started_at": "2026-05-17T13:17:31.804204+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:17:55.977535+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/jupiter-ag/1/zh.html"
   },
   "1Tn9z9dnYOom3aY2dI9m8bgQeCbqHxkK3": {
     "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
@@ -9355,7 +9693,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/gate/1/ko.html"
   },
   "1UiJs1hlu460FxJuh-VbQNECk8cdEI8p1": {
-    "error": "slug/content mismatch — filename resolved 'unibase' (body score 4) but body strongly matches 'kucoin' (score 12)",
+    "error": null,
+    "finished_at": "2026-05-17T13:59:45.778886+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "mismatch": {
@@ -9366,18 +9705,32 @@
     },
     "modifiedTime": "2026-05-10T13:27:54.000Z",
     "name": "UB_FOR_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 1672.0
+    },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/unibase/latest/ja.html",
+    "report_id": "2c5511d2-f0cb-4a12-8d6b-45ce978d6a21",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "unibase",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/UB_FOR_jp.pdf",
-    "status": "mismatch",
-    "updated_at": "2026-05-12T18:49:25.452298+00:00"
+    "started_at": "2026-05-17T13:59:28.382127+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:59:45.778899+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/unibase/1/ja.html"
   },
   "1UkIOkn1ot7CxCnj6xeovKptD5vM1gDZZ": {
-    "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:29:51.993418+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "language_mismatch": {
@@ -9387,11 +9740,28 @@
     },
     "modifiedTime": "2026-05-11T10:29:55.000Z",
     "name": "JUP_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/jupiter-ag/latest/ko.html",
+    "report_id": "02ea9e36-b4c7-4c1c-8bd5-dfa0f7c6e31c",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "jupiter-ag",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:38:14.435200+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/JUP_FOR_ko.pdf",
+    "started_at": "2026-05-17T13:29:22.129850+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:29:51.993431+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/jupiter-ag/1/ko.html"
   },
   "1Um0Hq4f7xbU6-lVBAuJy_y6wB0ZtWPyD": {
     "error": null,
@@ -9489,7 +9859,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/injective/latest/ko.html"
   },
   "1VPBkhGBx_YN0FKazs907XcMF8PfnecjS": {
-    "error": "slug/content mismatch — filename resolved 'concordium' (body score 6) but body strongly matches 'status' (score 12)",
+    "error": null,
+    "finished_at": "2026-05-17T13:47:56.757085+00:00",
     "lang": "en",
     "lang_source": "filename",
     "mismatch": {
@@ -9500,15 +9871,28 @@
     },
     "modifiedTime": "2026-05-10T16:33:32.000Z",
     "name": "CCD_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7916666666666667,
+      "height": 768.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1376.0
+    },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/concordium/latest/en.html",
+    "report_id": "f9fbb3d2-eeea-48c8-bab2-bb92d88d9546",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "concordium",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/CCD_FOR_en.pdf",
-    "status": "mismatch",
-    "updated_at": "2026-05-12T18:45:59.031459+00:00"
+    "started_at": "2026-05-17T13:47:25.755563+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:47:56.757099+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/concordium/2/en.html"
   },
   "1Vo2l18cnPzRthscmigCuSbSNNO4XRPw2": {
     "error": null,
@@ -9981,7 +10365,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pudgy-penguins/1/ko.html"
   },
   "1XCSc0hpDDcSb7Te_js2zlVi6xe0FFwEs": {
-    "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:52:49.645580+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "language_mismatch": {
@@ -9991,11 +10376,28 @@
     },
     "modifiedTime": "2026-05-10T15:05:26.000Z",
     "name": "DAG_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 470.5,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 836.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/constellation/latest/ko.html",
+    "report_id": "a1521727-c3f5-4aaa-8d7f-dfeffaede41f",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "constellation",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:46:36.760233+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/DAG_FOR_ko.pdf",
+    "started_at": "2026-05-17T13:52:37.011205+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:52:49.645595+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/constellation/1/ko.html"
   },
   "1XGPUySV3x8Axe9ivL69nd5XBRrkEeyK_": {
     "error": null,
@@ -10278,7 +10680,7 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/xdc-network/1/ko.html"
   },
   "1Y0lApZf7Nq7acZtkOCN-guytDixmeun3": {
-    "error": null,
+    "error": "Storage upload failed for slides/for/zerebro/1/ja_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
     "finished_at": "2026-05-12T06:01:32.762209+00:00",
     "lang": "ja",
     "lang_source": "filename",
@@ -10301,14 +10703,15 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/ZEREBRO_FOR_jp.pdf",
-    "started_at": "2026-05-12T06:01:28.684284+00:00",
-    "status": "published",
-    "updated_at": "2026-05-12T18:34:51.110294+00:00",
+    "started_at": "2026-05-17T13:18:57.741968+00:00",
+    "status": "failed",
+    "updated_at": "2026-05-17T13:19:45.000178+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zerebro/latest/ja.html"
   },
   "1YELuzUmZhaHbLxuRj0j6om1vDMwOiVMh": {
-    "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:16:20.765649+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "language_mismatch": {
@@ -10318,11 +10721,28 @@
     },
     "modifiedTime": "2026-05-12T03:26:59.000Z",
     "name": "ZEREBRO_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 540.0,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 960.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zerebro/latest/zh.html",
+    "report_id": "84c6355f-bf24-46a1-ac63-da48a370941f",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "zerebro",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:33:58.132254+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/ZEREBRO_FOR_cn.pdf",
+    "started_at": "2026-05-17T13:15:51.583283+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:16:20.765664+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zerebro/1/zh.html"
   },
   "1YPSGYundGYVYAeWckdEF3j6hQgtxSHv1": {
     "error": null,
@@ -10852,7 +11272,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/humanity-protocol/1/zh.html"
   },
   "1_NqE3K45X6YBS2XQQn_tyqA7WUUJAqXR": {
-    "error": "slug/content mismatch — filename resolved 'aerodrome-finance' (body score 8) but body strongly matches 'bitcoin' (score 14)",
+    "error": null,
+    "finished_at": "2026-05-17T13:50:19.848178+00:00",
     "lang": "en",
     "lang_source": "filename",
     "mismatch": {
@@ -10863,15 +11284,28 @@
     },
     "modifiedTime": "2026-05-10T16:31:44.000Z",
     "name": "AERO_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7916666666666667,
+      "height": 768.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1376.0
+    },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/aerodrome-finance/latest/en.html",
+    "report_id": "5def0520-5657-4581-967e-160343455e8f",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "aerodrome-finance",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/AERO_FOR_en.pdf",
-    "status": "mismatch",
-    "updated_at": "2026-05-12T18:46:12.383878+00:00"
+    "started_at": "2026-05-17T13:49:52.382910+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:50:19.848193+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/aerodrome-finance/2/en.html"
   },
   "1_OJozDP-ayZXaNRIUUoXvOsVyZmyW-3k": {
     "error": null,
@@ -10921,7 +11355,8 @@
     "updated_at": "2026-05-12T18:05:00.358642+00:00"
   },
   "1_aDg8vPeTKAca9ut8lrO677392gKSOnj": {
-    "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:33:48.047116+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "language_mismatch": {
@@ -10931,11 +11366,28 @@
     },
     "modifiedTime": "2026-05-11T10:04:27.000Z",
     "name": "CORE_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 7,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/core-dao/latest/zh.html",
+    "report_id": "5c75b15a-a400-4733-97c4-117b29731010",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "core-dao",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:39:46.557685+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/CORE_FOR_cn.pdf",
+    "started_at": "2026-05-17T13:33:14.906615+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:33:48.047127+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/core-dao/1/zh.html"
   },
   "1_azFwh-mRpHQ2sqH55u-4twcNk7SJI4J": {
     "error": null,
@@ -11277,7 +11729,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/stable/1/zh.html"
   },
   "1ad-vz1zvVSMIBFG3YSkV5e_cnLupgGyu": {
-    "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:57:34.625638+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "language_mismatch": {
@@ -11287,14 +11740,32 @@
     },
     "modifiedTime": "2026-05-10T13:43:26.000Z",
     "name": "UB_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/unibase/latest/zh.html",
+    "report_id": "d5e6fab6-129f-449f-bcd8-9d8e240b7eb5",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "unibase",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:48:46.064941+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/UB_FOR_cn.pdf",
+    "started_at": "2026-05-17T13:57:16.763641+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:57:34.625649+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/unibase/1/zh.html"
   },
   "1ahwsD8V3gGFMA1rzqW6KYOYCAL_HFoL3": {
-    "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:15:20.954616+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "language_mismatch": {
@@ -11304,11 +11775,28 @@
     },
     "modifiedTime": "2026-05-12T03:40:16.000Z",
     "name": "XP_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/xphere/latest/zh.html",
+    "report_id": "06c23b3c-00da-438b-bcf7-1d2eb3b81531",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "xphere",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:33:27.546226+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/XP_FOR_cn.pdf",
+    "started_at": "2026-05-17T13:14:49.814131+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:15:20.954632+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/xphere/1/zh.html"
   },
   "1aiM-IFhAMU2LwpMjah8hBLISxEgwY3M0": {
     "error": null,
@@ -12236,7 +12724,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tron/1/ja.html"
   },
   "1eL5_SBU2OKRQYRBv21uwsoiNgXFfMjTE": {
-    "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T14:00:06.692917+00:00",
     "lang": "en",
     "lang_source": "filename",
     "language_mismatch": {
@@ -12246,11 +12735,28 @@
     },
     "modifiedTime": "2026-05-10T13:00:37.000Z",
     "name": "SAHARA_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/sahara-ai/latest/en.html",
+    "report_id": "ef21f888-9d28-4317-ada7-5cb0e9239b2c",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "sahara-ai",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:49:56.548510+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/SAHARA_FOR_en.pdf",
+    "started_at": "2026-05-17T13:59:50.017660+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T14:00:06.692931+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/sahara-ai/2/en.html"
   },
   "1eNocg9Y1RGOh-n9QhSVmHqVF7qmSCibM": {
     "error": null,
@@ -12324,7 +12830,7 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/hedera-hashgraph/1/zh.html"
   },
   "1eW-nMEzQyomDApM8qPtdC0V4Sruy-wNU": {
-    "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
+    "error": "Storage upload failed for slides/for/jupiter-ag/1/en_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
     "lang": "en",
     "lang_source": "filename",
     "language_mismatch": {
@@ -12334,11 +12840,24 @@
     },
     "modifiedTime": "2026-05-10T14:53:58.000Z",
     "name": "JUP_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "jupiter-ag",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:47:39.034578+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/JUP_FOR_en.pdf",
+    "started_at": "2026-05-17T13:54:22.538517+00:00",
+    "status": "failed",
+    "updated_at": "2026-05-17T13:54:48.846333+00:00"
   },
   "1elfejitRyZmbVvPLzJjP4ba7X-7FthZ4": {
     "error": null,
@@ -12488,7 +13007,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/injective/latest/ja.html"
   },
   "1fR1YgNduICWC_LA2852-9UCK_PwqEyoH": {
-    "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:43:30.306628+00:00",
     "lang": "en",
     "lang_source": "filename",
     "language_mismatch": {
@@ -12498,11 +13018,28 @@
     },
     "modifiedTime": "2026-05-11T02:07:38.000Z",
     "name": "VELO_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/velo/latest/en.html",
+    "report_id": "eff7a39b-7f03-454a-90c1-55df395a2b7b",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "velo",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:43:57.336099+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/VELO_FOR_en.pdf",
+    "started_at": "2026-05-17T13:43:10.813069+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:43:30.306643+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/velo/1/en.html"
   },
   "1fRi_2z6UpXMJWLn8VRTvb_hM85T9dhKs": {
     "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
@@ -12742,7 +13279,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/aptos/2/ko.html"
   },
   "1gOjH3ASZggGrdJxlHm_hvvWS8eS0DVYj": {
-    "error": "slug/content mismatch — filename resolved 'velo' (body score 8) but body strongly matches 'kucoin' (score 12)",
+    "error": null,
+    "finished_at": "2026-05-17T13:30:39.822483+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "mismatch": {
@@ -12753,15 +13291,28 @@
     },
     "modifiedTime": "2026-05-11T10:24:42.000Z",
     "name": "VELO_FOR_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 802.5599975585938
+    },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/velo/latest/ja.html",
+    "report_id": "d112985d-99ba-475d-aac9-c710a91387ff",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "velo",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/VELO_FOR_jp.pdf",
-    "status": "mismatch",
-    "updated_at": "2026-05-12T18:38:36.111079+00:00"
+    "started_at": "2026-05-17T13:30:13.937100+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:30:39.822497+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/velo/1/ja.html"
   },
   "1gR-K1VQV4Eovkip17FNw_RJzbdinfngP": {
     "error": null,
@@ -12829,7 +13380,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/paypal-usd/1/zh.html"
   },
   "1gZLUK_bltlhcO4UzgdT9KuywIyLHvTEX": {
-    "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:20:23.363575+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "language_mismatch": {
@@ -12839,11 +13391,28 @@
     },
     "modifiedTime": "2026-05-11T16:04:14.000Z",
     "name": "ORE_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/ore-new/latest/ko.html",
+    "report_id": "e6d46415-79dc-43d8-b579-cdb3972b5506",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "ore-new",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:35:14.280982+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/ORE_FOR_ko.pdf",
+    "started_at": "2026-05-17T13:20:08.865032+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:20:23.363589+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/ore-new/1/ko.html"
   },
   "1gagyjlBwP1Rcg9UXwAMK75j8_SavxAx3": {
     "error": null,
@@ -13033,33 +13602,33 @@
   },
   "1hQPSG6-KivJoOHir5ck6GvjN5FINXAQx": {
     "error": null,
-    "finished_at": "2026-05-10T18:14:46.182776+00:00",
+    "finished_at": "2026-05-17T13:49:10.299676+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "modifiedTime": "2026-05-10T16:32:38.000Z",
     "name": "CCD_FOR_cn.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 10,
-      "width": 1376
+      "width": 1376.0
     },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/concordium/latest/zh.html",
-    "report_id": "81bafc7e-c4d8-4980-927f-ef2a0c654627",
+    "report_id": "a85a2dbd-3b28-4229-ad20-66a832f8390d",
     "retry_count": 0,
     "rtype": "for",
     "slug": "concordium",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/CCD_FOR_cn.pdf",
-    "started_at": "2026-05-10T18:14:39.865615+00:00",
+    "started_at": "2026-05-17T13:48:52.094727+00:00",
     "status": "published",
-    "updated_at": "2026-05-12T18:46:00.405949+00:00",
-    "version": null,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/concordium/latest/zh.html"
+    "updated_at": "2026-05-17T13:49:10.299708+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/concordium/1/zh.html"
   },
   "1hVjUQn_56nDb5avcUnKWw01IzUlIjA8j": {
     "error": null,
@@ -13098,7 +13667,7 @@
   },
   "1hXa6LtRfzvwZLsktv-qPJWji-LYtc3y6": {
     "error": null,
-    "finished_at": "2026-05-11T12:33:46.606998+00:00",
+    "finished_at": "2026-05-17T13:35:04.280888+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-11T09:43:58.000Z",
@@ -13120,9 +13689,9 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/CORE_FOR_jp.pdf",
-    "started_at": "2026-05-11T12:33:37.108296+00:00",
+    "started_at": "2026-05-17T13:34:11.554440+00:00",
     "status": "published",
-    "updated_at": "2026-05-12T18:39:47.433762+00:00",
+    "updated_at": "2026-05-17T13:35:04.280902+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/core-dao/1/ja.html"
   },
@@ -13471,7 +14040,7 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/stellar/latest/ja.html"
   },
   "1j3uFKBVEKgIhftTI61BBkt3ZPQf46Tib": {
-    "error": null,
+    "error": "Storage upload failed for slides/for/renzo/1/ja_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
     "finished_at": "2026-05-11T12:31:59.716174+00:00",
     "lang": "ja",
     "lang_source": "filename",
@@ -13494,9 +14063,9 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/REZ_FOR_jp.pdf",
-    "started_at": "2026-05-11T12:31:52.177501+00:00",
-    "status": "published",
-    "updated_at": "2026-05-12T18:38:36.893238+00:00",
+    "started_at": "2026-05-17T13:31:06.660365+00:00",
+    "status": "failed",
+    "updated_at": "2026-05-17T13:31:38.625305+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/renzo/1/ja.html"
   },
@@ -13518,7 +14087,8 @@
     "updated_at": "2026-05-12T18:05:51.682907+00:00"
   },
   "1jHMqWfKMWA00419Jot8-m9Dlj8ZtqKte": {
-    "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:41:23.305512+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "language_mismatch": {
@@ -13528,11 +14098,28 @@
     },
     "modifiedTime": "2026-05-11T05:34:11.000Z",
     "name": "VVV_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/venice-token/latest/ko.html",
+    "report_id": "aa30d8e2-0163-430b-aeff-b55fcc03473c",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "venice-token",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:41:49.475740+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/VVV_FOR_ko.pdf",
+    "started_at": "2026-05-17T13:41:02.896266+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:41:23.305527+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/venice-token/1/ko.html"
   },
   "1jKPHM09gmzBxqXSXq2fPs0yVfPcpsFiD": {
     "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
@@ -13836,7 +14423,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/quant/latest/ja.html"
   },
   "1k1dkAaG0J8-XJy_g-Jji4BcNxWBDzWH9": {
-    "error": "slug/content mismatch — filename resolved 'ore-new' (body score 6) but body strongly matches 'solana' (score 12)",
+    "error": null,
+    "finished_at": "2026-05-17T13:17:07.920587+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "mismatch": {
@@ -13847,18 +14435,32 @@
     },
     "modifiedTime": "2026-05-12T03:25:04.000Z",
     "name": "ORE_FOR_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 802.5599975585938
+    },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/ore-new/latest/ja.html",
+    "report_id": "52b2a9cf-e80b-4f25-8716-05d57a8a5f1d",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "ore-new",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/ORE_FOR_jp.pdf",
-    "status": "mismatch",
-    "updated_at": "2026-05-12T18:34:25.855101+00:00"
+    "started_at": "2026-05-17T13:16:48.502515+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:17:07.920602+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/ore-new/1/ja.html"
   },
   "1k3oluMaqXBSLtvTRuBEpcXpTEQUxX9yW": {
-    "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:56:09.921984+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "language_mismatch": {
@@ -13868,41 +14470,58 @@
     },
     "modifiedTime": "2026-05-10T14:00:54.000Z",
     "name": "BAS_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bnb-attestation-service/latest/zh.html",
+    "report_id": "8990c335-4f81-42f5-87e0-05d676e3550b",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "bnb-attestation-service",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:48:21.824299+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/BAS_FOR_cn.pdf",
+    "started_at": "2026-05-17T13:55:32.327369+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:56:09.921999+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bnb-attestation-service/1/zh.html"
   },
   "1k92bt8s5Xbywu8GvimV_AOA7IkJrVNhw": {
     "error": null,
-    "finished_at": "2026-05-10T18:14:27.215658+00:00",
+    "finished_at": "2026-05-17T13:48:35.499763+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "modifiedTime": "2026-05-10T16:33:10.000Z",
     "name": "CCD_FOR_ko.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 10,
-      "width": 1376
+      "width": 1376.0
     },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/concordium/latest/ko.html",
-    "report_id": "81bafc7e-c4d8-4980-927f-ef2a0c654627",
+    "report_id": "5b9b49c7-9edb-4076-875a-14ef046c97f2",
     "retry_count": 0,
     "rtype": "for",
     "slug": "concordium",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/CCD_FOR_ko.pdf",
-    "started_at": "2026-05-10T18:14:21.002067+00:00",
+    "started_at": "2026-05-17T13:48:14.615623+00:00",
     "status": "published",
-    "updated_at": "2026-05-12T18:46:00.029117+00:00",
-    "version": null,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/concordium/latest/ko.html"
+    "updated_at": "2026-05-17T13:48:35.499778+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/concordium/1/ko.html"
   },
   "1kCon1NjzHy6tdFg-ph0lWeVEJE4RUMua": {
     "error": null,
@@ -14276,17 +14895,17 @@
   },
   "1lzdYH36YZmANWM3-aqU3wq-iktvvi2UB": {
     "error": null,
-    "finished_at": "2026-05-14T08:21:19.019921+00:00",
+    "finished_at": "2026-05-17T13:12:32.222092+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T05:15:31.295Z",
     "name": "TON_FOR_jp.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 14,
-      "width": 1376
+      "width": 1376.0
     },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
@@ -14298,9 +14917,9 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/TON_FOR_jp.pdf",
-    "started_at": "2026-05-14T08:21:07.807398+00:00",
-    "status": "review_ready",
-    "updated_at": "2026-05-14T08:21:19.019976+00:00",
+    "started_at": "2026-05-17T13:11:57.515227+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:12:32.222107+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/the-open-network/1/ja.html"
   },
@@ -14848,17 +15467,17 @@
   },
   "1nxWa3k2PZq4iN1yH1iMl3AnR5OWEibaI": {
     "error": null,
-    "finished_at": "2026-05-14T08:21:59.297783+00:00",
+    "finished_at": "2026-05-17T13:13:37.470765+00:00",
     "lang": "en",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T05:15:08.488Z",
     "name": "TON_FOF_en.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 12,
-      "width": 1376
+      "width": 1376.0
     },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
@@ -14870,9 +15489,9 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/TON_FOF_en.pdf",
-    "started_at": "2026-05-14T08:21:50.413001+00:00",
-    "status": "review_ready",
-    "updated_at": "2026-05-14T08:21:59.297797+00:00",
+    "started_at": "2026-05-17T13:13:16.081012+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:13:37.470780+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/the-open-network/1/en.html"
   },
@@ -14960,7 +15579,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/morpho/1/zh.html"
   },
   "1oJnfDrDE2ky13HmGoeag87Fzj3tH2BIY": {
-    "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:42:49.038215+00:00",
     "lang": "en",
     "lang_source": "filename",
     "language_mismatch": {
@@ -14970,11 +15590,28 @@
     },
     "modifiedTime": "2026-05-11T02:10:22.000Z",
     "name": "REZ_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.777733357747396,
+      "height": 540.0,
+      "is_landscape_slide": true,
+      "page_count": 7,
+      "width": 959.9760131835938
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/renzo/latest/en.html",
+    "report_id": "a2af7fd6-dc77-4498-91d6-a8a1a1f30a4e",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "renzo",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:43:12.416529+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/REZ_FOR_en.pdf",
+    "started_at": "2026-05-17T13:42:33.906545+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:42:49.038227+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/renzo/2/en.html"
   },
   "1oNXyCqq1j8YOUETdEOUTKdcIDXV1N7RN": {
     "error": null,
@@ -16197,7 +16834,8 @@
     "updated_at": "2026-05-12T18:26:25.726011+00:00"
   },
   "1saP4p3f_GZXaGZUFbW4YkcTpf2RtcKvv": {
-    "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T14:02:41.167786+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "language_mismatch": {
@@ -16207,11 +16845,28 @@
     },
     "modifiedTime": "2026-05-10T11:36:37.000Z",
     "name": "BILL_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 470.5,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 836.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/billions-network/latest/ko.html",
+    "report_id": "e8daf62c-47c8-4340-886d-893374022373",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "billions-network",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:51:14.847338+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/BILL_FOR_ko.pdf",
+    "started_at": "2026-05-17T14:02:28.895022+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T14:02:41.167801+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/billions-network/1/ko.html"
   },
   "1sciMKa0TxMlDsoeZRuPOKjyl72J2B5Ai": {
     "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ko'",
@@ -16653,7 +17308,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/humanity-protocol/1/en.html"
   },
   "1tvi2HKwCkeXBUkH8zBUvC87ELfRblLqH": {
-    "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:44:41.067473+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "language_mismatch": {
@@ -16663,11 +17319,28 @@
     },
     "modifiedTime": "2026-05-11T01:58:08.000Z",
     "name": "Q_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/quack-ai/latest/zh.html",
+    "report_id": "6c6804a5-424a-4f2e-a46a-026027612b26",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "quack-ai",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:44:24.229415+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/Q_FOR_cn.pdf",
+    "started_at": "2026-05-17T13:43:56.909875+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:44:41.067488+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/quack-ai/1/zh.html"
   },
   "1tyBCeTYdxVA-BWB7vATT-qiB41XYNVg_": {
     "error": null,
@@ -17162,7 +17835,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/jupiter-ag/1/ko.html"
   },
   "1vXwHjRsgPSpHZeE1kxjw1-hHavyG20OG": {
-    "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:38:07.020000+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "language_mismatch": {
@@ -17172,14 +17846,32 @@
     },
     "modifiedTime": "2026-05-11T08:57:44.000Z",
     "name": "REZ_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 7,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/renzo/latest/ko.html",
+    "report_id": "7247501f-33c9-4a71-a66c-a5f2055de617",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "renzo",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:40:40.030507+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/REZ_FOR_ko.pdf",
+    "started_at": "2026-05-17T13:37:37.719416+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:38:07.020015+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/renzo/1/ko.html"
   },
   "1vgXI0UZpIXyzWeo20V-qRDFWT0yiyMt3": {
-    "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ko'",
+    "error": null,
+    "finished_at": "2026-05-17T13:53:26.107997+00:00",
     "lang": "en",
     "lang_source": "filename",
     "language_mismatch": {
@@ -17189,11 +17881,28 @@
     },
     "modifiedTime": "2026-05-10T14:55:01.000Z",
     "name": "CORE_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 540.0,
+      "is_landscape_slide": true,
+      "page_count": 7,
+      "width": 960.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/core-dao/latest/en.html",
+    "report_id": "d5dda618-23ca-47b1-9e70-0c1446dd6943",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "core-dao",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:46:58.805367+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/CORE_FOR_en.pdf",
+    "started_at": "2026-05-17T13:53:11.923108+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:53:26.108012+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/core-dao/2/en.html"
   },
   "1vqRVpRz6Ys8YF8LTS5HSeEJCA6irJXlx": {
     "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
@@ -17213,7 +17922,8 @@
     "updated_at": "2026-05-12T18:13:26.916241+00:00"
   },
   "1vxwQhfheFk3fihfaWY6PYQxPmnTkr0Th": {
-    "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:14:29.407840+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "language_mismatch": {
@@ -17223,14 +17933,32 @@
     },
     "modifiedTime": "2026-05-12T03:43:17.000Z",
     "name": "ORE_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/ore-new/latest/zh.html",
+    "report_id": "c458793a-7b93-4a8c-ac9a-18b2d7d880e4",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "ore-new",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:33:06.869793+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/ORE_FOR_cn.pdf",
+    "started_at": "2026-05-17T13:14:02.566696+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:14:29.407856+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/ore-new/1/zh.html"
   },
   "1wH0pDP1wio8yNafDVbishdVNCMv02ALD": {
-    "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:40:23.585485+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "language_mismatch": {
@@ -17240,11 +17968,28 @@
     },
     "modifiedTime": "2026-05-11T05:39:59.000Z",
     "name": "CORE_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 470.5,
+      "is_landscape_slide": true,
+      "page_count": 7,
+      "width": 836.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/core-dao/latest/ko.html",
+    "report_id": "96715fc2-a34a-4162-9343-3ea825c63f9b",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "core-dao",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:41:09.952450+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/CORE_FOR_ko.pdf",
+    "started_at": "2026-05-17T13:40:08.859033+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:40:23.585498+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/core-dao/1/ko.html"
   },
   "1wItcpkvZ8rlOw8TYdryT56LVILrW9_QJ": {
     "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
@@ -17281,7 +18026,7 @@
     "updated_at": "2026-05-12T18:22:44.035280+00:00"
   },
   "1wVFYoR5kpM3Ey6KqoW2RWusRcqs2sS9I": {
-    "error": null,
+    "error": "Storage upload failed for slides/for/jupiter-ag/1/ja_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
     "finished_at": "2026-05-12T02:27:17.626966+00:00",
     "lang": "ja",
     "lang_source": "filename",
@@ -17304,9 +18049,9 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/JUP_FOR_jp.pdf",
-    "started_at": "2026-05-12T02:27:13.992224+00:00",
-    "status": "published",
-    "updated_at": "2026-05-12T18:35:14.669545+00:00",
+    "started_at": "2026-05-17T13:20:48.861811+00:00",
+    "status": "failed",
+    "updated_at": "2026-05-17T13:21:26.366536+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/jupiter-ag/latest/ja.html"
   },
@@ -17461,7 +18206,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/uniswap/1/zh.html"
   },
   "1x0x_aT-wq-4TchpMgHMItkCpJ4C_XxvU": {
-    "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T13:46:57.098112+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "language_mismatch": {
@@ -17471,11 +18217,28 @@
     },
     "modifiedTime": "2026-05-10T19:01:03.000Z",
     "name": "Q_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/quack-ai/latest/ko.html",
+    "report_id": "5fddd5e5-d992-4718-8406-f1f65c719f11",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "quack-ai",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:45:21.579886+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/Q_FOR_ko.pdf",
+    "started_at": "2026-05-17T13:46:37.184318+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T13:46:57.098127+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/quack-ai/1/ko.html"
   },
   "1x7WmbYN32Vp4ovGbkmImO0cjyq2mA1s_": {
     "error": null,
@@ -17640,33 +18403,33 @@
   },
   "1xapJLokkYxmFVjBTyxr55Us3g8h34eaA": {
     "error": null,
-    "finished_at": "2026-05-11T09:03:52.730513+00:00",
+    "finished_at": "2026-05-17T13:45:39.201531+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-10T20:28:10.000Z",
     "name": "Q_FOR_jp.pdf",
     "page_profile": {
       "aspect_ratio": 1.7768331562167907,
-      "height": 941,
+      "height": 941.0,
       "is_landscape_slide": true,
       "page_count": 6,
-      "width": 1672
+      "width": 1672.0
     },
     "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
     "parent_folder_name": "for",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/quack-ai/latest/ja.html",
-    "report_id": "79025053-9cb9-44c0-8ad2-e50ed5e55346",
+    "report_id": "741cdcdd-0fc9-4c28-82a4-d57525e96841",
     "retry_count": 0,
     "rtype": "for",
     "slug": "quack-ai",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/for/Q_FOR_jp.pdf",
-    "started_at": "2026-05-11T09:03:45.200359+00:00",
+    "started_at": "2026-05-17T13:45:19.632794+00:00",
     "status": "published",
-    "updated_at": "2026-05-12T18:44:25.258608+00:00",
-    "version": null,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/quack-ai/latest/ja.html"
+    "updated_at": "2026-05-17T13:45:39.201546+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/quack-ai/1/ja.html"
   },
   "1xiJgo1XkeQ6gK8Hp5_4lgnFpytUUVaYT": {
     "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
@@ -17922,7 +18685,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/filecoin/latest/en.html"
   },
   "1yxcaHAy7RgA-duTt_tqjgYeuFPncDEl4": {
-    "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
+    "error": null,
+    "finished_at": "2026-05-17T14:01:04.260808+00:00",
     "lang": "en",
     "lang_source": "filename",
     "language_mismatch": {
@@ -17932,11 +18696,28 @@
     },
     "modifiedTime": "2026-05-10T11:56:51.000Z",
     "name": "DAG_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 6,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/constellation/latest/en.html",
+    "report_id": "a66ee539-022d-4bbb-82c0-8eba68d7ffb3",
+    "retry_count": 0,
     "rtype": "for",
     "slug": "constellation",
     "slug_source": "filename",
-    "status": "language_mismatch",
-    "updated_at": "2026-05-12T18:50:46.278405+00:00"
+    "source_depth": 0,
+    "source_path": "Slide/for/DAG_FOR_en.pdf",
+    "started_at": "2026-05-17T14:00:45.013560+00:00",
+    "status": "published",
+    "updated_at": "2026-05-17T14:01:04.260824+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/constellation/1/en.html"
   },
   "1z-MBIWDz-cpGsfXO7gkmQpEeFpxvalUg": {
     "error": null,
