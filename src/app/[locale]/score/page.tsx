@@ -34,6 +34,7 @@ const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'blockstack', slug: 'stacks' },
   { alias: 'fetch-ai', slug: 'artificial-superintelligence-alliance' },
   { alias: 'euro-coin', slug: 'eurc' },
+  { alias: 'world-liberty-financial-wlfi', slug: 'world-liberty-financial' },
 ] as const
 
 type TrackedScoreboardProject = Awaited<
