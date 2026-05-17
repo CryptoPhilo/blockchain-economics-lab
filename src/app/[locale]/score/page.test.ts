@@ -592,7 +592,7 @@ describe('score page report availability policy', () => {
     })
   })
 
-  it('does not fall back to an older localized version when the latest version lacks locale support', () => {
+  it('uses the newest locale-supported report when a newer version lacks locale support', () => {
     const availability = buildReportAvailabilityByProjectId([
       {
         id: 'alpha-econ-v1-ko',
@@ -620,7 +620,14 @@ describe('score page report availability policy', () => {
       },
     ], 'ko')
 
-    expect(availability.has('alpha-project')).toBe(false)
+    expect(availability.get('alpha-project')).toEqual({
+      reportTypes: ['econ'],
+      reportDates: {
+        econ: '2026-05-10T00:00:00.000Z',
+        maturity: null,
+        forensic: null,
+      },
+    })
   })
 
   it('renders OKX ECON and MAT badges when localized assets exist', () => {
