@@ -1,15 +1,23 @@
+import base64
+import io
 import sys
+import tempfile
 from pathlib import Path
 from unittest import TestCase
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import fitz
+from PIL import Image
 
 from pdf_to_html_slides import (
     COPYRIGHT_OVERLAY_COLOR,
+    DEFAULT_IMAGE_FORMAT,
+    DEFAULT_RENDER_DPI,
     NOTEBOOKLM_LOGO_BBOX,
     _median_color,
+    convert_pdf_to_html_slides,
+    extract_pages_base64,
     mask_notebooklm_logo,
     overlay_copyright_notice,
 )
@@ -190,3 +198,51 @@ class OverlayCopyrightNoticeTests(TestCase):
         pix = fitz.Pixmap(fitz.csRGB, fitz.IRect(0, 0, 100, 100), True)
         with self.assertRaises(ValueError):
             overlay_copyright_notice(pix)
+
+
+class SlideHtmlRenderingTests(TestCase):
+    def test_default_rendering_uses_high_resolution_png(self):
+        self.assertEqual(DEFAULT_RENDER_DPI, 300)
+        self.assertEqual(DEFAULT_IMAGE_FORMAT, "png")
+
+    def test_png_render_preserves_requested_dpi_dimensions(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            pdf_path = Path(tmp) / "sample.pdf"
+            doc = fitz.open()
+            doc.new_page(width=72, height=36)
+            doc.save(pdf_path)
+            doc.close()
+
+            pages = extract_pages_base64(
+                str(pdf_path),
+                dpi=144,
+                fmt="png",
+                mask_logo=False,
+                add_copyright=False,
+            )
+
+        mime, encoded = pages[0]
+        self.assertEqual(mime, "image/png")
+        image = Image.open(io.BytesIO(base64.b64decode(encoded)))
+        self.assertEqual(image.size, (144, 72))
+
+    def test_html_converter_embeds_png_by_default(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            pdf_path = Path(tmp) / "sample.pdf"
+            html_path = Path(tmp) / "sample.html"
+            doc = fitz.open()
+            doc.new_page(width=72, height=36)
+            doc.save(pdf_path)
+            doc.close()
+
+            convert_pdf_to_html_slides(
+                str(pdf_path),
+                output_path=str(html_path),
+                title="Sample",
+                lang="en",
+                dpi=72,
+                mask_logo=False,
+            )
+
+            html = html_path.read_text(encoding="utf-8")
+            self.assertIn("data:image/png;base64,", html)

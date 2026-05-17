@@ -12,7 +12,7 @@ Usage:
         --output /path/to/output.html \
         --title "Humanity Protocol" \
         --lang ko \
-        --dpi 200
+        --dpi 300
 """
 from __future__ import annotations
 
@@ -31,6 +31,26 @@ try:
     HAS_PIL = True
 except ImportError:
     HAS_PIL = False
+
+DEFAULT_RENDER_DPI = int(os.environ.get("SLIDE_HTML_RENDER_DPI", "300"))
+DEFAULT_IMAGE_FORMAT = (os.environ.get("SLIDE_HTML_IMAGE_FORMAT", "png").strip().lower() or "png")
+DEFAULT_JPEG_QUALITY = int(os.environ.get("SLIDE_HTML_JPEG_QUALITY", "100"))
+SUPPORTED_IMAGE_FORMATS = {"png", "jpeg"}
+
+
+def _normalize_image_format(fmt: str | None) -> str:
+    normalized = (fmt or DEFAULT_IMAGE_FORMAT).strip().lower()
+    if normalized == "jpg":
+        normalized = "jpeg"
+    if normalized not in SUPPORTED_IMAGE_FORMATS:
+        raise ValueError(f"Unsupported slide image format: {fmt!r}")
+    return normalized
+
+
+def _normalize_jpeg_quality(quality: int | str | None) -> int:
+    if quality is None:
+        quality = DEFAULT_JPEG_QUALITY
+    return max(1, min(100, int(quality)))
 
 
 def compress_slide_pdf(
@@ -202,15 +222,17 @@ def mask_notebooklm_logo(
 
 def extract_pages_base64(
     pdf_path: str,
-    dpi: int = 200,
-    fmt: str = "jpeg",
-    quality: int = 80,
+    dpi: int = DEFAULT_RENDER_DPI,
+    fmt: str = DEFAULT_IMAGE_FORMAT,
+    quality: int = DEFAULT_JPEG_QUALITY,
     mask_logo: bool = True,
     add_copyright: bool = True,
 ) -> list[tuple[str, str]]:
     """Render each PDF page to a base64-encoded image. Returns [(mime, b64), ...].
     When mask_logo is True (default), paints over the NotebookLM logo at the bottom-right of each page.
     When add_copyright is True (default), renders a BCE Lab copyright notice into the same area."""
+    fmt = _normalize_image_format(fmt)
+    quality = _normalize_jpeg_quality(quality)
     doc = fitz.open(pdf_path)
     zoom = dpi / 72.0
     mat = fitz.Matrix(zoom, zoom)
@@ -516,7 +538,9 @@ def convert_pdf_to_html_slides(
     output_path: str | None = None,
     title: str = "Slide Viewer",
     lang: str = "ko",
-    dpi: int = 200,
+    dpi: int = DEFAULT_RENDER_DPI,
+    fmt: str = DEFAULT_IMAGE_FORMAT,
+    quality: int = DEFAULT_JPEG_QUALITY,
     mask_logo: bool = True,
 ) -> str:
     """Main entry: convert a PDF to an HTML slide viewer."""
@@ -524,9 +548,18 @@ def convert_pdf_to_html_slides(
         stem = Path(pdf_path).stem
         output_path = str(Path(pdf_path).parent / f"{stem}_slides.html")
 
-    print(f"[1/2] Extracting pages from {pdf_path} at {dpi} DPI (JPEG)"
+    fmt = _normalize_image_format(fmt)
+    quality = _normalize_jpeg_quality(quality)
+    image_label = f"{fmt.upper()}" if fmt == "png" else f"JPEG quality {quality}"
+    print(f"[1/2] Extracting pages from {pdf_path} at {dpi} DPI ({image_label})"
           f"{' with NotebookLM logo masking' if mask_logo else ''}...")
-    pages = extract_pages_base64(pdf_path, dpi=dpi, fmt="jpeg", quality=80, mask_logo=mask_logo)
+    pages = extract_pages_base64(
+        pdf_path,
+        dpi=dpi,
+        fmt=fmt,
+        quality=quality,
+        mask_logo=mask_logo,
+    )
     print(f"  ✓ {len(pages)} pages extracted")
 
     print(f"[2/2] Building HTML viewer...")
@@ -548,7 +581,24 @@ def main():
     parser.add_argument("--output", default=None, help="Output HTML path")
     parser.add_argument("--title", default="Slide Viewer", help="Viewer title")
     parser.add_argument("--lang", default="ko", help="Language code")
-    parser.add_argument("--dpi", type=int, default=200, help="Render DPI (default: 200)")
+    parser.add_argument(
+        "--dpi",
+        type=int,
+        default=DEFAULT_RENDER_DPI,
+        help=f"Render DPI (default: {DEFAULT_RENDER_DPI})",
+    )
+    parser.add_argument(
+        "--format",
+        choices=("png", "jpeg", "jpg"),
+        default=DEFAULT_IMAGE_FORMAT,
+        help=f"Rendered slide image format (default: {DEFAULT_IMAGE_FORMAT})",
+    )
+    parser.add_argument(
+        "--quality",
+        type=int,
+        default=DEFAULT_JPEG_QUALITY,
+        help=f"JPEG quality when --format jpeg is used (default: {DEFAULT_JPEG_QUALITY})",
+    )
     parser.add_argument(
         "--no-mask-logo", dest="mask_logo", action="store_false",
         help="Disable NotebookLM logo masking (use when input PDF is not from NotebookLM)",
@@ -562,6 +612,8 @@ def main():
         title=args.title,
         lang=args.lang,
         dpi=args.dpi,
+        fmt=args.format,
+        quality=args.quality,
         mask_logo=args.mask_logo,
     )
 
