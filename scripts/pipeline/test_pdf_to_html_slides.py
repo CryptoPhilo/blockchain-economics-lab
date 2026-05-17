@@ -16,8 +16,10 @@ from pdf_to_html_slides import (
     DEFAULT_RENDER_DPI,
     NOTEBOOKLM_LOGO_BBOX,
     _median_color,
+    build_viewer_html_from_sources,
     convert_pdf_to_html_slides,
     extract_pages_base64,
+    extract_pages_images,
     mask_notebooklm_logo,
     overlay_copyright_notice,
 )
@@ -226,6 +228,27 @@ class SlideHtmlRenderingTests(TestCase):
         image = Image.open(io.BytesIO(base64.b64decode(encoded)))
         self.assertEqual(image.size, (144, 72))
 
+    def test_extract_pages_images_returns_raw_png_bytes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            pdf_path = Path(tmp) / "sample.pdf"
+            doc = fitz.open()
+            doc.new_page(width=72, height=36)
+            doc.save(pdf_path)
+            doc.close()
+
+            pages = extract_pages_images(
+                str(pdf_path),
+                dpi=72,
+                fmt="png",
+                mask_logo=False,
+                add_copyright=False,
+            )
+
+        mime, raw = pages[0]
+        self.assertEqual(mime, "image/png")
+        image = Image.open(io.BytesIO(raw))
+        self.assertEqual(image.size, (72, 36))
+
     def test_html_converter_embeds_png_by_default(self):
         with tempfile.TemporaryDirectory() as tmp:
             pdf_path = Path(tmp) / "sample.pdf"
@@ -246,3 +269,16 @@ class SlideHtmlRenderingTests(TestCase):
 
             html = html_path.read_text(encoding="utf-8")
             self.assertIn("data:image/png;base64,", html)
+
+    def test_html_builder_can_reference_external_slide_assets(self):
+        html = build_viewer_html_from_sources(
+            [
+                "https://storage.example/slides/econ/foo/1/ko_assets/page-001.png",
+                "https://storage.example/slides/econ/foo/1/ko_assets/page-002.png",
+            ],
+            title="Sample",
+            lang="ko",
+        )
+
+        self.assertIn("https://storage.example/slides/econ/foo/1/ko_assets/page-001.png", html)
+        self.assertNotIn("data:image/png;base64", html)

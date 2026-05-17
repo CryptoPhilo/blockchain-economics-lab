@@ -1719,7 +1719,14 @@ def _convert_and_upload(
     version: Optional[int],
     storage_client,
 ) -> Dict[str, str]:
-    from pdf_to_html_slides import convert_pdf_to_html_slides
+    from pdf_to_html_slides import (
+        DEFAULT_IMAGE_FORMAT,
+        DEFAULT_JPEG_QUALITY,
+        DEFAULT_RENDER_DPI,
+        build_viewer_html_from_sources,
+        convert_pdf_to_html_slides,
+        extract_pages_images,
+    )
     from supabase_storage import upload_html
 
     with tempfile.TemporaryDirectory() as tmp:
@@ -1733,7 +1740,41 @@ def _convert_and_upload(
     versioned_key = f'{rtype}/{slug}/{version_segment}/{lang}.html'
     latest_key = f'{rtype}/{slug}/latest/{lang}.html'
 
-    versioned_url = upload_html(storage_client, BUCKET_NAME, versioned_key, html_bytes)
+    try:
+        versioned_url = upload_html(storage_client, BUCKET_NAME, versioned_key, html_bytes)
+    except Exception as e:
+        if 'Payload too large' not in str(e) and '413' not in str(e):
+            raise
+        print(
+            "    [RETRY] slide HTML exceeded storage object limit; "
+            "uploading uncompressed page images as separate assets"
+        )
+        asset_prefix = f'{rtype}/{slug}/{version_segment}/{lang}_assets'
+        page_images = extract_pages_images(
+            pdf_local_path,
+            dpi=DEFAULT_RENDER_DPI,
+            fmt=DEFAULT_IMAGE_FORMAT,
+            quality=DEFAULT_JPEG_QUALITY,
+        )
+        image_sources: List[str] = []
+        for index, (mime, raw) in enumerate(page_images, start=1):
+            ext = 'jpg' if mime == 'image/jpeg' else 'png'
+            image_key = f'{asset_prefix}/page-{index:03d}.{ext}'
+            image_sources.append(
+                upload_html(
+                    storage_client,
+                    BUCKET_NAME,
+                    image_key,
+                    raw,
+                    content_type=mime,
+                )
+            )
+        html_bytes = build_viewer_html_from_sources(
+            image_sources,
+            title=slug,
+            lang=lang,
+        ).encode('utf-8')
+        versioned_url = upload_html(storage_client, BUCKET_NAME, versioned_key, html_bytes)
     if version_segment != 'latest':
         latest_url = upload_html(storage_client, BUCKET_NAME, latest_key, html_bytes)
     else:

@@ -220,15 +220,15 @@ def mask_notebooklm_logo(
     return pix
 
 
-def extract_pages_base64(
+def extract_pages_images(
     pdf_path: str,
     dpi: int = DEFAULT_RENDER_DPI,
     fmt: str = DEFAULT_IMAGE_FORMAT,
     quality: int = DEFAULT_JPEG_QUALITY,
     mask_logo: bool = True,
     add_copyright: bool = True,
-) -> list[tuple[str, str]]:
-    """Render each PDF page to a base64-encoded image. Returns [(mime, b64), ...].
+) -> list[tuple[str, bytes]]:
+    """Render each PDF page to image bytes. Returns [(mime, raw_bytes), ...].
     When mask_logo is True (default), paints over the NotebookLM logo at the bottom-right of each page.
     When add_copyright is True (default), renders a BCE Lab copyright notice into the same area."""
     fmt = _normalize_image_format(fmt)
@@ -250,10 +250,41 @@ def extract_pages_base64(
         else:
             raw = pix.tobytes("png")
             mime = "image/png"
-        b64 = base64.b64encode(raw).decode('ascii')
-        pages.append((mime, b64))
+        pages.append((mime, raw))
     doc.close()
     return pages
+
+
+def extract_pages_base64(
+    pdf_path: str,
+    dpi: int = DEFAULT_RENDER_DPI,
+    fmt: str = DEFAULT_IMAGE_FORMAT,
+    quality: int = DEFAULT_JPEG_QUALITY,
+    mask_logo: bool = True,
+    add_copyright: bool = True,
+) -> list[tuple[str, str]]:
+    """Render each PDF page to a base64-encoded image. Returns [(mime, b64), ...]."""
+    pages = extract_pages_images(
+        pdf_path,
+        dpi=dpi,
+        fmt=fmt,
+        quality=quality,
+        mask_logo=mask_logo,
+        add_copyright=add_copyright,
+    )
+    return [(mime, base64.b64encode(raw).decode('ascii')) for mime, raw in pages]
+
+
+def build_viewer_html_from_sources(
+    image_sources: list[str],
+    title: str = "Slide Viewer",
+    lang: str = "ko",
+    aspect_ratio: tuple[int, int] = (16, 9),
+) -> str:
+    """Build a slide viewer from already-addressable image URLs or data URLs."""
+    total = len(image_sources)
+    images_js = ",\n".join(f'    "{src}"' for src in image_sources)
+    return _build_viewer_html_with_images_js(images_js, total, title, lang, aspect_ratio)
 
 
 def build_viewer_html(
@@ -263,12 +294,24 @@ def build_viewer_html(
     aspect_ratio: tuple[int, int] = (16, 9),
 ) -> str:
     """Build a self-contained HTML slide viewer with page-flip navigation."""
-    total = len(pages_b64)
-
-    images_js = ",\n".join(
-        f'    "data:{mime};base64,{b64}"' for mime, b64 in pages_b64
+    image_sources = [
+        f"data:{mime};base64,{b64}" for mime, b64 in pages_b64
+    ]
+    return build_viewer_html_from_sources(
+        image_sources,
+        title=title,
+        lang=lang,
+        aspect_ratio=aspect_ratio,
     )
 
+
+def _build_viewer_html_with_images_js(
+    images_js: str,
+    total: int,
+    title: str,
+    lang: str,
+    aspect_ratio: tuple[int, int],
+) -> str:
     ar_w, ar_h = aspect_ratio
     aspect_pct = (ar_h / ar_w) * 100
 

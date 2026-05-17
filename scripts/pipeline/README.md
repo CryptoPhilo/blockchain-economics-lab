@@ -59,6 +59,13 @@ direct 300 DPI PNG rendering, treat the source PDF as the likely low-resolution
 artifact and request a gated AI upscaling or source-slide regeneration issue
 instead of silently sharpening in the publication pipeline.
 
+Large 300 DPI PNG decks may exceed the storage provider's single-object upload
+limit when every page is embedded as a base64 string inside one HTML file. In
+that case the watcher keeps the PNG output, uploads each page image as a
+separate public slide asset, and uploads a small HTML viewer that references
+those page URLs. This is not a compression fallback; it preserves the rendered
+page bytes while avoiding the single HTML object limit.
+
 Direct Drive file-id targeting is disabled. Put PDFs under the appropriate
 `Slide/{TYPE}` folder and use `--type` plus `--slug` filters so the run follows
 the defined pipeline path.
