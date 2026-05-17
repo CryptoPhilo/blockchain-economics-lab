@@ -196,13 +196,13 @@ export function buildReportAvailabilityByProjectId(
 
   for (const report of reports) {
     if (!report.project_id) continue
+    if (!reportSupportsLocale(report as ProjectReport, locale)) continue
     const key = `${report.project_id}:${report.report_type}`
     const latest = pickLatestReport([latestByProjectType.get(key), report].filter(Boolean) as ScoreboardVisibleReportRow[])
     if (latest) latestByProjectType.set(key, latest)
   }
 
   for (const report of latestByProjectType.values()) {
-    if (!reportSupportsLocale(report as ProjectReport, locale)) continue
     const existing = map.get(report.project_id) ?? {
       reportTypes: [],
       reportDates: { econ: null, maturity: null, forensic: null },
