@@ -2177,10 +2177,11 @@ def _iter_active_slide_targets(
             )
         if scan_mode != 'full':
             continue
+        scan_requested_root = root_rtype in requested_types or len(requested_types) == len(TYPE_FOLDER_IDS)
         stack: List[Tuple[Dict, str, int]] = [
             (folder, f"Slide/{root_rtype}/{folder.get('name', '')}", 1)
             for folder in _list_child_folders(service, type_folder)
-            if _folder_matches_slug_hint(
+            if scan_requested_root or _folder_matches_slug_hint(
                 folder.get('name') or '',
                 hint_tokens,
                 filter_slug=filter_slug,
@@ -2226,7 +2227,7 @@ def _iter_active_slide_targets(
                 )
 
             for child in _list_child_folders(service, folder_id):
-                if hint_tokens and not (
+                if not scan_requested_root and hint_tokens and not (
                     _folder_matches_slug_hint(
                         child.get('name') or '',
                         hint_tokens,
