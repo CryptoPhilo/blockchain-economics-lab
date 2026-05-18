@@ -6099,7 +6099,7 @@
   },
   "1G5yc-od7KVuABXYLRpi51DeJ0-rgDmdp": {
     "error": null,
-    "finished_at": "2026-05-17T07:57:31.033412+00:00",
+    "finished_at": "2026-05-18T18:03:47.095768+00:00",
     "lang": "en",
     "lang_source": "filename",
     "language_mismatch": {
@@ -6111,26 +6111,26 @@
     "name": "WLFI_ECON_en.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 12,
-      "width": 1376
+      "width": 1376.0
     },
     "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
     "parent_folder_name": "econ",
-    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/world-liberty-financial-wlfi/latest/en.html",
-    "report_id": "1b335568-63f6-4a76-bfdf-9840b1c8e28c",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/world-liberty-financial/latest/en.html",
+    "report_id": "a8e62fcd-61e8-4326-8abc-fe195690dc37",
     "retry_count": 0,
     "rtype": "econ",
-    "slug": "world-liberty-financial-wlfi",
+    "slug": "world-liberty-financial",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/WLFI_ECON_en.pdf",
-    "started_at": "2026-05-17T07:57:12.577343+00:00",
+    "started_at": "2026-05-18T18:03:25.775395+00:00",
     "status": "published",
-    "updated_at": "2026-05-17T17:49:44.660868+00:00",
-    "version": 2,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/world-liberty-financial-wlfi/2/en.html"
+    "updated_at": "2026-05-18T18:03:47.095784+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/world-liberty-financial/1/en.html"
   },
   "1G9yVFWKCtdjHW-NFfOlOHSHSe9537-ek": {
     "error": null,
@@ -13516,7 +13516,7 @@
   },
   "1aiM-IFhAMU2LwpMjah8hBLISxEgwY3M0": {
     "error": null,
-    "finished_at": "2026-05-17T07:56:28.121777+00:00",
+    "finished_at": "2026-05-18T18:02:23.527304+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "language_mismatch": {
@@ -13528,26 +13528,26 @@
     "name": "WLFI_ECON_cn.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 15,
-      "width": 1376
+      "width": 1376.0
     },
     "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
     "parent_folder_name": "econ",
-    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/world-liberty-financial-wlfi/latest/zh.html",
-    "report_id": "0daaf484-918f-402b-96c9-3c4a5b5e926d",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/world-liberty-financial/latest/zh.html",
+    "report_id": "74a0d036-5e2f-4c23-8575-331417c144d2",
     "retry_count": 0,
     "rtype": "econ",
-    "slug": "world-liberty-financial-wlfi",
+    "slug": "world-liberty-financial",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/WLFI_ECON_cn.pdf",
-    "started_at": "2026-05-17T07:55:59.469667+00:00",
+    "started_at": "2026-05-18T18:01:19.683020+00:00",
     "status": "published",
-    "updated_at": "2026-05-17T17:49:42.514649+00:00",
+    "updated_at": "2026-05-18T18:02:23.527319+00:00",
     "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/world-liberty-financial-wlfi/1/zh.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/world-liberty-financial/1/zh.html"
   },
   "1ajaoDU8AgLqMXdHzI23Jq2p5n04xX9ak": {
     "error": "Storage upload failed for slides/econ/okx/1/zh_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
@@ -16333,7 +16333,7 @@
   },
   "1iU6nn1xMFpZl9acG0GS4EnqGyGbO3Flb": {
     "error": null,
-    "finished_at": "2026-05-17T07:55:44.169819+00:00",
+    "finished_at": "2026-05-18T18:01:01.694007+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "mismatch": {
@@ -16346,26 +16346,26 @@
     "name": "WLFI_ECON_jp.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 15,
-      "width": 1376
+      "width": 1376.0
     },
     "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
     "parent_folder_name": "econ",
-    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/world-liberty-financial-wlfi/latest/ja.html",
-    "report_id": "050df894-13ec-4331-9435-8f93b15e20b0",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/world-liberty-financial/latest/ja.html",
+    "report_id": "9c0375d9-2fd6-43ea-924f-a70492cb080c",
     "retry_count": 0,
     "rtype": "econ",
-    "slug": "world-liberty-financial-wlfi",
+    "slug": "world-liberty-financial",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/WLFI_ECON_jp.pdf",
-    "started_at": "2026-05-17T07:55:24.849706+00:00",
+    "started_at": "2026-05-18T18:00:17.531853+00:00",
     "status": "published",
-    "updated_at": "2026-05-17T17:49:41.174922+00:00",
+    "updated_at": "2026-05-18T18:01:01.694021+00:00",
     "version": 2,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/world-liberty-financial-wlfi/2/ja.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/world-liberty-financial/2/ja.html"
   },
   "1iX_tkyZGwg9zHyBLAJGkLlLbFFmx-5zY": {
     "error": null,
@@ -17629,33 +17629,33 @@
   },
   "1lu-FO3C0WwX_BFD4c8Upms_7X7bQUtz-": {
     "error": null,
-    "finished_at": "2026-05-17T07:57:08.646348+00:00",
+    "finished_at": "2026-05-18T18:03:21.445891+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T05:09:07.389Z",
     "name": "WLFI_ECON_ko.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 15,
-      "width": 1376
+      "width": 1376.0
     },
     "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
     "parent_folder_name": "econ",
-    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/world-liberty-financial-wlfi/latest/ko.html",
-    "report_id": "2f64ad79-65b1-4a21-a074-28c241356f91",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/world-liberty-financial/latest/ko.html",
+    "report_id": "1f44a7f1-3036-4b87-8b18-e7e8cc70bfd4",
     "retry_count": 0,
     "rtype": "econ",
-    "slug": "world-liberty-financial-wlfi",
+    "slug": "world-liberty-financial",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/WLFI_ECON_ko.pdf",
-    "started_at": "2026-05-17T07:56:41.397341+00:00",
+    "started_at": "2026-05-18T18:02:38.494329+00:00",
     "status": "published",
-    "updated_at": "2026-05-17T17:49:43.597317+00:00",
+    "updated_at": "2026-05-18T18:03:21.445907+00:00",
     "version": 2,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/world-liberty-financial-wlfi/2/ko.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/world-liberty-financial/2/ko.html"
   },
   "1lzdYH36YZmANWM3-aqU3wq-iktvvi2UB": {
     "error": null,
