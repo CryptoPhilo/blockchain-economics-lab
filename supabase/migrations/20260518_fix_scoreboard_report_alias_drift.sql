@@ -45,6 +45,50 @@ SET
   ),
   updated_at = now();
 
+INSERT INTO tracked_projects (
+  name,
+  slug,
+  symbol,
+  category,
+  status,
+  discovery_source,
+  coingecko_id,
+  aliases,
+  created_at,
+  updated_at
+)
+VALUES (
+  'World Liberty Financial',
+  'world-liberty-financial',
+  'WLFI',
+  'DeFi',
+  'active',
+  'scoreboard-report-alias-repair',
+  'world-liberty-financial',
+  ARRAY['wlfi']::text[],
+  now(),
+  now()
+)
+ON CONFLICT (slug) DO UPDATE
+SET
+  name = EXCLUDED.name,
+  symbol = EXCLUDED.symbol,
+  category = COALESCE(tracked_projects.category, EXCLUDED.category),
+  status = CASE
+    WHEN tracked_projects.status = 'archived' THEN 'active'::project_status
+    ELSE tracked_projects.status
+  END,
+  coingecko_id = COALESCE(tracked_projects.coingecko_id, EXCLUDED.coingecko_id),
+  aliases = (
+    SELECT ARRAY(
+      SELECT DISTINCT alias
+      FROM unnest(COALESCE(tracked_projects.aliases, '{}'::text[]) || EXCLUDED.aliases) AS alias
+      WHERE alias IS NOT NULL AND btrim(alias) <> ''
+      ORDER BY alias
+    )
+  ),
+  updated_at = now();
+
 UPDATE tracked_projects
 SET
   aliases = (
