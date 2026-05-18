@@ -378,6 +378,28 @@ def test_immutable_short_filename_resolves_to_immutable_x(ws):
     assert source == 'filename'
 
 
+@pytest.mark.parametrize(
+    ('slug', 'name', 'symbol', 'filename'),
+    [
+        ('artificial-superintelligence-alliance', 'Artificial Superintelligence Alliance', 'FET', 'ASI_ECON_ko.pdf'),
+        ('pyth-network', 'Pyth Network', 'PYTH', 'pyth_network_MAT_ko.pdf'),
+        ('lido-dao', 'Lido Finance', 'LDO', 'Lido_MAT_en.pdf'),
+        ('aerodrome-finance', 'Aerodrome Finance', 'AERO', 'Aerodrome_MAT_ko.pdf'),
+        ('bittorrent', 'BitTorrent', 'BTT', 'BTTC_MAT_ko.pdf'),
+    ],
+)
+def test_operational_short_filename_aliases_resolve_to_canonical_projects(ws, slug, name, symbol, filename):
+    projects = [
+        {'slug': slug, 'name': name, 'symbol': symbol},
+        {'slug': 'bitcoin', 'name': 'Bitcoin', 'symbol': 'BTC'},
+    ]
+
+    project, source = ws._resolve_slug(filename, '', '', projects)
+
+    assert project['slug'] == slug
+    assert source == 'filename'
+
+
 def test_unresolved_explicit_report_filename_does_not_fall_through_to_ocr(ws):
     projects = [
         {'slug': 'ainft', 'name': 'AINFT', 'symbol': 'NFT'},
