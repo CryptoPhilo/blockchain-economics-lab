@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
     'ripple': ['xrpl', 'xrp ledger'],
+    'immutable-x': ['immutable', 'imx'],
     'world-liberty-financial': ['wlf intelligence briefing', 'wlf economic architecture'],
     'okx': ['x layer economic blueprint', 'x layer money chain analysis', 'x layer economic analysis'],
     'ethereum': ['programmable trust blueprint'],
@@ -27,6 +28,10 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
 _TOKEN_RE = re.compile(r'[A-Za-z0-9]+')
 _ASCII_ONLY_RE = re.compile(r'^[a-z0-9 ]+$')
 _SIGNAL_SEPARATOR_RE = re.compile(r'[^a-z0-9]+')
+_EXPLICIT_REPORT_FILENAME_RE = re.compile(
+    r'^(?P<prefix>.+?)[_\-\s]+(?:ECON|MAT|FOR)(?:[_\-\s.]|$)',
+    re.IGNORECASE,
+)
 
 
 def _tokenize(text: str) -> List[str]:
@@ -100,6 +105,22 @@ def _match_project_by_text(text: str, projects: List[Dict[str, str]]) -> Optiona
     return best[1] if best else None
 
 
+def _explicit_report_project_prefix(pdf_name: str) -> Optional[str]:
+    """Return the explicit project prefix from names like `bitcoin_MAT_ko.pdf`.
+
+    When a Drive slide filename has this shape, the prefix is the operator's
+    source-of-truth project hint. Falling through to OCR/body matching after an
+    unresolved explicit prefix can attach the file to an unrelated project whose
+    generic body terms scored higher.
+    """
+    stem = re.sub(r'\.[^.]+$', '', pdf_name or '')
+    match = _EXPLICIT_REPORT_FILENAME_RE.match(stem)
+    if not match:
+        return None
+    prefix = _normalize_signal_text(match.group('prefix')).strip()
+    return prefix or None
+
+
 def _resolve_slug(
     pdf_name: str,
     pdf_text: str,
@@ -110,6 +131,8 @@ def _resolve_slug(
     proj = _match_project_by_text(pdf_name, projects)
     if proj:
         return proj, 'filename'
+    if _explicit_report_project_prefix(pdf_name):
+        return None, 'filename_unresolved'
     proj = _match_project_by_text(pdf_text, projects)
     if proj:
         return proj, 'pdf_text'
