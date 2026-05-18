@@ -712,7 +712,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aave/latest/en.html"
   },
   "10u1wNyt0hfg-BUhDyomsmCt72mtFGFwo": {
-    "error": "Storage upload failed for slides/econ/artificial-superintelligence-alliance/1/ko_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
+    "error": null,
+    "finished_at": "2026-05-18T11:08:09.481812+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "modifiedTime": "2026-05-16T07:30:22.000Z",
@@ -726,15 +727,19 @@
     },
     "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
     "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/artificial-superintelligence-alliance/latest/ko.html",
+    "report_id": "444b56a6-6aec-4412-8346-75916f0b600c",
     "retry_count": 0,
     "rtype": "econ",
     "slug": "artificial-superintelligence-alliance",
-    "slug_source": "ocr",
+    "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/ASI_ECON_ko.pdf",
-    "started_at": "2026-05-17T17:34:46.615077+00:00",
-    "status": "failed",
-    "updated_at": "2026-05-17T17:35:14.012374+00:00"
+    "started_at": "2026-05-18T11:06:17.881219+00:00",
+    "status": "published",
+    "updated_at": "2026-05-18T11:08:09.481826+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/artificial-superintelligence-alliance/1/ko.html"
   },
   "10urvIGaBuyGoZ24YI27nCIpBqjEuQoqt": {
     "error": null,
@@ -3142,7 +3147,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/chiliz/1/ko.html"
   },
   "18KXVrDX2sNlQTRYFd1cUPcmHjMl9Gj9u": {
-    "error": "Storage upload failed for slides/econ/artificial-superintelligence-alliance/1/ja_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
+    "error": null,
+    "finished_at": "2026-05-18T11:06:01.281439+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-16T08:11:00.000Z",
@@ -3156,15 +3162,19 @@
     },
     "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
     "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/artificial-superintelligence-alliance/latest/ja.html",
+    "report_id": "ea8d4974-d4d0-4675-8283-7ebfea968bce",
     "retry_count": 0,
     "rtype": "econ",
     "slug": "artificial-superintelligence-alliance",
-    "slug_source": "ocr",
+    "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/ASI_ECON_jp.pdf",
-    "started_at": "2026-05-17T17:32:55.023747+00:00",
-    "status": "failed",
-    "updated_at": "2026-05-17T17:33:19.748951+00:00"
+    "started_at": "2026-05-18T11:03:53.709038+00:00",
+    "status": "published",
+    "updated_at": "2026-05-18T11:06:01.281447+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/artificial-superintelligence-alliance/1/ja.html"
   },
   "18LpvCBeVOHneMF3J10qwhR6w5lmWomUS": {
     "error": "Storage upload failed for slides/econ/internet-computer/2/ko_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
@@ -12980,7 +12990,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/stable/1/zh.html"
   },
   "1aTzSX7cFm3D7Yzvh3YrXTYjN8NE37PoD": {
-    "error": "Storage upload failed for slides/econ/artificial-superintelligence-alliance/1/en_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
+    "error": null,
+    "finished_at": "2026-05-18T11:10:43.002090+00:00",
     "lang": "en",
     "lang_source": "filename",
     "modifiedTime": "2026-05-16T02:55:01.000Z",
@@ -12994,15 +13005,19 @@
     },
     "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
     "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/artificial-superintelligence-alliance/latest/en.html",
+    "report_id": "0982fab9-9261-4f57-aa87-e905239a6015",
     "retry_count": 0,
     "rtype": "econ",
     "slug": "artificial-superintelligence-alliance",
-    "slug_source": "ocr",
+    "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/ASI_ECON_en.pdf",
-    "started_at": "2026-05-17T17:38:30.716803+00:00",
-    "status": "failed",
-    "updated_at": "2026-05-17T17:39:17.070805+00:00"
+    "started_at": "2026-05-18T11:08:11.682512+00:00",
+    "status": "published",
+    "updated_at": "2026-05-18T11:10:43.002098+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/artificial-superintelligence-alliance/1/en.html"
   },
   "1ad-vz1zvVSMIBFG3YSkV5e_cnLupgGyu": {
     "error": null,
@@ -14943,7 +14958,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/binancecoin/1/ko.html"
   },
   "1ftqa2CXqfY3mS0qenv-n2OSwHSiqh7K0": {
-    "error": "Storage upload failed for slides/econ/artificial-superintelligence-alliance/1/zh_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
+    "error": null,
+    "finished_at": "2026-05-18T11:03:32.797646+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "modifiedTime": "2026-05-16T08:20:03.000Z",
@@ -14957,15 +14973,19 @@
     },
     "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
     "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/artificial-superintelligence-alliance/latest/zh.html",
+    "report_id": "7049babe-d23a-4edf-85ff-626a275f398d",
     "retry_count": 0,
     "rtype": "econ",
     "slug": "artificial-superintelligence-alliance",
-    "slug_source": "ocr",
+    "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/ASI_ECON_cn.pdf",
-    "started_at": "2026-05-17T17:31:24.115550+00:00",
-    "status": "failed",
-    "updated_at": "2026-05-17T17:31:49.480986+00:00"
+    "started_at": "2026-05-18T11:01:11.501454+00:00",
+    "status": "published",
+    "updated_at": "2026-05-18T11:03:32.797653+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/artificial-superintelligence-alliance/1/zh.html"
   },
   "1g2AOUCZ7qGQ_snW89Iiir3Q4qH-flKBd": {
     "error": null,
