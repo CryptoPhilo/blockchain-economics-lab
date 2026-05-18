@@ -64,7 +64,10 @@ limit when every page is embedded as a base64 string inside one HTML file. In
 that case the watcher keeps the PNG output, uploads each page image as a
 separate public slide asset, and uploads a small HTML viewer that references
 those page URLs. This is not a compression fallback; it preserves the rendered
-page bytes while avoiding the single HTML object limit.
+page bytes while avoiding the single HTML object limit. The `slides` Supabase
+Storage bucket is therefore expected to allow `text/html`, `image/png`,
+`image/jpeg`, and `image/webp`; `ensure_bucket()` repairs older HTML-only bucket
+policies before publication starts.
 
 Direct Drive file-id targeting is disabled. Put PDFs under the appropriate
 `Slide/{TYPE}` folder and use `--type` plus `--slug` filters so the run follows
