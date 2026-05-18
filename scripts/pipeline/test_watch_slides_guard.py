@@ -1328,6 +1328,37 @@ def test_iter_targets_slug_filter_prunes_nonmatching_folders_and_pdfs(ws, monkey
     ]
 
 
+def test_iter_targets_slug_filter_scans_requested_root_container_folders(ws, monkeypatch):
+    monkeypatch.setattr(ws, 'TYPE_FOLDER_IDS', {'econ': 'root-econ'})
+    pdfs_by_parent = {
+        'root-econ': [],
+        'folder-batch': [
+            {'id': 'wlfi-child', 'name': 'WLFI_ECON_ko.pdf', 'modifiedTime': 't-wlfi-ko'},
+            {'id': 'okx-child', 'name': 'OKX_ECON_ko.pdf', 'modifiedTime': 't-okx-ko'},
+        ],
+    }
+    folders_by_parent = {
+        'root-econ': [{'id': 'folder-batch', 'name': 'batch-2026-05-14'}],
+        'folder-batch': [],
+    }
+    monkeypatch.setattr(ws, '_list_pdfs_direct', lambda _service, parent_id: pdfs_by_parent.get(parent_id, []))
+    monkeypatch.setattr(ws, '_list_child_folders', lambda _service, parent_id: folders_by_parent.get(parent_id, []))
+
+    targets = list(ws._iter_targets(
+        object(),
+        ['econ'],
+        filter_slug='world-liberty-financial',
+        projects=[
+            {'slug': 'world-liberty-financial', 'name': 'World Liberty Financial', 'symbol': 'WLFI'},
+            {'slug': 'okx', 'name': 'OKX', 'symbol': 'OKB'},
+        ],
+    ))
+
+    assert [(rtype, pdf['id']) for rtype, pdf in targets] == [
+        ('econ', 'wlfi-child'),
+    ]
+
+
 def test_iter_targets_slug_filter_does_not_substring_match_other_projects(ws, monkeypatch):
     monkeypatch.setattr(ws, 'TYPE_FOLDER_IDS', {'econ': 'root-econ'})
     pdfs_by_parent = {
