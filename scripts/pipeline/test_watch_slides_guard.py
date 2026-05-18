@@ -215,6 +215,7 @@ def test_filename_slug_with_ocr_only_generic_project_signal_does_not_block(ws):
 @pytest.mark.parametrize(
     'filename',
     [
+        'WLFI_ECON_ko.pdf',
         'WLF_Intelligence_Briefing_en.pdf',
         'WLF_Economic_Architecture_cn.pdf',
     ],

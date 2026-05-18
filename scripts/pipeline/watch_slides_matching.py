@@ -8,7 +8,7 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
     'ripple': ['xrpl', 'xrp ledger'],
     'immutable-x': ['immutable', 'imx'],
     'artificial-superintelligence-alliance': ['asi', 'fetch ai', 'fetch-ai', 'fet'],
-    'world-liberty-financial': ['wlf intelligence briefing', 'wlf economic architecture'],
+    'world-liberty-financial': ['wlfi', 'wlf intelligence briefing', 'wlf economic architecture'],
     'pyth-network': ['pyth_network', 'pyth'],
     'lido-dao': ['lido'],
     'aerodrome-finance': ['aerodrome'],

@@ -63,6 +63,19 @@ SET
   aliases = (
     SELECT ARRAY(
       SELECT DISTINCT alias
+      FROM unnest(COALESCE(aliases, '{}'::text[]) || ARRAY['wlfi']) AS alias
+      WHERE alias IS NOT NULL AND btrim(alias) <> ''
+      ORDER BY alias
+    )
+  ),
+  updated_at = now()
+WHERE slug = 'world-liberty-financial';
+
+UPDATE tracked_projects
+SET
+  aliases = (
+    SELECT ARRAY(
+      SELECT DISTINCT alias
       FROM unnest(COALESCE(aliases, '{}'::text[]) || ARRAY['pyth', 'pyth_network']) AS alias
       WHERE alias IS NOT NULL AND btrim(alias) <> ''
       ORDER BY alias
