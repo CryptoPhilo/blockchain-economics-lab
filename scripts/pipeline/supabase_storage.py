@@ -17,6 +17,15 @@ import os
 from typing import Optional
 
 
+SLIDE_BUCKET_ALLOWED_MIME_TYPES = [
+    'text/html',
+    'image/png',
+    'image/jpeg',
+    'image/webp',
+    'application/pdf',
+]
+
+
 def _env(*names: str) -> Optional[str]:
     for n in names:
         v = os.environ.get(n)
@@ -44,26 +53,69 @@ def get_supabase_storage_client():
     return create_client(url, key)
 
 
+def _bucket_name(b):
+    if isinstance(b, dict):
+        return b.get('name') or b.get('id')
+    return getattr(b, 'name', None) or getattr(b, 'id', None)
+
+
+def _bucket_options(public: bool) -> dict:
+    return {
+        'public': public,
+        'allowed_mime_types': SLIDE_BUCKET_ALLOWED_MIME_TYPES,
+    }
+
+
+def _bucket_allows_slide_assets(bucket) -> bool:
+    if isinstance(bucket, dict):
+        allowed = (
+            bucket.get('allowed_mime_types')
+            or bucket.get('allowedMimeTypes')
+            or bucket.get('allowed_mimeTypes')
+        )
+    else:
+        allowed = (
+            getattr(bucket, 'allowed_mime_types', None)
+            or getattr(bucket, 'allowedMimeTypes', None)
+            or getattr(bucket, 'allowed_mimeTypes', None)
+        )
+
+    if not allowed:
+        return False
+    return set(SLIDE_BUCKET_ALLOWED_MIME_TYPES).issubset(set(allowed))
+
+
+def _update_bucket(client, name: str, public: bool) -> None:
+    try:
+        client.storage.update_bucket(name, options=_bucket_options(public))
+    except Exception as e:
+        raise RuntimeError(
+            f"Failed to update bucket '{name}' MIME policy for slide assets: {e}"
+        ) from e
+
+
 def ensure_bucket(client, name: str = 'slides', public: bool = True) -> None:
-    """Idempotently create a Storage bucket. No-op if it already exists."""
+    """Idempotently create or repair the Storage bucket used by slide assets."""
     try:
         existing = client.storage.list_buckets()
     except Exception as e:
         raise RuntimeError(f"Failed to list Supabase Storage buckets: {e}") from e
 
-    def _bucket_name(b):
-        if isinstance(b, dict):
-            return b.get('name') or b.get('id')
-        return getattr(b, 'name', None) or getattr(b, 'id', None)
-
-    if any(_bucket_name(b) == name for b in existing or []):
+    bucket = next((b for b in existing or [] if _bucket_name(b) == name), None)
+    if bucket is not None:
+        # Existing production buckets can predate the external page-image
+        # fallback and allow only HTML. Repair them before the first upload so
+        # 413 fallback assets do not fail halfway through a backfill.
+        if not _bucket_allows_slide_assets(bucket):
+            _update_bucket(client, name, public)
         return
 
     try:
-        client.storage.create_bucket(name, options={'public': public})
+        client.storage.create_bucket(name, options=_bucket_options(public))
     except Exception as e:
         msg = str(e)
         if 'already exists' in msg.lower() or 'duplicate' in msg.lower():
+            _update_bucket(client, name, public)
             return
         raise RuntimeError(f"Failed to create bucket '{name}': {e}") from e
 
