@@ -366,6 +366,35 @@ def test_mat_short_filenames_resolve_to_canonical_projects(ws, slug, name, symbo
     assert source == 'filename'
 
 
+def test_immutable_short_filename_resolves_to_immutable_x(ws):
+    projects = [
+        {'slug': 'immutable-x', 'name': 'Immutable X', 'symbol': 'IMX'},
+        {'slug': 'ainft', 'name': 'AINFT', 'symbol': 'NFT'},
+    ]
+
+    project, source = ws._resolve_slug('immutable_MAT_ko.pdf', '', '', projects)
+
+    assert project['slug'] == 'immutable-x'
+    assert source == 'filename'
+
+
+def test_unresolved_explicit_report_filename_does_not_fall_through_to_ocr(ws):
+    projects = [
+        {'slug': 'ainft', 'name': 'AINFT', 'symbol': 'NFT'},
+        {'slug': 'gensyn', 'name': 'Gensyn', 'symbol': 'GENSYN'},
+    ]
+
+    project, source = ws._resolve_slug(
+        'immutable_MAT_ko.pdf',
+        '',
+        'AINFT NFT decentralized intelligence network Gensyn compute marketplace',
+        projects,
+    )
+
+    assert project is None
+    assert source == 'filename_unresolved'
+
+
 @pytest.mark.parametrize(
     'filename',
     [
