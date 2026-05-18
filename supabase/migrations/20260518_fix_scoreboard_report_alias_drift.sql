@@ -9,7 +9,6 @@ INSERT INTO tracked_projects (
   status,
   discovery_source,
   coingecko_id,
-  cmc_id,
   aliases,
   created_at,
   updated_at
@@ -21,7 +20,6 @@ VALUES (
   'NFT',
   'active',
   'scoreboard-report-alias-repair',
-  'immutable-x',
   'immutable-x',
   ARRAY['immutable', 'imx']::text[],
   now(),
@@ -37,7 +35,6 @@ SET
     ELSE tracked_projects.status
   END,
   coingecko_id = COALESCE(tracked_projects.coingecko_id, EXCLUDED.coingecko_id),
-  cmc_id = COALESCE(tracked_projects.cmc_id, EXCLUDED.cmc_id),
   aliases = (
     SELECT ARRAY(
       SELECT DISTINCT alias
