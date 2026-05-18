@@ -7,7 +7,12 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
     'ripple': ['xrpl', 'xrp ledger'],
     'immutable-x': ['immutable', 'imx'],
+    'artificial-superintelligence-alliance': ['asi', 'fetch ai', 'fetch-ai', 'fet'],
     'world-liberty-financial': ['wlf intelligence briefing', 'wlf economic architecture'],
+    'pyth-network': ['pyth_network', 'pyth'],
+    'lido-dao': ['lido'],
+    'aerodrome-finance': ['aerodrome'],
+    'bittorrent': ['bttc'],
     'okx': ['x layer economic blueprint', 'x layer money chain analysis', 'x layer economic analysis'],
     'ethereum': ['programmable trust blueprint'],
     'bitcoin-cash': ['bch'],
