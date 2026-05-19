@@ -1089,7 +1089,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/curve-dao/2/ko.html"
   },
   "11tKYEv684cvcx69xwssuAyBPTUrRhIhG": {
-    "error": "Storage upload failed for slides/econ/virtuals-protocol/1/ko_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
+    "error": null,
+    "finished_at": "2026-05-19T22:10:30.616057+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "modifiedTime": "2026-05-16T02:48:18.000Z",
@@ -1103,15 +1104,19 @@
     },
     "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
     "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/virtuals-protocol/latest/ko.html",
+    "report_id": "26fff81f-313c-4966-9f7a-f93dbb58284b",
     "retry_count": 0,
     "rtype": "econ",
     "slug": "virtuals-protocol",
-    "slug_source": "ocr",
+    "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/Virtuals_ECON_ko.pdf",
-    "started_at": "2026-05-17T17:39:36.453788+00:00",
-    "status": "failed",
-    "updated_at": "2026-05-17T17:39:55.844292+00:00"
+    "started_at": "2026-05-19T22:09:27.521340+00:00",
+    "status": "published",
+    "updated_at": "2026-05-19T22:10:30.616075+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/virtuals-protocol/1/ko.html"
   },
   "11y7lGh6ny58ZUYD7hzvDjtFVI8zqg_Se": {
     "error": null,
@@ -5812,7 +5817,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/monero/latest/ko.html"
   },
   "1F2PQbyYidtqk6EgTr8xMTxj8T-LkBJ_j": {
-    "error": "Storage upload failed for slides/econ/virtuals-protocol/1/zh_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
+    "error": null,
+    "finished_at": "2026-05-19T22:08:14.646684+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "modifiedTime": "2026-05-16T12:41:43.000Z",
@@ -5826,15 +5832,19 @@
     },
     "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
     "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/virtuals-protocol/latest/zh.html",
+    "report_id": "cb2506f5-819f-4f69-9cc0-3f824b9967e9",
     "retry_count": 0,
     "rtype": "econ",
     "slug": "virtuals-protocol",
-    "slug_source": "ocr",
+    "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/Virtuals_ECON_cn.pdf",
-    "started_at": "2026-05-17T17:25:52.858908+00:00",
-    "status": "failed",
-    "updated_at": "2026-05-17T17:26:26.655676+00:00"
+    "started_at": "2026-05-19T22:07:14.749617+00:00",
+    "status": "published",
+    "updated_at": "2026-05-19T22:08:14.646702+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/virtuals-protocol/1/zh.html"
   },
   "1F9cydOO9Gr18WQh7JI5i5j7D64LlZPR4": {
     "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
@@ -6265,17 +6275,17 @@
   },
   "1GkTT6EaR6ZUgN0TV7e_Q4XKnFuQOr6aJ": {
     "error": null,
-    "finished_at": "2026-05-17T06:54:22.843140+00:00",
+    "finished_at": "2026-05-19T22:09:14.567622+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-16T12:31:56.000Z",
     "name": "Virtuals_ECON_jp.pdf",
     "page_profile": {
       "aspect_ratio": 1.7768331562167907,
-      "height": 941,
+      "height": 941.0,
       "is_landscape_slide": true,
       "page_count": 10,
-      "width": 1672
+      "width": 1672.0
     },
     "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
     "parent_folder_name": "econ",
@@ -6284,12 +6294,12 @@
     "retry_count": 0,
     "rtype": "econ",
     "slug": "virtuals-protocol",
-    "slug_source": "ocr",
+    "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/Virtuals_ECON_jp.pdf",
-    "started_at": "2026-05-17T06:53:46.083755+00:00",
+    "started_at": "2026-05-19T22:08:46.742118+00:00",
     "status": "published",
-    "updated_at": "2026-05-17T17:26:28.920629+00:00",
+    "updated_at": "2026-05-19T22:09:14.567640+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/virtuals-protocol/1/ja.html"
   },
@@ -13980,7 +13990,8 @@
     "updated_at": "2026-05-17T18:03:06.938031+00:00"
   },
   "1bnE7HOZfm1DQKyLpRk1NeN3WwIYLiSiT": {
-    "error": "Storage upload failed for slides/econ/virtuals-protocol/1/en_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
+    "error": null,
+    "finished_at": "2026-05-19T22:11:32.337140+00:00",
     "lang": "en",
     "lang_source": "filename",
     "modifiedTime": "2026-05-16T01:47:07.000Z",
@@ -13994,15 +14005,19 @@
     },
     "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
     "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/virtuals-protocol/latest/en.html",
+    "report_id": "eeefb3fd-95a6-4993-be95-6abd1f6f8691",
     "retry_count": 0,
     "rtype": "econ",
     "slug": "virtuals-protocol",
-    "slug_source": "ocr",
+    "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/Virtuals_ECON_en.pdf",
-    "started_at": "2026-05-17T17:41:22.177071+00:00",
-    "status": "failed",
-    "updated_at": "2026-05-17T17:41:53.542376+00:00"
+    "started_at": "2026-05-19T22:10:31.678321+00:00",
+    "status": "published",
+    "updated_at": "2026-05-19T22:11:32.337158+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/virtuals-protocol/1/en.html"
   },
   "1bqN5GJsZdjy6yxDhZCChDJS-GJ8fvkOw": {
     "error": null,
