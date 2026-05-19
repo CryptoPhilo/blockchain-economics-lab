@@ -387,6 +387,8 @@ def test_immutable_short_filename_resolves_to_immutable_x(ws):
         ('lido-dao', 'Lido Finance', 'LDO', 'Lido_MAT_en.pdf'),
         ('aerodrome-finance', 'Aerodrome Finance', 'AERO', 'Aerodrome_MAT_ko.pdf'),
         ('bittorrent', 'BitTorrent', 'BTT', 'BTTC_MAT_ko.pdf'),
+        ('virtuals-protocol', 'Virtuals Protocol', 'VIRTUAL', 'Virtuals_ECON_ko.pdf'),
+        ('zebec-network', 'Zebec Network', 'ZBCN', 'zebec_MAT_ko.pdf'),
     ],
 )
 def test_operational_short_filename_aliases_resolve_to_canonical_projects(ws, slug, name, symbol, filename):

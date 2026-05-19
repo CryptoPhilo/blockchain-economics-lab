@@ -2609,6 +2609,18 @@ def process(
                                 f"    ✓ DB repaired from unchanged manifest ({repair_status}): "
                                 f"project_reports[{report_id}].slide_html_urls_by_lang.{lang}"
                             )
+                            if rtype == 'mat' and project:
+                                analysis_source = _find_analysis_source_for_slide(
+                                    service,
+                                    project=project,
+                                    rtype=rtype,
+                                    version=version,
+                                )
+                                _persist_maturity_score_from_source(
+                                    sb,
+                                    project=project,
+                                    source=analysis_source,
+                                )
                         else:
                             print(
                                 f"    [WARN] DB repair skipped for unchanged manifest: "
