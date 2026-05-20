@@ -30,7 +30,15 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
     'venice-token': ['venice ai', 'venice_ai'],
     'virtuals-protocol': ['virtuals', 'virtuals protocol'],
     'zebec-network': ['zebec', 'zbcn'],
-    'ethereum-name-service': ['ens'],
+    'ethereum-name-service': [
+        'ens',
+        'ens 이더리움 네임 서비스',
+        '이더리움 네임 서비스',
+        'ens イーサリアムネームサービス',
+        'イーサリアムネームサービス',
+        'ens 以太坊名称服务',
+        '以太坊名称服务',
+    ],
 }
 
 _TOKEN_RE = re.compile(r'[A-Za-z0-9]+')

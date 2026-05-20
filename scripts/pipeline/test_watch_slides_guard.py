@@ -404,6 +404,23 @@ def test_operational_short_filename_aliases_resolve_to_canonical_projects(ws, sl
     assert source == 'filename'
 
 
+def test_ens_localized_body_does_not_get_blocked_by_comparison_project_mentions(ws):
+    projects = [
+        {'slug': 'ethereum-name-service', 'name': 'Ethereum Name Service', 'symbol': 'ENS'},
+        {'slug': 'trust-wallet', 'name': 'Trust Wallet', 'symbol': 'TWT'},
+    ]
+    project, source = ws._resolve_slug('ENS_ECON_ko.pdf', '', '', projects)
+    body = (
+        'ENS 이더리움 네임 서비스는 지갑 주소를 사람이 읽을 수 있는 이름으로 연결하는 '
+        '네임 레이어다. 본문은 Trust Wallet 같은 지갑 앱과의 통합 가능성을 비교하지만, '
+        '분석 대상은 ENS 거버넌스와 도메인 수요, ENS 토큰 경제다. '
+    ) * 4
+
+    assert project['slug'] == 'ethereum-name-service'
+    assert source == 'filename'
+    assert ws._detect_slug_content_mismatch(project, body, '', projects) is None
+
+
 def test_unresolved_explicit_report_filename_does_not_fall_through_to_ocr(ws):
     projects = [
         {'slug': 'ainft', 'name': 'AINFT', 'symbol': 'NFT'},
