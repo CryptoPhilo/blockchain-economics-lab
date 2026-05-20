@@ -389,6 +389,7 @@ def test_immutable_short_filename_resolves_to_immutable_x(ws):
         ('bittorrent', 'BitTorrent', 'BTT', 'BTTC_MAT_ko.pdf'),
         ('virtuals-protocol', 'Virtuals Protocol', 'VIRTUAL', 'Virtuals_ECON_ko.pdf'),
         ('zebec-network', 'Zebec Network', 'ZBCN', 'zebec_MAT_ko.pdf'),
+        ('ethereum-name-service', 'Ethereum Name Service', 'ENS', 'ENS_MAT_ko.pdf'),
     ],
 )
 def test_operational_short_filename_aliases_resolve_to_canonical_projects(ws, slug, name, symbol, filename):
