@@ -7,6 +7,7 @@ import ProductCard from '@/components/ProductCard'
 import DisclaimerBanner from '@/components/DisclaimerBanner'
 import SubscribeForm from '@/components/SubscribeForm'
 import ForensicSlideCards from '@/components/ForensicSlideCards'
+import LatestReportShowcase from '@/components/LatestReportShowcase'
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
@@ -18,10 +19,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   let categories: any[] = []
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let forensicReports: any[] = []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let latestReportCovers: any[] = []
 
   try {
     const supabase = await createServerSupabaseClient()
-    const [productsRes, categoriesRes, forensicRes] = await Promise.all([
+    const [productsRes, categoriesRes, forensicRes, latestCoverRes] = await Promise.all([
       supabase
         .from('products')
         .select('*, category:categories(*)')
@@ -39,13 +42,33 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         .eq('report_type', 'forensic')
         .in('status', ['published', 'in_review'])
         .not('card_data', 'is', null)
-        .not('slide_html_urls_by_lang', 'is', null)
         .order('updated_at', { ascending: false })
-        .limit(8),
+        .limit(40),
+      supabase
+        .from('project_reports')
+        .select(`
+          *,
+          tracked_projects!inner(id, name, slug, symbol, chain, category),
+          product:products(id, slug, title_en, title_ko, title_fr, title_es, title_de, title_ja, title_zh, cover_image_url, published_at)
+        `)
+        .in('report_type', ['econ', 'maturity', 'forensic'])
+        .in('status', ['published', 'in_review'])
+        .not('product_id', 'is', null)
+        .order('updated_at', { ascending: false })
+        .limit(40),
     ])
     featuredProducts = productsRes.data || []
     categories = categoriesRes.data || []
-    forensicReports = (forensicRes.data || []).filter((report) => reportSupportsLocale(report, locale))
+    forensicReports = (forensicRes.data || [])
+      .filter((report) => reportSupportsLocale(report, locale))
+      .slice(0, 8)
+    latestReportCovers = (latestCoverRes.data || [])
+      .filter((report) => reportSupportsLocale(report, locale))
+      .filter((report) => {
+        const product = Array.isArray(report.product) ? report.product[0] : report.product
+        return Boolean(product?.cover_image_url)
+      })
+      .slice(0, 4)
   } catch (e) {
     console.error('Failed to fetch data:', e)
   }
@@ -113,8 +136,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
       </section>
 
-      {/* Forensic Slide Cards */}
-      <ForensicSlideCards reports={forensicReports} locale={locale} />
+      {/* Latest report covers */}
+      {latestReportCovers.length > 0 ? (
+        <LatestReportShowcase reports={latestReportCovers} locale={locale} />
+      ) : (
+        <ForensicSlideCards reports={forensicReports} locale={locale} />
+      )}
 
       {/* Categories */}
       <section className="max-w-6xl mx-auto px-6 py-20">
