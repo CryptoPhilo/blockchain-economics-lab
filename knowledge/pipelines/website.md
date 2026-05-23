@@ -51,6 +51,47 @@ was emitted. The workflow now uses the Vercel CLI `pull`, `build`, and
 production deploy attempts fail closed instead of remaining indefinitely
 in-progress.
 
+## BCE-1911 Production Deploy Evidence
+
+As of 2026-05-15, BCE-1911 deployed the board-approved BCE-1906 release commit
+`e33f14e31c0dbab1780615acfade3fb6551b1d70` from PR #64 branch
+`bce-1909-bce-1906-clean-release` through `.github/workflows/production-deploy.yml`.
+The workflow used `expected_commit` to fail closed if the selected SHA differed
+from the approved commit.
+
+- Paperclip approval: `29e707ac-af14-4b99-b6d7-553fbfc976b0`.
+- GitHub Actions run: `https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/25918509079`.
+- Vercel production deployment URL: `https://blockchain-economics-nk4tbfe9z-michael-zhangs-projects-df54ac7d.vercel.app`.
+- Production alias: `https://www.bcelab.xyz`.
+- Remote verification passed in the deploy workflow: `npm run verify:pipeline`,
+  `npm run verify:runtime-pipelines`, `npx tsc --noEmit`, `npm test -- --passWithNoTests`,
+  and `npm run build`.
+- Post-deploy read verification covered `/en/reports`, `/en/score`,
+  `/en/projects/pump-fun`, and `/en/reports/pump-fun/maturity`.
+
+## BCE-1922 Latest Report Cover Boundary
+
+As of 2026-05-23, the homepage latest-report showcase depends on
+`project_reports.product_id -> products.cover_image_url`. The report publishing
+pipeline now uploads first-page slide cover images to the public `slides` bucket
+at `{type}/{slug}/{version-or-latest}/{lang}-cover.jpg` and updates the linked
+product cover during `website_publish`.
+
+Existing rows are handled by
+`scripts/backfill-report-cover-image-urls.ts`, which defaults to dry-run and
+must be applied only through the approved remote production-write path. Local
+dry-run evidence at checkout `c7666ba` found 1 candidate:
+Uniswap MAT/en product `b195234f-cbbb-4cd6-b696-f065054d911d`.
+
+As of BCE-1923, approved report cover backfills have a dedicated manual GitHub
+Actions execution surface at `.github/workflows/report-cover-backfill.yml`.
+The workflow runs in the `production` environment, defaults to `dry_run`, reuses
+the existing Supabase production secrets, and requires a project `slug` when
+`mode=apply` so production writes stay scoped to the board-approved target.
+For the BCE-1922 one-row backfill, dispatch `mode=dry_run`, `report_type=maturity`,
+and `slug=uniswap` first; dispatch `mode=apply` only after approval covers that
+same target.
+
 ## BCE-1869 Relationship
 
 BCE-1869 affected the report-publishing watcher boundary, not this website

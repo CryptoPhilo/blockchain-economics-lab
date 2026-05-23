@@ -1,0 +1,157 @@
+name: Report Cover Backfill
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Backfill mode'
+        required: true
+        type: choice
+        default: dry_run
+        options:
+          - dry_run
+          - apply
+      report_type:
+        description: 'Report type filter'
+        required: true
+        type: choice
+        default: maturity
+        options:
+          - econ
+          - maturity
+          - forensic
+      slug:
+        description: 'Tracked project slug filter; required for apply'
+        required: false
+        type: string
+      page_size:
+        description: 'Supabase page size'
+        required: false
+        type: number
+        default: 1000
+
+permissions:
+  contents: read
+
+concurrency:
+  group: report-cover-backfill-${{ github.event.inputs.slug || 'all' }}
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    name: Backfill Report Cover URLs
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate required secrets
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          set -euo pipefail
+
+          missing=0
+          for name in SUPABASE_URL SUPABASE_SERVICE_KEY; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::required secret ${name} is not configured"
+              missing=1
+            else
+              echo "${name}=present"
+            fi
+          done
+
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+
+      - name: Validate dispatch scope
+        env:
+          MODE: ${{ github.event.inputs.mode || 'dry_run' }}
+          REPORT_TYPE: ${{ github.event.inputs.report_type || 'maturity' }}
+          SLUG: ${{ github.event.inputs.slug }}
+          PAGE_SIZE: ${{ github.event.inputs.page_size || '1000' }}
+        run: |
+          set -euo pipefail
+
+          if [ "$MODE" != "dry_run" ] && [ "$MODE" != "apply" ]; then
+            echo "::error::mode must be dry_run or apply"
+            exit 1
+          fi
+
+          case "$REPORT_TYPE" in
+            econ|maturity|forensic) ;;
+            *)
+              echo "::error::report_type must be econ, maturity, or forensic"
+              exit 1
+              ;;
+          esac
+
+          if [ "$MODE" = "apply" ] && [ -z "$SLUG" ]; then
+            echo "::error::slug is required when mode=apply"
+            exit 1
+          fi
+
+          if ! [[ "$PAGE_SIZE" =~ ^[0-9]+$ ]] || [ "$PAGE_SIZE" -le 0 ]; then
+            echo "::error::page_size must be a positive integer"
+            exit 1
+          fi
+
+      - name: Run report cover backfill
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          MODE: ${{ github.event.inputs.mode || 'dry_run' }}
+          REPORT_TYPE: ${{ github.event.inputs.report_type || 'maturity' }}
+          SLUG: ${{ github.event.inputs.slug }}
+          PAGE_SIZE: ${{ github.event.inputs.page_size || '1000' }}
+        run: |
+          set -euo pipefail
+
+          args=(--type "$REPORT_TYPE" --page-size "$PAGE_SIZE")
+          if [ -n "$SLUG" ]; then
+            args+=(--slug "$SLUG")
+          fi
+
+          if [ "$MODE" = "apply" ]; then
+            args+=(--apply)
+          else
+            args+=(--dry-run)
+          fi
+
+          echo "Invoking: npx ts-node scripts/backfill-report-cover-image-urls.ts ${args[*]}"
+          npx ts-node scripts/backfill-report-cover-image-urls.ts "${args[@]}" | tee report-cover-backfill.log
+
+      - name: Upload backfill log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-cover-backfill-${{ github.run_number }}
+          path: report-cover-backfill.log
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Report Cover Backfill" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Mode**: ${{ github.event.inputs.mode || 'dry_run' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Report type**: ${{ github.event.inputs.report_type || 'maturity' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Slug**: ${{ github.event.inputs.slug || '(none)' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Run ID**: ${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Timestamp**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> "$GITHUB_STEP_SUMMARY"

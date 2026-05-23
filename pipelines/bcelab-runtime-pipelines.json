@@ -201,6 +201,17 @@
           }
         },
         {
+          "key": "report_cover_backfill",
+          "paperclipLabel": "Approved report cover backfill",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/report-cover-backfill.yml",
+            "entrypoint": "scripts/backfill-report-cover-image-urls.ts",
+            "commandContains": "backfill-report-cover-image-urls.ts",
+            "localAllowed": ["dry_run", "development"]
+          }
+        },
+        {
           "key": "post_deploy_monitoring",
           "paperclipLabel": "Post-deploy monitoring",
           "execution": {
