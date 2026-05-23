@@ -120,6 +120,7 @@ jobs:
           REPORT_TYPE: ${{ github.event.inputs.report_type || 'maturity' }}
           SLUG: ${{ github.event.inputs.slug }}
           PAGE_SIZE: ${{ github.event.inputs.page_size || '1000' }}
+          TS_NODE_COMPILER_OPTIONS: '{"module":"CommonJS"}'
         run: |
           set -euo pipefail
 
