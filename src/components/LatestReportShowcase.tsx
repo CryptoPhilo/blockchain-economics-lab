@@ -71,24 +71,37 @@ function hasNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0
 }
 
+function uniqueStrings(values: string[]) {
+  return Array.from(new Set(values.filter(hasNonEmptyString).map((value) => value.trim())))
+}
+
+export function buildSlideCoverImageCandidates(slideUrl: string) {
+  const trimmed = slideUrl.trim()
+  if (!trimmed.endsWith('.html')) return []
+
+  const withoutHtml = trimmed.slice(0, -'.html'.length)
+  return ['jpg', 'png', 'webp'].map((extension) => `${withoutHtml}-cover.${extension}`)
+}
+
 export function getReportCoverAsset(report: ReportWithCover, locale: string) {
   const productCoverUrl = getProduct(report)?.cover_image_url
-  if (hasNonEmptyString(productCoverUrl)) {
-    return { type: 'image' as const, url: productCoverUrl.trim() }
-  }
-
   const slideUrls = report.slide_html_urls_by_lang as Record<string, unknown> | null | undefined
-  const localizedSlideUrl = slideUrls?.[locale]
-  if (hasNonEmptyString(localizedSlideUrl)) {
-    return { type: 'html' as const, url: localizedSlideUrl.trim() }
-  }
+  const localizedSlideUrl = hasNonEmptyString(slideUrls?.[locale]) ? slideUrls[locale] : null
+  const englishSlideUrl = hasNonEmptyString(slideUrls?.en) ? slideUrls.en : null
+  const reportLanguageSlideUrl = hasNonEmptyString(slideUrls?.[report.language]) ? slideUrls[report.language] : null
+  const firstSlideUrl = Object.values(slideUrls ?? {}).find(hasNonEmptyString)
+  const slideCoverUrls = uniqueStrings([
+    ...(typeof localizedSlideUrl === 'string' ? buildSlideCoverImageCandidates(localizedSlideUrl) : []),
+    ...(typeof englishSlideUrl === 'string' ? buildSlideCoverImageCandidates(englishSlideUrl) : []),
+    ...(typeof reportLanguageSlideUrl === 'string' ? buildSlideCoverImageCandidates(reportLanguageSlideUrl) : []),
+    ...(typeof firstSlideUrl === 'string' ? buildSlideCoverImageCandidates(firstSlideUrl) : []),
+  ])
+  const urls = uniqueStrings([
+    ...(hasNonEmptyString(productCoverUrl) ? [productCoverUrl] : []),
+    ...slideCoverUrls,
+  ])
 
-  const englishSlideUrl = slideUrls?.en
-  if (hasNonEmptyString(englishSlideUrl)) {
-    return { type: 'html' as const, url: englishSlideUrl.trim() }
-  }
-
-  return null
+  return urls.length > 0 ? { type: 'image' as const, urls } : null
 }
 
 export function hasReportCover(report: ReportWithCover) {
@@ -148,6 +161,36 @@ function formatReportDate(report: ReportWithCover, locale: string) {
     day: 'numeric',
     year: 'numeric',
   }).format(new Date(dateValue))
+}
+
+function ReportCoverImage({
+  urls,
+  title,
+  priority,
+}: {
+  urls: string[]
+  title: string
+  priority: boolean
+}) {
+  const [candidateIndex, setCandidateIndex] = useState(0)
+  const src = urls[candidateIndex]
+
+  if (!src) {
+    return <div className="h-full w-full bg-gray-900" aria-hidden="true" />
+  }
+
+  return (
+    <Image
+      src={src}
+      alt={title}
+      fill
+      sizes="(min-width: 1024px) 460px, (min-width: 768px) 42vw, 92vw"
+      className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+      priority={priority}
+      unoptimized
+      onError={() => setCandidateIndex((index) => index + 1)}
+    />
+  )
 }
 
 export default function LatestReportShowcase({ reports, locale }: LatestReportShowcaseProps) {
@@ -212,26 +255,7 @@ export default function LatestReportShowcase({ reports, locale }: LatestReportSh
                     tabIndex={index === activeIndex ? 0 : -1}
                   >
                     <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-gray-900 md:min-h-[460px]">
-                      {coverAsset?.type === 'html' ? (
-                        <iframe
-                          src={coverAsset.url}
-                          title={title}
-                          className="pointer-events-none h-full w-full origin-top-left scale-[0.62] border-0 md:scale-[0.72]"
-                          style={{ width: '160%', height: '160%' }}
-                          loading={index === 0 ? 'eager' : 'lazy'}
-                          tabIndex={-1}
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        <Image
-                          src={coverAsset?.url ?? ''}
-                          alt={title}
-                          fill
-                          sizes="(min-width: 1024px) 460px, (min-width: 768px) 42vw, 92vw"
-                          className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                          priority={index === 0}
-                        />
-                      )}
+                      <ReportCoverImage urls={coverAsset?.urls ?? []} title={title} priority={index === 0} />
                     </div>
                     <div className="flex min-w-0 flex-col justify-center px-1 py-2 md:px-3">
                       <div className={`mb-5 inline-flex w-fit rounded-full border px-3 py-1 text-xs font-semibold ${label.tone}`}>
