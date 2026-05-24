@@ -1,5 +1,9 @@
+'use client'
+
 import Image from 'next/image'
 import Link from 'next/link'
+import { useMemo, useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 import { reportSupportsLocale } from '@/lib/report-locale'
 import { cleanCardSummary } from '@/lib/report-summary'
@@ -48,13 +52,13 @@ const reportTypeLabels: Record<ReportType, { en: string; ko: string; tone: strin
     tone: 'border-blue-400/30 bg-blue-400/10 text-blue-200',
   },
   maturity: {
-    en: 'MATURITY',
-    ko: '성숙도',
+    en: 'MAT',
+    ko: 'MAT',
     tone: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200',
   },
   forensic: {
-    en: 'FORENSIC',
-    ko: '포렌식',
+    en: 'FOR',
+    ko: 'FOR',
     tone: 'border-red-400/30 bg-red-400/10 text-red-200',
   },
 }
@@ -123,8 +127,12 @@ function formatReportDate(report: ReportWithCover, locale: string) {
 }
 
 export default function LatestReportShowcase({ reports, locale }: LatestReportShowcaseProps) {
-  const coverReports = reports.filter((report) => isPublishedReportCoverCandidate(report, locale)).slice(0, 4)
-  const featured = coverReports[0]
+  const coverReports = useMemo(
+    () => reports.filter((report) => isPublishedReportCoverCandidate(report, locale)).slice(0, 8),
+    [reports, locale],
+  )
+  const [activeIndex, setActiveIndex] = useState(0)
+  const featured = coverReports[activeIndex] ?? coverReports[0]
 
   if (!featured) return null
 
@@ -133,102 +141,135 @@ export default function LatestReportShowcase({ reports, locale }: LatestReportSh
   const featuredProject = featured.tracked_projects ?? featured.project
   const featuredLabel = reportTypeLabels[featured.report_type] ?? reportTypeLabels.forensic
   const featuredSummary = getLocalizedSummary(featured, locale)
-  const secondaryReports = coverReports.slice(1)
+  const hasMultipleReports = coverReports.length > 1
+  const goToPrevious = () => setActiveIndex((index) => (index === 0 ? coverReports.length - 1 : index - 1))
+  const goToNext = () => setActiveIndex((index) => (index + 1) % coverReports.length)
 
   return (
-    <section className="bg-gray-950 py-14 md:py-18">
-      <div className="mx-auto grid max-w-6xl gap-8 px-6 lg:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.72fr)] lg:items-center">
-        <Link
-          href={getReportHref(featured, locale)}
-          className="group grid gap-6 rounded-xl border border-white/10 bg-white/[0.03] p-4 transition-colors hover:border-white/20 md:grid-cols-[minmax(260px,0.72fr)_minmax(0,1fr)] md:p-5"
-        >
-          <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-gray-900">
-            <Image
-              src={featuredProduct?.cover_image_url ?? ''}
-              alt={getLocalizedProductTitle(featured, locale)}
-              fill
-              sizes="(min-width: 1024px) 430px, (min-width: 768px) 42vw, 92vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-              priority
-            />
+    <section className="bg-gray-950 px-6 pb-16 pt-10 md:pb-20 md:pt-14">
+      <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[minmax(0,0.86fr)_minmax(360px,1.14fr)] lg:items-center">
+        <div className="max-w-2xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+            {isKo ? '새로 발행된 보고서' : 'Newly Published Reports'}
+          </p>
+          <h1 className="mt-4 text-4xl font-bold leading-tight text-white md:text-6xl">
+            {isKo ? '최신 ECON, MAT, FOR 리포트' : 'Latest ECON, MAT, and FOR Reports'}
+          </h1>
+          <p className="mt-5 max-w-xl text-base leading-7 text-gray-400 md:text-lg">
+            {isKo
+              ? '새로 발행된 리포트 표지를 한 장씩 크게 확인하세요.'
+              : 'Browse newly published report covers one at a time.'}
+          </p>
+
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Link
+              href={getReportHref(featured, locale)}
+              className="inline-flex rounded-lg bg-white px-5 py-3 text-sm font-semibold text-gray-950 transition-colors hover:bg-gray-200"
+            >
+              {isKo ? '현재 리포트 보기' : 'Open current report'}
+            </Link>
+            <Link
+              href={`/${locale}/reports`}
+              className="inline-flex rounded-lg border border-white/15 px-5 py-3 text-sm font-semibold text-gray-200 transition-colors hover:border-white/30 hover:text-white"
+            >
+              {isKo ? '전체 리포트 보기' : 'View all reports'}
+            </Link>
           </div>
-          <div className="flex min-w-0 flex-col justify-center px-1 py-2 md:px-2">
-            <div className={`mb-5 inline-flex w-fit items-center rounded-full border px-3 py-1 text-xs font-semibold ${featuredLabel.tone}`}>
-              {isKo ? featuredLabel.ko : featuredLabel.en}
-            </div>
-            <h2 className="text-2xl font-bold leading-tight text-white md:text-4xl">
-              {getLocalizedProductTitle(featured, locale)}
-            </h2>
-            {featuredProject && (
-              <p className="mt-4 text-sm font-medium text-gray-400">
-                {featuredProject.name} {featuredProject.symbol ? `(${featuredProject.symbol})` : ''}
-              </p>
-            )}
-            {featuredSummary && (
-              <p className="mt-4 line-clamp-3 text-sm leading-6 text-gray-300 md:text-base">
-                {featuredSummary}
-              </p>
-            )}
-            <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-gray-500">
-              {formatReportDate(featured, locale) && <span>{formatReportDate(featured, locale)}</span>}
-              <span className="text-gray-700">/</span>
-              <span>{isKo ? '리포트 보기' : 'Open report'} →</span>
-            </div>
-          </div>
-        </Link>
+        </div>
 
         <div className="min-w-0">
-          <div className="mb-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-              {isKo ? '새로 발행된 보고서' : 'Newly Published Reports'}
-            </p>
-            <h3 className="mt-2 text-2xl font-bold text-white">
-              {isKo ? 'ECON, MAT, FOR 전체 표지 쇼케이스' : 'ECON, MAT, and FOR cover showcase'}
-            </h3>
-          </div>
+          <div className="relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]">
+            <div
+              className="flex transition-transform duration-500 ease-out"
+              style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+            >
+              {coverReports.map((report, index) => {
+                const product = getProduct(report)
+                const project = report.tracked_projects ?? report.project
+                const label = reportTypeLabels[report.report_type] ?? reportTypeLabels.forensic
+                const title = getLocalizedProductTitle(report, locale)
 
-          <div className="grid gap-3">
-            {secondaryReports.map((report) => {
-              const product = getProduct(report)
-              const label = reportTypeLabels[report.report_type] ?? reportTypeLabels.forensic
-
-              return (
-                <Link
-                  key={report.id}
-                  href={getReportHref(report, locale)}
-                  className="group grid grid-cols-[76px_minmax(0,1fr)] gap-4 rounded-lg border border-white/10 bg-white/[0.025] p-3 transition-colors hover:border-white/20 hover:bg-white/[0.045]"
-                >
-                  <div className="relative aspect-[4/5] overflow-hidden rounded-md bg-gray-900">
-                    <Image
-                      src={product?.cover_image_url ?? ''}
-                      alt={getLocalizedProductTitle(report, locale)}
-                      fill
-                      sizes="76px"
-                      className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                    />
-                  </div>
-                  <div className="min-w-0 self-center">
-                    <div className={`mb-2 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold ${label.tone}`}>
-                      {isKo ? label.ko : label.en}
+                return (
+                  <Link
+                    key={report.id}
+                    href={getReportHref(report, locale)}
+                    className="group grid min-w-full gap-5 p-4 md:grid-cols-[minmax(260px,0.78fr)_minmax(0,1fr)] md:p-5"
+                    aria-hidden={index !== activeIndex}
+                    tabIndex={index === activeIndex ? 0 : -1}
+                  >
+                    <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-gray-900 md:min-h-[460px]">
+                      <Image
+                        src={product?.cover_image_url ?? ''}
+                        alt={title}
+                        fill
+                        sizes="(min-width: 1024px) 460px, (min-width: 768px) 42vw, 92vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                        priority={index === 0}
+                      />
                     </div>
-                    <p className="line-clamp-2 text-sm font-semibold leading-5 text-white">
-                      {getLocalizedProductTitle(report, locale)}
-                    </p>
-                    {formatReportDate(report, locale) && (
-                      <p className="mt-1 text-xs text-gray-500">{formatReportDate(report, locale)}</p>
-                    )}
-                  </div>
-                </Link>
-              )
-            })}
+                    <div className="flex min-w-0 flex-col justify-center px-1 py-2 md:px-3">
+                      <div className={`mb-5 inline-flex w-fit rounded-full border px-3 py-1 text-xs font-semibold ${label.tone}`}>
+                        {isKo ? label.ko : label.en}
+                      </div>
+                      <h2 className="text-2xl font-bold leading-tight text-white md:text-4xl">{title}</h2>
+                      {project && (
+                        <p className="mt-4 text-sm font-medium text-gray-400">
+                          {project.name} {project.symbol ? `(${project.symbol})` : ''}
+                        </p>
+                      )}
+                      {getLocalizedSummary(report, locale) && (
+                        <p className="mt-4 line-clamp-4 text-sm leading-6 text-gray-300 md:text-base">
+                          {getLocalizedSummary(report, locale)}
+                        </p>
+                      )}
+                      <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-gray-500">
+                        {formatReportDate(report, locale) && <span>{formatReportDate(report, locale)}</span>}
+                        <span className="text-gray-700">/</span>
+                        <span>{isKo ? '리포트 보기' : 'Open report'} →</span>
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+
+            {hasMultipleReports && (
+              <div className="absolute inset-x-4 top-1/2 flex -translate-y-1/2 justify-between">
+                <button
+                  type="button"
+                  onClick={goToPrevious}
+                  className="grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-gray-950/80 text-white transition-colors hover:border-white/30"
+                  aria-label={isKo ? '이전 리포트' : 'Previous report'}
+                >
+                  <ChevronLeft size={20} aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={goToNext}
+                  className="grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-gray-950/80 text-white transition-colors hover:border-white/30"
+                  aria-label={isKo ? '다음 리포트' : 'Next report'}
+                >
+                  <ChevronRight size={20} aria-hidden="true" />
+                </button>
+              </div>
+            )}
           </div>
 
-          <Link
-            href={`/${locale}/reports`}
-            className="mt-5 inline-flex rounded-lg border border-white/10 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:border-white/20 hover:text-white"
-          >
-            {isKo ? '전체 리포트 보기' : 'View all reports'} →
-          </Link>
+          {hasMultipleReports && (
+            <div className="mt-5 flex justify-center gap-2">
+              {coverReports.map((report, index) => (
+                <button
+                  key={report.id}
+                  type="button"
+                  onClick={() => setActiveIndex(index)}
+                  className={`h-2.5 rounded-full transition-all ${
+                    index === activeIndex ? 'w-8 bg-white' : 'w-2.5 bg-white/25 hover:bg-white/45'
+                  }`}
+                  aria-label={isKo ? `${index + 1}번째 리포트 보기` : `Show report ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </section>
