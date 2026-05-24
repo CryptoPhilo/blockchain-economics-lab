@@ -2,7 +2,6 @@ import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getLocalizedField, type Locale } from '@/lib/types'
-import { reportSupportsLocale } from '@/lib/report-locale'
 import ProductCard from '@/components/ProductCard'
 import DisclaimerBanner from '@/components/DisclaimerBanner'
 import SubscribeForm from '@/components/SubscribeForm'
@@ -17,11 +16,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let categories: any[] = []
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let latestReportCovers: any[] = []
+  let latestReportCoverProducts: any[] = []
 
   try {
     const supabase = await createServerSupabaseClient()
-    const [productsRes, categoriesRes, latestCoverRes] = await Promise.all([
+    const [productsRes, categoriesRes, latestCoverProductsRes] = await Promise.all([
       supabase
         .from('products')
         .select('*, category:categories(*)')
@@ -34,28 +33,18 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         .select('*')
         .order('sort_order'),
       supabase
-        .from('project_reports')
-        .select(`
-          *,
-          tracked_projects!inner(id, name, slug, symbol, chain, category),
-          product:products(id, slug, title_en, title_ko, title_fr, title_es, title_de, title_ja, title_zh, cover_image_url, published_at)
-        `)
-        .in('report_type', ['econ', 'maturity', 'forensic'])
+        .from('products')
+        .select('*, category:categories(*)')
         .eq('status', 'published')
-        .not('product_id', 'is', null)
+        .eq('type', 'single_report')
+        .in('report_type', ['econ', 'maturity', 'forensic'])
+        .not('cover_image_url', 'is', null)
         .order('published_at', { ascending: false, nullsFirst: false })
-        .order('updated_at', { ascending: false, nullsFirst: false })
-        .limit(500),
+        .limit(8),
     ])
     featuredProducts = productsRes.data || []
     categories = categoriesRes.data || []
-    latestReportCovers = (latestCoverRes.data || [])
-      .filter((report) => reportSupportsLocale(report, locale))
-      .filter((report) => {
-        const product = Array.isArray(report.product) ? report.product[0] : report.product
-        return Boolean(product?.cover_image_url?.trim())
-      })
-      .slice(0, 8)
+    latestReportCoverProducts = latestCoverProductsRes.data || []
   } catch (e) {
     console.error('Failed to fetch data:', e)
   }
@@ -63,8 +52,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   return (
     <div>
       {/* Latest report covers */}
-      {latestReportCovers.length > 0 && (
-        <LatestReportShowcase reports={latestReportCovers} locale={locale} />
+      {latestReportCoverProducts.length > 0 && (
+        <LatestReportShowcase products={latestReportCoverProducts} locale={locale} />
       )}
 
       {/* About — 360° Project Intelligence (moved below content) */}
