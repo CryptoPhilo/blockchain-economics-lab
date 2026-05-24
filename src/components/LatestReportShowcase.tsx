@@ -71,45 +71,19 @@ function hasNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0
 }
 
-function uniqueStrings(values: string[]) {
-  return Array.from(new Set(values.filter(hasNonEmptyString).map((value) => value.trim())))
-}
-
-export function buildSlideCoverImageCandidates(slideUrl: string) {
-  const trimmed = slideUrl.trim()
-  if (!trimmed.endsWith('.html')) return []
-
-  const withoutHtml = trimmed.slice(0, -'.html'.length)
-  return ['jpg', 'png', 'webp'].map((extension) => `${withoutHtml}-cover.${extension}`)
-}
-
-export function getReportCoverAsset(report: ReportWithCover, locale: string) {
+export function getReportCoverAsset(report: ReportWithCover) {
   const productCoverUrl = getProduct(report)?.cover_image_url
-  const slideUrls = report.slide_html_urls_by_lang as Record<string, unknown> | null | undefined
-  const localizedSlideUrl = hasNonEmptyString(slideUrls?.[locale]) ? slideUrls[locale] : null
-  const englishSlideUrl = hasNonEmptyString(slideUrls?.en) ? slideUrls.en : null
-  const reportLanguageSlideUrl = hasNonEmptyString(slideUrls?.[report.language]) ? slideUrls[report.language] : null
-  const firstSlideUrl = Object.values(slideUrls ?? {}).find(hasNonEmptyString)
-  const slideCoverUrls = uniqueStrings([
-    ...(typeof localizedSlideUrl === 'string' ? buildSlideCoverImageCandidates(localizedSlideUrl) : []),
-    ...(typeof englishSlideUrl === 'string' ? buildSlideCoverImageCandidates(englishSlideUrl) : []),
-    ...(typeof reportLanguageSlideUrl === 'string' ? buildSlideCoverImageCandidates(reportLanguageSlideUrl) : []),
-    ...(typeof firstSlideUrl === 'string' ? buildSlideCoverImageCandidates(firstSlideUrl) : []),
-  ])
-  const urls = uniqueStrings([
-    ...(hasNonEmptyString(productCoverUrl) ? [productCoverUrl] : []),
-    ...slideCoverUrls,
-  ])
-
-  return urls.length > 0 ? { type: 'image' as const, urls } : null
+  return hasNonEmptyString(productCoverUrl)
+    ? { type: 'image' as const, url: productCoverUrl.trim() }
+    : null
 }
 
 export function hasReportCover(report: ReportWithCover) {
-  return getReportCoverAsset(report, report.language || 'en') !== null
+  return getReportCoverAsset(report) !== null
 }
 
 export function isPublishedReportCoverCandidate(report: ReportWithCover, locale: string) {
-  return report.status === 'published' && reportSupportsLocale(report, locale) && getReportCoverAsset(report, locale) !== null
+  return report.status === 'published' && reportSupportsLocale(report, locale) && getReportCoverAsset(report) !== null
 }
 
 export function getReportHref(report: ReportWithCover, locale: string) {
@@ -164,31 +138,30 @@ function formatReportDate(report: ReportWithCover, locale: string) {
 }
 
 function ReportCoverImage({
-  urls,
+  url,
   title,
   priority,
 }: {
-  urls: string[]
+  url: string
   title: string
   priority: boolean
 }) {
-  const [candidateIndex, setCandidateIndex] = useState(0)
-  const src = urls[candidateIndex]
+  const [failed, setFailed] = useState(false)
 
-  if (!src) {
+  if (failed) {
     return <div className="h-full w-full bg-gray-900" aria-hidden="true" />
   }
 
   return (
     <Image
-      src={src}
+      src={url}
       alt={title}
       fill
       sizes="(min-width: 1024px) 460px, (min-width: 768px) 42vw, 92vw"
       className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
       priority={priority}
       unoptimized
-      onError={() => setCandidateIndex((index) => index + 1)}
+      onError={() => setFailed(true)}
     />
   )
 }
@@ -244,7 +217,7 @@ export default function LatestReportShowcase({ reports, locale }: LatestReportSh
                 const project = report.tracked_projects ?? report.project
                 const label = reportTypeLabels[report.report_type] ?? reportTypeLabels.forensic
                 const title = getLocalizedProductTitle(report, locale)
-                const coverAsset = getReportCoverAsset(report, locale)
+                const coverAsset = getReportCoverAsset(report)
 
                 return (
                   <Link
@@ -255,7 +228,7 @@ export default function LatestReportShowcase({ reports, locale }: LatestReportSh
                     tabIndex={index === activeIndex ? 0 : -1}
                   >
                     <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-gray-900 md:min-h-[460px]">
-                      <ReportCoverImage urls={coverAsset?.urls ?? []} title={title} priority={index === 0} />
+                      <ReportCoverImage url={coverAsset?.url ?? ''} title={title} priority={index === 0} />
                     </div>
                     <div className="flex min-w-0 flex-col justify-center px-1 py-2 md:px-3">
                       <div className={`mb-5 inline-flex w-fit rounded-full border px-3 py-1 text-xs font-semibold ${label.tone}`}>
