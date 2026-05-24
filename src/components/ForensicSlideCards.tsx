@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 import { cleanCardSummary } from '@/lib/report-summary'
 
@@ -104,7 +105,7 @@ function SlideCard({ report, locale }: { report: any; locale: string }) {
   return (
     <Link
       href={`/${locale}/reports/forensic/${slug}`}
-      className="group block relative overflow-hidden rounded-2xl transition-all duration-500 hover:scale-[1.02] flex-shrink-0 w-[340px] md:w-[400px]"
+      className="group block w-full overflow-hidden rounded-2xl transition-all duration-500 hover:scale-[1.01]"
     >
       <div
         className={`relative aspect-[16/9] bg-gradient-to-br from-[#F5F1EB] to-[#EDE8DF] border-2 border-[#D4C5A9] shadow-2xl ${config.glow} overflow-hidden`}
@@ -207,116 +208,82 @@ function SlideCard({ report, locale }: { report: any; locale: string }) {
   )
 }
 
-/**
- * Infinite auto-scrolling carousel.
- * Duplicates cards to create seamless loop effect.
- * Pauses on hover so users can click.
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function CarouselTrack({ reports, locale }: { reports: any[]; locale: string }) {
-  const trackRef = useRef<HTMLDivElement>(null)
-  const [isPaused, setIsPaused] = useState(false)
-
-  // We duplicate the list to create the infinite illusion
-  // 3 copies: enough buffer for seamless scroll
-  const tripled = [...reports, ...reports, ...reports]
-
-  useEffect(() => {
-    const track = trackRef.current
-    if (!track) return
-
-    let animId: number
-    // Speed: pixels per frame (~60fps → ~1px/frame ≈ 60px/s)
-    const speed = 0.8
-
-    const step = () => {
-      if (!isPaused && track) {
-        track.scrollLeft += speed
-        // When we've scrolled past the first copy, jump back seamlessly
-        const singleSetWidth = track.scrollWidth / 3
-        if (track.scrollLeft >= singleSetWidth * 2) {
-          track.scrollLeft -= singleSetWidth
-        }
-      }
-      animId = requestAnimationFrame(step)
-    }
-
-    // Start at the beginning of the second copy (middle) for seamless left scroll
-    const singleSetWidth = track.scrollWidth / 3
-    track.scrollLeft = singleSetWidth
-
-    animId = requestAnimationFrame(step)
-    return () => cancelAnimationFrame(animId)
-  }, [isPaused])
-
-  return (
-    <div
-      ref={trackRef}
-      className="flex gap-6 overflow-x-hidden py-2 px-4"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      style={{ scrollBehavior: 'auto' }}
-    >
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      {tripled.map((r: any, idx: number) => (
-        <SlideCard key={`${r.id}-${idx}`} report={r} locale={locale} />
-      ))}
-    </div>
-  )
-}
-
 export default function ForensicSlideCards({ reports, locale }: ForensicSlideCardsProps) {
-  if (!reports || reports.length === 0) return null
-
   const isKo = locale === 'ko'
+  const [activeIndex, setActiveIndex] = useState(0)
+  const visibleReports = reports?.slice(0, 8) ?? []
+  const hasMultipleReports = visibleReports.length > 1
+  const goToPrevious = () => setActiveIndex((index) => (index === 0 ? visibleReports.length - 1 : index - 1))
+  const goToNext = () => setActiveIndex((index) => (index + 1) % visibleReports.length)
+
+  if (visibleReports.length === 0) return null
 
   return (
-    <section className="py-16 md:py-20">
-      <div className="max-w-6xl mx-auto px-6">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-sm mb-4">
-            <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
+    <section className="bg-gray-950 px-6 pb-16 pt-10 md:pb-20 md:pt-14">
+      <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[minmax(0,0.86fr)_minmax(360px,1.14fr)] lg:items-center">
+        <div className="max-w-2xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
             {isKo ? '새로 발행된 보고서' : 'Newly Published Reports'}
-          </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
-            {isKo ? '새로 발행된 보고서' : 'Newly Published Reports'}
-          </h2>
-          <p className="text-lg text-gray-400">
-            {isKo
-              ? 'ECON, MAT, FOR 리포트의 최신 표지 쇼케이스'
-              : 'Latest cover showcase across ECON, MAT, and FOR reports'}
           </p>
-        </div>
-      </div>
+          <h1 className="mt-4 text-4xl font-bold leading-tight text-white md:text-6xl">
+            {isKo ? '최신 ECON, MAT, FOR 리포트' : 'Latest ECON, MAT, and FOR Reports'}
+          </h1>
+          <p className="mt-5 max-w-xl text-base leading-7 text-gray-400 md:text-lg">
+            {isKo
+              ? '새로 발행된 리포트 표지를 한 장씩 크게 확인하세요.'
+              : 'Browse newly published report covers one at a time.'}
+          </p>
 
-      {/* Carousel or static grid */}
-      {reports.length >= 3 ? (
-        <CarouselTrack reports={reports} locale={locale} />
-      ) : reports.length === 2 ? (
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            {reports.map((r: any) => (
-              <SlideCard key={r.id} report={r} locale={locale} />
-            ))}
+          <Link
+            href={`/${locale}/reports`}
+            className="mt-8 inline-flex rounded-lg border border-white/15 px-5 py-3 text-sm font-semibold text-gray-200 transition-colors hover:border-white/30 hover:text-white"
+          >
+            {isKo ? '전체 리포트 보기' : 'View all reports'}
+          </Link>
+        </div>
+
+        <div className="min-w-0">
+          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-4 md:p-5">
+            <SlideCard report={visibleReports[activeIndex]} locale={locale} />
+
+            {hasMultipleReports && (
+              <div className="absolute inset-x-6 top-1/2 flex -translate-y-1/2 justify-between">
+                <button
+                  type="button"
+                  onClick={goToPrevious}
+                  className="grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-gray-950/80 text-white transition-colors hover:border-white/30"
+                  aria-label={isKo ? '이전 리포트' : 'Previous report'}
+                >
+                  <ChevronLeft size={20} aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={goToNext}
+                  className="grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-gray-950/80 text-white transition-colors hover:border-white/30"
+                  aria-label={isKo ? '다음 리포트' : 'Next report'}
+                >
+                  <ChevronRight size={20} aria-hidden="true" />
+                </button>
+              </div>
+            )}
           </div>
-        </div>
-      ) : (
-        <div className="max-w-2xl mx-auto px-6">
-          <SlideCard report={reports[0]} locale={locale} />
-        </div>
-      )}
 
-      {/* CTA */}
-      <div className="flex justify-center mt-10">
-        <Link
-          href={`/${locale}/reports`}
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-red-900/30 hover:bg-red-900/50 border border-red-900/50 text-red-400 hover:text-red-300 transition-all duration-200 font-medium group"
-        >
-          <span>{isKo ? '전체 보고서 보기' : 'View All Reports'}</span>
-          <span className="group-hover:translate-x-1 transition-transform">→</span>
-        </Link>
+          {hasMultipleReports && (
+            <div className="mt-5 flex justify-center gap-2">
+              {visibleReports.map((report, index) => (
+                <button
+                  key={report.id}
+                  type="button"
+                  onClick={() => setActiveIndex(index)}
+                  className={`h-2.5 rounded-full transition-all ${
+                    index === activeIndex ? 'w-8 bg-white' : 'w-2.5 bg-white/25 hover:bg-white/45'
+                  }`}
+                  aria-label={isKo ? `${index + 1}번째 리포트 보기` : `Show report ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </section>
   )
