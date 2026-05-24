@@ -1,4 +1,9 @@
-import { getReportHref, hasReportCover, isPublishedReportCoverCandidate } from './LatestReportShowcase'
+import {
+  getReportCoverAsset,
+  getReportHref,
+  hasReportCover,
+  isPublishedReportCoverCandidate,
+} from './LatestReportShowcase'
 import type { ProjectReport } from '@/lib/types'
 
 function createReport(overrides: Partial<ProjectReport> = {}) {
@@ -42,6 +47,38 @@ describe('LatestReportShowcase helpers', () => {
   it('detects reports with linked product cover images', () => {
     expect(hasReportCover(createReport())).toBe(true)
     expect(hasReportCover(createReport({ product: { ...createReport().product!, cover_image_url: '' } }))).toBe(false)
+  })
+
+  it('uses localized slide HTML as a cover asset when product cover backfill is missing', () => {
+    const report = createReport({
+      product: { ...createReport().product!, cover_image_url: '' },
+      language: 'ko',
+      slide_html_urls_by_lang: {
+        ko: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko.html',
+        en: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/en.html',
+      },
+    })
+
+    expect(getReportCoverAsset(report, 'ko')).toEqual({
+      type: 'html',
+      url: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko.html',
+    })
+    expect(isPublishedReportCoverCandidate(report, 'ko')).toBe(true)
+  })
+
+  it('falls back to English slide HTML for cover assets when the requested locale has no slide', () => {
+    const report = createReport({
+      product: { ...createReport().product!, cover_image_url: '' },
+      language: 'en',
+      slide_html_urls_by_lang: {
+        en: 'https://example.supabase.co/storage/v1/object/public/slides/mat/curve/latest/en.html',
+      },
+    })
+
+    expect(getReportCoverAsset(report, 'ko')).toEqual({
+      type: 'html',
+      url: 'https://example.supabase.co/storage/v1/object/public/slides/mat/curve/latest/en.html',
+    })
   })
 
   it('keeps latest cover candidates limited to published reports with locale support and covers', () => {

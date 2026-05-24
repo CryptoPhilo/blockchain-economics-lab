@@ -67,12 +67,36 @@ function getProduct(report: ReportWithCover) {
   return Array.isArray(report.product) ? report.product[0] : report.product
 }
 
+function hasNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0
+}
+
+export function getReportCoverAsset(report: ReportWithCover, locale: string) {
+  const productCoverUrl = getProduct(report)?.cover_image_url
+  if (hasNonEmptyString(productCoverUrl)) {
+    return { type: 'image' as const, url: productCoverUrl.trim() }
+  }
+
+  const slideUrls = report.slide_html_urls_by_lang as Record<string, unknown> | null | undefined
+  const localizedSlideUrl = slideUrls?.[locale]
+  if (hasNonEmptyString(localizedSlideUrl)) {
+    return { type: 'html' as const, url: localizedSlideUrl.trim() }
+  }
+
+  const englishSlideUrl = slideUrls?.en
+  if (hasNonEmptyString(englishSlideUrl)) {
+    return { type: 'html' as const, url: englishSlideUrl.trim() }
+  }
+
+  return null
+}
+
 export function hasReportCover(report: ReportWithCover) {
-  return Boolean(getProduct(report)?.cover_image_url?.trim())
+  return getReportCoverAsset(report, report.language || 'en') !== null
 }
 
 export function isPublishedReportCoverCandidate(report: ReportWithCover, locale: string) {
-  return report.status === 'published' && reportSupportsLocale(report, locale) && hasReportCover(report)
+  return report.status === 'published' && reportSupportsLocale(report, locale) && getReportCoverAsset(report, locale) !== null
 }
 
 export function getReportHref(report: ReportWithCover, locale: string) {
@@ -151,12 +175,6 @@ export default function LatestReportShowcase({ reports, locale }: LatestReportSh
           <h1 className="mt-4 text-4xl font-bold leading-tight text-white md:text-6xl">
             {isKo ? '최신 ECON, MAT, FOR 리포트' : 'Latest ECON, MAT, and FOR Reports'}
           </h1>
-          <p className="mt-5 max-w-xl text-base leading-7 text-gray-400 md:text-lg">
-            {isKo
-              ? '새로 발행된 리포트 표지를 한 장씩 크게 확인하세요.'
-              : 'Browse newly published report covers one at a time.'}
-          </p>
-
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
               href={getReportHref(featured, locale)}
@@ -180,10 +198,10 @@ export default function LatestReportShowcase({ reports, locale }: LatestReportSh
               style={{ transform: `translateX(-${activeIndex * 100}%)` }}
             >
               {coverReports.map((report, index) => {
-                const product = getProduct(report)
                 const project = report.tracked_projects ?? report.project
                 const label = reportTypeLabels[report.report_type] ?? reportTypeLabels.forensic
                 const title = getLocalizedProductTitle(report, locale)
+                const coverAsset = getReportCoverAsset(report, locale)
 
                 return (
                   <Link
@@ -194,14 +212,26 @@ export default function LatestReportShowcase({ reports, locale }: LatestReportSh
                     tabIndex={index === activeIndex ? 0 : -1}
                   >
                     <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-gray-900 md:min-h-[460px]">
-                      <Image
-                        src={product?.cover_image_url ?? ''}
-                        alt={title}
-                        fill
-                        sizes="(min-width: 1024px) 460px, (min-width: 768px) 42vw, 92vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                        priority={index === 0}
-                      />
+                      {coverAsset?.type === 'html' ? (
+                        <iframe
+                          src={coverAsset.url}
+                          title={title}
+                          className="pointer-events-none h-full w-full origin-top-left scale-[0.62] border-0 md:scale-[0.72]"
+                          style={{ width: '160%', height: '160%' }}
+                          loading={index === 0 ? 'eager' : 'lazy'}
+                          tabIndex={-1}
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <Image
+                          src={coverAsset?.url ?? ''}
+                          alt={title}
+                          fill
+                          sizes="(min-width: 1024px) 460px, (min-width: 768px) 42vw, 92vw"
+                          className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                          priority={index === 0}
+                        />
+                      )}
                     </div>
                     <div className="flex min-w-0 flex-col justify-center px-1 py-2 md:px-3">
                       <div className={`mb-5 inline-flex w-fit rounded-full border px-3 py-1 text-xs font-semibold ${label.tone}`}>
