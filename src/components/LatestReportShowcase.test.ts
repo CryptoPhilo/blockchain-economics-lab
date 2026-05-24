@@ -1,4 +1,5 @@
 import {
+  getLocalizedCoverUrls,
   getReportCoverAsset,
   getReportHref,
   hasReportCover,
@@ -44,6 +45,19 @@ function createReport(overrides: Partial<ProjectReport> = {}) {
 }
 
 describe('LatestReportShowcase helpers', () => {
+  it('prefers locale-matched cover images and falls back to the stored cover URL', () => {
+    expect(getLocalizedCoverUrls(
+      'https://example.supabase.co/storage/v1/object/public/slides/mat/uniswap/latest/en-cover.png',
+      'ko',
+    )).toEqual([
+      'https://example.supabase.co/storage/v1/object/public/slides/mat/uniswap/latest/ko-cover.png',
+      'https://example.supabase.co/storage/v1/object/public/slides/mat/uniswap/latest/en-cover.png',
+    ])
+    expect(getLocalizedCoverUrls('https://example.com/covers/report.png', 'ko')).toEqual([
+      'https://example.com/covers/report.png',
+    ])
+  })
+
   it('detects reports with linked product cover images', () => {
     expect(hasReportCover(createReport())).toBe(true)
     expect(hasReportCover(createReport({ product: { ...createReport().product!, cover_image_url: '' } }))).toBe(false)
