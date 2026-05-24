@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 import { reportSupportsLocale } from '@/lib/report-locale'
 import { cleanCardSummary } from '@/lib/report-summary'
-import type { Product, ProjectReport, ReportType, TrackedProject } from '@/lib/types'
+import { getLocalizedField, type Locale, type Product, type ProjectReport, type ReportType, type TrackedProject } from '@/lib/types'
 
 type ReportWithCover = ProjectReport & {
   tracked_projects?: Pick<TrackedProject, 'id' | 'name' | 'slug' | 'symbol' | 'chain' | 'category'> | null
@@ -41,7 +41,8 @@ type ReportWithCover = ProjectReport & {
 }
 
 interface LatestReportShowcaseProps {
-  reports: ReportWithCover[]
+  reports?: ReportWithCover[]
+  products?: Product[]
   locale: string
 }
 
@@ -126,8 +127,68 @@ function getLocalizedSummary(report: ProjectReport, locale: string) {
   )
 }
 
-function formatReportDate(report: ReportWithCover, locale: string) {
-  const dateValue = report.published_at ?? getProduct(report)?.published_at ?? report.updated_at ?? report.created_at
+type ShowcaseItem = {
+  id: string
+  href: string
+  title: string
+  summary: string
+  coverUrl: string
+  reportType: ReportType
+  dateValue?: string | null
+  projectName?: string
+  projectSymbol?: string
+}
+
+function getProductReportType(product: Product): ReportType {
+  if (product.report_type === 'maturity') return 'maturity'
+  if (product.report_type === 'forensic') return 'forensic'
+  return 'econ'
+}
+
+function getProductShowcaseItems(products: Product[] | undefined, locale: string): ShowcaseItem[] {
+  if (!products?.length) return []
+
+  return products
+    .filter((product) => product.status === 'published' && product.type === 'single_report' && hasNonEmptyString(product.cover_image_url))
+    .map((product) => ({
+      id: product.id,
+      href: `/${locale}/products/${product.slug}`,
+      title: getLocalizedField(product, 'title', locale as Locale),
+      summary: getLocalizedField(product, 'description', locale as Locale) ?? '',
+      coverUrl: product.cover_image_url!.trim(),
+      reportType: getProductReportType(product),
+      dateValue: product.published_at ?? product.created_at,
+    }))
+    .slice(0, 8)
+}
+
+function getReportShowcaseItems(reports: ReportWithCover[] | undefined, locale: string): ShowcaseItem[] {
+  if (!reports?.length) return []
+
+  return reports
+    .filter((report) => isPublishedReportCoverCandidate(report, locale))
+    .map((report) => {
+      const project = report.tracked_projects ?? report.project
+      const title = getLocalizedProductTitle(report, locale)
+      const coverAsset = getReportCoverAsset(report)
+
+      return {
+        id: report.id,
+        href: getReportHref(report, locale),
+        title,
+        summary: getLocalizedSummary(report, locale),
+        coverUrl: coverAsset?.url ?? '',
+        reportType: report.report_type,
+        dateValue: report.published_at ?? getProduct(report)?.published_at ?? report.updated_at ?? report.created_at,
+        projectName: project?.name,
+        projectSymbol: project?.symbol,
+      }
+    })
+    .filter((item) => hasNonEmptyString(item.coverUrl))
+    .slice(0, 8)
+}
+
+function formatDateValue(dateValue: string | null | undefined, locale: string) {
   if (!dateValue) return null
 
   return new Intl.DateTimeFormat(locale === 'ko' ? 'ko-KR' : 'en-US', {
@@ -166,20 +227,23 @@ function ReportCoverImage({
   )
 }
 
-export default function LatestReportShowcase({ reports, locale }: LatestReportShowcaseProps) {
-  const coverReports = useMemo(
-    () => reports.filter((report) => isPublishedReportCoverCandidate(report, locale)).slice(0, 8),
-    [reports, locale],
+export default function LatestReportShowcase({ reports, products, locale }: LatestReportShowcaseProps) {
+  const showcaseItems = useMemo(
+    () => {
+      const productItems = getProductShowcaseItems(products, locale)
+      return productItems.length > 0 ? productItems : getReportShowcaseItems(reports, locale)
+    },
+    [products, reports, locale],
   )
   const [activeIndex, setActiveIndex] = useState(0)
-  const featured = coverReports[activeIndex] ?? coverReports[0]
+  const featured = showcaseItems[activeIndex] ?? showcaseItems[0]
 
   if (!featured) return null
 
   const isKo = locale === 'ko'
-  const hasMultipleReports = coverReports.length > 1
-  const goToPrevious = () => setActiveIndex((index) => (index === 0 ? coverReports.length - 1 : index - 1))
-  const goToNext = () => setActiveIndex((index) => (index + 1) % coverReports.length)
+  const hasMultipleReports = showcaseItems.length > 1
+  const goToPrevious = () => setActiveIndex((index) => (index === 0 ? showcaseItems.length - 1 : index - 1))
+  const goToNext = () => setActiveIndex((index) => (index + 1) % showcaseItems.length)
 
   return (
     <section className="bg-gray-950 px-6 pb-16 pt-10 md:pb-20 md:pt-14">
@@ -193,7 +257,7 @@ export default function LatestReportShowcase({ reports, locale }: LatestReportSh
           </h1>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
-              href={getReportHref(featured, locale)}
+              href={featured.href}
               className="inline-flex rounded-lg bg-white px-5 py-3 text-sm font-semibold text-gray-950 transition-colors hover:bg-gray-200"
             >
               {isKo ? '현재 리포트 보기' : 'Open current report'}
@@ -213,40 +277,37 @@ export default function LatestReportShowcase({ reports, locale }: LatestReportSh
               className="flex transition-transform duration-500 ease-out"
               style={{ transform: `translateX(-${activeIndex * 100}%)` }}
             >
-              {coverReports.map((report, index) => {
-                const project = report.tracked_projects ?? report.project
-                const label = reportTypeLabels[report.report_type] ?? reportTypeLabels.forensic
-                const title = getLocalizedProductTitle(report, locale)
-                const coverAsset = getReportCoverAsset(report)
+              {showcaseItems.map((item, index) => {
+                const label = reportTypeLabels[item.reportType] ?? reportTypeLabels.forensic
 
                 return (
                   <Link
-                    key={report.id}
-                    href={getReportHref(report, locale)}
+                    key={item.id}
+                    href={item.href}
                     className="group grid min-w-full gap-5 p-4 md:grid-cols-[minmax(260px,0.78fr)_minmax(0,1fr)] md:p-5"
                     aria-hidden={index !== activeIndex}
                     tabIndex={index === activeIndex ? 0 : -1}
                   >
                     <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-gray-900 md:min-h-[460px]">
-                      <ReportCoverImage url={coverAsset?.url ?? ''} title={title} priority={index === 0} />
+                      <ReportCoverImage url={item.coverUrl} title={item.title} priority={index === 0} />
                     </div>
                     <div className="flex min-w-0 flex-col justify-center px-1 py-2 md:px-3">
                       <div className={`mb-5 inline-flex w-fit rounded-full border px-3 py-1 text-xs font-semibold ${label.tone}`}>
                         {isKo ? label.ko : label.en}
                       </div>
-                      <h2 className="text-2xl font-bold leading-tight text-white md:text-4xl">{title}</h2>
-                      {project && (
+                      <h2 className="text-2xl font-bold leading-tight text-white md:text-4xl">{item.title}</h2>
+                      {item.projectName && (
                         <p className="mt-4 text-sm font-medium text-gray-400">
-                          {project.name} {project.symbol ? `(${project.symbol})` : ''}
+                          {item.projectName} {item.projectSymbol ? `(${item.projectSymbol})` : ''}
                         </p>
                       )}
-                      {getLocalizedSummary(report, locale) && (
+                      {item.summary && (
                         <p className="mt-4 line-clamp-4 text-sm leading-6 text-gray-300 md:text-base">
-                          {getLocalizedSummary(report, locale)}
+                          {item.summary}
                         </p>
                       )}
                       <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-gray-500">
-                        {formatReportDate(report, locale) && <span>{formatReportDate(report, locale)}</span>}
+                        {formatDateValue(item.dateValue, locale) && <span>{formatDateValue(item.dateValue, locale)}</span>}
                         <span className="text-gray-700">/</span>
                         <span>{isKo ? '리포트 보기' : 'Open report'} →</span>
                       </div>
@@ -280,9 +341,9 @@ export default function LatestReportShowcase({ reports, locale }: LatestReportSh
 
           {hasMultipleReports && (
             <div className="mt-5 flex justify-center gap-2">
-              {coverReports.map((report, index) => (
+              {showcaseItems.map((item, index) => (
                 <button
-                  key={report.id}
+                  key={item.id}
                   type="button"
                   onClick={() => setActiveIndex(index)}
                   className={`h-2.5 rounded-full transition-all ${
