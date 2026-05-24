@@ -50,6 +50,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     categories = categoriesRes.data || []
     latestReportCovers = (latestCoverRes.data || [])
       .filter((report) => reportSupportsLocale(report, locale))
+      .filter((report) => {
+        const product = Array.isArray(report.product) ? report.product[0] : report.product
+        return Boolean(product?.cover_image_url?.trim())
+      })
       .slice(0, 8)
   } catch (e) {
     console.error('Failed to fetch data:', e)
