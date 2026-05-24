@@ -1,4 +1,5 @@
 import {
+  buildSlideCoverImageCandidates,
   getReportCoverAsset,
   getReportHref,
   hasReportCover,
@@ -44,6 +45,16 @@ function createReport(overrides: Partial<ProjectReport> = {}) {
 }
 
 describe('LatestReportShowcase helpers', () => {
+  it('derives image cover candidates from slide HTML URLs', () => {
+    expect(buildSlideCoverImageCandidates(
+      'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko.html',
+    )).toEqual([
+      'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko-cover.jpg',
+      'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko-cover.png',
+      'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko-cover.webp',
+    ])
+  })
+
   it('detects reports with linked product cover images', () => {
     expect(hasReportCover(createReport())).toBe(true)
     expect(hasReportCover(createReport({ product: { ...createReport().product!, cover_image_url: '' } }))).toBe(false)
@@ -60,8 +71,15 @@ describe('LatestReportShowcase helpers', () => {
     })
 
     expect(getReportCoverAsset(report, 'ko')).toEqual({
-      type: 'html',
-      url: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko.html',
+      type: 'image',
+      urls: [
+        'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko-cover.jpg',
+        'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko-cover.png',
+        'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko-cover.webp',
+        'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/en-cover.jpg',
+        'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/en-cover.png',
+        'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/en-cover.webp',
+      ],
     })
     expect(isPublishedReportCoverCandidate(report, 'ko')).toBe(true)
   })
@@ -76,8 +94,12 @@ describe('LatestReportShowcase helpers', () => {
     })
 
     expect(getReportCoverAsset(report, 'ko')).toEqual({
-      type: 'html',
-      url: 'https://example.supabase.co/storage/v1/object/public/slides/mat/curve/latest/en.html',
+      type: 'image',
+      urls: [
+        'https://example.supabase.co/storage/v1/object/public/slides/mat/curve/latest/en-cover.jpg',
+        'https://example.supabase.co/storage/v1/object/public/slides/mat/curve/latest/en-cover.png',
+        'https://example.supabase.co/storage/v1/object/public/slides/mat/curve/latest/en-cover.webp',
+      ],
     })
   })
 
