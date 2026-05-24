@@ -52,7 +52,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           product:products(id, slug, title_en, title_ko, title_fr, title_es, title_de, title_ja, title_zh, cover_image_url, published_at)
         `)
         .in('report_type', ['econ', 'maturity', 'forensic'])
-        .in('status', ['published', 'in_review'])
+        .eq('status', 'published')
         .not('product_id', 'is', null)
         .order('updated_at', { ascending: false })
         .limit(40),
@@ -66,15 +66,21 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       .filter((report) => reportSupportsLocale(report, locale))
       .filter((report) => {
         const product = Array.isArray(report.product) ? report.product[0] : report.product
-        return Boolean(product?.cover_image_url)
+        return report.status === 'published' && Boolean(product?.cover_image_url?.trim())
       })
-      .slice(0, 4)
+      .slice(0, 8)
   } catch (e) {
     console.error('Failed to fetch data:', e)
   }
 
   return (
     <div>
+      {/* Latest report covers */}
+      {latestReportCovers.length > 0 ? (
+        <LatestReportShowcase reports={latestReportCovers} locale={locale} />
+      ) : (
+        <ForensicSlideCards reports={forensicReports} locale={locale} />
+      )}
 
       {/* About — 360° Project Intelligence (moved below content) */}
       <section className="relative overflow-hidden bg-gradient-to-br from-gray-950 via-indigo-950 to-gray-950 py-20 px-6">
@@ -135,13 +141,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </div>
         </div>
       </section>
-
-      {/* Latest report covers */}
-      {latestReportCovers.length > 0 ? (
-        <LatestReportShowcase reports={latestReportCovers} locale={locale} />
-      ) : (
-        <ForensicSlideCards reports={forensicReports} locale={locale} />
-      )}
 
       {/* Categories */}
       <section className="max-w-6xl mx-auto px-6 py-20">
