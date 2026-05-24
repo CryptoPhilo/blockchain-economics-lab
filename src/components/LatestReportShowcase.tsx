@@ -282,8 +282,9 @@ export default function LatestReportShowcase({ reports, products, locale }: Late
                     aria-hidden={index !== activeIndex}
                   >
                     <ReportCoverImage key={item.coverUrls.join('|')} urls={item.coverUrls} title={item.title} priority={index === 0} />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-black/10" aria-hidden="true" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-transparent" aria-hidden="true" />
+                    <div className="absolute inset-0 bg-black/35" aria-hidden="true" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black via-black/75 to-black/20" aria-hidden="true" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" aria-hidden="true" />
                     <div className="relative z-10 flex min-h-[620px] max-w-3xl flex-col justify-end px-6 py-8 sm:px-10 md:min-h-[680px] md:px-14 md:py-12">
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-300">
                         {isKo ? '새로 발행된 보고서' : 'Newly Published Reports'}
