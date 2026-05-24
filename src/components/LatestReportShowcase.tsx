@@ -137,10 +137,6 @@ export default function LatestReportShowcase({ reports, locale }: LatestReportSh
   if (!featured) return null
 
   const isKo = locale === 'ko'
-  const featuredProduct = getProduct(featured)
-  const featuredProject = featured.tracked_projects ?? featured.project
-  const featuredLabel = reportTypeLabels[featured.report_type] ?? reportTypeLabels.forensic
-  const featuredSummary = getLocalizedSummary(featured, locale)
   const hasMultipleReports = coverReports.length > 1
   const goToPrevious = () => setActiveIndex((index) => (index === 0 ? coverReports.length - 1 : index - 1))
   const goToNext = () => setActiveIndex((index) => (index + 1) % coverReports.length)
