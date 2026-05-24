@@ -6,7 +6,6 @@ import { reportSupportsLocale } from '@/lib/report-locale'
 import ProductCard from '@/components/ProductCard'
 import DisclaimerBanner from '@/components/DisclaimerBanner'
 import SubscribeForm from '@/components/SubscribeForm'
-import ForensicSlideCards from '@/components/ForensicSlideCards'
 import LatestReportShowcase from '@/components/LatestReportShowcase'
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
@@ -18,13 +17,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let categories: any[] = []
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let forensicReports: any[] = []
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let latestReportCovers: any[] = []
 
   try {
     const supabase = await createServerSupabaseClient()
-    const [productsRes, categoriesRes, forensicRes, latestCoverRes] = await Promise.all([
+    const [productsRes, categoriesRes, latestCoverRes] = await Promise.all([
       supabase
         .from('products')
         .select('*, category:categories(*)')
@@ -36,14 +33,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         .from('categories')
         .select('*')
         .order('sort_order'),
-      supabase
-        .from('project_reports')
-        .select('*, tracked_projects!inner(id, name, slug, symbol, chain, category)')
-        .eq('report_type', 'forensic')
-        .in('status', ['published', 'in_review'])
-        .not('card_data', 'is', null)
-        .order('updated_at', { ascending: false })
-        .limit(40),
       supabase
         .from('project_reports')
         .select(`
@@ -59,9 +48,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     ])
     featuredProducts = productsRes.data || []
     categories = categoriesRes.data || []
-    forensicReports = (forensicRes.data || [])
-      .filter((report) => reportSupportsLocale(report, locale))
-      .slice(0, 8)
     latestReportCovers = (latestCoverRes.data || [])
       .filter((report) => reportSupportsLocale(report, locale))
       .slice(0, 8)
@@ -72,10 +58,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   return (
     <div>
       {/* Latest report covers */}
-      {latestReportCovers.length > 0 ? (
+      {latestReportCovers.length > 0 && (
         <LatestReportShowcase reports={latestReportCovers} locale={locale} />
-      ) : (
-        <ForensicSlideCards reports={forensicReports} locale={locale} />
       )}
 
       {/* About — 360° Project Intelligence (moved below content) */}
