@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
+import { reportSupportsLocale } from '@/lib/report-locale'
 import { cleanCardSummary } from '@/lib/report-summary'
 import type { Product, ProjectReport, ReportType, TrackedProject } from '@/lib/types'
 
@@ -66,6 +67,10 @@ export function hasReportCover(report: ReportWithCover) {
   return Boolean(getProduct(report)?.cover_image_url?.trim())
 }
 
+export function isPublishedReportCoverCandidate(report: ReportWithCover, locale: string) {
+  return report.status === 'published' && reportSupportsLocale(report, locale) && hasReportCover(report)
+}
+
 export function getReportHref(report: ReportWithCover, locale: string) {
   const project = report.tracked_projects ?? report.project
   if (!project?.slug) return `/${locale}/reports`
@@ -118,7 +123,7 @@ function formatReportDate(report: ReportWithCover, locale: string) {
 }
 
 export default function LatestReportShowcase({ reports, locale }: LatestReportShowcaseProps) {
-  const coverReports = reports.filter(hasReportCover).slice(0, 4)
+  const coverReports = reports.filter((report) => isPublishedReportCoverCandidate(report, locale)).slice(0, 4)
   const featured = coverReports[0]
 
   if (!featured) return null
@@ -175,10 +180,10 @@ export default function LatestReportShowcase({ reports, locale }: LatestReportSh
         <div className="min-w-0">
           <div className="mb-5">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-              {isKo ? '신규 발행 리포트' : 'Newly Published Reports'}
+              {isKo ? '새로 발행된 보고서' : 'Newly Published Reports'}
             </p>
             <h3 className="mt-2 text-2xl font-bold text-white">
-              {isKo ? '실제 표지로 보는 최신 분석' : 'Latest analysis with real covers'}
+              {isKo ? 'ECON, MAT, FOR 전체 표지 쇼케이스' : 'ECON, MAT, and FOR cover showcase'}
             </h3>
           </div>
 

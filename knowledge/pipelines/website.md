@@ -92,6 +92,17 @@ For the BCE-1922 one-row backfill, dispatch `mode=dry_run`, `report_type=maturit
 and `slug=uniswap` first; dispatch `mode=apply` only after approval covers that
 same target.
 
+## BCE-1928 Next.js Build Environment Boundary
+
+As of 2026-05-24, the website build gate must force `NODE_ENV=production` in
+the `npm run build` script before invoking `next build`. Local Paperclip
+heartbeats can inherit `NODE_ENV=development`; with Next.js 16.2.2 and React
+19.2.4 that environment caused App Router prerendering of generated error/404
+routes to fail with `Cannot read properties of null (reading 'useContext')`.
+The executable pipeline manifest still runs the website quality gate through
+`npm run build`; `scripts/verify-website-pipeline.mjs` accepts this production
+environment prefix as part of the build script contract.
+
 ## BCE-1869 Relationship
 
 BCE-1869 affected the report-publishing watcher boundary, not this website

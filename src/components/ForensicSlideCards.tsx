@@ -277,15 +277,15 @@ export default function ForensicSlideCards({ reports, locale }: ForensicSlideCar
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-sm mb-4">
             <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
-            {isKo ? '실시간 포렌식 인텔리전스' : 'Live Forensic Intelligence'}
+            {isKo ? '새로 발행된 보고서' : 'Newly Published Reports'}
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
-            {isKo ? '최신 포렌식 보고서' : 'Latest Forensic Reports'}
+            {isKo ? '새로 발행된 보고서' : 'Newly Published Reports'}
           </h2>
           <p className="text-lg text-gray-400">
             {isKo
-              ? 'AI 기반 온체인 포렌식 & 시장 이상 탐지'
-              : 'AI-powered on-chain forensics & market anomaly detection'}
+              ? 'ECON, MAT, FOR 리포트의 최신 표지 쇼케이스'
+              : 'Latest cover showcase across ECON, MAT, and FOR reports'}
           </p>
         </div>
       </div>
@@ -311,10 +311,10 @@ export default function ForensicSlideCards({ reports, locale }: ForensicSlideCar
       {/* CTA */}
       <div className="flex justify-center mt-10">
         <Link
-          href={`/${locale}/reports?type=forensic`}
+          href={`/${locale}/reports`}
           className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-red-900/30 hover:bg-red-900/50 border border-red-900/50 text-red-400 hover:text-red-300 transition-all duration-200 font-medium group"
         >
-          <span>{isKo ? '전체 포렌식 보고서 보기' : 'View All Forensic Reports'}</span>
+          <span>{isKo ? '전체 보고서 보기' : 'View All Reports'}</span>
           <span className="group-hover:translate-x-1 transition-transform">→</span>
         </Link>
       </div>

@@ -1,4 +1,4 @@
-import { getReportHref, hasReportCover } from './LatestReportShowcase'
+import { getReportHref, hasReportCover, isPublishedReportCoverCandidate } from './LatestReportShowcase'
 import type { ProjectReport } from '@/lib/types'
 
 function createReport(overrides: Partial<ProjectReport> = {}) {
@@ -42,6 +42,19 @@ describe('LatestReportShowcase helpers', () => {
   it('detects reports with linked product cover images', () => {
     expect(hasReportCover(createReport())).toBe(true)
     expect(hasReportCover(createReport({ product: { ...createReport().product!, cover_image_url: '' } }))).toBe(false)
+  })
+
+  it('keeps latest cover candidates limited to published reports with locale support and covers', () => {
+    expect(isPublishedReportCoverCandidate(createReport(), 'en')).toBe(true)
+    expect(isPublishedReportCoverCandidate(createReport({ report_type: 'econ' }), 'en')).toBe(true)
+    expect(isPublishedReportCoverCandidate(createReport({ report_type: 'maturity' }), 'en')).toBe(true)
+    expect(isPublishedReportCoverCandidate(createReport({ status: 'in_review' }), 'en')).toBe(false)
+    expect(isPublishedReportCoverCandidate(createReport({ status: 'coming_soon' }), 'en')).toBe(false)
+    expect(isPublishedReportCoverCandidate(createReport({ language: 'ko' }), 'en')).toBe(false)
+    expect(isPublishedReportCoverCandidate(
+      createReport({ product: { ...createReport().product!, cover_image_url: '' } }),
+      'en',
+    )).toBe(false)
   })
 
   it('builds report links by report type', () => {
