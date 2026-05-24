@@ -38,15 +38,14 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         .select(`
           *,
           tracked_projects!inner(id, name, slug, symbol, chain, category),
-          product:products!inner(id, slug, title_en, title_ko, title_fr, title_es, title_de, title_ja, title_zh, cover_image_url, published_at)
+          product:products(id, slug, title_en, title_ko, title_fr, title_es, title_de, title_ja, title_zh, cover_image_url, published_at)
         `)
         .in('report_type', ['econ', 'maturity', 'forensic'])
         .eq('status', 'published')
         .not('product_id', 'is', null)
-        .not('product.cover_image_url', 'is', null)
         .order('published_at', { ascending: false, nullsFirst: false })
         .order('updated_at', { ascending: false, nullsFirst: false })
-        .limit(24),
+        .limit(500),
     ])
     featuredProducts = productsRes.data || []
     categories = categoriesRes.data || []
