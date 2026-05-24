@@ -53,9 +53,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         `)
         .in('report_type', ['econ', 'maturity', 'forensic'])
         .eq('status', 'published')
-        .not('product_id', 'is', null)
-        .order('updated_at', { ascending: false })
-        .limit(40),
+        .order('published_at', { ascending: false, nullsFirst: false })
+        .order('updated_at', { ascending: false, nullsFirst: false })
+        .limit(80),
     ])
     featuredProducts = productsRes.data || []
     categories = categoriesRes.data || []
@@ -64,10 +64,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       .slice(0, 8)
     latestReportCovers = (latestCoverRes.data || [])
       .filter((report) => reportSupportsLocale(report, locale))
-      .filter((report) => {
-        const product = Array.isArray(report.product) ? report.product[0] : report.product
-        return report.status === 'published' && Boolean(product?.cover_image_url?.trim())
-      })
       .slice(0, 8)
   } catch (e) {
     console.error('Failed to fetch data:', e)
