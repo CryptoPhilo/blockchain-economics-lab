@@ -3,10 +3,18 @@ import {
   getReportCoverAsset,
   getReportCoverUrls,
   getReportHref,
+  hasRequiredShowcaseCoverLocales,
   hasReportCover,
   isPublishedReportCoverCandidate,
 } from './LatestReportShowcase'
 import type { ProjectReport } from '@/lib/types'
+
+const completeCoverUrlsByLang = {
+  en: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/en-cover.png',
+  ko: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko-cover.png',
+  ja: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ja-cover.png',
+  zh: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/zh-cover.png',
+}
 
 function createReport(overrides: Partial<ProjectReport> = {}) {
   return {
@@ -68,10 +76,7 @@ describe('LatestReportShowcase helpers', () => {
     const report = createReport({
       product: { ...createReport().product!, cover_image_url: '' },
       language: 'ko',
-      cover_image_urls_by_lang: {
-        en: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/en-cover.png',
-        ko: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko-cover.png',
-      },
+      cover_image_urls_by_lang: completeCoverUrlsByLang,
       slide_html_urls_by_lang: {
         ko: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko.html',
         en: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/en.html',
@@ -81,6 +86,8 @@ describe('LatestReportShowcase helpers', () => {
     expect(getReportCoverUrls(report, 'ko')).toEqual([
       'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko-cover.png',
       'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/en-cover.png',
+      'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ja-cover.png',
+      'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/zh-cover.png',
     ])
     expect(getReportCoverAsset(report)).toEqual({
       type: 'image',
@@ -89,13 +96,26 @@ describe('LatestReportShowcase helpers', () => {
     expect(isPublishedReportCoverCandidate(report, 'ko')).toBe(true)
   })
 
+  it('requires every homepage showcase locale cover before a report can be featured', () => {
+    expect(hasRequiredShowcaseCoverLocales(createReport({
+      cover_image_urls_by_lang: completeCoverUrlsByLang,
+    }))).toBe(true)
+    expect(hasRequiredShowcaseCoverLocales(createReport({
+      cover_image_urls_by_lang: {
+        en: completeCoverUrlsByLang.en,
+        ko: completeCoverUrlsByLang.ko,
+        ja: completeCoverUrlsByLang.ja,
+      },
+    }))).toBe(false)
+  })
+
   it('keeps latest cover candidates limited to published reports with locale support and covers', () => {
-    expect(isPublishedReportCoverCandidate(createReport(), 'en')).toBe(true)
-    expect(isPublishedReportCoverCandidate(createReport({ report_type: 'econ' }), 'en')).toBe(true)
-    expect(isPublishedReportCoverCandidate(createReport({ report_type: 'maturity' }), 'en')).toBe(true)
-    expect(isPublishedReportCoverCandidate(createReport({ status: 'in_review' }), 'en')).toBe(false)
-    expect(isPublishedReportCoverCandidate(createReport({ status: 'coming_soon' }), 'en')).toBe(false)
-    expect(isPublishedReportCoverCandidate(createReport({ language: 'ko' }), 'en')).toBe(false)
+    expect(isPublishedReportCoverCandidate(createReport({ cover_image_urls_by_lang: completeCoverUrlsByLang }), 'en')).toBe(true)
+    expect(isPublishedReportCoverCandidate(createReport({ report_type: 'econ', cover_image_urls_by_lang: completeCoverUrlsByLang }), 'en')).toBe(true)
+    expect(isPublishedReportCoverCandidate(createReport({ report_type: 'maturity', cover_image_urls_by_lang: completeCoverUrlsByLang }), 'en')).toBe(true)
+    expect(isPublishedReportCoverCandidate(createReport({ status: 'in_review', cover_image_urls_by_lang: completeCoverUrlsByLang }), 'en')).toBe(false)
+    expect(isPublishedReportCoverCandidate(createReport({ status: 'coming_soon', cover_image_urls_by_lang: completeCoverUrlsByLang }), 'en')).toBe(false)
+    expect(isPublishedReportCoverCandidate(createReport({ language: 'ko', cover_image_urls_by_lang: completeCoverUrlsByLang }), 'en')).toBe(false)
     expect(isPublishedReportCoverCandidate(
       createReport({ product: { ...createReport().product!, cover_image_url: '' } }),
       'en',
@@ -106,7 +126,7 @@ describe('LatestReportShowcase helpers', () => {
         cover_image_urls_by_lang: { en: 'https://example.com/en-cover.png' },
       }),
       'en',
-    )).toBe(true)
+    )).toBe(false)
   })
 
   it('builds report links by report type', () => {
