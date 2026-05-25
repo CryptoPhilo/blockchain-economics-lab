@@ -120,10 +120,23 @@ export function getReportCoverImageUrls(report: ProjectReport, locale: string): 
 }
 
 export function pickProjectBackgroundCoverUrl(reports: ProjectReport[], locale: string): string | null {
-  const latestReports = sortReportsLatestFirst(
-    reports.filter((report) => getReportCoverImageUrls(report, locale).length > 0),
-  )
-  return latestReports[0] ? getReportCoverImageUrls(latestReports[0], locale)[0] : null
+  const latestReports = sortReportsLatestFirst(reports)
+  const localeCover = latestReports
+    .map((report) => report.cover_image_urls_by_lang?.[locale])
+    .find(isNonEmptyString)
+  if (localeCover) return localeCover
+
+  const englishCover = latestReports
+    .map((report) => report.cover_image_urls_by_lang?.en)
+    .find(isNonEmptyString)
+  if (englishCover) return englishCover
+
+  for (const report of latestReports) {
+    const fallback = Object.values(report.cover_image_urls_by_lang ?? {}).find(isNonEmptyString)
+    if (fallback) return fallback
+  }
+
+  return null
 }
 
 /**
