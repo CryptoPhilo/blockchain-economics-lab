@@ -3,6 +3,7 @@ import {
   getReportCoverAsset,
   getReportCoverUrls,
   getReportHref,
+  getReportShowcaseItems,
   hasRequiredShowcaseCoverLocales,
   hasReportCover,
   isPublishedReportCoverCandidate,
@@ -107,6 +108,44 @@ describe('LatestReportShowcase helpers', () => {
         ja: completeCoverUrlsByLang.ja,
       },
     }))).toBe(false)
+  })
+
+  it('groups language-specific report rows into one homepage showcase candidate', () => {
+    const rows = (['en', 'ko', 'ja', 'zh'] as const).map((language) => createReport({
+      id: `report-${language}`,
+      language,
+      cover_image_urls_by_lang: {
+        [language]: completeCoverUrlsByLang[language],
+      },
+      slide_html_urls_by_lang: {
+        [language]: `https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/${language}.html`,
+      },
+    }))
+
+    const koItems = getReportShowcaseItems(rows, 'ko')
+    const enItems = getReportShowcaseItems(rows, 'en')
+
+    expect(koItems).toHaveLength(1)
+    expect(enItems).toHaveLength(1)
+    expect(koItems[0].id).toBe(enItems[0].id)
+    expect(koItems[0].coverUrls).toEqual([
+      completeCoverUrlsByLang.ko,
+      completeCoverUrlsByLang.en,
+      completeCoverUrlsByLang.ja,
+      completeCoverUrlsByLang.zh,
+    ])
+  })
+
+  it('excludes homepage showcase groups missing any required locale cover', () => {
+    const rows = (['en', 'ko', 'ja'] as const).map((language) => createReport({
+      id: `report-${language}`,
+      language,
+      cover_image_urls_by_lang: {
+        [language]: completeCoverUrlsByLang[language],
+      },
+    }))
+
+    expect(getReportShowcaseItems(rows, 'ko')).toEqual([])
   })
 
   it('keeps latest cover candidates limited to published reports with locale support and covers', () => {

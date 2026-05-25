@@ -83,8 +83,12 @@ function normalizeCoverLocale(locale: string) {
 function getLocalizedReportCoverUrls(report: ReportWithCover, locale: string) {
   const coverUrls = report.cover_image_urls_by_lang ?? {}
   const normalizedLocale = normalizeCoverLocale(locale)
+  return getLocalizedCoverUrlsByLang(coverUrls, normalizedLocale)
+}
+
+function getLocalizedCoverUrlsByLang(coverUrls: Record<string, string>, locale: string) {
   return uniqueStrings([
-    coverUrls[normalizedLocale] ?? '',
+    coverUrls[locale] ?? '',
     coverUrls.en ?? '',
     ...Object.values(coverUrls),
   ].filter(hasNonEmptyString))
@@ -122,6 +126,10 @@ export function hasReportCover(report: ReportWithCover) {
 
 export function hasRequiredShowcaseCoverLocales(report: ReportWithCover) {
   const coverUrls = report.cover_image_urls_by_lang ?? {}
+  return hasRequiredShowcaseCoverUrlMap(coverUrls)
+}
+
+function hasRequiredShowcaseCoverUrlMap(coverUrls: Record<string, string>) {
   return requiredShowcaseCoverLocales.every((locale) => hasNonEmptyString(coverUrls[locale]))
 }
 
@@ -207,24 +215,66 @@ function getProductShowcaseItems(products: Product[] | undefined, locale: string
     .slice(0, 8)
 }
 
-function getReportShowcaseItems(reports: ReportWithCover[] | undefined, locale: string): ShowcaseItem[] {
+function getReportGroupKey(report: ReportWithCover) {
+  const project = report.tracked_projects ?? report.project
+  return [
+    report.report_type,
+    project?.slug ?? project?.id ?? report.project_id ?? 'unknown-project',
+    report.version ?? 'latest',
+  ].join(':')
+}
+
+function getReportSortTime(report: ReportWithCover) {
+  return new Date(report.published_at ?? getProduct(report)?.published_at ?? report.updated_at ?? report.created_at ?? 0).getTime()
+}
+
+function mergeReportGroupCoverUrls(reports: ReportWithCover[]) {
+  const coverUrls: Record<string, string> = {}
+  for (const report of reports) {
+    const reportCoverUrls = report.cover_image_urls_by_lang ?? {}
+    for (const [language, url] of Object.entries(reportCoverUrls)) {
+      if (!hasNonEmptyString(coverUrls[language]) && hasNonEmptyString(url)) {
+        coverUrls[language] = url
+      }
+    }
+  }
+  return coverUrls
+}
+
+function pickLocalizedReportFromGroup(reports: ReportWithCover[], locale: string) {
+  return reports.find((report) => report.language === locale)
+    ?? reports.find((report) => reportSupportsLocale(report, locale))
+    ?? reports.find((report) => report.language === 'en')
+    ?? reports[0]
+}
+
+export function getReportShowcaseItems(reports: ReportWithCover[] | undefined, locale: string): ShowcaseItem[] {
   if (!reports?.length) return []
 
-  return reports
-    .filter((report) => isPublishedReportCoverCandidate(report, locale))
-    .map((report) => {
+  const groups = new Map<string, ReportWithCover[]>()
+  for (const report of reports) {
+    if (report.status !== 'published') continue
+    const key = getReportGroupKey(report)
+    groups.set(key, [...(groups.get(key) ?? []), report])
+  }
+
+  return [...groups.values()]
+    .map((group) => group.sort((a, b) => getReportSortTime(b) - getReportSortTime(a)))
+    .filter((group) => hasRequiredShowcaseCoverUrlMap(mergeReportGroupCoverUrls(group)))
+    .map((group) => {
+      const report = pickLocalizedReportFromGroup(group, locale)
       const project = report.tracked_projects ?? report.project
       const title = getLocalizedProductTitle(report, locale)
-      const coverUrls = getReportCoverUrls(report, locale)
+      const coverUrls = getLocalizedCoverUrlsByLang(mergeReportGroupCoverUrls(group), normalizeCoverLocale(locale))
 
       return {
-        id: report.id,
+        id: getReportGroupKey(report),
         href: getReportHref(report, locale),
         title,
         summary: getLocalizedSummary(report, locale),
         coverUrls,
         reportType: report.report_type,
-        dateValue: report.published_at ?? getProduct(report)?.published_at ?? report.updated_at ?? report.created_at,
+        dateValue: group[0].published_at ?? getProduct(group[0])?.published_at ?? group[0].updated_at ?? group[0].created_at,
         projectName: project?.name,
         projectSymbol: project?.symbol,
       }
@@ -296,9 +346,10 @@ function ReportCoverImage({
 export default function LatestReportShowcase({ reports, products, locale }: LatestReportShowcaseProps) {
   const showcaseItems = useMemo(
     () => {
-      const productItems = getProductShowcaseItems(products, locale)
       const reportItems = getReportShowcaseItems(reports, locale)
-      return dedupeShowcaseItems(sortShowcaseItemsByDate([...reportItems, ...productItems])).slice(0, 8)
+      const productItems = getProductShowcaseItems(products, locale)
+      const items = reportItems.length > 0 ? reportItems : productItems
+      return dedupeShowcaseItems(sortShowcaseItemsByDate(items)).slice(0, 8)
     },
     [products, reports, locale],
   )
