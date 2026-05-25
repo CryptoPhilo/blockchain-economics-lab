@@ -75,13 +75,6 @@ const IMAGE_MIME_TO_EXTENSION: Record<string, string> = {
   'image/webp': 'webp',
 }
 
-const IMAGE_EXTENSION_TO_MIME: Record<string, string> = {
-  jpg: 'image/jpeg',
-  jpeg: 'image/jpeg',
-  png: 'image/png',
-  webp: 'image/webp',
-}
-
 function isPlainObject(value: unknown): value is JsonMap {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
@@ -240,29 +233,6 @@ export function extractFirstExternalSlideImageUrl(html: string): string | null {
   return candidates.find(url => /^https?:\/\//i.test(url) && /\.(?:png|jpe?g|webp)(?:[?#].*)?$/i.test(url)) ?? null
 }
 
-function extensionFromImageUrl(url: string): string | null {
-  const pathname = new URL(url).pathname.toLowerCase()
-  const match = pathname.match(/\.([a-z0-9]+)$/)
-  if (!match) return null
-  const extension = match[1] === 'jpeg' ? 'jpg' : match[1]
-  return IMAGE_EXTENSION_TO_MIME[extension] ? extension : null
-}
-
-async function downloadExternalImage(url: string): Promise<{ mimeType: string; bytes: Buffer; extension: string } | null> {
-  const response = await fetch(url)
-  if (!response.ok) throw new Error(`HTTP ${response.status}`)
-  const headerMime = response.headers.get('content-type')?.split(';')[0]?.trim().toLowerCase()
-  const extension = headerMime && IMAGE_MIME_TO_EXTENSION[headerMime]
-    ? IMAGE_MIME_TO_EXTENSION[headerMime]
-    : extensionFromImageUrl(url)
-  if (!extension) return null
-  return {
-    mimeType: IMAGE_EXTENSION_TO_MIME[extension],
-    bytes: Buffer.from(await response.arrayBuffer()),
-    extension,
-  }
-}
-
 export function buildReportCoverCandidates(
   reports: ReportRow[],
   supabaseUrl: string,
@@ -347,48 +317,33 @@ async function applyCandidates(
       continue
     }
     const html = await data.text()
-    let image = extractFirstEmbeddedImage(html)
-    let sourceImageUrl: string | null = null
-    if (!image) {
-      sourceImageUrl = extractFirstExternalSlideImageUrl(html)
+    const image = extractFirstEmbeddedImage(html)
+    let coverPublicUrl: string
+    if (image) {
+      const uploadPath = candidate.coverStoragePath.replace(/\.jpg$/, `.${image.extension}`)
+      const { error: uploadError } = await supabase.storage.from('slides').upload(
+        uploadPath,
+        image.bytes,
+        {
+          contentType: image.mimeType,
+          cacheControl: '300',
+          upsert: true,
+        },
+      )
+      if (uploadError) {
+        failed++
+        console.error(`Failed upload ${uploadPath}: ${uploadError.message}`)
+        continue
+      }
+      coverPublicUrl = candidate.coverPublicUrl.replace(/\.jpg$/, `.${image.extension}`)
+    } else {
+      const sourceImageUrl = extractFirstExternalSlideImageUrl(html)
       if (!sourceImageUrl) {
         failed++
         console.error(`No cover image source in ${candidate.storagePath}`)
         continue
       }
-      try {
-        image = await downloadExternalImage(sourceImageUrl)
-      } catch (error) {
-        failed++
-        const message = error instanceof Error ? error.message : String(error)
-        console.error(`Failed download cover image ${sourceImageUrl}: ${message}`)
-        continue
-      }
-      if (!image) {
-        failed++
-        console.error(`Unsupported cover image source in ${candidate.storagePath}: ${sourceImageUrl}`)
-        continue
-      }
-    }
-
-    const uploadPath = candidate.coverStoragePath.replace(/\.jpg$/, `.${image.extension}`)
-    const { error: uploadError } = await supabase.storage.from('slides').upload(
-      uploadPath,
-      image.bytes,
-      {
-        contentType: image.mimeType,
-        cacheControl: '300',
-        upsert: true,
-      },
-    )
-    let coverPublicUrl = candidate.coverPublicUrl.replace(/\.jpg$/, `.${image.extension}`)
-    if (uploadError) {
-      if (!sourceImageUrl) {
-        failed++
-        console.error(`Failed upload ${uploadPath}: ${uploadError.message}`)
-        continue
-      }
-      console.error(`Failed upload ${uploadPath}: ${uploadError.message}; using source slide image ${sourceImageUrl}`)
+      console.log(`Using external slide image as cover for ${candidate.storagePath}: ${sourceImageUrl}`)
       coverPublicUrl = sourceImageUrl
     }
 
