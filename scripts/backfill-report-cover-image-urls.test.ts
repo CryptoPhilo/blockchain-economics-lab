@@ -1,6 +1,7 @@
 import {
   buildReportCoverCandidates,
   extractFirstEmbeddedImage,
+  extractFirstExternalSlideImageUrl,
   getPreferredReportLanguage,
   mergeCoverImageUrlsByLang,
   storagePathFromPublicSlidesUrl,
@@ -119,6 +120,26 @@ describe('report cover image URL backfill helpers', () => {
     expect(image?.mimeType).toBe('image/jpeg')
     expect(image?.extension).toBe('jpg')
     expect(image?.bytes.toString('utf8')).toBe('hello')
+  })
+
+  it('extracts the first externally stored slide image from viewer HTML', () => {
+    expect(extractFirstExternalSlideImageUrl(`
+      <img id="slideImg" src="" alt="Slide">
+      <script>
+        const slides = [
+          "https://example.supabase.co/storage/v1/object/public/slides/econ/aerodrome-finance/1/en_assets/page-001.png",
+          "https://example.supabase.co/storage/v1/object/public/slides/econ/aerodrome-finance/1/en_assets/page-002.png"
+        ];
+      </script>
+    `)).toBe(
+      'https://example.supabase.co/storage/v1/object/public/slides/econ/aerodrome-finance/1/en_assets/page-001.png',
+    )
+  })
+
+  it('falls back to img src when the viewer does not expose a slides array', () => {
+    expect(extractFirstExternalSlideImageUrl(
+      '<img src="https://example.supabase.co/storage/v1/object/public/slides/mat/okx/1/ko_assets/page-001.webp">',
+    )).toBe('https://example.supabase.co/storage/v1/object/public/slides/mat/okx/1/ko_assets/page-001.webp')
   })
 
   it('resolves preferred language and public storage object paths', () => {
