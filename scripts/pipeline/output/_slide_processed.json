@@ -1409,17 +1409,17 @@
   },
   "12lQVNpZW10WKR5R_eXDVRJDiwt7YHvVF": {
     "error": null,
-    "finished_at": "2026-05-14T06:41:27.247795+00:00",
+    "finished_at": "2026-05-25T22:53:28.749085+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T04:20:40.955Z",
     "name": "Bitcoin_MAT_jp.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 14,
-      "width": 1376
+      "width": 1376.0
     },
     "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
     "parent_folder_name": "mat",
@@ -1431,9 +1431,9 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/mat/Bitcoin_MAT_jp.pdf",
-    "started_at": "2026-05-14T06:41:14.288190+00:00",
-    "status": "review_ready",
-    "updated_at": "2026-05-14T06:41:27.247809+00:00",
+    "started_at": "2026-05-25T22:52:54.061568+00:00",
+    "status": "published",
+    "updated_at": "2026-05-25T22:53:28.749098+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/1/ja.html"
   },
@@ -4398,6 +4398,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/celestia/1/en.html"
   },
+  "1Br5iVsl98VbFi37w3eZaZi9KCmxMb5J5": {
+    "error": null,
+    "finished_at": "2026-05-25T22:48:58.176723+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-25T20:56:03.000Z",
+    "name": "Bitcoin_MAT_en (1).pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/latest/en.html",
+    "report_id": "19e018e9-8dcd-453b-9da8-6646b27de1a2",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "bitcoin",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/Bitcoin_MAT_en (1).pdf",
+    "started_at": "2026-05-25T22:47:51.786854+00:00",
+    "status": "published",
+    "updated_at": "2026-05-25T22:48:58.176735+00:00",
+    "version": 3,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/3/en.html"
+  },
   "1C5Qi-yVtajfzFCFzY3VQ0YffmdGEqsEj": {
     "error": null,
     "finished_at": "2026-05-17T08:12:59.006868+00:00",
@@ -6236,6 +6266,36 @@
     "updated_at": "2026-05-17T17:58:53.443646+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/chainlink/1/ja.html"
+  },
+  "1FwVoLQ1KNxrQdm6NwrGOC2USQzmuzUdm": {
+    "error": null,
+    "finished_at": "2026-05-25T22:50:44.123598+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-25T20:45:45.000Z",
+    "name": "Bitcoin_MAT_ko (1).pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/latest/ko.html",
+    "report_id": "e189e4b9-7387-4a4e-a4c8-03f85e70796a",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "bitcoin",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/Bitcoin_MAT_ko (1).pdf",
+    "started_at": "2026-05-25T22:49:29.704039+00:00",
+    "status": "published",
+    "updated_at": "2026-05-25T22:50:44.123610+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/2/ko.html"
   },
   "1FxaT6ue137Rbi0PJupt0fTlMMYSSZOU6": {
     "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
@@ -8793,7 +8853,7 @@
   },
   "1MtyXQPEaJ5Gh76qYKOusIAGkoy2j2Z4F": {
     "error": null,
-    "finished_at": "2026-05-14T06:40:52.562098+00:00",
+    "finished_at": "2026-05-25T22:52:33.060504+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "language_mismatch": {
@@ -8805,10 +8865,10 @@
     "name": "Bitcoin_MAT_cn.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 15,
-      "width": 1376
+      "width": 1376.0
     },
     "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
     "parent_folder_name": "mat",
@@ -8820,9 +8880,9 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/mat/Bitcoin_MAT_cn.pdf",
-    "started_at": "2026-05-14T06:40:41.550974+00:00",
-    "status": "review_ready",
-    "updated_at": "2026-05-14T06:40:52.562112+00:00",
+    "started_at": "2026-05-25T22:51:55.947241+00:00",
+    "status": "published",
+    "updated_at": "2026-05-25T22:52:33.060520+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/1/zh.html"
   },
@@ -9925,6 +9985,36 @@
     "status": "failed",
     "updated_at": "2026-05-17T18:04:19.640724+00:00"
   },
+  "1Q48E-FMYNRvsLLfMxxQaEc64z7K-9kR4": {
+    "error": null,
+    "finished_at": "2026-05-25T22:47:43.774369+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-25T21:05:44.000Z",
+    "name": "Bitcoin_MAT_jp (1).pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768330545467912,
+      "height": 338.760009765625,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 601.9199829101562
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/latest/ja.html",
+    "report_id": "2b934b4d-433c-486c-9639-5a2e040db5ad",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "bitcoin",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/Bitcoin_MAT_jp (1).pdf",
+    "started_at": "2026-05-25T22:46:49.931078+00:00",
+    "status": "published",
+    "updated_at": "2026-05-25T22:47:43.774382+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/2/ja.html"
+  },
   "1Q5dlIzXG9w-py0ufHT4Xj_Rn0PxxSjEK": {
     "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
     "lang": "en",
@@ -10306,6 +10396,36 @@
     "updated_at": "2026-05-17T18:04:49.643795+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pump-fun/1/ko.html"
+  },
+  "1R4Gdat9iyGgragMCWD0ppwi6bqUiNtXI": {
+    "error": null,
+    "finished_at": "2026-05-25T22:46:32.009023+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-25T21:23:07.000Z",
+    "name": "Bitcoin_MAT_cn (1).pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/latest/zh.html",
+    "report_id": "9740c3ba-c730-4e55-ad45-e2f925cc45ff",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "bitcoin",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/Bitcoin_MAT_cn (1).pdf",
+    "started_at": "2026-05-25T22:43:23.314325+00:00",
+    "status": "published",
+    "updated_at": "2026-05-25T22:46:32.009037+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/2/zh.html"
   },
   "1R917bHf0lkmtODA1tlBnI0CvX0VAqleg": {
     "error": null,
@@ -10998,17 +11118,17 @@
   },
   "1TClH7GSQP3TqnOTUr6GvniTRWn28_Pg9": {
     "error": null,
-    "finished_at": "2026-05-14T06:40:20.292589+00:00",
+    "finished_at": "2026-05-25T22:51:33.092105+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T04:21:20.000Z",
     "name": "Bitcoin_MAT_ko.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 12,
-      "width": 1376
+      "width": 1376.0
     },
     "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
     "parent_folder_name": "mat",
@@ -11020,9 +11140,9 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/mat/Bitcoin_MAT_ko.pdf",
-    "started_at": "2026-05-14T06:40:07.087051+00:00",
-    "status": "review_ready",
-    "updated_at": "2026-05-14T06:40:20.292604+00:00",
+    "started_at": "2026-05-25T22:51:03.646605+00:00",
+    "status": "published",
+    "updated_at": "2026-05-25T22:51:33.092121+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/1/ko.html"
   },
@@ -18499,7 +18619,7 @@
   },
   "1mgyZ1agcI21z_v8sobUoxgZoBBLNv3jF": {
     "error": null,
-    "finished_at": "2026-05-14T06:41:44.302629+00:00",
+    "finished_at": "2026-05-25T22:54:12.427096+00:00",
     "lang": "en",
     "lang_source": "filename",
     "language_mismatch": {
@@ -18511,26 +18631,26 @@
     "name": "Bitcoin_MAT_en.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 13,
-      "width": 1376
+      "width": 1376.0
     },
     "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
     "parent_folder_name": "mat",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/latest/en.html",
-    "report_id": "bf187c0f-3958-43e7-9b12-fc42f9db14d6",
+    "report_id": "a16c753c-0aab-4ac7-ba10-5274a135f34b",
     "retry_count": 0,
     "rtype": "mat",
     "slug": "bitcoin",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/mat/Bitcoin_MAT_en.pdf",
-    "started_at": "2026-05-14T06:41:32.956790+00:00",
-    "status": "review_ready",
-    "updated_at": "2026-05-14T06:41:44.302644+00:00",
-    "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/1/en.html"
+    "started_at": "2026-05-25T22:53:34.559271+00:00",
+    "status": "published",
+    "updated_at": "2026-05-25T22:54:12.427110+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/2/en.html"
   },
   "1mlN-xPx6FmK-wfsInKY0WwRdPRe41W7j": {
     "error": null,
