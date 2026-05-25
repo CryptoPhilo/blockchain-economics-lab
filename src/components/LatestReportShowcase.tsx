@@ -46,25 +46,23 @@ interface LatestReportShowcaseProps {
   locale: string
 }
 
-const reportTypeLabels: Record<ReportType, { en: string; ko: string; tone: string }> = {
+const reportTypeLabels: Record<ReportType, { label: string; tone: string }> = {
   econ: {
-    en: 'ECON',
-    ko: '경제',
+    label: 'ECON',
     tone: 'border-blue-400/30 bg-blue-400/10 text-blue-200',
   },
   maturity: {
-    en: 'MAT',
-    ko: 'MAT',
+    label: 'MAT',
     tone: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200',
   },
   forensic: {
-    en: 'FOR',
-    ko: 'FOR',
+    label: 'FOR',
     tone: 'border-red-400/30 bg-red-400/10 text-red-200',
   },
 }
 
 const supportedCoverLocales = ['en', 'ko', 'fr', 'es', 'de', 'ja', 'zh'] as const
+const requiredShowcaseCoverLocales = ['en', 'ko', 'ja', 'zh'] as const
 
 function getProduct(report: ReportWithCover) {
   return Array.isArray(report.product) ? report.product[0] : report.product
@@ -122,8 +120,16 @@ export function hasReportCover(report: ReportWithCover) {
   return getReportCoverAsset(report) !== null
 }
 
+export function hasRequiredShowcaseCoverLocales(report: ReportWithCover) {
+  const coverUrls = report.cover_image_urls_by_lang ?? {}
+  return requiredShowcaseCoverLocales.every((locale) => hasNonEmptyString(coverUrls[locale]))
+}
+
 export function isPublishedReportCoverCandidate(report: ReportWithCover, locale: string) {
-  return report.status === 'published' && reportSupportsLocale(report, locale) && getReportCoverUrls(report, locale).length > 0
+  return report.status === 'published'
+    && reportSupportsLocale(report, locale)
+    && hasRequiredShowcaseCoverLocales(report)
+    && getReportCoverUrls(report, locale).length > 0
 }
 
 export function getReportHref(report: ReportWithCover, locale: string) {
@@ -336,7 +342,7 @@ export default function LatestReportShowcase({ reports, products, locale }: Late
                         {isKo ? '최신 ECON, MAT, FOR 리포트' : 'Latest ECON, MAT, and FOR Reports'}
                       </h1>
                       <div className={`mt-8 inline-flex w-fit rounded-full border px-3 py-1 text-xs font-semibold ${label.tone}`}>
-                        {isKo ? label.ko : label.en}
+                        {label.label}
                       </div>
                       <h2 className="mt-5 max-w-xl text-2xl font-bold leading-tight text-white md:text-4xl">{item.title}</h2>
                       {item.projectName && (
