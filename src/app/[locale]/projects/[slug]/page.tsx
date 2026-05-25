@@ -7,7 +7,6 @@ import { pickLocaleReport, reportSupportsLocale } from '@/lib/report-locale'
 import {
   buildReportVersionHref,
   getReportVersionLabel,
-  pickLatestReport,
   sortReportsLatestFirst,
 } from '@/lib/report-versioning'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
@@ -80,12 +79,6 @@ export function buildReportHref(locale: string, slug: string, reportType: Report
   return `/${locale}/reports/${slug}/${REPORT_TYPE_ROUTE[reportType]}`
 }
 
-const REPORT_TYPE_DEFAULT_LABEL: Record<ReportType, { ko: string; en: string }> = {
-  econ: { ko: '경제 분석', en: 'Economic Analysis' },
-  maturity: { ko: '성숙도 평가', en: 'Maturity Assessment' },
-  forensic: { ko: '포렌식 분석', en: 'Forensic Analysis' },
-}
-
 function formatMarketCap(value: number | null | undefined): string | null {
   if (value == null || value <= 0) return null
   if (value >= 1e12) return `$${(value / 1e12).toFixed(2)}T`
@@ -95,13 +88,15 @@ function formatMarketCap(value: number | null | undefined): string | null {
   return `$${value.toFixed(0)}`
 }
 
-function pickLocalizedTitle(report: ProjectReport, locale: string, symbol: string): string {
-  const direct = report[`title_${locale}` as keyof ProjectReport] as string | undefined
-  if (direct) return direct
-  if (locale === 'en' && report.title_en) return report.title_en
-  const fallback = REPORT_TYPE_DEFAULT_LABEL[report.report_type]
-  const label = locale === 'ko' ? fallback.ko : fallback.en
-  return `${symbol} ${label}`
+const REPORT_TYPE_TITLE_CODE: Record<ReportType, string> = {
+  econ: 'ECON',
+  maturity: 'MAT',
+  forensic: 'FOR',
+}
+
+export function pickLocalizedTitle(report: ProjectReport, locale: string, projectName: string): string {
+  const code = REPORT_TYPE_TITLE_CODE[report.report_type]
+  return `${projectName} ${code} ${locale}`
 }
 
 function pickLocalizedSummary(report: ProjectReport, locale: string): string | null {
@@ -149,12 +144,9 @@ export function selectReportsByType(
 
   const selected = new Map<ReportType, ProjectReport>()
   for (const [type, list] of byType.entries()) {
-    const latest = pickLatestReport(list)
-    const eligible = latest
-      ? sortReportsLatestFirst(
-          list.filter((report) => report.version === latest.version && reportSupportsLocale(report, locale)),
-        )
-      : []
+    const eligible = sortReportsLatestFirst(
+      list.filter((report) => reportSupportsLocale(report, locale)),
+    )
     const pick = pickLocaleReport(eligible, locale)
     if (pick) selected.set(type, pick)
   }
@@ -319,7 +311,7 @@ export default async function ProjectDetailPage({ params }: Props) {
             {orderedReports.map((report) => {
               const theme = REPORT_TYPE_THEME[report.report_type]
               const typeLabel = isKo ? theme.labelKo : theme.labelEn
-              const title = pickLocalizedTitle(report, locale, project.symbol)
+              const title = pickLocalizedTitle(report, locale, project.name)
               const summary = pickLocalizedSummary(report, locale)
               const marketingContent = getLocalizedMarketingContent(report, locale, summary)
               const href = buildReportHref(locale, project.slug, report.report_type)
