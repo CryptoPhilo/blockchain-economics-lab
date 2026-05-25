@@ -988,7 +988,24 @@ def _generate_summary_after_slide_publish(
         existing_card_data = row.get('card_data') if isinstance(row.get('card_data'), dict) else {}
         patch = build_project_report_patch_from_drive_source(source, translate=True)
         patch_card_data = patch.get('card_data') if isinstance(patch.get('card_data'), dict) else {}
-        patch['card_data'] = {**existing_card_data, **patch_card_data}
+        source_md = patch_card_data.get('source_md') if isinstance(patch_card_data.get('source_md'), dict) else {}
+        lang = getattr(source, 'lang', None) or 'ko'
+        canonical_title = f"{project.get('name') or project.get('slug')} {report_label} {lang}"
+        patch['card_data'] = {
+            **existing_card_data,
+            **patch_card_data,
+            'slug': project.get('slug'),
+            'report_type': 'econ' if rtype == 'econ' else DB_REPORT_TYPE[rtype],
+            'source_md': {
+                **source_md,
+                'slug': project.get('slug'),
+                'report_type': rtype,
+                'version': version or getattr(source, 'version', None) or 1,
+                'language': lang,
+            },
+        }
+        if lang in SUPPORTED_LANGS:
+            patch[f'title_{lang}'] = canonical_title
         sb.table('project_reports').update(patch).eq('id', report_id).execute()
         print(
             f"    ✓ {report_label} summary generated from Drive source: "

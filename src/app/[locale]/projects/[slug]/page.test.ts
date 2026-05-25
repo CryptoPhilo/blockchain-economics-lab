@@ -3,6 +3,7 @@ import {
   buildReportHref,
   getReportCoverImageUrls,
   pickProjectBackgroundCoverUrl,
+  pickLocalizedTitle,
   selectReportsByType,
 } from './page'
 import type { ProjectReport } from '@/lib/types'
@@ -22,6 +23,18 @@ function createReport(overrides: Partial<ProjectReport> = {}): ProjectReport {
 }
 
 describe('project detail report selection', () => {
+  it('derives card titles from the current project instead of stale report row titles', () => {
+    const report = createReport({
+      id: 'ethereum-mat-contaminated-title',
+      report_type: 'maturity',
+      language: 'ko',
+      title_ko: 'lido MAT ko',
+      card_summary_ko: 'Ethereum summary text',
+    } as Partial<ProjectReport>)
+
+    expect(pickLocalizedTitle(report, 'ko', 'Ethereum')).toBe('Ethereum MAT ko')
+  })
+
   it('selects a Korean BTC ECON row for locales that have slide assets or English fallback', () => {
     const report = createReport({
       id: 'btc-econ-ko-row',
@@ -116,6 +129,33 @@ describe('project detail report selection', () => {
     expect(buildReportHistoryByType([oldReport, latestReport], selected, 'ko').get('econ')).toEqual([
       oldReport,
     ])
+  })
+
+  it('falls back to the latest version that supports the requested locale', () => {
+    const koV1 = createReport({
+      id: 'eth-econ-v1-ko',
+      project_id: 'ethereum',
+      report_type: 'econ',
+      language: 'ko',
+      version: 1,
+      is_latest: false,
+      published_at: '2026-05-01T00:00:00.000Z',
+      gdrive_urls_by_lang: { ko: 'https://drive.google.com/file/d/eth-econ-v1-ko/view' },
+    } as Partial<ProjectReport>)
+    const enV2 = createReport({
+      id: 'eth-econ-v2-en',
+      project_id: 'ethereum',
+      report_type: 'econ',
+      language: 'en',
+      version: 2,
+      is_latest: true,
+      published_at: '2026-05-25T00:00:00.000Z',
+      gdrive_urls_by_lang: { en: 'https://drive.google.com/file/d/eth-econ-v2-en/view' },
+    } as Partial<ProjectReport>)
+
+    const selected = selectReportsByType([koV1, enV2], 'ko')
+
+    expect(selected.get('econ')).toBe(koV1)
   })
 
   it('does not expose same-version alternate language rows as history', () => {

@@ -2614,6 +2614,75 @@ def test_persist_maturity_score_from_source_updates_tracked_project(ws):
     assert project['updated_at']
 
 
+def test_summary_generation_overwrites_stale_cross_project_card_identity(ws, monkeypatch):
+    class Source:
+        name = 'ethereum_mat_v4_ko.md'
+        drive_file_id = 'source-ethereum'
+        report_type = 'mat'
+        db_report_type = 'maturity'
+        version = 4
+        lang = 'ko'
+        modified_time = '2026-05-25T00:00:00Z'
+        text = '# Ethereum MAT\n\nEthereum maturity summary.'
+
+    def fake_patch(source, translate=True):
+        assert source.name == 'ethereum_mat_v4_ko.md'
+        return {
+            'card_summary_ko': 'Ethereum summary text',
+            'card_data': {
+                'summary': 'Ethereum summary text',
+                'source_md': {
+                    'name': source.name,
+                    'slug': 'lido-dao',
+                    'report_type': 'mat',
+                    'version': 3,
+                    'language': 'ko',
+                    'drive_file_id': source.drive_file_id,
+                },
+            },
+        }
+
+    monkeypatch.setitem(
+        sys.modules,
+        'marketing_content_pipeline',
+        type('FakeMarketingModule', (), {
+            'build_project_report_patch_from_drive_source': staticmethod(fake_patch),
+        }),
+    )
+    report = {
+        'project_id': 'project-ethereum',
+        'report_type': 'maturity',
+        'card_data': {
+            'slug': 'lido-dao',
+            'source_md': {'slug': 'lido-dao'},
+        },
+    }
+    project = {
+        'id': 'project-ethereum',
+        'slug': 'ethereum',
+        'name': 'Ethereum',
+    }
+    sb = _FakeMergeSupabase(report, project)
+
+    generated = ws._generate_summary_after_slide_publish(
+        sb,
+        None,
+        project=project,
+        rtype='mat',
+        report_id='report-ethereum-mat',
+        version=4,
+        source=Source(),
+    )
+
+    assert generated is True
+    assert report['title_ko'] == 'Ethereum MAT ko'
+    assert report['card_summary_ko'] == 'Ethereum summary text'
+    assert report['card_data']['slug'] == 'ethereum'
+    assert report['card_data']['report_type'] == 'maturity'
+    assert report['card_data']['source_md']['slug'] == 'ethereum'
+    assert report['card_data']['source_md']['version'] == 4
+
+
 def test_prune_stale_languages_removes_db_json_and_latest_storage(ws):
     rows = [{
         'id': 'report-1',
