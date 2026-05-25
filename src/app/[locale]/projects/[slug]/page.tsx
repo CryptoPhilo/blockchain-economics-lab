@@ -243,8 +243,8 @@ export default async function ProjectDetailPage({ params }: Props) {
             aria-hidden="true"
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/35" aria-hidden="true" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" aria-hidden="true" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/55 to-transparent" aria-hidden="true" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" aria-hidden="true" />
         <div className="relative">
           <div className="flex flex-wrap items-center gap-2 mb-4">
             {project.category && (
