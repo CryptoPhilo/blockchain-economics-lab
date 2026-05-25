@@ -238,6 +238,25 @@ describe('project detail cover backgrounds', () => {
       'https://example.com/newer-ko-cover.png',
     )
   })
+
+  it('prefers a locale cover from an older report over a newer foreign-language cover', () => {
+    const olderKo = createReport({
+      id: 'kaspa-econ-ko',
+      language: 'ko',
+      published_at: '2026-05-07T00:00:00.000Z',
+      cover_image_urls_by_lang: { ko: 'https://example.com/kaspa-ko-cover.png' },
+    })
+    const newerZh = createReport({
+      id: 'kaspa-econ-zh',
+      language: 'zh',
+      published_at: '2026-05-08T00:00:00.000Z',
+      cover_image_urls_by_lang: { zh: 'https://example.com/kaspa-zh-cover.png' },
+    })
+
+    expect(pickProjectBackgroundCoverUrl([newerZh, olderKo], 'ko')).toBe(
+      'https://example.com/kaspa-ko-cover.png',
+    )
+  })
 })
 
 describe('project detail report links', () => {
