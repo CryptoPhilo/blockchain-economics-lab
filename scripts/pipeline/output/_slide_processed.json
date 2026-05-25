@@ -6698,7 +6698,7 @@
     "source_path": "Slide/econ/Bitcoin_ECON_cn.pdf",
     "started_at": "2026-05-17T09:30:54.298545+00:00",
     "status": "published",
-    "updated_at": "2026-05-17T17:59:54.198752+00:00",
+    "updated_at": "2026-05-25T21:52:52.583953+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/1/zh.html"
   },
@@ -9125,7 +9125,7 @@
     "source_path": "Slide/econ/Bitcoin_ECON_ko.pdf",
     "started_at": "2026-05-17T09:30:10.655300+00:00",
     "status": "published",
-    "updated_at": "2026-05-17T17:59:52.827824+00:00",
+    "updated_at": "2026-05-25T21:52:51.532474+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/2/ko.html"
   },
@@ -12558,6 +12558,36 @@
     "status": "failed",
     "updated_at": "2026-05-17T17:31:02.808220+00:00"
   },
+  "1XtC9bulDlhXAsJv_pwDDvpk10IqamuIM": {
+    "error": null,
+    "finished_at": "2026-05-25T21:50:26.982230+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-25T20:54:42.000Z",
+    "name": "bitcoin_ECON_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/en.html",
+    "report_id": "a98a77eb-912a-46fb-868f-a574656e6ee1",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "bitcoin",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/bitcoin_ECON_en.pdf",
+    "started_at": "2026-05-25T21:49:52.033821+00:00",
+    "status": "published",
+    "updated_at": "2026-05-25T21:50:26.982246+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/2/en.html"
+  },
   "1Y0lApZf7Nq7acZtkOCN-guytDixmeun3": {
     "error": "Storage upload failed for slides/for/zerebro/1/ja_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
     "finished_at": "2026-05-12T06:01:32.762209+00:00",
@@ -14890,6 +14920,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/humanity-protocol/1/en.html"
   },
+  "1dt08nnsqkIwK_eFY-ineFYr1Sib-iYYW": {
+    "error": null,
+    "finished_at": "2026-05-25T21:51:24.795602+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-25T20:44:48.000Z",
+    "name": "bitcoin_ECON_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ko.html",
+    "report_id": "a5938fa4-a83b-4e7f-a6f1-f3b956fa0a76",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "bitcoin",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/bitcoin_ECON_ko.pdf",
+    "started_at": "2026-05-25T21:50:42.806389+00:00",
+    "status": "published",
+    "updated_at": "2026-05-25T21:51:24.795620+00:00",
+    "version": 3,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/3/ko.html"
+  },
   "1e1KuM4wVzbtkeUyOj2iowTAd2ogIqjlu": {
     "error": "Storage upload failed for slides/econ/aerodrome-finance/1/ja_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
     "lang": "ja",
@@ -16270,6 +16330,36 @@
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sky/2/en.html"
   },
+  "1hFEaXBvoTGK07uOkcS2w-svxTk_MbC7Q": {
+    "error": null,
+    "finished_at": "2026-05-25T21:49:05.341868+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-25T21:26:30.000Z",
+    "name": "bitcoin_ECON_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/zh.html",
+    "report_id": "7f8894fb-9c07-481e-bdc6-7a15ccf969f6",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "bitcoin",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/bitcoin_ECON_cn.pdf",
+    "started_at": "2026-05-25T21:48:19.431767+00:00",
+    "status": "published",
+    "updated_at": "2026-05-25T21:49:05.341886+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/2/zh.html"
+  },
   "1hOv6Y1kzAGMEKAEKue3S_D1wUZEKFSXP": {
     "error": "Storage upload failed for slides/econ/official-trump/1/zh_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
     "lang": "zh",
@@ -17631,7 +17721,7 @@
     "source_path": "Slide/econ/Bitcoin_ECON_en.pdf",
     "started_at": "2026-05-17T09:29:30.948925+00:00",
     "status": "published",
-    "updated_at": "2026-05-17T17:59:51.712749+00:00",
+    "updated_at": "2026-05-25T21:52:50.687065+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/1/en.html"
   },
@@ -17886,6 +17976,36 @@
     "updated_at": "2026-05-18T11:41:44.853087+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/decred/1/zh.html"
+  },
+  "1lJWd1VTa667bE8eRwR8q0kBXwKkd1bzt": {
+    "error": null,
+    "finished_at": "2026-05-25T21:49:50.676692+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-25T21:08:05.000Z",
+    "name": "bitcoin_ECON_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ja.html",
+    "report_id": "491d4e7b-79ed-45e3-98e5-df742db517ef",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "bitcoin",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/bitcoin_ECON_jp.pdf",
+    "started_at": "2026-05-25T21:49:22.969151+00:00",
+    "status": "published",
+    "updated_at": "2026-05-25T21:49:50.676709+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/2/ja.html"
   },
   "1lL-PGKq6-69Piomr8XmwQ5x5UhZfqfDJ": {
     "error": null,
@@ -21598,7 +21718,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/ore-new/1/zh.html"
   },
   "1w3f6xqctUtdW9TYK_2WEobjPlqS8J7nC": {
-    "error": "Storage upload failed for slides/econ/bitcoin/1/ja_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
+    "error": null,
+    "finished_at": "2026-05-25T21:52:49.285710+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T05:03:06.250Z",
@@ -21612,15 +21733,19 @@
     },
     "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
     "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ja.html",
+    "report_id": "da3eefb8-98a7-4f48-9d38-646ed8e0322a",
     "retry_count": 0,
     "rtype": "econ",
     "slug": "bitcoin",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/Bitcoin_ECON_jp.pdf",
-    "started_at": "2026-05-17T17:51:37.983435+00:00",
-    "status": "failed",
-    "updated_at": "2026-05-17T17:52:07.416364+00:00"
+    "started_at": "2026-05-25T21:51:49.990300+00:00",
+    "status": "published",
+    "updated_at": "2026-05-25T21:52:49.285727+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/1/ja.html"
   },
   "1w52QsStPdDQjrhqVitcbH1I0CpTMzZ6t": {
     "error": "Storage upload failed for slides/econ/aerodrome-finance/1/en_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
