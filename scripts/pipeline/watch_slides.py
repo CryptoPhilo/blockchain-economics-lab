@@ -30,6 +30,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import os
 import re
@@ -818,6 +819,7 @@ def _create_report_row_for_slide(
     pdf_name: str,
     public_url: Optional[str],
     version: Optional[int],
+    cover_url: Optional[str] = None,
     status: str = PUBLICATION_PUBLISHED_STATUS,
     source_patch: Optional[Dict[str, Any]] = None,
     previous_report_id: Optional[str] = None,
@@ -841,6 +843,7 @@ def _create_report_row_for_slide(
         'gdrive_file_id': pdf_file_id,
         'gdrive_urls_by_lang': {lang: gdrive_url},
         'slide_html_urls_by_lang': {lang: public_url} if public_url else {},
+        'cover_image_urls_by_lang': {lang: cover_url} if cover_url else {},
         'translation_status': {lang: status},
         'card_data': {
             'report_type': 'econ' if db_type == 'econ' else db_type,
@@ -905,24 +908,31 @@ def _merge_slide_url(
     lang: str,
     public_url: str,
     status: str,
+    cover_url: Optional[str] = None,
     published_at: Optional[str] = None,
 ) -> None:
     publish_ts = published_at or datetime.now(timezone.utc).isoformat()
     if status in {REVIEW_READY_STATUS, PUBLICATION_APPROVED_STATUS}:
         status = PUBLICATION_PUBLISHED_STATUS
     current = sb.table('project_reports').select(
-        'slide_html_urls_by_lang, card_data, project_id, report_type'
+        'slide_html_urls_by_lang, cover_image_urls_by_lang, card_data, project_id, report_type'
     ) \
         .eq('id', report_id).single().execute()
     row = current.data or {}
     # project_reports rows are language-scoped; do not carry over stale
     # sibling-language URLs left by older cross-language fallback merges.
     urls = {lang: public_url}
+    cover_urls = row.get('cover_image_urls_by_lang') or {}
+    if not isinstance(cover_urls, dict):
+        cover_urls = {}
+    if cover_url:
+        cover_urls = {**cover_urls, lang: cover_url}
     card_data = row.get('card_data')
     if isinstance(card_data, dict):
         card_data = {**card_data, 'generated_at': publish_ts}
     update_payload = {
         'slide_html_urls_by_lang': urls,
+        'cover_image_urls_by_lang': cover_urls,
         'status': status,
         'updated_at': publish_ts,
     }
@@ -1192,15 +1202,22 @@ def _remove_slide_url_if_matches(sb, report_id: str, lang: str, public_url: str)
     """Remove a stale slide URL only when DB still points at that exact object."""
     if not report_id or not lang or not public_url:
         return False
-    current = sb.table('project_reports').select('slide_html_urls_by_lang') \
+    current = sb.table('project_reports').select('slide_html_urls_by_lang, cover_image_urls_by_lang') \
         .eq('id', report_id).single().execute()
     urls = (current.data or {}).get('slide_html_urls_by_lang') or {}
     if not isinstance(urls, dict) or urls.get(lang) != public_url:
         return False
     updated = dict(urls)
     updated.pop(lang, None)
+    cover_urls = (current.data or {}).get('cover_image_urls_by_lang') or {}
+    if isinstance(cover_urls, dict):
+        cover_urls = dict(cover_urls)
+        cover_urls.pop(lang, None)
+    else:
+        cover_urls = {}
     sb.table('project_reports').update({
         'slide_html_urls_by_lang': updated,
+        'cover_image_urls_by_lang': cover_urls,
         'updated_at': datetime.now(timezone.utc).isoformat(),
     }).eq('id', report_id).execute()
     return True
@@ -1710,6 +1727,52 @@ def _reconcile_visible_reports_with_drive(
 # Conversion + upload
 # ═══════════════════════════════════════════
 
+_EMBEDDED_IMAGE_RE = re.compile(
+    rb'data:(image/(?:jpeg|jpg|png|webp));base64,([A-Za-z0-9+/=]+)'
+)
+
+
+def _cover_extension_for_mime(mime: str) -> str:
+    if mime in {'image/jpeg', 'image/jpg'}:
+        return 'jpg'
+    if mime == 'image/webp':
+        return 'webp'
+    return 'png'
+
+
+def _extract_first_embedded_image(html_bytes: bytes) -> Optional[Tuple[str, bytes, str]]:
+    match = _EMBEDDED_IMAGE_RE.search(html_bytes)
+    if not match:
+        return None
+    mime = match.group(1).decode('ascii').lower()
+    try:
+        raw = base64.b64decode(match.group(2), validate=True)
+    except Exception:
+        return None
+    return mime, raw, _cover_extension_for_mime(mime)
+
+
+def _upload_cover_image(
+    storage_client,
+    *,
+    rtype: str,
+    slug: str,
+    lang: str,
+    image: Tuple[str, bytes, str],
+) -> str:
+    from supabase_storage import upload_html
+
+    mime, raw, ext = image
+    cover_key = f'{rtype}/{slug}/latest/{lang}-cover.{ext}'
+    return upload_html(
+        storage_client,
+        BUCKET_NAME,
+        cover_key,
+        raw,
+        content_type=mime,
+    )
+
+
 def _convert_and_upload(
     pdf_local_path: str,
     *,
@@ -1740,6 +1803,8 @@ def _convert_and_upload(
     versioned_key = f'{rtype}/{slug}/{version_segment}/{lang}.html'
     latest_key = f'{rtype}/{slug}/latest/{lang}.html'
 
+    cover_image = _extract_first_embedded_image(html_bytes)
+
     try:
         versioned_url = upload_html(storage_client, BUCKET_NAME, versioned_key, html_bytes)
     except Exception as e:
@@ -1757,6 +1822,7 @@ def _convert_and_upload(
             quality=DEFAULT_JPEG_QUALITY,
         )
         image_sources: List[str] = []
+        cover_image = page_images[0] + (_cover_extension_for_mime(page_images[0][0]),) if page_images else None
         for index, (mime, raw) in enumerate(page_images, start=1):
             ext = 'jpg' if mime == 'image/jpeg' else 'png'
             image_key = f'{asset_prefix}/page-{index:03d}.{ext}'
@@ -1780,7 +1846,15 @@ def _convert_and_upload(
     else:
         latest_url = versioned_url
 
-    return {'versioned_url': versioned_url, 'latest_url': latest_url}
+    cover_url = _upload_cover_image(
+        storage_client,
+        rtype=rtype,
+        slug=slug,
+        lang=lang,
+        image=cover_image,
+    ) if cover_image else ''
+
+    return {'versioned_url': versioned_url, 'latest_url': latest_url, 'cover_url': cover_url}
 
 
 # ═══════════════════════════════════════════
@@ -2967,9 +3041,10 @@ def process(
                     storage_client=storage_client,
                 )
                 public_url = upload_result['latest_url']
+                cover_url = upload_result.get('cover_url') or None
 
                 if report_id:
-                    _merge_slide_url(sb, report_id, lang, public_url, status=target_status)
+                    _merge_slide_url(sb, report_id, lang, public_url, status=target_status, cover_url=cover_url)
                     print(f"    ✓ DB published from Drive Slide PDF: project_reports[{report_id}].slide_html_urls_by_lang.{lang}")
                 else:
                     report_id, version = _create_report_row_for_slide(
@@ -2982,6 +3057,7 @@ def process(
                         pdf_name=pdf['name'],
                         public_url=public_url,
                         version=version,
+                        cover_url=cover_url,
                         status=target_status,
                         source_patch=source_patch,
                         previous_report_id=previous_report_id,

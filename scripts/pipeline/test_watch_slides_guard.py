@@ -2535,6 +2535,7 @@ def test_create_report_row_for_slide_upserts_missing_report_shell(ws):
     assert payload['slide_html_urls_by_lang'] == {
         'ko': 'https://storage/slides/econ/shiba-inu/latest/ko.html',
     }
+    assert payload['cover_image_urls_by_lang'] == {}
     assert payload['card_data']['slug'] == 'shiba-inu'
     assert sb.tracked_projects.patch is not None
 
@@ -2544,6 +2545,7 @@ def test_merge_slide_url_updates_publish_metadata_and_project_timestamp(ws):
         'project_id': 'project-avalanche',
         'report_type': 'econ',
         'slide_html_urls_by_lang': {'ko': 'https://storage/old-ko.html'},
+        'cover_image_urls_by_lang': {'ko': 'https://storage/old-ko-cover.png'},
         'card_data': {'summary': 'Avalanche summary', 'generated_at': '2026-04-16T00:00:00Z'},
         'published_at': '2026-04-16T12:29:22Z',
     }
@@ -2560,10 +2562,13 @@ def test_merge_slide_url_updates_publish_metadata_and_project_timestamp(ws):
         'en',
         'https://storage/econ/avalanche-2/latest/en.html',
         status=ws.PUBLICATION_PUBLISHED_STATUS,
+        cover_url='https://storage/econ/avalanche-2/latest/en-cover.png',
         published_at=publish_ts,
     )
 
     assert report['slide_html_urls_by_lang']['en'] == 'https://storage/econ/avalanche-2/latest/en.html'
+    assert report['cover_image_urls_by_lang']['ko'] == 'https://storage/old-ko-cover.png'
+    assert report['cover_image_urls_by_lang']['en'] == 'https://storage/econ/avalanche-2/latest/en-cover.png'
     assert report['published_at'] == publish_ts
     assert report['updated_at'] == publish_ts
     assert report['card_data']['generated_at'] == publish_ts

@@ -65,7 +65,6 @@ const reportTypeLabels: Record<ReportType, { en: string; ko: string; tone: strin
 }
 
 const supportedCoverLocales = ['en', 'ko', 'fr', 'es', 'de', 'ja', 'zh'] as const
-const supportedCoverExtensions = ['png', 'jpg', 'webp'] as const
 
 function getProduct(report: ReportWithCover) {
   return Array.isArray(report.product) ? report.product[0] : report.product
@@ -83,36 +82,14 @@ function normalizeCoverLocale(locale: string) {
   return supportedCoverLocales.includes(locale as typeof supportedCoverLocales[number]) ? locale : 'en'
 }
 
-function getPreferredCoverLocales(locale: string, sourceLocale?: string) {
-  return uniqueStrings([normalizeCoverLocale(locale), sourceLocale ?? '', 'en'])
-}
-
-function getSlideCoverUrlsFromHtmlUrl(htmlUrl: string, locale: string, sourceLocale?: string) {
-  const trimmedUrl = htmlUrl.trim()
-  if (!trimmedUrl) return []
-
-  const coverBaseUrl = trimmedUrl.replace(/\/[^/?#]+\.html(?=($|[?#]))/i, '/')
-  if (coverBaseUrl === trimmedUrl) return []
-
-  return getPreferredCoverLocales(locale, sourceLocale).flatMap((coverLocale) => (
-    supportedCoverExtensions.map((extension) => `${coverBaseUrl}${coverLocale}-cover.${extension}`)
-  ))
-}
-
-function getSlideCoverUrls(report: ReportWithCover, locale: string) {
-  const slideUrls = report.slide_html_urls_by_lang
-  if (!slideUrls) return []
-
-  const preferredLocales = uniqueStrings([
-    normalizeCoverLocale(locale),
-    'en',
-    ...Object.keys(slideUrls),
-  ])
-
-  return uniqueStrings(preferredLocales.flatMap((slideLocale) => {
-    const htmlUrl = slideUrls[slideLocale]
-    return hasNonEmptyString(htmlUrl) ? getSlideCoverUrlsFromHtmlUrl(htmlUrl, locale, slideLocale) : []
-  }))
+function getLocalizedReportCoverUrls(report: ReportWithCover, locale: string) {
+  const coverUrls = report.cover_image_urls_by_lang ?? {}
+  const normalizedLocale = normalizeCoverLocale(locale)
+  return uniqueStrings([
+    coverUrls[normalizedLocale] ?? '',
+    coverUrls.en ?? '',
+    ...Object.values(coverUrls),
+  ].filter(hasNonEmptyString))
 }
 
 export function getReportCoverAsset(report: ReportWithCover) {
@@ -123,8 +100,8 @@ export function getReportCoverAsset(report: ReportWithCover) {
 export function getReportCoverUrls(report: ReportWithCover, locale: string) {
   const productCoverUrl = getProduct(report)?.cover_image_url
   return uniqueStrings([
+    ...getLocalizedReportCoverUrls(report, locale),
     ...(hasNonEmptyString(productCoverUrl) ? getLocalizedCoverUrls(productCoverUrl, locale) : []),
-    ...getSlideCoverUrls(report, locale),
   ])
 }
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Backfill products.cover_image_url from published report slide HTML covers.
+ * Backfill project_reports.cover_image_urls_by_lang from report slide HTML.
  *
  * Default mode is dry-run. Use --apply only in the approved remote execution
- * path because this updates production products rows.
+ * path because this uploads Storage objects and updates production rows.
  */
 
 import { createClient } from '@supabase/supabase-js'
@@ -25,6 +25,7 @@ interface ReportRow {
   updated_at: string | null
   created_at: string | null
   slide_html_urls_by_lang: unknown
+  cover_image_urls_by_lang?: unknown
   tracked_projects?: {
     id: string
     name: string
@@ -38,7 +39,7 @@ interface ReportRow {
 
 interface CoverCandidate {
   reportId: string
-  productId: string
+  productId: string | null
   projectSlug: string
   projectName: string
   reportType: ReportType
@@ -48,6 +49,8 @@ interface CoverCandidate {
   coverStoragePath: string
   coverPublicUrl: string
   oldCoverUrl: string | null
+  oldReportCoverUrl: string | null
+  shouldUpdateProductCover: boolean
   publishedAt: string | null
 }
 
@@ -56,6 +59,7 @@ interface Options {
   pageSize: number
   slug?: string
   reportType?: ReportType
+  force: boolean
 }
 
 const STORAGE_TYPE_BY_REPORT_TYPE: Record<ReportType, string> = {
@@ -85,7 +89,7 @@ function parseReportType(value: string): ReportType {
 }
 
 function parseArgs(argv: string[]): Options {
-  const options: Options = { apply: false, pageSize: 1000 }
+  const options: Options = { apply: false, pageSize: 1000, force: false }
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]
     const next = argv[i + 1]
@@ -93,6 +97,8 @@ function parseArgs(argv: string[]): Options {
       options.apply = true
     } else if (arg === '--dry-run') {
       options.apply = false
+    } else if (arg === '--force') {
+      options.force = true
     } else if (arg === '--slug') {
       if (!next || next.startsWith('--')) throw new Error('--slug requires a value')
       options.slug = next
@@ -156,12 +162,33 @@ export function getPreferredReportLanguage(report: ReportRow): string | null {
   return langs[0] ?? null
 }
 
-export function getSlideHtmlUrl(report: ReportRow, language: string): string | null {
+export function getSlideHtmlUrls(report: ReportRow): Record<string, string> {
   const urls = isPlainObject(report.slide_html_urls_by_lang) ? report.slide_html_urls_by_lang : {}
-  const localized = urls[language]
-  if (isNonEmptyString(localized)) return localized.trim()
-  const first = Object.values(urls).find(isNonEmptyString)
-  return first?.trim() ?? null
+  return Object.fromEntries(
+    Object.entries(urls)
+      .filter((entry): entry is [string, string] => isNonEmptyString(entry[0]) && isNonEmptyString(entry[1]))
+      .map(([language, url]) => [language.trim(), url.trim()]),
+  )
+}
+
+export function getReportCoverUrls(report: ReportRow): Record<string, string> {
+  const urls = isPlainObject(report.cover_image_urls_by_lang) ? report.cover_image_urls_by_lang : {}
+  return Object.fromEntries(
+    Object.entries(urls)
+      .filter((entry): entry is [string, string] => isNonEmptyString(entry[0]) && isNonEmptyString(entry[1]))
+      .map(([language, url]) => [language.trim(), url.trim()]),
+  )
+}
+
+export function mergeCoverImageUrlsByLang(
+  existing: unknown,
+  language: string,
+  coverUrl: string,
+): Record<string, string> {
+  return {
+    ...(isPlainObject(existing) ? getReportCoverUrls({ cover_image_urls_by_lang: existing } as ReportRow) : {}),
+    [language]: coverUrl,
+  }
 }
 
 export function storagePathFromPublicSlidesUrl(url: string): string | null {
@@ -187,37 +214,45 @@ export function extractFirstEmbeddedImage(html: string): { mimeType: string; byt
 export function buildReportCoverCandidates(
   reports: ReportRow[],
   supabaseUrl: string,
+  options: { force?: boolean } = {},
 ): CoverCandidate[] {
   const candidates: CoverCandidate[] = []
   for (const report of reports) {
-    if (!report.product_id) continue
+    if (report.status !== 'published' && report.status !== 'in_review') continue
     const product = report.products
-    if (isNonEmptyString(product?.cover_image_url)) continue
     const project = report.tracked_projects
     if (!project?.slug) continue
-    const language = getPreferredReportLanguage(report)
-    if (!language) continue
-    const htmlUrl = getSlideHtmlUrl(report, language)
-    if (!htmlUrl) continue
-    const storagePath = storagePathFromPublicSlidesUrl(htmlUrl)
-    if (!storagePath) continue
-
+    const slideUrls = getSlideHtmlUrls(report)
+    const existingCoverUrls = getReportCoverUrls(report)
+    const preferredLanguage = getPreferredReportLanguage(report)
     const storageType = STORAGE_TYPE_BY_REPORT_TYPE[report.report_type]
-    const coverStoragePath = `${storageType}/${project.slug}/latest/${language}-cover.jpg`
-    candidates.push({
-      reportId: report.id,
-      productId: report.product_id,
-      projectSlug: project.slug,
-      projectName: project.name,
-      reportType: report.report_type,
-      language,
-      htmlUrl,
-      storagePath,
-      coverStoragePath,
-      coverPublicUrl: publicUrlForStoragePath(supabaseUrl, coverStoragePath),
-      oldCoverUrl: product?.cover_image_url ?? null,
-      publishedAt: report.published_at || report.updated_at || report.created_at,
-    })
+    for (const [language, htmlUrl] of Object.entries(slideUrls).sort(([a], [b]) => a.localeCompare(b))) {
+      if (!options.force && isNonEmptyString(existingCoverUrls[language])) continue
+      const storagePath = storagePathFromPublicSlidesUrl(htmlUrl)
+      if (!storagePath) continue
+
+      const coverStoragePath = `${storageType}/${project.slug}/latest/${language}-cover.jpg`
+      candidates.push({
+        reportId: report.id,
+        productId: report.product_id ?? null,
+        projectSlug: project.slug,
+        projectName: project.name,
+        reportType: report.report_type,
+        language,
+        htmlUrl,
+        storagePath,
+        coverStoragePath,
+        coverPublicUrl: publicUrlForStoragePath(supabaseUrl, coverStoragePath),
+        oldCoverUrl: product?.cover_image_url ?? null,
+        oldReportCoverUrl: existingCoverUrls[language] ?? null,
+        shouldUpdateProductCover: Boolean(
+          report.product_id
+          && !isNonEmptyString(product?.cover_image_url)
+          && language === preferredLanguage,
+        ),
+        publishedAt: report.published_at || report.updated_at || report.created_at,
+      })
+    }
   }
   return candidates.sort((a, b) => (
     a.projectSlug.localeCompare(b.projectSlug)
@@ -248,9 +283,10 @@ async function applyCandidates(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
   candidates: CoverCandidate[],
-): Promise<{ success: number; failed: number }> {
+): Promise<{ success: number; failed: number; productUpdates: number }> {
   let success = 0
   let failed = 0
+  let productUpdates = 0
   for (const candidate of candidates) {
     const { data, error } = await supabase.storage.from('slides').download(candidate.storagePath)
     if (error) {
@@ -282,21 +318,53 @@ async function applyCandidates(
       continue
     }
 
-    const { error: productError } = await supabase
-      .from('products')
+    const coverPublicUrl = candidate.coverPublicUrl.replace(/\.jpg$/, `.${image.extension}`)
+    const current = await supabase
+      .from('project_reports')
+      .select('cover_image_urls_by_lang')
+      .eq('id', candidate.reportId)
+      .maybeSingle()
+    if (current.error) {
+      failed++
+      console.error(`Failed fetch project_reports ${candidate.reportId}: ${current.error.message}`)
+      continue
+    }
+    const coverUrls = mergeCoverImageUrlsByLang(
+      current.data?.cover_image_urls_by_lang,
+      candidate.language,
+      coverPublicUrl,
+    )
+    const { error: reportError } = await supabase
+      .from('project_reports')
       .update({
-        cover_image_url: candidate.coverPublicUrl.replace(/\.jpg$/, `.${image.extension}`),
+        cover_image_urls_by_lang: coverUrls,
         updated_at: candidate.publishedAt ?? new Date().toISOString(),
       })
-      .eq('id', candidate.productId)
-    if (productError) {
+      .eq('id', candidate.reportId)
+    if (reportError) {
       failed++
-      console.error(`Failed products ${candidate.productId}: ${productError.message}`)
+      console.error(`Failed project_reports ${candidate.reportId}: ${reportError.message}`)
       continue
+    }
+
+    if (candidate.productId && candidate.shouldUpdateProductCover) {
+      const { error: productError } = await supabase
+        .from('products')
+        .update({
+          cover_image_url: coverPublicUrl,
+          updated_at: candidate.publishedAt ?? new Date().toISOString(),
+        })
+        .eq('id', candidate.productId)
+      if (productError) {
+        failed++
+        console.error(`Failed products ${candidate.productId}: ${productError.message}`)
+        continue
+      }
+      productUpdates++
     }
     success++
   }
-  return { success, failed }
+  return { success, failed, productUpdates }
 }
 
 function printHelp(): void {
@@ -306,6 +374,7 @@ function printHelp(): void {
 Options:
   --apply             Apply updates. Default is dry-run.
   --dry-run           Explicit dry-run mode.
+  --force             Rebuild covers even when project_reports already has a URL for the language.
   --slug VALUE        Limit to one tracked_projects.slug.
   --type VALUE        Limit to econ, maturity, or forensic.
   --page-size VALUE   Supabase page size. Default: 1000.
@@ -332,26 +401,27 @@ async function main(): Promise<void> {
       updated_at,
       created_at,
       slide_html_urls_by_lang,
+      cover_image_urls_by_lang,
       tracked_projects!inner(id, name, slug),
-      products!inner(id, cover_image_url)
+      products(id, cover_image_url)
     `)
     .in('status', ['published', 'in_review'])
-    .not('product_id', 'is', null)
     .order('updated_at', { ascending: false })
   if (options.reportType) query = query.eq('report_type', options.reportType)
   if (options.slug) query = query.eq('tracked_projects.slug', options.slug)
 
   const reports = await fetchAllRows<ReportRow>(() => query, options.pageSize)
-  const candidates = buildReportCoverCandidates(reports, url)
+  const candidates = buildReportCoverCandidates(reports, url, { force: options.force })
 
   console.log('=== Report Cover Image URL Backfill ===')
   console.log(`Mode: ${options.apply ? 'APPLY' : 'DRY-RUN'}`)
+  console.log(`Force: ${options.force ? 'yes' : 'no'}`)
   console.log(`Reports scanned: ${reports.length}`)
   console.log(`Candidates: ${candidates.length}`)
   for (const candidate of candidates.slice(0, 80)) {
     console.log(
       `- ${candidate.projectName} (${candidate.projectSlug}) ${candidate.reportType}/${candidate.language} `
-      + `product=${candidate.productId} cover=${candidate.coverPublicUrl}`,
+      + `report=${candidate.reportId} product=${candidate.productId || '-'} cover=${candidate.coverPublicUrl}`,
     )
   }
   if (candidates.length > 80) console.log(`... ${candidates.length - 80} more`)
@@ -362,7 +432,10 @@ async function main(): Promise<void> {
   }
 
   const result = await applyCandidates(supabase, candidates)
-  console.log(`\nApplied cover backfill: success=${result.success} failed=${result.failed}`)
+  console.log(
+    `\nApplied cover backfill: success=${result.success} failed=${result.failed} `
+    + `productUpdates=${result.productUpdates}`,
+  )
   if (result.failed > 0) process.exitCode = 1
 }
 
