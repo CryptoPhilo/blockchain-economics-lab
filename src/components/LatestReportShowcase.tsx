@@ -65,6 +65,7 @@ const reportTypeLabels: Record<ReportType, { en: string; ko: string; tone: strin
 }
 
 const supportedCoverLocales = ['en', 'ko', 'fr', 'es', 'de', 'ja', 'zh'] as const
+const supportedCoverExtensions = ['png', 'jpg', 'webp'] as const
 
 function getProduct(report: ReportWithCover) {
   return Array.isArray(report.product) ? report.product[0] : report.product
@@ -74,20 +75,64 @@ function hasNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0
 }
 
+function uniqueStrings(values: string[]) {
+  return [...new Set(values.filter((value) => value.trim().length > 0))]
+}
+
+function normalizeCoverLocale(locale: string) {
+  return supportedCoverLocales.includes(locale as typeof supportedCoverLocales[number]) ? locale : 'en'
+}
+
+function getPreferredCoverLocales(locale: string, sourceLocale?: string) {
+  return uniqueStrings([normalizeCoverLocale(locale), sourceLocale ?? '', 'en'])
+}
+
+function getSlideCoverUrlsFromHtmlUrl(htmlUrl: string, locale: string, sourceLocale?: string) {
+  const trimmedUrl = htmlUrl.trim()
+  if (!trimmedUrl) return []
+
+  const coverBaseUrl = trimmedUrl.replace(/\/[^/?#]+\.html(?=($|[?#]))/i, '/')
+  if (coverBaseUrl === trimmedUrl) return []
+
+  return getPreferredCoverLocales(locale, sourceLocale).flatMap((coverLocale) => (
+    supportedCoverExtensions.map((extension) => `${coverBaseUrl}${coverLocale}-cover.${extension}`)
+  ))
+}
+
+function getSlideCoverUrls(report: ReportWithCover, locale: string) {
+  const slideUrls = report.slide_html_urls_by_lang
+  if (!slideUrls) return []
+
+  const preferredLocales = uniqueStrings([
+    normalizeCoverLocale(locale),
+    'en',
+    ...Object.keys(slideUrls),
+  ])
+
+  return uniqueStrings(preferredLocales.flatMap((slideLocale) => {
+    const htmlUrl = slideUrls[slideLocale]
+    return hasNonEmptyString(htmlUrl) ? getSlideCoverUrlsFromHtmlUrl(htmlUrl, locale, slideLocale) : []
+  }))
+}
+
 export function getReportCoverAsset(report: ReportWithCover) {
+  const coverUrl = getReportCoverUrls(report, 'en')[0]
+  return coverUrl ? { type: 'image' as const, url: coverUrl } : null
+}
+
+export function getReportCoverUrls(report: ReportWithCover, locale: string) {
   const productCoverUrl = getProduct(report)?.cover_image_url
-  return hasNonEmptyString(productCoverUrl)
-    ? { type: 'image' as const, url: productCoverUrl.trim() }
-    : null
+  return uniqueStrings([
+    ...(hasNonEmptyString(productCoverUrl) ? getLocalizedCoverUrls(productCoverUrl, locale) : []),
+    ...getSlideCoverUrls(report, locale),
+  ])
 }
 
 export function getLocalizedCoverUrls(coverUrl: string, locale: string) {
   const trimmedUrl = coverUrl.trim()
   if (!trimmedUrl) return []
 
-  const normalizedLocale = supportedCoverLocales.includes(locale as typeof supportedCoverLocales[number])
-    ? locale
-    : 'en'
+  const normalizedLocale = normalizeCoverLocale(locale)
   const localizedUrl = trimmedUrl.replace(
     /\/(en|ko|fr|es|de|ja|zh)-cover\.(png|jpe?g|webp)(?=($|[?#]))/i,
     `/${normalizedLocale}-cover.$2`,
@@ -101,7 +146,7 @@ export function hasReportCover(report: ReportWithCover) {
 }
 
 export function isPublishedReportCoverCandidate(report: ReportWithCover, locale: string) {
-  return report.status === 'published' && reportSupportsLocale(report, locale) && getReportCoverAsset(report) !== null
+  return report.status === 'published' && reportSupportsLocale(report, locale) && getReportCoverUrls(report, locale).length > 0
 }
 
 export function getReportHref(report: ReportWithCover, locale: string) {
@@ -187,14 +232,14 @@ function getReportShowcaseItems(reports: ReportWithCover[] | undefined, locale: 
     .map((report) => {
       const project = report.tracked_projects ?? report.project
       const title = getLocalizedProductTitle(report, locale)
-      const coverAsset = getReportCoverAsset(report)
+      const coverUrls = getReportCoverUrls(report, locale)
 
       return {
         id: report.id,
         href: getReportHref(report, locale),
         title,
         summary: getLocalizedSummary(report, locale),
-        coverUrls: coverAsset?.url ? getLocalizedCoverUrls(coverAsset.url, locale) : [],
+        coverUrls,
         reportType: report.report_type,
         dateValue: report.published_at ?? getProduct(report)?.published_at ?? report.updated_at ?? report.created_at,
         projectName: project?.name,
@@ -203,6 +248,26 @@ function getReportShowcaseItems(reports: ReportWithCover[] | undefined, locale: 
     })
     .filter((item) => item.coverUrls.length > 0)
     .slice(0, 8)
+}
+
+function sortShowcaseItemsByDate(items: ShowcaseItem[]) {
+  return [...items].sort((a, b) => (
+    new Date(b.dateValue ?? 0).getTime() - new Date(a.dateValue ?? 0).getTime()
+  ))
+}
+
+function getShowcaseDedupKey(item: ShowcaseItem) {
+  return `${item.reportType}:${item.projectSymbol ?? item.projectName ?? item.title}`.toLowerCase()
+}
+
+function dedupeShowcaseItems(items: ShowcaseItem[]) {
+  const seen = new Set<string>()
+  return items.filter((item) => {
+    const key = getShowcaseDedupKey(item)
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
 }
 
 function formatDateValue(dateValue: string | null | undefined, locale: string) {
@@ -249,7 +314,8 @@ export default function LatestReportShowcase({ reports, products, locale }: Late
   const showcaseItems = useMemo(
     () => {
       const productItems = getProductShowcaseItems(products, locale)
-      return productItems.length > 0 ? productItems : getReportShowcaseItems(reports, locale)
+      const reportItems = getReportShowcaseItems(reports, locale)
+      return dedupeShowcaseItems(sortShowcaseItemsByDate([...reportItems, ...productItems])).slice(0, 8)
     },
     [products, reports, locale],
   )
