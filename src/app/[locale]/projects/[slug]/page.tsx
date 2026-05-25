@@ -111,6 +111,26 @@ function pickLocalizedSummary(report: ProjectReport, locale: string): string | n
   return null
 }
 
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0
+}
+
+export function getReportCoverImageUrls(report: ProjectReport, locale: string): string[] {
+  const urls = report.cover_image_urls_by_lang ?? {}
+  return [...new Set([
+    urls[locale],
+    urls.en,
+    ...Object.values(urls),
+  ].filter(isNonEmptyString))]
+}
+
+export function pickProjectBackgroundCoverUrl(reports: ProjectReport[], locale: string): string | null {
+  const latestReports = sortReportsLatestFirst(
+    reports.filter((report) => getReportCoverImageUrls(report, locale).length > 0),
+  )
+  return latestReports[0] ? getReportCoverImageUrls(latestReports[0], locale)[0] : null
+}
+
 /**
  * Pick one report row per report type. The project page is an availability
  * index, so PDF/Drive-only legacy rows are still valid cards; the detail page
@@ -194,6 +214,7 @@ export default async function ProjectDetailPage({ params }: Props) {
   const orderedReports = REPORT_TYPE_ORDER
     .map((type) => reportsByType.get(type))
     .filter((r): r is ProjectReport => Boolean(r))
+  const backgroundCoverUrl = pickProjectBackgroundCoverUrl(reports, locale)
 
   const marketCap = formatMarketCap(project.market_cap_usd)
   const dateLocale = localeDateMap[locale] || 'en-US'
@@ -214,65 +235,76 @@ export default async function ProjectDetailPage({ params }: Props) {
       </nav>
 
       {/* Header */}
-      <header className="mb-12">
-        <div className="flex flex-wrap items-center gap-2 mb-4">
-          {project.category && (
-            <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
-              {project.category}
-            </span>
-          )}
-          {project.chain && (
-            <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-white/5 text-gray-400 border border-white/10">
-              {project.chain}
-            </span>
-          )}
-        </div>
+      <header className="relative mb-12 overflow-hidden rounded-3xl border border-white/10 bg-gray-950 px-6 py-8 md:px-10 md:py-12">
+        {backgroundCoverUrl && (
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-70"
+            style={{ backgroundImage: `url(${backgroundCoverUrl})` }}
+            aria-hidden="true"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/35" aria-hidden="true" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" aria-hidden="true" />
+        <div className="relative">
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            {project.category && (
+              <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                {project.category}
+              </span>
+            )}
+            {project.chain && (
+              <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-white/5 text-gray-400 border border-white/10">
+                {project.chain}
+              </span>
+            )}
+          </div>
 
-        <div className="flex flex-wrap items-baseline gap-3 mb-6">
-          <h1 className="text-4xl md:text-5xl font-bold text-white">{project.name}</h1>
-          <span className="text-xl text-gray-500 font-mono uppercase">{project.symbol}</span>
-        </div>
+          <div className="flex flex-wrap items-baseline gap-3 mb-6">
+            <h1 className="text-4xl md:text-5xl font-bold text-white">{project.name}</h1>
+            <span className="text-xl text-gray-400 font-mono uppercase">{project.symbol}</span>
+          </div>
 
-        <div className="flex flex-wrap gap-4">
-          {marketCap && (
-            <div className="px-5 py-3 rounded-xl bg-white/[0.03] border border-white/5">
-              <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-                {isKo ? '시가총액' : 'Market Cap'}
+          <div className="flex flex-wrap gap-4">
+            {marketCap && (
+              <div className="px-5 py-3 rounded-xl bg-black/30 border border-white/10 backdrop-blur-sm">
+                <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">
+                  {isKo ? '시가총액' : 'Market Cap'}
+                </div>
+                <div className="text-lg font-semibold text-white font-mono">{marketCap}</div>
               </div>
-              <div className="text-lg font-semibold text-white font-mono">{marketCap}</div>
-            </div>
-          )}
-          {project.maturity_score != null && (
-            <div className="px-5 py-3 rounded-xl bg-white/[0.03] border border-white/5">
-              <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-                {isKo ? '성숙도 점수' : 'Maturity Score'}
+            )}
+            {project.maturity_score != null && (
+              <div className="px-5 py-3 rounded-xl bg-black/30 border border-white/10 backdrop-blur-sm">
+                <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">
+                  {isKo ? '성숙도 점수' : 'Maturity Score'}
+                </div>
+                <div className="text-lg font-semibold text-white">
+                  {Number(project.maturity_score).toFixed(1)}
+                  {project.maturity_stage && (
+                    <span className="ml-2 text-sm text-gray-300 font-normal">
+                      {project.maturity_stage}
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="text-lg font-semibold text-white">
-                {Number(project.maturity_score).toFixed(1)}
-                {project.maturity_stage && (
-                  <span className="ml-2 text-sm text-gray-400 font-normal">
-                    {project.maturity_stage}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-          {project.website_url && (
-            <a
-              href={project.website_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-5 py-3 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.06] hover:border-white/10 transition-all"
-            >
-              <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-                {isKo ? '웹사이트' : 'Website'}
-              </div>
-              <div className="text-sm font-medium text-indigo-400 truncate max-w-[220px]">
-                {project.website_url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-                <span className="ml-1">↗</span>
-              </div>
-            </a>
-          )}
+            )}
+            {project.website_url && (
+              <a
+                href={project.website_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-5 py-3 rounded-xl bg-black/30 border border-white/10 backdrop-blur-sm hover:bg-black/40 hover:border-white/20 transition-all"
+              >
+                <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">
+                  {isKo ? '웹사이트' : 'Website'}
+                </div>
+                <div className="text-sm font-medium text-indigo-300 truncate max-w-[220px]">
+                  {project.website_url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                  <span className="ml-1">↗</span>
+                </div>
+              </a>
+            )}
+          </div>
         </div>
       </header>
 

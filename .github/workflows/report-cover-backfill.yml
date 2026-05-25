@@ -15,15 +15,21 @@ on:
         description: 'Report type filter'
         required: true
         type: choice
-        default: maturity
+        default: all
         options:
+          - all
           - econ
           - maturity
           - forensic
       slug:
-        description: 'Tracked project slug filter; required for apply'
+        description: 'Optional tracked project slug filter'
         required: false
         type: string
+      force:
+        description: 'Rebuild existing cover URLs'
+        required: false
+        type: boolean
+        default: false
       page_size:
         description: 'Supabase page size'
         required: false
@@ -81,7 +87,7 @@ jobs:
       - name: Validate dispatch scope
         env:
           MODE: ${{ github.event.inputs.mode || 'dry_run' }}
-          REPORT_TYPE: ${{ github.event.inputs.report_type || 'maturity' }}
+          REPORT_TYPE: ${{ github.event.inputs.report_type || 'all' }}
           SLUG: ${{ github.event.inputs.slug }}
           PAGE_SIZE: ${{ github.event.inputs.page_size || '1000' }}
           TS_NODE_COMPILER_OPTIONS: '{"module":"CommonJS"}'
@@ -94,17 +100,12 @@ jobs:
           fi
 
           case "$REPORT_TYPE" in
-            econ|maturity|forensic) ;;
+            all|econ|maturity|forensic) ;;
             *)
-              echo "::error::report_type must be econ, maturity, or forensic"
+              echo "::error::report_type must be all, econ, maturity, or forensic"
               exit 1
               ;;
           esac
-
-          if [ "$MODE" = "apply" ] && [ -z "$SLUG" ]; then
-            echo "::error::slug is required when mode=apply"
-            exit 1
-          fi
 
           if ! [[ "$PAGE_SIZE" =~ ^[0-9]+$ ]] || [ "$PAGE_SIZE" -le 0 ]; then
             echo "::error::page_size must be a positive integer"
@@ -117,16 +118,24 @@ jobs:
           SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           MODE: ${{ github.event.inputs.mode || 'dry_run' }}
-          REPORT_TYPE: ${{ github.event.inputs.report_type || 'maturity' }}
+          REPORT_TYPE: ${{ github.event.inputs.report_type || 'all' }}
           SLUG: ${{ github.event.inputs.slug }}
+          FORCE: ${{ github.event.inputs.force || 'false' }}
           PAGE_SIZE: ${{ github.event.inputs.page_size || '1000' }}
+          NODE_OPTIONS: --max-old-space-size=1024
           TS_NODE_COMPILER_OPTIONS: '{"module":"CommonJS"}'
         run: |
           set -euo pipefail
 
-          args=(--type "$REPORT_TYPE" --page-size "$PAGE_SIZE")
+          args=(--page-size "$PAGE_SIZE")
+          if [ "$REPORT_TYPE" != "all" ]; then
+            args+=(--type "$REPORT_TYPE")
+          fi
           if [ -n "$SLUG" ]; then
             args+=(--slug "$SLUG")
+          fi
+          if [ "$FORCE" = "true" ]; then
+            args+=(--force)
           fi
 
           if [ "$MODE" = "apply" ]; then
@@ -153,7 +162,8 @@ jobs:
           echo "## Report Cover Backfill" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Mode**: ${{ github.event.inputs.mode || 'dry_run' }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Report type**: ${{ github.event.inputs.report_type || 'maturity' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Report type**: ${{ github.event.inputs.report_type || 'all' }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Slug**: ${{ github.event.inputs.slug || '(none)' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Force**: ${{ github.event.inputs.force || 'false' }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Run ID**: ${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Timestamp**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> "$GITHUB_STEP_SUMMARY"

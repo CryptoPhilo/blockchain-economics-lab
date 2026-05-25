@@ -1,4 +1,10 @@
-import { buildReportHistoryByType, buildReportHref, selectReportsByType } from './page'
+import {
+  buildReportHistoryByType,
+  buildReportHref,
+  getReportCoverImageUrls,
+  pickProjectBackgroundCoverUrl,
+  selectReportsByType,
+} from './page'
 import type { ProjectReport } from '@/lib/types'
 
 function createReport(overrides: Partial<ProjectReport> = {}): ProjectReport {
@@ -149,6 +155,48 @@ describe('project detail report selection', () => {
         .get('econ')
         ?.map((report) => report.id),
     ).toEqual(['btc-econ-v1-ko'])
+  })
+})
+
+describe('project detail cover backgrounds', () => {
+  it('prefers locale cover, then English cover, then any available cover', () => {
+    const report = createReport({
+      cover_image_urls_by_lang: {
+        en: 'https://example.com/en-cover.png',
+        ko: 'https://example.com/ko-cover.png',
+      },
+    })
+
+    expect(getReportCoverImageUrls(report, 'ko')).toEqual([
+      'https://example.com/ko-cover.png',
+      'https://example.com/en-cover.png',
+    ])
+    expect(getReportCoverImageUrls(report, 'ja')).toEqual([
+      'https://example.com/en-cover.png',
+      'https://example.com/ko-cover.png',
+    ])
+  })
+
+  it('uses the latest report with a cover as the project background', () => {
+    const older = createReport({
+      id: 'older-report',
+      published_at: '2026-05-01T00:00:00.000Z',
+      cover_image_urls_by_lang: { ko: 'https://example.com/older-ko-cover.png' },
+    })
+    const newer = createReport({
+      id: 'newer-report',
+      published_at: '2026-05-20T00:00:00.000Z',
+      cover_image_urls_by_lang: { ko: 'https://example.com/newer-ko-cover.png' },
+    })
+    const newestWithoutCover = createReport({
+      id: 'newest-without-cover',
+      published_at: '2026-05-25T00:00:00.000Z',
+      cover_image_urls_by_lang: null,
+    })
+
+    expect(pickProjectBackgroundCoverUrl([older, newestWithoutCover, newer], 'ko')).toBe(
+      'https://example.com/newer-ko-cover.png',
+    )
   })
 })
 

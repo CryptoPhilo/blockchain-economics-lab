@@ -64,10 +64,14 @@ describe('LatestReportShowcase helpers', () => {
     expect(hasReportCover(createReport({ product: { ...createReport().product!, cover_image_url: '' } }))).toBe(false)
   })
 
-  it('derives localized cover image candidates from slide HTML when product cover backfill is missing', () => {
+  it('uses only persisted report cover URLs when product cover backfill is missing', () => {
     const report = createReport({
       product: { ...createReport().product!, cover_image_url: '' },
       language: 'ko',
+      cover_image_urls_by_lang: {
+        en: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/en-cover.png',
+        ko: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko-cover.png',
+      },
       slide_html_urls_by_lang: {
         ko: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko.html',
         en: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/en.html',
@@ -76,11 +80,7 @@ describe('LatestReportShowcase helpers', () => {
 
     expect(getReportCoverUrls(report, 'ko')).toEqual([
       'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko-cover.png',
-      'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko-cover.jpg',
-      'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko-cover.webp',
       'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/en-cover.png',
-      'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/en-cover.jpg',
-      'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/en-cover.webp',
     ])
     expect(getReportCoverAsset(report)).toEqual({
       type: 'image',
@@ -100,6 +100,13 @@ describe('LatestReportShowcase helpers', () => {
       createReport({ product: { ...createReport().product!, cover_image_url: '' } }),
       'en',
     )).toBe(false)
+    expect(isPublishedReportCoverCandidate(
+      createReport({
+        product: { ...createReport().product!, cover_image_url: '' },
+        cover_image_urls_by_lang: { en: 'https://example.com/en-cover.png' },
+      }),
+      'en',
+    )).toBe(true)
   })
 
   it('builds report links by report type', () => {
