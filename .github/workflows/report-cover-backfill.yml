@@ -48,7 +48,7 @@ jobs:
     name: Backfill Report Cover URLs
     runs-on: ubuntu-latest
     environment: production
-    timeout-minutes: 20
+    timeout-minutes: 90
 
     steps:
       - name: Checkout repository
