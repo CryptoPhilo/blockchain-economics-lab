@@ -269,23 +269,23 @@ describe('project detail cover backgrounds', () => {
     )
   })
 
-  it('derives the requested locale cover from latest storage naming when the database only stores one sibling language', () => {
-    const latestKo = createReport({
-      id: 'btc-econ-v4-ko',
-      language: 'ko',
+  it('uses the English header cover instead of deriving a missing locale cover URL', () => {
+    const sonic = createReport({
+      id: 'sonic-econ-v1-en',
+      language: 'en',
       report_type: 'econ',
-      version: 4,
+      version: 1,
       is_latest: true,
       cover_image_urls_by_lang: {
-        ko: 'https://example.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ko-cover.png',
+        en: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sonic/latest/en-cover.png',
+        ko: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sonic/latest/ko-cover.png',
+        ja: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sonic/latest/ja-cover.png',
+        zh: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sonic/latest/zh-cover.png',
       },
     })
 
-    expect(pickProjectBackgroundCoverUrl([latestKo], 'ja')).toBe(
-      'https://example.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ja-cover.png',
-    )
-    expect(pickProjectBackgroundCoverUrl([latestKo], 'en')).toBe(
-      'https://example.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/en-cover.png',
+    expect(pickProjectBackgroundCoverUrl([sonic], 'es')).toBe(
+      'https://example.supabase.co/storage/v1/object/public/slides/econ/sonic/latest/en-cover.png',
     )
   })
 

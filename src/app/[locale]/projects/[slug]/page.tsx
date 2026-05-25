@@ -162,7 +162,9 @@ export function pickProjectBackgroundCoverUrl(reports: ProjectReport[], locale: 
   if (!latestReportWithCover) return null
 
   const coverUrls = mergeCoverUrlsForReportVersionGroup(latestReports, latestReportWithCover)
-  return getCoverImageUrlsByLocale(coverUrls, locale)[0] ?? null
+  if (isNonEmptyString(coverUrls[locale])) return coverUrls[locale]
+  if (isNonEmptyString(coverUrls.en)) return coverUrls.en
+  return Object.values(coverUrls).find(isNonEmptyString) ?? null
 }
 
 /**
