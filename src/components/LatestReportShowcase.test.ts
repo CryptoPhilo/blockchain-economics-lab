@@ -1,6 +1,7 @@
 import {
   getLocalizedCoverUrls,
   getReportCoverAsset,
+  getReportCoverUrls,
   getReportHref,
   hasReportCover,
   isPublishedReportCoverCandidate,
@@ -63,7 +64,7 @@ describe('LatestReportShowcase helpers', () => {
     expect(hasReportCover(createReport({ product: { ...createReport().product!, cover_image_url: '' } }))).toBe(false)
   })
 
-  it('does not treat slide HTML as a cover asset when product cover backfill is missing', () => {
+  it('derives localized cover image candidates from slide HTML when product cover backfill is missing', () => {
     const report = createReport({
       product: { ...createReport().product!, cover_image_url: '' },
       language: 'ko',
@@ -73,8 +74,19 @@ describe('LatestReportShowcase helpers', () => {
       },
     })
 
-    expect(getReportCoverAsset(report)).toBeNull()
-    expect(isPublishedReportCoverCandidate(report, 'ko')).toBe(false)
+    expect(getReportCoverUrls(report, 'ko')).toEqual([
+      'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko-cover.png',
+      'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko-cover.jpg',
+      'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko-cover.webp',
+      'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/en-cover.png',
+      'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/en-cover.jpg',
+      'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/en-cover.webp',
+    ])
+    expect(getReportCoverAsset(report)).toEqual({
+      type: 'image',
+      url: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/en-cover.png',
+    })
+    expect(isPublishedReportCoverCandidate(report, 'ko')).toBe(true)
   })
 
   it('keeps latest cover candidates limited to published reports with locale support and covers', () => {

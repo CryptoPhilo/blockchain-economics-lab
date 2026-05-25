@@ -17,10 +17,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   let categories: any[] = []
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let latestReportCoverProducts: any[] = []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let latestReportCovers: any[] = []
 
   try {
     const supabase = await createServerSupabaseClient()
-    const [productsRes, categoriesRes, latestCoverProductsRes] = await Promise.all([
+    const [productsRes, categoriesRes, latestCoverProductsRes, latestReportCoversRes] = await Promise.all([
       supabase
         .from('products')
         .select('*, category:categories(*)')
@@ -41,10 +43,35 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         .not('cover_image_url', 'is', null)
         .order('published_at', { ascending: false, nullsFirst: false })
         .limit(8),
+      supabase
+        .from('project_reports')
+        .select(`
+          *,
+          tracked_projects(id, name, slug, symbol, chain, category),
+          product:products(
+            id,
+            slug,
+            title_en,
+            title_ko,
+            title_fr,
+            title_es,
+            title_de,
+            title_ja,
+            title_zh,
+            cover_image_url,
+            published_at
+          )
+        `)
+        .eq('status', 'published')
+        .in('report_type', ['econ', 'maturity', 'forensic'])
+        .order('published_at', { ascending: false, nullsFirst: false })
+        .order('updated_at', { ascending: false, nullsFirst: false })
+        .limit(40),
     ])
     featuredProducts = productsRes.data || []
     categories = categoriesRes.data || []
     latestReportCoverProducts = latestCoverProductsRes.data || []
+    latestReportCovers = latestReportCoversRes.data || []
   } catch (e) {
     console.error('Failed to fetch data:', e)
   }
@@ -52,8 +79,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   return (
     <div>
       {/* Latest report covers */}
-      {latestReportCoverProducts.length > 0 && (
-        <LatestReportShowcase products={latestReportCoverProducts} locale={locale} />
+      {(latestReportCoverProducts.length > 0 || latestReportCovers.length > 0) && (
+        <LatestReportShowcase products={latestReportCoverProducts} reports={latestReportCovers} locale={locale} />
       )}
 
       {/* About — 360° Project Intelligence (moved below content) */}
