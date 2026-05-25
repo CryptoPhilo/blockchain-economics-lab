@@ -35,6 +35,7 @@ const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'fetch-ai', slug: 'artificial-superintelligence-alliance' },
   { alias: 'euro-coin', slug: 'eurc' },
   { alias: 'world-liberty-financial-wlfi', slug: 'world-liberty-financial' },
+  { alias: 'genius-3', slug: 'genius-terminal' },
 ] as const
 
 type TrackedScoreboardProject = Awaited<

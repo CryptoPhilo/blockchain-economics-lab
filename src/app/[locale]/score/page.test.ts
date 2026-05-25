@@ -353,6 +353,52 @@ describe('score page tracked project aliases', () => {
     ])
   })
 
+  it('maps Genius market rows to the report-bearing Genius Terminal project', () => {
+    const trackedProjects = [
+      {
+        id: 'genius-empty-project',
+        name: 'Genius',
+        slug: 'genius',
+        symbol: 'GENIUS',
+        category: 'AI',
+        market_cap_usd: 186,
+        coingecko_id: 'genius-3',
+        cmc_id: null,
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+      {
+        id: 'genius-terminal-project',
+        name: 'Genius Terminal',
+        slug: 'genius-terminal',
+        symbol: 'GENIUS',
+        category: 'AI',
+        market_cap_usd: 186,
+        coingecko_id: null,
+        cmc_id: '39841',
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: '2026-05-25T00:00:00.000Z',
+        last_maturity_report_at: '2026-05-25T01:00:00.000Z',
+        last_forensic_report_at: null,
+      },
+    ]
+
+    const [row] = snapshotRowsToScoreRows(
+      [makeSnapshotRow(152, 'genius-3')],
+      buildTrackedProjectLookup(trackedProjects),
+    )
+
+    expect(row).toMatchObject({
+      name: 'Genius Terminal',
+      slug: 'genius-terminal',
+      reportTypes: ['econ', 'maturity'],
+    })
+  })
+
   it('does not show timestamp-only report badges when live report availability was loaded', () => {
     const trackedProjects = [
       {
