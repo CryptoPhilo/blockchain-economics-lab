@@ -17,6 +17,13 @@ const completeCoverUrlsByLang = {
   zh: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/zh-cover.png',
 }
 
+const completeSlideUrlsByLang = {
+  en: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/en.html',
+  ko: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ko.html',
+  ja: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/ja.html',
+  zh: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/zh.html',
+}
+
 function createReport(overrides: Partial<ProjectReport> = {}) {
   return {
     id: 'report-1',
@@ -143,26 +150,97 @@ describe('LatestReportShowcase helpers', () => {
       cover_image_urls_by_lang: {
         [language]: completeCoverUrlsByLang[language],
       },
+      slide_html_urls_by_lang: {
+        [language]: completeSlideUrlsByLang[language],
+      },
     }))
 
     expect(getReportShowcaseItems(rows, 'ko')).toEqual([])
   })
 
+  it('excludes homepage showcase groups without a published slide for the current locale', () => {
+    const rows = [
+      createReport({
+        id: 'report-en',
+        language: 'en',
+        cover_image_urls_by_lang: completeCoverUrlsByLang,
+        slide_html_urls_by_lang: {
+          en: completeSlideUrlsByLang.en,
+        },
+        gdrive_urls_by_lang: {
+          ko: {
+            url: 'https://drive.google.com/file/d/ko-pdf/view',
+          },
+        },
+      }),
+      createReport({
+        id: 'report-ko',
+        language: 'ko',
+        cover_image_urls_by_lang: completeCoverUrlsByLang,
+        gdrive_urls_by_lang: {
+          ko: {
+            url: 'https://drive.google.com/file/d/ko-pdf/view',
+          },
+        },
+      }),
+    ]
+
+    expect(getReportShowcaseItems(rows, 'ko')).toEqual([])
+    expect(getReportShowcaseItems(rows, 'en')).toHaveLength(1)
+  })
+
   it('keeps latest cover candidates limited to published reports with locale support and covers', () => {
-    expect(isPublishedReportCoverCandidate(createReport({ cover_image_urls_by_lang: completeCoverUrlsByLang }), 'en')).toBe(true)
-    expect(isPublishedReportCoverCandidate(createReport({ report_type: 'econ', cover_image_urls_by_lang: completeCoverUrlsByLang }), 'en')).toBe(true)
-    expect(isPublishedReportCoverCandidate(createReport({ report_type: 'maturity', cover_image_urls_by_lang: completeCoverUrlsByLang }), 'en')).toBe(true)
-    expect(isPublishedReportCoverCandidate(createReport({ status: 'in_review', cover_image_urls_by_lang: completeCoverUrlsByLang }), 'en')).toBe(false)
-    expect(isPublishedReportCoverCandidate(createReport({ status: 'coming_soon', cover_image_urls_by_lang: completeCoverUrlsByLang }), 'en')).toBe(false)
-    expect(isPublishedReportCoverCandidate(createReport({ language: 'ko', cover_image_urls_by_lang: completeCoverUrlsByLang }), 'en')).toBe(false)
+    expect(isPublishedReportCoverCandidate(createReport({
+      cover_image_urls_by_lang: completeCoverUrlsByLang,
+      slide_html_urls_by_lang: completeSlideUrlsByLang,
+    }), 'en')).toBe(true)
+    expect(isPublishedReportCoverCandidate(createReport({
+      report_type: 'econ',
+      cover_image_urls_by_lang: completeCoverUrlsByLang,
+      slide_html_urls_by_lang: completeSlideUrlsByLang,
+    }), 'en')).toBe(true)
+    expect(isPublishedReportCoverCandidate(createReport({
+      report_type: 'maturity',
+      cover_image_urls_by_lang: completeCoverUrlsByLang,
+      slide_html_urls_by_lang: completeSlideUrlsByLang,
+    }), 'en')).toBe(true)
+    expect(isPublishedReportCoverCandidate(createReport({
+      status: 'in_review',
+      cover_image_urls_by_lang: completeCoverUrlsByLang,
+      slide_html_urls_by_lang: completeSlideUrlsByLang,
+    }), 'en')).toBe(false)
+    expect(isPublishedReportCoverCandidate(createReport({
+      status: 'coming_soon',
+      cover_image_urls_by_lang: completeCoverUrlsByLang,
+      slide_html_urls_by_lang: completeSlideUrlsByLang,
+    }), 'en')).toBe(false)
+    expect(isPublishedReportCoverCandidate(createReport({
+      language: 'ko',
+      cover_image_urls_by_lang: completeCoverUrlsByLang,
+      slide_html_urls_by_lang: {
+        ko: completeSlideUrlsByLang.ko,
+      },
+    }), 'en')).toBe(false)
+    expect(isPublishedReportCoverCandidate(createReport({
+      cover_image_urls_by_lang: completeCoverUrlsByLang,
+      gdrive_urls_by_lang: {
+        en: {
+          url: 'https://drive.google.com/file/d/en-pdf/view',
+        },
+      },
+    }), 'en')).toBe(false)
     expect(isPublishedReportCoverCandidate(
-      createReport({ product: { ...createReport().product!, cover_image_url: '' } }),
+      createReport({
+        product: { ...createReport().product!, cover_image_url: '' },
+        slide_html_urls_by_lang: completeSlideUrlsByLang,
+      }),
       'en',
     )).toBe(false)
     expect(isPublishedReportCoverCandidate(
       createReport({
         product: { ...createReport().product!, cover_image_url: '' },
         cover_image_urls_by_lang: { en: 'https://example.com/en-cover.png' },
+        slide_html_urls_by_lang: completeSlideUrlsByLang,
       }),
       'en',
     )).toBe(false)

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-import { reportSupportsLocale } from '@/lib/report-locale'
+import { reportHasSlideAssetForLocale, reportSupportsLocale } from '@/lib/report-locale'
 import { cleanCardSummary } from '@/lib/report-summary'
 import { getLocalizedField, type Locale, type Product, type ProjectReport, type ReportType, type TrackedProject } from '@/lib/types'
 
@@ -135,7 +135,7 @@ function hasRequiredShowcaseCoverUrlMap(coverUrls: Record<string, string>) {
 
 export function isPublishedReportCoverCandidate(report: ReportWithCover, locale: string) {
   return report.status === 'published'
-    && reportSupportsLocale(report, locale)
+    && reportHasSlideAssetForLocale(report, locale)
     && hasRequiredShowcaseCoverLocales(report)
     && getReportCoverUrls(report, locale).length > 0
 }
@@ -242,9 +242,11 @@ function mergeReportGroupCoverUrls(reports: ReportWithCover[]) {
 }
 
 function pickLocalizedReportFromGroup(reports: ReportWithCover[], locale: string) {
-  return reports.find((report) => report.language === locale)
-    ?? reports.find((report) => reportSupportsLocale(report, locale))
-    ?? reports.find((report) => report.language === 'en')
+  const availableReports = reports.filter((report) => reportHasSlideAssetForLocale(report, locale))
+  return availableReports.find((report) => report.language === locale)
+    ?? availableReports.find((report) => reportSupportsLocale(report, locale))
+    ?? availableReports.find((report) => report.language === 'en')
+    ?? availableReports[0]
     ?? reports[0]
 }
 
@@ -261,6 +263,7 @@ export function getReportShowcaseItems(reports: ReportWithCover[] | undefined, l
   return [...groups.values()]
     .map((group) => group.sort((a, b) => getReportSortTime(b) - getReportSortTime(a)))
     .filter((group) => hasRequiredShowcaseCoverUrlMap(mergeReportGroupCoverUrls(group)))
+    .filter((group) => group.some((report) => reportHasSlideAssetForLocale(report, locale)))
     .map((group) => {
       const report = pickLocalizedReportFromGroup(group, locale)
       const project = report.tracked_projects ?? report.project
