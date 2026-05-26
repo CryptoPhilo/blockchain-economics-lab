@@ -819,6 +819,7 @@ def _create_report_row_for_slide(
     pdf_name: str,
     public_url: Optional[str],
     version: Optional[int],
+    project_name: Optional[str] = None,
     cover_url: Optional[str] = None,
     status: str = PUBLICATION_PUBLISHED_STATUS,
     source_patch: Optional[Dict[str, Any]] = None,
@@ -858,7 +859,7 @@ def _create_report_row_for_slide(
         row.update(source_patch)
     title_col = f"title_{lang}"
     if lang in SUPPORTED_LANGS:
-        row[title_col] = Path(pdf_name).stem.replace('_', ' ')
+        row[title_col] = project_name or slug or Path(pdf_name).stem.replace('_', ' ')
 
     if previous_report_id:
         sb.table('project_reports').update({
@@ -990,7 +991,7 @@ def _generate_summary_after_slide_publish(
         patch_card_data = patch.get('card_data') if isinstance(patch.get('card_data'), dict) else {}
         source_md = patch_card_data.get('source_md') if isinstance(patch_card_data.get('source_md'), dict) else {}
         lang = getattr(source, 'lang', None) or 'ko'
-        canonical_title = f"{project.get('name') or project.get('slug')} {report_label} {lang}"
+        canonical_title = project.get('name') or project.get('slug')
         patch['card_data'] = {
             **existing_card_data,
             **patch_card_data,
@@ -1208,6 +1209,7 @@ def _repair_unchanged_manifest_publication(
         pdf_name=pdf_name,
         public_url=public_url,
         version=resolved_version,
+        project_name=(project or {}).get('name'),
         status=target_status,
         source_patch=source_patch,
         previous_report_id=previous_report_id,
@@ -1586,6 +1588,7 @@ def _reconcile_visible_reports_with_drive(
                 pdf_name=pdf.get('name') or '',
                 public_url=None,
                 version=None,
+                project_name=project.get('name'),
                 status=PUBLICATION_PUBLISHED_STATUS,
             )
         results.append({
@@ -3074,6 +3077,7 @@ def process(
                         pdf_name=pdf['name'],
                         public_url=public_url,
                         version=version,
+                        project_name=project.get('name'),
                         cover_url=cover_url,
                         status=target_status,
                         source_patch=source_patch,

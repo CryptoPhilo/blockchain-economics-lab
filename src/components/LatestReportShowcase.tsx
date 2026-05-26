@@ -152,6 +152,9 @@ export function getReportHref(report: ReportWithCover, locale: string) {
 }
 
 function getLocalizedProductTitle(report: ReportWithCover, locale: string) {
+  const projectName = report.tracked_projects?.name ?? report.project?.name
+  if (projectName?.trim()) return projectName
+
   const product = getProduct(report)
   const localized = product?.[`title_${locale}` as keyof typeof product]
 

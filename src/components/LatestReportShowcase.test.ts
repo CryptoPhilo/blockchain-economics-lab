@@ -135,6 +135,8 @@ describe('LatestReportShowcase helpers', () => {
     expect(koItems).toHaveLength(1)
     expect(enItems).toHaveLength(1)
     expect(koItems[0].id).toBe(enItems[0].id)
+    expect(koItems[0].title).toBe('Pump Fun')
+    expect(enItems[0].title).toBe('Pump Fun')
     expect(koItems[0].coverUrls).toEqual([
       completeCoverUrlsByLang.ko,
       completeCoverUrlsByLang.en,
