@@ -220,16 +220,19 @@ describe('project detail cover backgrounds', () => {
   it('uses the latest report with a cover as the project background', () => {
     const older = createReport({
       id: 'older-report',
+      version: 1,
       published_at: '2026-05-01T00:00:00.000Z',
       cover_image_urls_by_lang: { ko: 'https://example.com/older-ko-cover.png' },
     })
     const newer = createReport({
       id: 'newer-report',
+      version: 2,
       published_at: '2026-05-20T00:00:00.000Z',
       cover_image_urls_by_lang: { ko: 'https://example.com/newer-ko-cover.png' },
     })
     const newestWithoutCover = createReport({
       id: 'newest-without-cover',
+      version: 3,
       published_at: '2026-05-25T00:00:00.000Z',
       cover_image_urls_by_lang: null,
     })
@@ -243,12 +246,14 @@ describe('project detail cover backgrounds', () => {
     const olderKo = createReport({
       id: 'kaspa-econ-ko',
       language: 'ko',
+      version: 1,
       published_at: '2026-05-07T00:00:00.000Z',
       cover_image_urls_by_lang: { ko: 'https://example.com/kaspa-ko-cover.png' },
     })
     const newerZh = createReport({
       id: 'kaspa-econ-zh',
       language: 'zh',
+      version: 2,
       published_at: '2026-05-08T00:00:00.000Z',
       cover_image_urls_by_lang: {
         en: 'https://example.com/kaspa-en-cover.png',
@@ -261,6 +266,40 @@ describe('project detail cover backgrounds', () => {
     )
     expect(pickProjectBackgroundCoverUrl([newerZh, olderKo], 'zh')).toBe(
       'https://example.com/kaspa-zh-cover.png',
+    )
+  })
+
+  it('uses a locale cover from a sibling row in the selected latest report version group', () => {
+    const olderJa = createReport({
+      id: 'btc-econ-v3-ja',
+      language: 'ja',
+      report_type: 'econ',
+      version: 3,
+      published_at: '2026-05-20T00:00:00.000Z',
+      cover_image_urls_by_lang: { ja: 'https://example.com/btc-v3-ja-cover.png' },
+    })
+    const latestKo = createReport({
+      id: 'btc-econ-v4-ko',
+      language: 'ko',
+      report_type: 'econ',
+      version: 4,
+      published_at: '2026-05-25T00:00:00.000Z',
+      cover_image_urls_by_lang: { ko: 'https://example.com/btc-v4-ko-cover.png' },
+    })
+    const latestJa = createReport({
+      id: 'btc-econ-v4-ja',
+      language: 'ja',
+      report_type: 'econ',
+      version: 4,
+      published_at: '2026-05-25T00:01:00.000Z',
+      cover_image_urls_by_lang: { ja: 'https://example.com/btc-v4-ja-cover.png' },
+    })
+
+    expect(pickProjectBackgroundCoverUrl([olderJa, latestKo, latestJa], 'ja')).toBe(
+      'https://example.com/btc-v4-ja-cover.png',
+    )
+    expect(pickProjectBackgroundCoverUrl([olderJa, latestKo, latestJa], 'zh')).toBe(
+      'https://example.com/btc-v4-ja-cover.png',
     )
   })
 })

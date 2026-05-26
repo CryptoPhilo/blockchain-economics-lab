@@ -104,7 +104,10 @@ function isNonEmptyString(value: unknown): value is string {
 }
 
 export function getReportCoverImageUrls(report: ProjectReport, locale: string): string[] {
-  const urls = report.cover_image_urls_by_lang ?? {}
+  return getCoverImageUrlsByLocale(report.cover_image_urls_by_lang ?? {}, locale)
+}
+
+function getCoverImageUrlsByLocale(urls: Record<string, unknown>, locale: string): string[] {
   return [...new Set([
     urls[locale],
     urls.en,
@@ -112,12 +115,44 @@ export function getReportCoverImageUrls(report: ProjectReport, locale: string): 
   ].filter(isNonEmptyString))]
 }
 
+function isSameReportVersionGroup(a: ProjectReport, b: ProjectReport): boolean {
+  return a.report_type === b.report_type
+    && Number(a.version || 0) === Number(b.version || 0)
+    && (
+      b.is_latest == null
+      || a.is_latest == null
+      || Boolean(a.is_latest) === Boolean(b.is_latest)
+    )
+}
+
+function mergeCoverUrlsForReportVersionGroup(
+  reports: ProjectReport[],
+  selectedReport: ProjectReport,
+): Record<string, string> {
+  const coverUrls: Record<string, string> = {}
+
+  for (const report of reports) {
+    if (!isSameReportVersionGroup(report, selectedReport)) continue
+
+    for (const [language, url] of Object.entries(report.cover_image_urls_by_lang ?? {})) {
+      if (!isNonEmptyString(coverUrls[language]) && isNonEmptyString(url)) {
+        coverUrls[language] = url
+      }
+    }
+  }
+
+  return coverUrls
+}
+
 export function pickProjectBackgroundCoverUrl(reports: ProjectReport[], locale: string): string | null {
   const latestReports = sortReportsLatestFirst(reports)
   const latestReportWithCover = latestReports.find((report) => (
     Object.values(report.cover_image_urls_by_lang ?? {}).some(isNonEmptyString)
   ))
-  return latestReportWithCover ? getReportCoverImageUrls(latestReportWithCover, locale)[0] ?? null : null
+  if (!latestReportWithCover) return null
+
+  const coverUrls = mergeCoverUrlsForReportVersionGroup(latestReports, latestReportWithCover)
+  return getCoverImageUrlsByLocale(coverUrls, locale)[0] ?? null
 }
 
 /**
