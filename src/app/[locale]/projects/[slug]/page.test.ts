@@ -283,6 +283,7 @@ describe('project detail cover backgrounds', () => {
       language: 'ko',
       report_type: 'econ',
       version: 4,
+      is_latest: true,
       published_at: '2026-05-25T00:00:00.000Z',
       cover_image_urls_by_lang: { ko: 'https://example.com/btc-v4-ko-cover.png' },
     })
@@ -291,6 +292,7 @@ describe('project detail cover backgrounds', () => {
       language: 'ja',
       report_type: 'econ',
       version: 4,
+      is_latest: false,
       published_at: '2026-05-25T00:01:00.000Z',
       cover_image_urls_by_lang: { ja: 'https://example.com/btc-v4-ja-cover.png' },
     })
@@ -299,7 +301,7 @@ describe('project detail cover backgrounds', () => {
       'https://example.com/btc-v4-ja-cover.png',
     )
     expect(pickProjectBackgroundCoverUrl([olderJa, latestKo, latestJa], 'zh')).toBe(
-      'https://example.com/btc-v4-ja-cover.png',
+      'https://example.com/btc-v4-ko-cover.png',
     )
   })
 })
