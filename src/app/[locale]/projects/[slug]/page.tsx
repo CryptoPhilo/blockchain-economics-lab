@@ -88,15 +88,8 @@ function formatMarketCap(value: number | null | undefined): string | null {
   return `$${value.toFixed(0)}`
 }
 
-const REPORT_TYPE_TITLE_CODE: Record<ReportType, string> = {
-  econ: 'ECON',
-  maturity: 'MAT',
-  forensic: 'FOR',
-}
-
-export function pickLocalizedTitle(report: ProjectReport, locale: string, projectName: string): string {
-  const code = REPORT_TYPE_TITLE_CODE[report.report_type]
-  return `${projectName} ${code} ${locale}`
+export function pickLocalizedTitle(_report: ProjectReport, _locale: string, projectName: string): string {
+  return projectName
 }
 
 function pickLocalizedSummary(report: ProjectReport, locale: string): string | null {
@@ -121,22 +114,10 @@ export function getReportCoverImageUrls(report: ProjectReport, locale: string): 
 
 export function pickProjectBackgroundCoverUrl(reports: ProjectReport[], locale: string): string | null {
   const latestReports = sortReportsLatestFirst(reports)
-  const localeCover = latestReports
-    .map((report) => report.cover_image_urls_by_lang?.[locale])
-    .find(isNonEmptyString)
-  if (localeCover) return localeCover
-
-  const englishCover = latestReports
-    .map((report) => report.cover_image_urls_by_lang?.en)
-    .find(isNonEmptyString)
-  if (englishCover) return englishCover
-
-  for (const report of latestReports) {
-    const fallback = Object.values(report.cover_image_urls_by_lang ?? {}).find(isNonEmptyString)
-    if (fallback) return fallback
-  }
-
-  return null
+  const latestReportWithCover = latestReports.find((report) => (
+    Object.values(report.cover_image_urls_by_lang ?? {}).some(isNonEmptyString)
+  ))
+  return latestReportWithCover ? getReportCoverImageUrls(latestReportWithCover, locale)[0] ?? null : null
 }
 
 /**

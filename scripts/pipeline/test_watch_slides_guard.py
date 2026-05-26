@@ -1136,7 +1136,7 @@ class MutableFakeSupabase:
 
 
 def test_report_source_identity_reuses_existing_drive_source(ws):
-    project = {'id': 'p-bitcoin', 'slug': 'bitcoin'}
+    project = {'id': 'p-bitcoin', 'slug': 'bitcoin', 'name': 'Bitcoin'}
     source_patch = ws._report_source_patch(
         project=project,
         db_type='econ',
@@ -1217,7 +1217,7 @@ def test_report_source_identity_allocates_next_version_for_new_drive_pdf(ws):
 
 
 def test_create_report_row_for_slide_moves_latest_pointer_and_stores_source(ws):
-    project = {'id': 'p-bitcoin', 'slug': 'bitcoin'}
+    project = {'id': 'p-bitcoin', 'slug': 'bitcoin', 'name': 'Bitcoin'}
     source_patch = ws._report_source_patch(
         project=project,
         db_type='econ',
@@ -1251,6 +1251,7 @@ def test_create_report_row_for_slide_moves_latest_pointer_and_stores_source(ws):
         pdf_name='bitcoin_ECON_ko_v3.pdf',
         public_url='https://storage.example/econ/bitcoin/latest/ko.html',
         version=3,
+        project_name=project['name'],
         source_patch=source_patch,
         previous_report_id='r-latest',
     )
@@ -1262,6 +1263,7 @@ def test_create_report_row_for_slide_moves_latest_pointer_and_stores_source(ws):
     assert rows[1]['previous_report_id'] == 'r-latest'
     assert rows[1]['source_identity'] == source_patch['source_identity']
     assert rows[1]['source_file_id'] == 'drive-new'
+    assert rows[1]['title_ko'] == 'Bitcoin'
 
 
 def test_report_source_identity_migration_backfill_prefers_version_before_timestamp():
@@ -2516,6 +2518,7 @@ def test_create_report_row_for_slide_upserts_missing_report_shell(ws):
         pdf_name='Shiba_Inu_Cryptoeconomic_Analysis_ko.pdf',
         public_url='https://storage/slides/econ/shiba-inu/latest/ko.html',
         version=None,
+        project_name='Shiba Inu',
     )
 
     payload = sb.project_reports.upsert_payload
@@ -2537,6 +2540,7 @@ def test_create_report_row_for_slide_upserts_missing_report_shell(ws):
     }
     assert payload['cover_image_urls_by_lang'] == {}
     assert payload['card_data']['slug'] == 'shiba-inu'
+    assert payload['title_ko'] == 'Shiba Inu'
     assert sb.tracked_projects.patch is not None
 
 
@@ -2675,7 +2679,7 @@ def test_summary_generation_overwrites_stale_cross_project_card_identity(ws, mon
     )
 
     assert generated is True
-    assert report['title_ko'] == 'Ethereum MAT ko'
+    assert report['title_ko'] == 'Ethereum'
     assert report['card_summary_ko'] == 'Ethereum summary text'
     assert report['card_data']['slug'] == 'ethereum'
     assert report['card_data']['report_type'] == 'maturity'

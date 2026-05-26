@@ -32,7 +32,7 @@ describe('project detail report selection', () => {
       card_summary_ko: 'Ethereum summary text',
     } as Partial<ProjectReport>)
 
-    expect(pickLocalizedTitle(report, 'ko', 'Ethereum')).toBe('Ethereum MAT ko')
+    expect(pickLocalizedTitle(report, 'ko', 'Ethereum')).toBe('Ethereum')
   })
 
   it('selects a Korean BTC ECON row for locales that have slide assets or English fallback', () => {
@@ -199,7 +199,7 @@ describe('project detail report selection', () => {
 })
 
 describe('project detail cover backgrounds', () => {
-  it('prefers locale cover, then English cover, then any available cover', () => {
+  it('prefers locale cover, then English cover, then any available cover within the selected report version', () => {
     const report = createReport({
       cover_image_urls_by_lang: {
         en: 'https://example.com/en-cover.png',
@@ -239,7 +239,7 @@ describe('project detail cover backgrounds', () => {
     )
   })
 
-  it('prefers a locale cover from an older report over a newer foreign-language cover', () => {
+  it('keeps the project background on the newest report version instead of falling back to an older localized cover', () => {
     const olderKo = createReport({
       id: 'kaspa-econ-ko',
       language: 'ko',
@@ -250,11 +250,17 @@ describe('project detail cover backgrounds', () => {
       id: 'kaspa-econ-zh',
       language: 'zh',
       published_at: '2026-05-08T00:00:00.000Z',
-      cover_image_urls_by_lang: { zh: 'https://example.com/kaspa-zh-cover.png' },
+      cover_image_urls_by_lang: {
+        en: 'https://example.com/kaspa-en-cover.png',
+        zh: 'https://example.com/kaspa-zh-cover.png',
+      },
     })
 
     expect(pickProjectBackgroundCoverUrl([newerZh, olderKo], 'ko')).toBe(
-      'https://example.com/kaspa-ko-cover.png',
+      'https://example.com/kaspa-en-cover.png',
+    )
+    expect(pickProjectBackgroundCoverUrl([newerZh, olderKo], 'zh')).toBe(
+      'https://example.com/kaspa-zh-cover.png',
     )
   })
 })
