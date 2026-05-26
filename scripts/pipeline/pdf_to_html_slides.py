@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-pdf_to_html_slides.py — Convert NotebookLM-generated slide PDFs into
+pdf_to_html_slides.py — Convert slide PDFs into
 a self-contained HTML viewer with fixed-size page-flip navigation.
 
 Each PDF page is rendered at high DPI, base64-encoded, and embedded in a
@@ -56,8 +56,7 @@ def _normalize_jpeg_quality(quality: int | str | None) -> int:
 def compress_slide_pdf(
     input_path: str, output_path: str, jpeg_quality: int = 80,
 ) -> str:
-    """Compress a slide PDF by converting embedded PNGs to JPEG.
-    Typically reduces NotebookLM PDFs from ~6MB to ~800KB (87% reduction)."""
+    """Compress a slide PDF by converting embedded PNGs to JPEG."""
     if not HAS_PIL:
         raise ImportError("Pillow required for PDF compression: pip install Pillow")
     src = fitz.open(input_path)
@@ -106,9 +105,10 @@ def _median_color(pix: fitz.Pixmap, x0: int, y0: int, x1: int, y1: int) -> tuple
 _SOURCE_STRIP_ROWS = 3  # rows sampled above the bbox for the per-column median
 
 
-# Copyright overlay (BCE-1701 follow-up): instead of fighting to make the masked area
-# look like nothing was there, paint a small BCE Lab brand mark in the same spot.
-# Turns the masked region into intentional branding rather than a "blank patch."
+# Optional copyright overlay. This used to be enabled by default to make the
+# masked NotebookLM logo area look intentional, but current PDF generation no
+# longer leaves visible noise after masking. Keep the helper for manual repair,
+# while the production HTML conversion path leaves the slide content clean.
 COPYRIGHT_OVERLAY_TEXT = "© BCE Lab"
 COPYRIGHT_OVERLAY_FONT_FRAC = 0.022   # font size as fraction of page height
 COPYRIGHT_OVERLAY_COLOR = (110, 110, 100)  # subtle warm gray, matches typical footer
@@ -225,12 +225,12 @@ def extract_pages_images(
     dpi: int = DEFAULT_RENDER_DPI,
     fmt: str = DEFAULT_IMAGE_FORMAT,
     quality: int = DEFAULT_JPEG_QUALITY,
-    mask_logo: bool = True,
-    add_copyright: bool = True,
+    mask_logo: bool = False,
+    add_copyright: bool = False,
 ) -> list[tuple[str, bytes]]:
     """Render each PDF page to image bytes. Returns [(mime, raw_bytes), ...].
-    When mask_logo is True (default), paints over the NotebookLM logo at the bottom-right of each page.
-    When add_copyright is True (default), renders a BCE Lab copyright notice into the same area."""
+    When mask_logo is True, paints over the legacy NotebookLM logo at the bottom-right of each page.
+    When add_copyright is True, renders a BCE Lab copyright notice into the same area."""
     fmt = _normalize_image_format(fmt)
     quality = _normalize_jpeg_quality(quality)
     doc = fitz.open(pdf_path)
@@ -260,8 +260,8 @@ def extract_pages_base64(
     dpi: int = DEFAULT_RENDER_DPI,
     fmt: str = DEFAULT_IMAGE_FORMAT,
     quality: int = DEFAULT_JPEG_QUALITY,
-    mask_logo: bool = True,
-    add_copyright: bool = True,
+    mask_logo: bool = False,
+    add_copyright: bool = False,
 ) -> list[tuple[str, str]]:
     """Render each PDF page to a base64-encoded image. Returns [(mime, b64), ...]."""
     pages = extract_pages_images(
@@ -584,7 +584,7 @@ def convert_pdf_to_html_slides(
     dpi: int = DEFAULT_RENDER_DPI,
     fmt: str = DEFAULT_IMAGE_FORMAT,
     quality: int = DEFAULT_JPEG_QUALITY,
-    mask_logo: bool = True,
+    mask_logo: bool = False,
 ) -> str:
     """Main entry: convert a PDF to an HTML slide viewer."""
     if output_path is None:
@@ -595,7 +595,7 @@ def convert_pdf_to_html_slides(
     quality = _normalize_jpeg_quality(quality)
     image_label = f"{fmt.upper()}" if fmt == "png" else f"JPEG quality {quality}"
     print(f"[1/2] Extracting pages from {pdf_path} at {dpi} DPI ({image_label})"
-          f"{' with NotebookLM logo masking' if mask_logo else ''}...")
+          f"{' with legacy NotebookLM logo masking' if mask_logo else ''}...")
     pages = extract_pages_base64(
         pdf_path,
         dpi=dpi,
@@ -643,10 +643,10 @@ def main():
         help=f"JPEG quality when --format jpeg is used (default: {DEFAULT_JPEG_QUALITY})",
     )
     parser.add_argument(
-        "--no-mask-logo", dest="mask_logo", action="store_false",
-        help="Disable NotebookLM logo masking (use when input PDF is not from NotebookLM)",
+        "--mask-logo", dest="mask_logo", action="store_true",
+        help="Enable legacy NotebookLM logo masking for old inputs that still need it",
     )
-    parser.set_defaults(mask_logo=True)
+    parser.set_defaults(mask_logo=False)
     args = parser.parse_args()
 
     convert_pdf_to_html_slides(

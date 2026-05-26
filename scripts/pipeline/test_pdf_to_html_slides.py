@@ -249,6 +249,54 @@ class SlideHtmlRenderingTests(TestCase):
         image = Image.open(io.BytesIO(raw))
         self.assertEqual(image.size, (72, 36))
 
+    def test_default_rendering_does_not_add_copyright_overlay(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            pdf_path = Path(tmp) / "sample.pdf"
+            doc = fitz.open()
+            doc.new_page(width=1280, height=720)
+            doc.save(pdf_path)
+            doc.close()
+
+            pages = extract_pages_images(
+                str(pdf_path),
+                dpi=72,
+                fmt="png",
+            )
+
+        _, raw = pages[0]
+        image = Image.open(io.BytesIO(raw)).convert("RGB")
+        fx0, fy0, fx1, fy1 = NOTEBOOKLM_LOGO_BBOX
+        lx0 = int(image.width * fx0); ly0 = int(image.height * fy0)
+        lx1 = int(image.width * fx1); ly1 = int(image.height * fy1)
+
+        bbox_pixels = [
+            image.getpixel((x, y))
+            for y in range(ly0, ly1)
+            for x in range(lx0, lx1)
+        ]
+        self.assertEqual(set(bbox_pixels), {(255, 255, 255)})
+
+    def test_default_rendering_does_not_mask_bottom_right_content(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            pdf_path = Path(tmp) / "sample.pdf"
+            doc = fitz.open()
+            page = doc.new_page(width=1280, height=720)
+            fx0, fy0, fx1, fy1 = NOTEBOOKLM_LOGO_BBOX
+            rect = fitz.Rect(1280 * fx0, 720 * fy0, 1280 * fx1, 720 * fy1)
+            page.draw_rect(rect, color=(1, 0, 0), fill=(1, 0, 0))
+            doc.save(pdf_path)
+            doc.close()
+
+            pages = extract_pages_images(
+                str(pdf_path),
+                dpi=72,
+                fmt="png",
+            )
+
+        _, raw = pages[0]
+        image = Image.open(io.BytesIO(raw)).convert("RGB")
+        self.assertEqual(image.getpixel((1240, 700)), (255, 0, 0))
+
     def test_html_converter_embeds_png_by_default(self):
         with tempfile.TemporaryDirectory() as tmp:
             pdf_path = Path(tmp) / "sample.pdf"
