@@ -1743,6 +1743,28 @@ def _reconcile_visible_reports_with_drive(
     return results
 
 
+def run_db_reconcile_only(types: Iterable[str], *, dry_run: bool) -> List[Dict[str, Any]]:
+    """Run the Drive-vs-DB availability reconciliation without slide conversion.
+
+    This is an operational repair path for cases where the manifest/processed
+    tracker is already up to date but the website-visible `project_reports`
+    state is missing or stale. It intentionally skips PDF download, HTML
+    rendering, and Supabase Storage writes.
+    """
+    service = _get_drive_service()
+    from supabase_storage import get_supabase_storage_client
+
+    sb = get_supabase_storage_client()
+    projects = _load_tracked_projects(sb)
+    return _reconcile_visible_reports_with_drive(
+        sb,
+        service,
+        types=types,
+        projects=projects,
+        dry_run=dry_run,
+    )
+
+
 # ═══════════════════════════════════════════
 # Conversion + upload
 # ═══════════════════════════════════════════
@@ -3548,9 +3570,17 @@ def main() -> int:
         default=None,
         help='Only scan Drive PDFs modified within this many minutes; disables full DB reconciliation by default.',
     )
+    parser.add_argument(
+        '--reconcile-only',
+        action='store_true',
+        help='Only reconcile active Drive Slide PDFs with website-visible DB report rows; skip conversion/upload.',
+    )
     args = parser.parse_args()
 
     types = ['econ', 'mat', 'for'] if args.type == 'all' else [args.type]
+    if args.reconcile_only and args.slug:
+        print('Error: --reconcile-only cannot be combined with --slug; run it per type or full tree.', file=sys.stderr)
+        return 2
     try:
         language_overrides = _parse_language_overrides(args.language_override)
     except ValueError as e:
@@ -3582,16 +3612,31 @@ def main() -> int:
         slug=args.slug,
     )
 
-    scanned, processed = process(
-        types,
-        filter_slug=args.slug,
-        filter_file_ids=None,
-        dry_run=args.dry_run,
-        force=args.force,
-        reconcile_db=not args.skip_db_reconcile and modified_since is None,
-        language_overrides=language_overrides,
-        modified_since=modified_since,
-    )
+    if args.reconcile_only:
+        print('\n[RECONCILE] DB availability repair only; skipping PDF conversion/upload')
+        scanned = []
+        try:
+            processed = run_db_reconcile_only(types, dry_run=args.dry_run)
+        except Exception as e:
+            print(f"  [WARN] DB availability reconcile-only failed: {e}")
+            processed = [{
+                'rtype': ','.join(types),
+                'slug': None,
+                'lang': None,
+                'status': 'db_reconcile_only_failed',
+                'error': str(e)[:300],
+            }]
+    else:
+        scanned, processed = process(
+            types,
+            filter_slug=args.slug,
+            filter_file_ids=None,
+            dry_run=args.dry_run,
+            force=args.force,
+            reconcile_db=not args.skip_db_reconcile and modified_since is None,
+            language_overrides=language_overrides,
+            modified_since=modified_since,
+        )
 
     guard_results = run_active_project_backlog_guard()
     source_diagnostics = run_source_slide_diagnostics(

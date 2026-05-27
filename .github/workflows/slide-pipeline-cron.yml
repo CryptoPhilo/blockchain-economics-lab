@@ -31,6 +31,11 @@ on:
         required: false
         type: boolean
         default: false
+      reconcile_only:
+        description: 'Only reconcile active Drive Slide PDFs with website-visible DB report rows'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -225,6 +230,11 @@ jobs:
               echo "⚡ Force re-processing enabled"
               ARGS="$ARGS --force"
             fi
+
+            if [ "${{ github.event.inputs.reconcile_only }}" == "true" ]; then
+              echo "🔁 DB availability reconcile-only enabled"
+              ARGS="$ARGS --reconcile-only"
+            fi
           fi
 
           echo "Invoking: python3 watch_slides.py $ARGS"
@@ -303,6 +313,9 @@ jobs:
           fi
           if [ "${{ github.event.inputs.dry_run }}" == "true" ]; then
             echo "- **Mode**: Dry Run (scan only)" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ "${{ github.event.inputs.reconcile_only }}" == "true" ]; then
+            echo "- **Mode**: DB availability reconcile only" >> $GITHUB_STEP_SUMMARY
           fi
 
           LATEST_LOG=$(ls -t logs/slide_pipeline/*.md 2>/dev/null | head -1)
