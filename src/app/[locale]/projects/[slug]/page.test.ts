@@ -269,6 +269,26 @@ describe('project detail cover backgrounds', () => {
     )
   })
 
+  it('derives the requested locale cover from latest storage naming when the database only stores one sibling language', () => {
+    const latestKo = createReport({
+      id: 'btc-econ-v4-ko',
+      language: 'ko',
+      report_type: 'econ',
+      version: 4,
+      is_latest: true,
+      cover_image_urls_by_lang: {
+        ko: 'https://example.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ko-cover.png',
+      },
+    })
+
+    expect(pickProjectBackgroundCoverUrl([latestKo], 'ja')).toBe(
+      'https://example.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ja-cover.png',
+    )
+    expect(pickProjectBackgroundCoverUrl([latestKo], 'en')).toBe(
+      'https://example.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/en-cover.png',
+    )
+  })
+
   it('uses a locale cover from a sibling row in the selected latest report version group', () => {
     const olderJa = createReport({
       id: 'btc-econ-v3-ja',
