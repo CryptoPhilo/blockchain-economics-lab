@@ -3131,6 +3131,43 @@ def test_db_reconcile_dry_run_materialization_does_not_mutate_rows(ws, monkeypat
     assert any(result['status'] == 'dry_run_db_reconcile_materialize' for result in results)
 
 
+def test_run_db_reconcile_only_skips_slide_conversion_and_materializes_rows(ws, monkeypatch):
+    projects = [
+        {'id': 'project-story', 'slug': 'story-protocol', 'name': 'Story Protocol', 'symbol': 'IP'},
+    ]
+    tables = {
+        'project_reports': [],
+        'tracked_projects': [{
+            'id': 'project-story',
+            'slug': 'story-protocol',
+            'last_econ_report_at': None,
+            'last_maturity_report_at': None,
+            'last_forensic_report_at': None,
+        }],
+    }
+    monkeypatch.setattr(ws, '_get_drive_service', lambda: object())
+    monkeypatch.setattr(ws, '_load_tracked_projects', lambda _sb: projects)
+    monkeypatch.setitem(sys.modules, 'supabase_storage', SimpleNamespace(
+        get_supabase_storage_client=lambda: _FakeReconcileSupabase(tables),
+    ))
+    monkeypatch.setattr(ws, '_iter_active_slide_targets', lambda *_args, **_kwargs: [
+        ('econ', {
+            'id': 'drive-story-en',
+            'name': 'Story Protocol_Cryptoeconomic_Blueprint_en.pdf',
+            'source_path': 'Slide/econ/Story Protocol_Cryptoeconomic_Blueprint_en.pdf',
+        }),
+    ])
+
+    results = ws.run_db_reconcile_only(['econ'], dry_run=False)
+
+    assert tables['project_reports'][0]['project_id'] == 'project-story'
+    assert tables['project_reports'][0]['report_type'] == 'econ'
+    assert tables['project_reports'][0]['language'] == 'en'
+    assert tables['project_reports'][0]['status'] == ws.PUBLICATION_PUBLISHED_STATUS
+    assert tables['project_reports'][0]['gdrive_file_id'] == 'drive-story-en'
+    assert any(result['status'] == 'db_reconcile_materialized' for result in results)
+
+
 def test_write_run_log_handles_prune_records_without_name(ws, monkeypatch, tmp_path):
     monkeypatch.setattr(ws, 'LOG_DIR', tmp_path)
 
