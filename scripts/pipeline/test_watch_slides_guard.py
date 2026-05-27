@@ -3057,6 +3057,55 @@ def test_db_reconcile_resolves_compact_drive_filename_slug(ws, monkeypatch):
     }]
 
 
+@pytest.mark.parametrize(
+    ('slug', 'name', 'symbol', 'filename'),
+    [
+        ('convex-finance', 'Convex Finance', 'CVX', 'convex_MAT_ko.pdf'),
+        ('golem-network-tokens', 'Golem Network Tokens', 'GNT', 'golem_network_ECON_en.pdf'),
+        ('mx-token', 'MX Token', 'MX', 'MEXC_MAT_jp.pdf'),
+        ('ethgas', 'ETHGas', 'GWEI', 'ETHGas_ECON_ko.pdf'),
+        ('ethgas', 'ETHGas', 'GWEI', 'GWEI_MAT_en.pdf'),
+    ],
+)
+def test_db_reconcile_resolves_short_drive_filename_aliases(ws, monkeypatch, slug, name, symbol, filename):
+    projects = [
+        {'id': f'project-{slug}', 'slug': slug, 'name': name, 'symbol': symbol},
+        {'id': 'project-bitcoin', 'slug': 'bitcoin', 'name': 'Bitcoin', 'symbol': 'BTC'},
+    ]
+    rtype = 'mat' if '_MAT_' in filename else 'econ'
+    db_type = ws.DB_REPORT_TYPE[rtype]
+    tables = {
+        'project_reports': [],
+        'tracked_projects': [{
+            'id': f'project-{slug}',
+            'slug': slug,
+            'last_econ_report_at': None,
+            'last_maturity_report_at': None,
+            'last_forensic_report_at': None,
+        }],
+    }
+    monkeypatch.setattr(ws, '_iter_active_slide_targets', lambda *_args, **_kwargs: [
+        (rtype, {
+            'id': f'drive-{slug}',
+            'name': filename,
+            'source_path': f'Slide/{rtype}/{filename}',
+        }),
+    ])
+
+    results = ws._reconcile_visible_reports_with_drive(
+        _FakeReconcileSupabase(tables),
+        object(),
+        types=[rtype],
+        projects=projects,
+        dry_run=False,
+    )
+
+    assert tables['project_reports'][0]['project_id'] == f'project-{slug}'
+    assert tables['project_reports'][0]['report_type'] == db_type
+    assert tables['project_reports'][0]['status'] == ws.PUBLICATION_PUBLISHED_STATUS
+    assert any(result['status'] == 'db_reconcile_materialized' for result in results)
+
+
 def test_db_reconcile_materializes_active_drive_pdf_only_report_row(ws, monkeypatch):
     projects = [
         {'id': 'project-pump', 'slug': 'pump-fun', 'name': 'Pump.fun', 'symbol': 'PUMP'},
