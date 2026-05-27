@@ -75,6 +75,7 @@ from watch_slides_inspection import (
 )
 from watch_slides_matching import (
     _detect_slug_content_mismatch,
+    _explicit_report_project_prefix,
     _match_project_by_text,
     _normalize_signal_text,
     _project_signal,
@@ -1473,6 +1474,15 @@ def _compact_project_signal(value: Any) -> str:
     return re.sub(r'[^a-z0-9]+', '', _normalize_signal_text(str(value or '')))
 
 
+RECONCILE_FILENAME_PREFIX_ALIASES: Dict[str, str] = {
+    'convex': 'convex-finance',
+    'deepbook': 'deepbook-protocol',
+    'golemnetwork': 'golem-network-tokens',
+    'mexc': 'mx-token',
+    'story': 'story-protocol',
+}
+
+
 def _match_drive_pdf_project(pdf: Dict[str, Any], projects: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     """Resolve a Drive PDF to a project without downloading the PDF body.
 
@@ -1488,6 +1498,14 @@ def _match_drive_pdf_project(pdf: Dict[str, Any], projects: List[Dict[str, Any]]
         return matched
 
     stem = Path(name).stem
+    explicit_prefix = _explicit_report_project_prefix(name)
+    compact_prefix = _compact_project_signal(explicit_prefix or '')
+    alias_slug = RECONCILE_FILENAME_PREFIX_ALIASES.get(compact_prefix)
+    if alias_slug:
+        for project in projects:
+            if (project.get('slug') or '').lower() == alias_slug:
+                return project
+
     compact_stem = _compact_project_signal(stem)
     token_text = _normalize_signal_text(stem)
     token_set = set(token_text.split())
