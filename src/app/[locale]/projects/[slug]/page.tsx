@@ -107,10 +107,25 @@ export function getReportCoverImageUrls(report: ProjectReport, locale: string): 
   return getCoverImageUrlsByLocale(report.cover_image_urls_by_lang ?? {}, locale)
 }
 
+function deriveLocalizedCoverUrl(url: unknown, locale: string): string | null {
+  if (!isNonEmptyString(url)) return null
+  const localizedUrl = url.replace(
+    /\/latest\/[a-z]{2}-cover(\.[a-z0-9]+)(?=($|[?#]))/i,
+    `/latest/${locale}-cover$1`,
+  )
+  return localizedUrl === url ? null : localizedUrl
+}
+
 function getCoverImageUrlsByLocale(urls: Record<string, unknown>, locale: string): string[] {
+  const storedUrls = Object.values(urls)
+  const localeDerivedUrls = storedUrls.map((url) => deriveLocalizedCoverUrl(url, locale))
+  const englishDerivedUrls = storedUrls.map((url) => deriveLocalizedCoverUrl(url, 'en'))
+
   return [...new Set([
     urls[locale],
+    ...localeDerivedUrls,
     urls.en,
+    ...englishDerivedUrls,
     ...Object.values(urls),
   ].filter(isNonEmptyString))]
 }
