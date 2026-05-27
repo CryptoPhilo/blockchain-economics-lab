@@ -390,6 +390,11 @@ def test_immutable_short_filename_resolves_to_immutable_x(ws):
         ('virtuals-protocol', 'Virtuals Protocol', 'VIRTUAL', 'Virtuals_ECON_ko.pdf'),
         ('zebec-network', 'Zebec Network', 'ZBCN', 'zebec_MAT_ko.pdf'),
         ('ethereum-name-service', 'Ethereum Name Service', 'ENS', 'ENS_MAT_ko.pdf'),
+        ('story-protocol', 'Story Protocol', 'IP', 'story_ECON_ko.pdf'),
+        ('convex-finance', 'Convex Finance', 'CVX', 'convex_MAT_en.pdf'),
+        ('deepbook-protocol', 'DeepBook Protocol', 'DEEP', 'DeepBook_MAT_jp.pdf'),
+        ('golem-network-tokens', 'Golem Network Tokens', 'GNT', 'golem_network_ECON_cn.pdf'),
+        ('mx-token', 'MX Token', 'MX', 'MEXC_ECON_en.pdf'),
     ],
 )
 def test_operational_short_filename_aliases_resolve_to_canonical_projects(ws, slug, name, symbol, filename):
