@@ -30,6 +30,11 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
     'venice-token': ['venice ai', 'venice_ai'],
     'virtuals-protocol': ['virtuals', 'virtuals protocol'],
     'zebec-network': ['zebec', 'zbcn'],
+    'story-protocol': ['story'],
+    'convex-finance': ['convex'],
+    'deepbook-protocol': ['deepbook'],
+    'golem-network-tokens': ['golem', 'golem network', 'golem_network'],
+    'mx-token': ['mexc'],
     'ethereum-name-service': [
         'ens',
         'ens 이더리움 네임 서비스',
