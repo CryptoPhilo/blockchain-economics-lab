@@ -118,11 +118,6 @@ function getCoverImageUrlsByLocale(urls: Record<string, unknown>, locale: string
 function isSameReportVersionGroup(a: ProjectReport, b: ProjectReport): boolean {
   return a.report_type === b.report_type
     && Number(a.version || 0) === Number(b.version || 0)
-    && (
-      b.is_latest == null
-      || a.is_latest == null
-      || Boolean(a.is_latest) === Boolean(b.is_latest)
-    )
 }
 
 function mergeCoverUrlsForReportVersionGroup(
