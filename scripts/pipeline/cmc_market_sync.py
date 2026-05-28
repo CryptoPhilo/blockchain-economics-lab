@@ -221,6 +221,8 @@ def cmc_to_market_row(
     return {
         'slug': slug_override or cmc_slug,
         'coingecko_id': slug_override or cmc_slug,  # 호환성: 기존 JOIN 조건 유지
+        'cmc_name': token.get('name'),
+        'cmc_symbol': token.get('symbol'),
         'cmc_rank': cmc_rank,
         'source': 'coinmarketcap',
         'price_usd': quote.get('price'),

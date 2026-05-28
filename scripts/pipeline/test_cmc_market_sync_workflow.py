@@ -13,10 +13,10 @@ CMCClient = cmc_market_sync.CMCClient
 mode_top200 = cmc_market_sync.mode_top200
 
 
-def make_token(rank, slug, symbol=None):
+def make_token(rank, slug, symbol=None, name=None):
     return {
         'id': rank,
-        'name': slug.title(),
+        'name': name or slug.title(),
         'symbol': symbol or slug[:4].upper(),
         'slug': slug,
         'cmc_rank': rank,
@@ -98,6 +98,17 @@ def test_cmc_to_market_row_preserves_cmc_rank_and_source():
     assert row['slug'] == 'rain'
     assert row['cmc_rank'] == 28
     assert row['source'] == 'coinmarketcap'
+
+
+def test_cmc_to_market_row_preserves_cmc_display_metadata_for_rebrands():
+    row = cmc_to_market_row(
+        make_token(179, 'instadapp', symbol='FLUID', name='Fluid'),
+        slug_override='instadapp',
+    )
+
+    assert row['slug'] == 'instadapp'
+    assert row['cmc_name'] == 'Fluid'
+    assert row['cmc_symbol'] == 'FLUID'
 
 
 def test_mode_top200_upserts_response_order_as_canonical_rank_1_to_200():

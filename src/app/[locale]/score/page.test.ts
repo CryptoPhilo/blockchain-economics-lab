@@ -8,7 +8,11 @@ import {
   snapshotRowsToScoreRows,
 } from './page'
 
-function makeSnapshotRow(rank: number, slug = `cmc-project-${rank}`) {
+function makeSnapshotRow(
+  rank: number,
+  slug = `cmc-project-${rank}`,
+  cmcDisplay?: { cmc_name?: string | null; cmc_symbol?: string | null },
+) {
   return {
     slug,
     price_usd: rank,
@@ -16,6 +20,8 @@ function makeSnapshotRow(rank: number, slug = `cmc-project-${rank}`) {
     change_24h: 0,
     recorded_at: '2026-05-12',
     cmc_rank: rank,
+    cmc_name: cmcDisplay?.cmc_name ?? null,
+    cmc_symbol: cmcDisplay?.cmc_symbol ?? null,
   }
 }
 
@@ -111,6 +117,38 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
     expect(rows.map((row) => row.slug)).not.toContain('rain')
     expect(rows.map((row) => row.slug)).not.toContain('htx')
   })
+
+  it('uses CMC display metadata for renamed projects while keeping stable slugs', () => {
+    const trackedProjects = [
+      {
+        id: 'instadapp-project',
+        name: 'Instadapp',
+        slug: 'instadapp',
+        symbol: 'INST',
+        category: 'DeFi',
+        market_cap_usd: 100,
+        coingecko_id: 'instadapp',
+        cmc_id: 'instadapp',
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const snapshotRows = [
+      makeSnapshotRow(179, 'instadapp', { cmc_name: 'Fluid', cmc_symbol: 'FLUID' }),
+    ]
+
+    const lookup = buildTrackedProjectLookup(trackedProjects)
+    const [row] = snapshotRowsToScoreRows(snapshotRows, lookup)
+
+    expect(row).toMatchObject({
+      name: 'Fluid',
+      symbol: 'FLUID',
+      slug: 'instadapp',
+    })
+  })
 })
 
 describe('score page tracked project aliases', () => {
@@ -132,16 +170,7 @@ describe('score page tracked project aliases', () => {
         last_forensic_report_at: null,
       },
     ]
-    const snapshotRows = [
-      {
-        slug: 'ethena-usde',
-        price_usd: 1,
-        market_cap: 500,
-        change_24h: 0.1,
-        recorded_at: '2026-05-03',
-        cmc_rank: 37,
-      },
-    ]
+    const snapshotRows = [makeSnapshotRow(37, 'ethena-usde')]
 
     const lookup = buildTrackedProjectLookup(trackedProjects)
     const [row] = snapshotRowsToScoreRows(snapshotRows, lookup)
@@ -175,16 +204,7 @@ describe('score page tracked project aliases', () => {
         last_forensic_report_at: null,
       },
     ]
-    const snapshotRows = [
-      {
-        slug: 'ethena-usde',
-        price_usd: 1,
-        market_cap: 500,
-        change_24h: 0.1,
-        recorded_at: '2026-05-03',
-        cmc_rank: 37,
-      },
-    ]
+    const snapshotRows = [makeSnapshotRow(37, 'ethena-usde')]
 
     const lookup = buildTrackedProjectLookup(trackedProjects)
     const [row] = snapshotRowsToScoreRows(snapshotRows, lookup)
@@ -230,16 +250,7 @@ describe('score page tracked project aliases', () => {
         last_forensic_report_at: null,
       },
     ]
-    const snapshotRows = [
-      {
-        slug: 'ethena-usde',
-        price_usd: 1,
-        market_cap: 500,
-        change_24h: 0.1,
-        recorded_at: '2026-05-03',
-        cmc_rank: 37,
-      },
-    ]
+    const snapshotRows = [makeSnapshotRow(37, 'ethena-usde')]
 
     const lookup = buildTrackedProjectLookup(trackedProjects)
     const [row] = snapshotRowsToScoreRows(snapshotRows, lookup)
@@ -417,16 +428,7 @@ describe('score page tracked project aliases', () => {
         last_forensic_report_at: null,
       },
     ]
-    const snapshotRows = [
-      {
-        slug: 'bitcoin',
-        price_usd: 100000,
-        market_cap: 100,
-        change_24h: 0.1,
-        recorded_at: '2026-05-08',
-        cmc_rank: 1,
-      },
-    ]
+    const snapshotRows = [makeSnapshotRow(1, 'bitcoin')]
 
     const lookup = buildTrackedProjectLookup(trackedProjects)
     const [row] = snapshotRowsToScoreRows(snapshotRows, lookup, new Map())
