@@ -289,6 +289,68 @@ def _list_non_folder_files_direct(service, parent_id: str) -> List[Dict]:
     return out
 
 
+def _drive_pdf_name_search_terms(filter_slug: Optional[str], projects: List[Dict[str, Any]]) -> Set[str]:
+    if not filter_slug:
+        return set()
+    terms: Set[str] = set()
+    project = _project_by_slug(projects, filter_slug)
+    if project:
+        for value in (project.get('slug'), project.get('name'), project.get('symbol')):
+            if value:
+                raw = str(value).strip()
+                terms.add(raw)
+                terms.add(raw.replace('-', ' '))
+                terms.add(raw.replace('-', '_'))
+    terms.update(_slug_hint_tokens(filter_slug, projects))
+    return {term for term in terms if len(term.strip()) >= 2}
+
+
+def _search_pdfs_by_name(
+    service,
+    search_terms: Iterable[str],
+    modified_since: Optional[datetime] = None,
+) -> List[Dict]:
+    """Find accessible PDF-like files by filename when direct parent listing misses them."""
+    if not hasattr(service, 'files'):
+        return []
+    modified_filter = ''
+    if modified_since is not None:
+        cutoff = modified_since.astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+        modified_filter = f"and modifiedTime >= '{cutoff}' "
+    out: List[Dict] = []
+    seen_file_ids: Set[str] = set()
+    for term in sorted({str(value).strip() for value in search_terms if str(value).strip()}):
+        query = (
+            f"name contains '{_drive_literal(term)}' "
+            f"and mimeType != '{GDRIVE_FOLDER_MIME}' "
+            f"{modified_filter}"
+            f"and trashed = false"
+        )
+        page_token = None
+        while True:
+            resp = service.files().list(
+                q=query,
+                fields='nextPageToken, files(id, name, mimeType, modifiedTime, size, parents)',
+                pageToken=page_token,
+                pageSize=100,
+                supportsAllDrives=True,
+                includeItemsFromAllDrives=True,
+            ).execute()
+            for file_info in resp.get('files', []):
+                file_id = file_info.get('id')
+                if file_id and file_id in seen_file_ids:
+                    continue
+                if not _is_pdf_drive_file(file_info):
+                    continue
+                if file_id:
+                    seen_file_ids.add(file_id)
+                out.append(file_info)
+            page_token = resp.get('nextPageToken')
+            if not page_token:
+                break
+    return out
+
+
 def _drive_literal(value: str) -> str:
     return (value or '').replace('\\', '\\\\').replace("'", "\\'")
 
@@ -2289,6 +2351,7 @@ def _iter_active_slide_targets(
         if scan_mode == 'skip':
             continue
         root_folder = {'id': type_folder, 'name': root_rtype}
+        root_matched = False
         for pdf in _list_pdfs_direct_for_scope(service, type_folder, modified_since):
             if not _name_matches_slug_hint(
                 pdf.get('name') or '',
@@ -2310,12 +2373,51 @@ def _iter_active_slide_targets(
             file_id = pdf.get('id')
             if file_id:
                 seen_file_ids.add(file_id)
+            root_matched = True
             yield target_rtype, _with_source_metadata(
                 pdf,
                 parent_folder=root_folder,
                 source_path=f"Slide/{root_rtype}",
                 depth=0,
             )
+        if filter_slug and not root_matched and scan_mode != 'full':
+            search_terms = _drive_pdf_name_search_terms(filter_slug, projects or [])
+            search_folder = {'id': 'drive-name-search', 'name': 'Drive filename search'}
+            for pdf in _search_pdfs_by_name(service, search_terms, modified_since):
+                if not _name_matches_slug_hint(
+                    pdf.get('name') or '',
+                    hint_tokens,
+                    filter_slug=filter_slug,
+                    projects=projects,
+                ):
+                    continue
+                target_rtype = (
+                    _infer_rtype_from_file_name(
+                        pdf.get('name') or '',
+                        requested_types,
+                        default_single_type=False,
+                    )
+                    or root_rtype
+                )
+                if target_rtype != root_rtype or target_rtype not in requested_types:
+                    continue
+                file_id = pdf.get('id')
+                if file_id and file_id in seen_file_ids:
+                    continue
+                if file_id:
+                    seen_file_ids.add(file_id)
+                root_matched = True
+                pdf = {
+                    **pdf,
+                    'drive_search_fallback': True,
+                    'expected_slide_parent_id': type_folder,
+                }
+                yield target_rtype, _with_source_metadata(
+                    pdf,
+                    parent_folder=search_folder,
+                    source_path=f"Drive/search/{root_rtype}",
+                    depth=0,
+                )
         if scan_mode != 'full':
             continue
         scan_requested_root = root_rtype in requested_types or len(requested_types) == len(TYPE_FOLDER_IDS)
@@ -2360,6 +2462,7 @@ def _iter_active_slide_targets(
                     continue
                 if file_id:
                     seen_file_ids.add(file_id)
+                root_matched = True
                 yield target_rtype, _with_source_metadata(
                     pdf,
                     parent_folder=folder,
@@ -2384,6 +2487,43 @@ def _iter_active_slide_targets(
                 ):
                     continue
                 stack.append((child, f"{source_path}/{child.get('name', '')}", depth + 1))
+        if filter_slug and not root_matched:
+            search_terms = _drive_pdf_name_search_terms(filter_slug, projects or [])
+            search_folder = {'id': 'drive-name-search', 'name': 'Drive filename search'}
+            for pdf in _search_pdfs_by_name(service, search_terms, modified_since):
+                if not _name_matches_slug_hint(
+                    pdf.get('name') or '',
+                    hint_tokens,
+                    filter_slug=filter_slug,
+                    projects=projects,
+                ):
+                    continue
+                target_rtype = (
+                    _infer_rtype_from_file_name(
+                        pdf.get('name') or '',
+                        requested_types,
+                        default_single_type=False,
+                    )
+                    or root_rtype
+                )
+                if target_rtype != root_rtype or target_rtype not in requested_types:
+                    continue
+                file_id = pdf.get('id')
+                if file_id and file_id in seen_file_ids:
+                    continue
+                if file_id:
+                    seen_file_ids.add(file_id)
+                pdf = {
+                    **pdf,
+                    'drive_search_fallback': True,
+                    'expected_slide_parent_id': type_folder,
+                }
+                yield target_rtype, _with_source_metadata(
+                    pdf,
+                    parent_folder=search_folder,
+                    source_path=f"Drive/search/{root_rtype}",
+                    depth=0,
+                )
 
 
 def _iter_targets(

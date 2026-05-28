@@ -1023,6 +1023,35 @@ def test_iter_targets_yields_root_and_subfolder_pdfs(ws, monkeypatch):
     assert targets[1][1]['source_depth'] == 1
 
 
+def test_iter_targets_uses_drive_name_search_for_slug_when_root_listing_misses(ws, monkeypatch):
+    monkeypatch.setattr(ws, 'TYPE_FOLDER_IDS', {'econ': 'root-econ'})
+    projects = [{'slug': 'ethgas', 'name': 'ETHGas', 'symbol': 'GWEI'}]
+    monkeypatch.setattr(ws, '_list_pdfs_direct', lambda _service, parent_id: [])
+    monkeypatch.setattr(ws, '_list_child_folders', lambda _service, parent_id: [])
+
+    searched_terms = []
+
+    def _fake_search(_service, terms, _modified_since=None):
+        searched_terms.extend(sorted(terms))
+        return [{
+            'id': 'ethgas-econ-ko',
+            'name': 'ETHGas_GWEI_ECON_ko.pdf',
+            'mimeType': 'application/pdf',
+            'modifiedTime': 't1',
+        }]
+
+    monkeypatch.setattr(ws, '_search_pdfs_by_name', _fake_search)
+
+    targets = list(ws._iter_targets(object(), ['econ'], filter_slug='ethgas', projects=projects))
+
+    assert [(rtype, pdf['id']) for rtype, pdf in targets] == [('econ', 'ethgas-econ-ko')]
+    assert targets[0][1]['source_path'] == 'Drive/search/econ/ETHGas_GWEI_ECON_ko.pdf'
+    assert targets[0][1]['drive_search_fallback'] is True
+    assert targets[0][1]['expected_slide_parent_id'] == 'root-econ'
+    assert 'ETHGas' in searched_terms
+    assert 'GWEI' in searched_terms
+
+
 def test_iter_targets_recurses_nested_folders(ws, monkeypatch):
     monkeypatch.setattr(ws, 'TYPE_FOLDER_IDS', {'econ': 'root-econ'})
     pdfs_by_parent = {
