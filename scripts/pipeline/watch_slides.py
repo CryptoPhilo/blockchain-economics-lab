@@ -2582,6 +2582,8 @@ def process(
     reconcile_db: bool = True,
     language_overrides: Optional[Dict[str, str]] = None,
     modified_since: Optional[datetime] = None,
+    max_targets: Optional[int] = None,
+    deadline_at: Optional[datetime] = None,
 ) -> Tuple[List[Dict], List[Dict]]:
     if filter_file_ids:
         raise ValueError('--file-id targets are disabled; place PDFs under Slide/{TYPE} and use --slug/--type filters')
@@ -2629,7 +2631,33 @@ def process(
         modified_since=modified_since,
     )
 
+    targets_seen = 0
     for rtype, pdf in target_iter:
+        if deadline_at is not None and datetime.now(timezone.utc) >= deadline_at:
+            msg = f"runtime budget exhausted at {deadline_at.isoformat()}"
+            print(f"  [BUDGET] stopping scan: {msg}")
+            scanned.append({
+                'rtype': ','.join(types),
+                'slug': filter_slug,
+                'lang': None,
+                'status': 'run_budget_exhausted',
+                'error': msg,
+                'targets_seen': targets_seen,
+            })
+            break
+        if max_targets is not None and targets_seen >= max_targets:
+            msg = f"target budget exhausted after {targets_seen} Drive candidates"
+            print(f"  [BUDGET] stopping scan: {msg}")
+            scanned.append({
+                'rtype': ','.join(types),
+                'slug': filter_slug,
+                'lang': None,
+                'status': 'target_budget_exhausted',
+                'error': msg,
+                'targets_seen': targets_seen,
+            })
+            break
+        targets_seen += 1
         file_id = pdf['id']
         if filter_file_ids and file_id not in filter_file_ids:
             continue
@@ -3745,6 +3773,23 @@ def main() -> int:
         action='store_true',
         help='Only reconcile active Drive Slide PDFs with website-visible DB report rows; skip conversion/upload.',
     )
+    parser.add_argument(
+        '--max-targets',
+        type=int,
+        default=None,
+        help='Stop after this many Drive PDF candidates; intended for bounded scheduled runs.',
+    )
+    parser.add_argument(
+        '--max-runtime-seconds',
+        type=int,
+        default=None,
+        help='Stop starting new Drive candidates after this runtime budget; intended for bounded scheduled runs.',
+    )
+    parser.add_argument(
+        '--skip-diagnostics',
+        action='store_true',
+        help='Skip backlog/source diagnostics after processing; intended for frequent scheduled runs.',
+    )
     args = parser.parse_args()
 
     types = ['econ', 'mat', 'for'] if args.type == 'all' else [args.type]
@@ -3763,6 +3808,15 @@ def main() -> int:
             print('Error: --modified-since-minutes must be greater than 0', file=sys.stderr)
             return 2
         modified_since = datetime.now(timezone.utc) - timedelta(minutes=args.modified_since_minutes)
+    if args.max_targets is not None and args.max_targets <= 0:
+        print('Error: --max-targets must be greater than 0', file=sys.stderr)
+        return 2
+    deadline_at = None
+    if args.max_runtime_seconds is not None:
+        if args.max_runtime_seconds <= 0:
+            print('Error: --max-runtime-seconds must be greater than 0', file=sys.stderr)
+            return 2
+        deadline_at = datetime.now(timezone.utc) + timedelta(seconds=args.max_runtime_seconds)
 
     print('=' * 60)
     print('Slide Pipeline Watcher — BCE-1085/1099')
@@ -3770,7 +3824,10 @@ def main() -> int:
     print(f'Types: {types}  Slug filter: {args.slug or "(none)"}  '
           f'Dry-run: {args.dry_run}  Force: {args.force}  '
           f'Language overrides: {len(language_overrides)}  '
-          f'Modified since: {modified_since.isoformat() if modified_since else "(none)"}')
+          f'Modified since: {modified_since.isoformat() if modified_since else "(none)"}  '
+          f'Max targets: {args.max_targets or "(none)"}  '
+          f'Deadline: {deadline_at.isoformat() if deadline_at else "(none)"}  '
+          f'Skip diagnostics: {args.skip_diagnostics}')
     print('=' * 60)
 
     remote_pipeline_state = RemotePipelineState()
@@ -3806,15 +3863,21 @@ def main() -> int:
             reconcile_db=not args.skip_db_reconcile and modified_since is None,
             language_overrides=language_overrides,
             modified_since=modified_since,
+            max_targets=args.max_targets,
+            deadline_at=deadline_at,
         )
 
-    guard_results = run_active_project_backlog_guard()
-    source_diagnostics = run_source_slide_diagnostics(
-        types,
-        filter_slug=args.slug,
-        scanned=scanned,
-        processed=processed,
-    )
+    if args.skip_diagnostics:
+        guard_results = []
+        source_diagnostics = []
+    else:
+        guard_results = run_active_project_backlog_guard()
+        source_diagnostics = run_source_slide_diagnostics(
+            types,
+            filter_slug=args.slug,
+            scanned=scanned,
+            processed=processed,
+        )
 
     log_path = write_run_log(
         scan_time,

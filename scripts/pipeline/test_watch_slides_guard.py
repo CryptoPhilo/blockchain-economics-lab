@@ -3696,3 +3696,67 @@ def test_paperclip_telemetry_disabled_warns_without_raising(ws, monkeypatch):
     assert telemetry.warnings == [
         'disabled; set SUPABASE_URL and SUPABASE_SERVICE_KEY to publish pipeline state'
     ]
+
+
+def test_process_stops_at_target_budget(ws, monkeypatch):
+    targets = [
+        {'id': 'file-1', 'name': 'Bitcoin_ECON_en.pdf', 'modifiedTime': '2026-05-28T00:00:00Z'},
+        {'id': 'file-2', 'name': 'Bitcoin_ECON_ko.pdf', 'modifiedTime': '2026-05-28T00:00:00Z'},
+        {'id': 'file-3', 'name': 'Bitcoin_ECON_ja.pdf', 'modifiedTime': '2026-05-28T00:00:00Z'},
+    ]
+    manifest = {
+        target['id']: {
+            'status': 'published',
+            'modifiedTime': target['modifiedTime'],
+            'slug': 'bitcoin',
+            'lang': target['name'].split('_')[-1].split('.')[0],
+            'lang_source': 'filename',
+            'page_profile': {'is_landscape_slide': True},
+        }
+        for target in targets
+    }
+
+    monkeypatch.setattr(ws, '_get_drive_service', lambda: object())
+    monkeypatch.setattr(ws, '_load_manifest', lambda: manifest)
+    monkeypatch.setattr(ws, '_iter_targets', lambda *args, **kwargs: iter(('econ', target) for target in targets))
+    monkeypatch.setattr(ws, '_save_manifest', lambda _manifest: None)
+
+    scanned, processed = ws.process(
+        ['econ'],
+        filter_slug=None,
+        dry_run=True,
+        force=False,
+        max_targets=2,
+    )
+
+    assert scanned[-1]['status'] == 'target_budget_exhausted'
+    assert scanned[-1]['targets_seen'] == 2
+    assert all(row.get('file_id') != 'file-3' for row in scanned + processed)
+
+
+def test_process_stops_at_runtime_budget(ws, monkeypatch):
+    targets = [
+        {'id': 'file-1', 'name': 'Bitcoin_ECON_en.pdf', 'modifiedTime': '2026-05-28T00:00:00Z'},
+    ]
+
+    monkeypatch.setattr(ws, '_get_drive_service', lambda: object())
+    monkeypatch.setattr(ws, '_load_manifest', lambda: {})
+    monkeypatch.setattr(ws, '_iter_targets', lambda *args, **kwargs: iter(('econ', target) for target in targets))
+
+    scanned, processed = ws.process(
+        ['econ'],
+        filter_slug=None,
+        dry_run=True,
+        force=False,
+        deadline_at=datetime.now(timezone.utc) - timedelta(seconds=1),
+    )
+
+    assert processed == []
+    assert scanned == [{
+        'rtype': 'econ',
+        'slug': None,
+        'lang': None,
+        'status': 'run_budget_exhausted',
+        'error': scanned[0]['error'],
+        'targets_seen': 0,
+    }]
