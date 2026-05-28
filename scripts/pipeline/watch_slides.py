@@ -190,6 +190,13 @@ def _get_drive_service():
 
 
 GDRIVE_FOLDER_MIME = 'application/vnd.google-apps.folder'
+GDRIVE_PDF_MIME = 'application/pdf'
+
+
+def _is_pdf_drive_file(file_info: Dict[str, Any]) -> bool:
+    """Treat Drive files named .pdf as PDFs even when Drive MIME metadata is stale."""
+    name = str(file_info.get('name') or '').strip().lower()
+    return file_info.get('mimeType') == GDRIVE_PDF_MIME or name.endswith('.pdf')
 
 
 def _list_pdfs_direct(service, parent_id: str, modified_since: Optional[datetime] = None) -> List[Dict]:
@@ -200,7 +207,7 @@ def _list_pdfs_direct(service, parent_id: str, modified_since: Optional[datetime
         modified_filter = f"and modifiedTime >= '{cutoff}' "
     query = (
         f"'{parent_id}' in parents "
-        f"and mimeType = 'application/pdf' "
+        f"and mimeType != '{GDRIVE_FOLDER_MIME}' "
         f"{modified_filter}"
         f"and trashed = false"
     )
@@ -209,13 +216,13 @@ def _list_pdfs_direct(service, parent_id: str, modified_since: Optional[datetime
     while True:
         resp = service.files().list(
             q=query,
-            fields='nextPageToken, files(id, name, modifiedTime, size)',
+            fields='nextPageToken, files(id, name, mimeType, modifiedTime, size)',
             pageToken=page_token,
             pageSize=1000,
             supportsAllDrives=True,
             includeItemsFromAllDrives=True,
         ).execute()
-        out.extend(resp.get('files', []))
+        out.extend(file_info for file_info in resp.get('files', []) if _is_pdf_drive_file(file_info))
         page_token = resp.get('nextPageToken')
         if not page_token:
             break

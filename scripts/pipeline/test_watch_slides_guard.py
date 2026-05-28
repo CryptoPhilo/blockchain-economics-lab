@@ -950,6 +950,52 @@ def test_resolves_explicit_filename_language_hints(ws, filename, expected):
     assert ws._lang_from_filename(filename) == expected
 
 
+def test_list_pdfs_direct_accepts_pdf_extension_with_stale_mime(ws):
+    class _ListCall:
+        def __init__(self, service):
+            self.service = service
+
+        def execute(self):
+            return {
+                'files': [
+                    {
+                        'id': 'ethgas-ko',
+                        'name': 'ETHGas_GWEI_ECON_ko.pdf',
+                        'mimeType': 'application/octet-stream',
+                        'modifiedTime': 't1',
+                    },
+                    {
+                        'id': 'notes',
+                        'name': 'ETHGas_GWEI_ECON_ko.txt',
+                        'mimeType': 'text/plain',
+                        'modifiedTime': 't2',
+                    },
+                ]
+            }
+
+    class _Files:
+        def __init__(self):
+            self.queries = []
+
+        def list(self, **kwargs):
+            self.queries.append(kwargs['q'])
+            return _ListCall(self)
+
+    class _Service:
+        def __init__(self):
+            self._files = _Files()
+
+        def files(self):
+            return self._files
+
+    service = _Service()
+
+    files = ws._list_pdfs_direct(service, 'root-econ')
+
+    assert [file_info['id'] for file_info in files] == ['ethgas-ko']
+    assert "mimeType != 'application/vnd.google-apps.folder'" in service._files.queries[0]
+
+
 def test_iter_targets_yields_root_and_subfolder_pdfs(ws, monkeypatch):
     monkeypatch.setattr(ws, 'TYPE_FOLDER_IDS', {'econ': 'root-econ'})
     pdfs_by_parent = {
