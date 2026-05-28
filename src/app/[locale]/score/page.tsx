@@ -99,14 +99,18 @@ function addProjectLookup(
   }
 }
 
-export function buildTrackedProjectLookup(projects: TrackedScoreboardProject[]) {
+export function buildTrackedProjectLookup(
+  projects: TrackedScoreboardProject[],
+  options: { includeProjectAliases?: boolean } = {},
+) {
   const lookup = new Map<string, TrackedScoreboardProject>()
+  const includeProjectAliases = options.includeProjectAliases ?? true
 
   for (const project of projects) {
     addProjectLookup(lookup, project.slug, project)
     addProjectLookup(lookup, project.coingecko_id, project)
     addProjectLookup(lookup, project.cmc_id, project)
-    if (Array.isArray(project.aliases)) {
+    if (includeProjectAliases && Array.isArray(project.aliases)) {
       for (const alias of project.aliases) {
         addProjectLookup(lookup, alias, project, { overwrite: true })
       }
@@ -312,7 +316,7 @@ export function canonicalSnapshotRowsToScoreRows(
   if (!hasCompleteCmcCanonicalTop200Snapshot(canonicalRows)) return []
   return snapshotRowsToScoreRows(
     canonicalRows,
-    buildTrackedProjectLookup(trackedProjects),
+    buildTrackedProjectLookup(trackedProjects, { includeProjectAliases: false }),
     availabilityByProjectId,
   )
 }

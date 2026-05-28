@@ -111,6 +111,73 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
     expect(rows.map((row) => row.slug)).not.toContain('rain')
     expect(rows.map((row) => row.slug)).not.toContain('htx')
   })
+
+  it('does not let operational project aliases replace canonical CMC snapshot identities', () => {
+    const trackedProjects = [
+      {
+        id: 'irys-project',
+        name: 'Irys',
+        slug: 'irys',
+        symbol: 'IRYS',
+        category: 'Infrastructure',
+        market_cap_usd: 100,
+        coingecko_id: 'irys',
+        cmc_id: null,
+        aliases: ['cmc-project-150'],
+        maturity_score: null,
+        last_econ_report_at: '2026-05-27T00:00:00.000Z',
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const snapshotRows = Array.from(
+      { length: 200 },
+      (_, index) => makeSnapshotRow(index + 1),
+    )
+
+    const rows = canonicalSnapshotRowsToScoreRows(snapshotRows, trackedProjects)
+
+    expect(rows[149]).toMatchObject({
+      rank: 150,
+      name: 'Cmc Project 150',
+      slug: 'cmc-project-150',
+      reportTypes: [],
+    })
+    expect(rows.map((row) => row.slug)).not.toContain('irys')
+  })
+
+  it('still applies explicit scoreboard canonical aliases for CMC snapshot rows', () => {
+    const trackedProjects = [
+      {
+        id: 'ethena-project',
+        name: 'Ethena',
+        slug: 'ethena',
+        symbol: 'ENA',
+        category: 'Stablecoins',
+        market_cap_usd: 100,
+        coingecko_id: 'ethena',
+        cmc_id: null,
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: '2026-05-01T00:00:00.000Z',
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const snapshotRows = Array.from(
+      { length: 200 },
+      (_, index) => makeSnapshotRow(index + 1, index === 36 ? 'ethena-usde' : `cmc-project-${index + 1}`),
+    )
+
+    const rows = canonicalSnapshotRowsToScoreRows(snapshotRows, trackedProjects)
+
+    expect(rows[36]).toMatchObject({
+      rank: 37,
+      name: 'Ethena',
+      slug: 'ethena',
+      reportTypes: ['econ'],
+    })
+  })
 })
 
 describe('score page tracked project aliases', () => {

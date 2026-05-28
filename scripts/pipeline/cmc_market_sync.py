@@ -242,15 +242,15 @@ def build_slug_map(tracked_projects: List[Dict], cmc_tokens: List[Dict]) -> Dict
     """
     Build CMC slug → preferred slug mapping.
 
-    tracked_projects와 market_data_daily의 기존 JOIN 조건
-    (md.slug = tp.coingecko_id OR md.slug = tp.slug)을 유지하기 위해,
-    CMC slug을 tracked_projects의 coingecko_id 또는 slug으로 변환.
+    This helper is intentionally exact-match only. Canonical CMC market
+    snapshots must not rewrite a CMC row to an arbitrary tracked project just
+    because symbols match; otherwise an off-rank project can inherit a Top 200
+    cmc_rank from an unrelated CMC asset.
 
-    4단계 매칭:
+    3단계 매칭:
       1. CMC slug == tracked_projects.cmc_id (CMC slug text)
       2. CMC slug == coingecko_id (동일한 경우)
       3. CMC slug == tracked_projects.slug (동일한 경우)
-      4. Symbol 매칭 (CMC symbol == tracked_projects.symbol, 대소문자 무시)
     """
     cmc_slug_to_preferred: Dict[str, str] = {}
 
@@ -270,18 +270,9 @@ def build_slug_map(tracked_projects: List[Dict], cmc_tokens: List[Dict]) -> Dict
     # tracked_projects slug index
     tp_by_slug = {tp['slug']: tp for tp in tracked_projects}
 
-    # Symbol index (lowercase → preferred slug)
-    # 주의: 동일 심볼 중복 가능 → 첫 번째만 사용
-    tp_by_symbol: Dict[str, str] = {}
-    for tp in tracked_projects:
-        sym = (tp.get('symbol') or '').upper()
-        if sym and sym not in tp_by_symbol:
-            tp_by_symbol[sym] = tp.get('coingecko_id') or tp.get('slug')
-
     # ── 매칭 실행 ──
     for token in cmc_tokens:
         cmc_slug = token.get('slug', '')
-        cmc_symbol = (token.get('symbol') or '').upper()
 
         if not cmc_slug:
             continue
@@ -302,10 +293,6 @@ def build_slug_map(tracked_projects: List[Dict], cmc_tokens: List[Dict]) -> Dict
             cmc_slug_to_preferred[cmc_slug] = preferred
             continue
 
-        # 4차: Symbol 매칭 (BNB→binancecoin, XRP→ripple 등)
-        if cmc_symbol and cmc_symbol in tp_by_symbol:
-            cmc_slug_to_preferred[cmc_slug] = tp_by_symbol[cmc_symbol]
-
     return cmc_slug_to_preferred
 
 
@@ -323,25 +310,20 @@ def mode_full(cmc: CMCClient, db: SupabaseClient, dry_run: bool = False) -> Dict
         print("  [FAIL] No tokens fetched")
         return {'mode': 'full', 'fetched': 0, 'written': 0}
 
-    # Build slug mapping from tracked_projects
-    tracked = db.get_tracked_projects() if not dry_run else []
-    slug_map = build_slug_map(tracked, tokens) if tracked else {}
-
     rows = []
     seen_slugs = set()
     duplicates = 0
     for token in tokens:
         cmc_slug = token.get('slug', '')
-        preferred_slug = slug_map.get(cmc_slug, cmc_slug)
-        # Deduplicate: 같은 slug이 여러 번 나올 수 있음 (symbol 매핑 충돌)
+        # Deduplicate defensively: 같은 CMC slug이 여러 번 나올 경우
         # 시총이 높은 것(먼저 등장)을 우선
-        if preferred_slug in seen_slugs:
+        if cmc_slug in seen_slugs:
             duplicates += 1
             continue
-        seen_slugs.add(preferred_slug)
-        rows.append(cmc_to_market_row(token, slug_override=preferred_slug))
+        seen_slugs.add(cmc_slug)
+        rows.append(cmc_to_market_row(token))
 
-    print(f"  [CMC] {len(tokens)} tokens fetched, {len(slug_map)} mapped to tracked_projects")
+    print(f"  [CMC] {len(tokens)} tokens fetched")
     if duplicates:
         print(f"  [CMC] {duplicates} duplicate slugs removed (kept highest market cap)")
     print(f"  [CMC] {len(rows)} unique rows prepared")
@@ -385,33 +367,28 @@ def mode_tracked(cmc: CMCClient, db: SupabaseClient, dry_run: bool = False) -> D
         print("  [FAIL] No tokens fetched")
         return {'mode': 'tracked', 'fetched': 0, 'written': 0}
 
-    slug_map = build_slug_map(tracked, tokens)
-
-    # Build reverse lookup: find which CMC tokens match tracked projects
-    # Match by: CMC slug text, CMC slug == coingecko_id, CMC slug == tp.slug, symbol match
+    # Build reverse lookup: find which CMC tokens match tracked projects.
+    # Match by exact CMC/project identifiers only. Symbol-only matching is too
+    # ambiguous for ranked market snapshots.
     tp_cmc_slugs = {str(tp['cmc_id']).strip().lower() for tp in tracked if tp.get('cmc_id')}
     tp_cg_ids = {tp['coingecko_id'] for tp in tracked if tp.get('coingecko_id')}
     tp_slugs = {tp['slug'] for tp in tracked}
-    tp_symbols = {tp['symbol'].lower() for tp in tracked if tp.get('symbol')}
 
     matched_rows = []
     matched_slugs = set()
 
     for token in tokens:
         cmc_slug = token.get('slug', '')
-        cmc_symbol = token.get('symbol', '').lower()
 
         is_tracked = (
             cmc_slug.lower() in tp_cmc_slugs or
             cmc_slug in tp_cg_ids or
-            cmc_slug in tp_slugs or
-            cmc_symbol in tp_symbols
+            cmc_slug in tp_slugs
         )
 
         if is_tracked:
-            preferred_slug = slug_map.get(cmc_slug, cmc_slug)
-            matched_rows.append(cmc_to_market_row(token, slug_override=preferred_slug))
-            matched_slugs.add(preferred_slug)
+            matched_rows.append(cmc_to_market_row(token))
+            matched_slugs.add(cmc_slug)
 
     # Report unmatched tracked projects
     all_tp_slugs = {tp.get('coingecko_id') or tp['slug'] for tp in tracked}
@@ -447,16 +424,10 @@ def mode_top200(cmc: CMCClient, db: SupabaseClient, dry_run: bool = False) -> Di
         print("  [FAIL] No tokens fetched")
         return {'mode': 'top200', 'fetched': 0, 'written': 0}
 
-    tracked = db.get_tracked_projects() if not dry_run else []
-    slug_map = build_slug_map(tracked, tokens) if tracked else {}
-
     rows = []
     for canonical_rank, token in enumerate(tokens[:200], start=1):
-        cmc_slug = token.get('slug', '')
-        preferred_slug = slug_map.get(cmc_slug, cmc_slug)
         rows.append(cmc_to_market_row(
             token,
-            slug_override=preferred_slug,
             cmc_rank_override=canonical_rank,
         ))
 
