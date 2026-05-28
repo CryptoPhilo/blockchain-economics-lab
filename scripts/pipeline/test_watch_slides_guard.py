@@ -976,8 +976,10 @@ def test_list_pdfs_direct_accepts_pdf_extension_with_stale_mime(ws):
     class _Files:
         def __init__(self):
             self.queries = []
+            self.calls = []
 
         def list(self, **kwargs):
+            self.calls.append(kwargs)
             self.queries.append(kwargs['q'])
             return _ListCall(self)
 
@@ -994,6 +996,7 @@ def test_list_pdfs_direct_accepts_pdf_extension_with_stale_mime(ws):
 
     assert [file_info['id'] for file_info in files] == ['ethgas-ko']
     assert "mimeType != 'application/vnd.google-apps.folder'" in service._files.queries[0]
+    assert service._files.calls[0]['corpora'] == 'allDrives'
 
 
 def test_iter_targets_yields_root_and_subfolder_pdfs(ws, monkeypatch):

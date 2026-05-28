@@ -219,6 +219,7 @@ def _list_pdfs_direct(service, parent_id: str, modified_since: Optional[datetime
             fields='nextPageToken, files(id, name, mimeType, modifiedTime, size)',
             pageToken=page_token,
             pageSize=1000,
+            corpora='allDrives',
             supportsAllDrives=True,
             includeItemsFromAllDrives=True,
         ).execute()
@@ -254,6 +255,7 @@ def _list_child_folders(service, parent_id: str) -> List[Dict]:
             fields='nextPageToken, files(id, name)',
             pageToken=page_token,
             pageSize=1000,
+            corpora='allDrives',
             supportsAllDrives=True,
             includeItemsFromAllDrives=True,
         ).execute()
@@ -279,6 +281,7 @@ def _list_non_folder_files_direct(service, parent_id: str) -> List[Dict]:
             fields='nextPageToken, files(id, name, mimeType, modifiedTime, size)',
             pageToken=page_token,
             pageSize=1000,
+            corpora='allDrives',
             supportsAllDrives=True,
             includeItemsFromAllDrives=True,
         ).execute()
@@ -333,6 +336,7 @@ def _search_pdfs_by_name(
                 fields='nextPageToken, files(id, name, mimeType, modifiedTime, size, parents)',
                 pageToken=page_token,
                 pageSize=100,
+                corpora='allDrives',
                 supportsAllDrives=True,
                 includeItemsFromAllDrives=True,
             ).execute()
@@ -370,6 +374,7 @@ def _find_folders_by_name(service, name: str) -> List[Dict]:
             fields='nextPageToken, files(id, name)',
             pageToken=page_token,
             pageSize=100,
+            corpora='allDrives',
             supportsAllDrives=True,
             includeItemsFromAllDrives=True,
         ).execute()
