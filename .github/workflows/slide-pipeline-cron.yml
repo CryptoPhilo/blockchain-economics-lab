@@ -48,7 +48,7 @@ jobs:
   process-slides:
     name: 🎬 Process Slide Decks
     runs-on: ubuntu-latest
-    timeout-minutes: 240
+    timeout-minutes: 45
 
     steps:
       - name: Schedule gate (BCE-1711)
@@ -204,11 +204,11 @@ jobs:
         run: |
           ARGS=""
           if [ "${{ github.event_name }}" = "schedule" ]; then
-            # Scheduled runs must enumerate the full active Slide tree. The
-            # watcher manifest skips already processed files cheaply, while a
-            # modified-since window can strand unprocessed PDFs forever if the
-            # workflow is paused, delayed, or failing longer than the window.
-            ARGS="--type all --skip-db-reconcile"
+            # Scheduled runs are frequent health ticks, not full backfills.
+            # Keep them bounded so one stale or large Drive tree cannot hold
+            # the singleton workflow lock for hours. Full-tree repairs remain
+            # available through workflow_dispatch with force/reconcile options.
+            ARGS="--type all --skip-db-reconcile --modified-since-minutes 720 --max-targets 150 --max-runtime-seconds 1500 --skip-diagnostics"
           else
             TYPE_INPUT="${{ github.event.inputs.type }}"
             if [ -n "$TYPE_INPUT" ]; then
