@@ -26,6 +26,8 @@ describe('ProjectsRepository.getLatestScoreboardMarketSnapshot', () => {
             change_24h: 0,
             recorded_at: '2026-05-12',
             cmc_rank: 1,
+            cmc_name: 'Bitcoin',
+            cmc_symbol: 'BTC',
           },
         ],
         error: null,
@@ -41,7 +43,7 @@ describe('ProjectsRepository.getLatestScoreboardMarketSnapshot', () => {
     await repository.getLatestScoreboardMarketSnapshot()
 
     expect(marketSnapshotQuery.select).toHaveBeenCalledWith(
-      'slug, price_usd, market_cap, change_24h, recorded_at, cmc_rank',
+      'slug, price_usd, market_cap, change_24h, recorded_at, cmc_rank, cmc_name, cmc_symbol',
     )
     expect(marketSnapshotQuery.eq).toHaveBeenCalledWith('recorded_at', '2026-05-12')
     expect(marketSnapshotQuery.gte).toHaveBeenCalledWith('cmc_rank', 1)

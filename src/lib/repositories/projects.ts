@@ -44,7 +44,7 @@ export class ProjectsRepository {
 
     const { data, error } = await this.supabase
       .from('market_data_daily')
-      .select('slug, price_usd, market_cap, change_24h, recorded_at, cmc_rank')
+      .select('slug, price_usd, market_cap, change_24h, recorded_at, cmc_rank, cmc_name, cmc_symbol')
       .eq('recorded_at', latestSnapshot.recorded_at)
       .gte('cmc_rank', 1)
       .lte('cmc_rank', 200)

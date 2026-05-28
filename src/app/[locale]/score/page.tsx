@@ -73,6 +73,12 @@ function normalizeKey(value: unknown): string | null {
   return normalized.length > 0 ? normalized : null
 }
 
+function normalizeDisplayText(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const normalized = value.trim()
+  return normalized.length > 0 ? normalized : null
+}
+
 function toNumber(value: unknown): number {
   if (typeof value === 'number') return Number.isFinite(value) ? value : 0
   if (typeof value === 'string') {
@@ -287,8 +293,8 @@ export function snapshotRowsToScoreRows(
 
       return {
         rank: toCmcCanonicalRank(snapshot.cmc_rank) ?? index + 1,
-        name: project?.name || formatSnapshotName(snapshot.slug),
-        symbol: project?.symbol || formatSnapshotSymbol(snapshot.slug),
+        name: normalizeDisplayText(snapshot.cmc_name) || project?.name || formatSnapshotName(snapshot.slug),
+        symbol: normalizeDisplayText(snapshot.cmc_symbol) || project?.symbol || formatSnapshotSymbol(snapshot.slug),
         slug: project?.slug || snapshot.slug,
         change24h: snapshot.change_24h == null ? null : toNumber(snapshot.change_24h),
         marketCap: toNumber(snapshot.market_cap),
