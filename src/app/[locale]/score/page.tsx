@@ -36,6 +36,7 @@ const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'euro-coin', slug: 'eurc' },
   { alias: 'world-liberty-financial-wlfi', slug: 'world-liberty-financial' },
   { alias: 'genius-3', slug: 'genius-terminal' },
+  { alias: 'ethgas', slug: 'eth-gas' },
 ] as const
 
 type TrackedScoreboardProject = Awaited<

@@ -396,6 +396,21 @@ describe('score page tracked project aliases', () => {
         last_maturity_report_at: '2026-05-16T20:44:55.034Z',
         last_forensic_report_at: null,
       },
+      {
+        id: 'eth-gas-project',
+        name: 'ETHGas',
+        slug: 'eth-gas',
+        symbol: 'GWEI',
+        category: 'Infrastructure',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: '2026-05-28T18:28:12.000Z',
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
     ]
     const snapshotRows = [
       makeSnapshotRow(89, 'sei-network'),
@@ -403,6 +418,7 @@ describe('score page tracked project aliases', () => {
       makeSnapshotRow(95, 'injective-protocol'),
       makeSnapshotRow(100, 'curve-dao-token'),
       makeSnapshotRow(38, 'world-liberty-financial-wlfi'),
+      makeSnapshotRow(143, 'ethgas'),
     ]
 
     const rows = snapshotRowsToScoreRows(snapshotRows, buildTrackedProjectLookup(trackedProjects))
@@ -417,6 +433,7 @@ describe('score page tracked project aliases', () => {
       { name: 'Injective', slug: 'injective', reportTypes: ['econ'] },
       { name: 'Curve DAO', slug: 'curve-dao', reportTypes: ['econ'] },
       { name: 'World Liberty Financial', slug: 'world-liberty-financial', reportTypes: ['econ', 'maturity'] },
+      { name: 'ETHGas', slug: 'eth-gas', reportTypes: ['econ'] },
     ])
   })
 
