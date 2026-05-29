@@ -131,6 +131,30 @@ REPORT_GAP_PROJECT_SEEDS: Dict[str, Dict[str, Any]] = {
         'category': 'Infrastructure',
         'coingecko_id': None,
     },
+    'reserve-rights': {
+        'name': 'Reserve Rights',
+        'symbol': 'RSR',
+        'category': 'DeFi',
+        'coingecko_id': 'reserve-rights-token',
+    },
+    'wemix': {
+        'name': 'WEMIX',
+        'symbol': 'WEMIX',
+        'category': 'Gaming',
+        'coingecko_id': 'wemix-token',
+    },
+    'usd-ai': {
+        'name': 'USD.AI',
+        'symbol': 'CHIP',
+        'category': 'Stablecoin',
+        'coingecko_id': None,
+    },
+    'river-protocol': {
+        'name': 'River Protocol',
+        'symbol': 'RVR',
+        'category': 'Infrastructure',
+        'coingecko_id': None,
+    },
 }
 
 
@@ -1634,7 +1658,12 @@ RECONCILE_FILENAME_PREFIX_ALIASES: Dict[str, str] = {
     'deepbook': 'deepbook-protocol',
     'golemnetwork': 'golem-network-tokens',
     'mexc': 'mx-token',
+    'reserveprotocol': 'reserve-rights',
+    'reserverights': 'reserve-rights',
+    'riverprotocol': 'river-protocol',
     'story': 'story-protocol',
+    'usdai': 'usd-ai',
+    'wemix': 'wemix',
 }
 
 

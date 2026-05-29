@@ -401,6 +401,13 @@ def test_immutable_short_filename_resolves_to_immutable_x(ws):
         ('vision', 'Vision', 'VSN', 'VSN_ECON_cn.pdf'),
         ('vision', 'Vision', 'VSN', 'vision_token_MAT_ko.pdf'),
         ('newton', 'Newton', 'N', 'NEWT_MAT_en.pdf'),
+        ('reserve-rights', 'Reserve Rights', 'RSR', 'Reserve_Protocol_ECON_ko.pdf'),
+        ('reserve-rights', 'Reserve Rights', 'RSR', 'Reserve_Rights_MAT_en.pdf'),
+        ('wemix', 'WEMIX', 'WEMIX', 'WEMIX_ECON_cn.pdf'),
+        ('usd-ai', 'USD.AI', 'CHIP', 'USD_AI_ECON_ko.pdf'),
+        ('usd-ai', 'USD.AI', 'CHIP', 'CHIP_MAT_en.pdf'),
+        ('river-protocol', 'River Protocol', 'RVR', 'River_Protocol_ECON_jp.pdf'),
+        ('river-protocol', 'River Protocol', 'RVR', 'RVR_MAT_cn.pdf'),
     ],
 )
 def test_operational_short_filename_aliases_resolve_to_canonical_projects(ws, slug, name, symbol, filename):
