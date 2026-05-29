@@ -39,6 +39,10 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
     'instadapp': ['fluid', 'fluid protocol', 'fluid_protocol', 'instadapp fluid'],
     'vision': ['vsn', 'vision token', 'vision-token'],
     'newton': ['newton protocol', 'newton_protocol', 'newt'],
+    'reserve-rights': ['reserve protocol', 'reserve_protocol', 'reserve-protocol', 'reserve rights', 'rsr'],
+    'wemix': ['wemix network', 'wemix-network', 'wemix_network'],
+    'usd-ai': ['usd ai', 'usd.ai', 'usd_ai', 'chip'],
+    'river-protocol': ['river protocol', 'river_protocol', 'rvr'],
     'ethereum-name-service': [
         'ens',
         'ens 이더리움 네임 서비스',
