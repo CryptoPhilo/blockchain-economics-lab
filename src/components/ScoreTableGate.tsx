@@ -46,7 +46,7 @@ type ReportTypeKey = 'econ' | 'maturity' | 'forensic'
 const SCOREBOARD_ROW_OVERRIDES: Record<string, { slug: string; reportTypes?: ReportTypeKey[] }> = {
   ethgas: {
     slug: 'eth-gas',
-    reportTypes: ['econ'],
+    reportTypes: ['econ', 'maturity'],
   },
 }
 
