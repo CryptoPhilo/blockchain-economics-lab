@@ -1224,6 +1224,41 @@ class MutableFakeSupabase:
         return MutableFakeQuery(self.tables[name])
 
 
+def test_ensure_runtime_project_seed_appends_known_slug_in_dry_run(ws):
+    projects = [{'id': 'p-bitcoin', 'slug': 'bitcoin', 'name': 'Bitcoin', 'symbol': 'BTC'}]
+
+    updated = ws._ensure_runtime_project_seed(
+        object(),
+        projects,
+        'instadapp',
+        dry_run=True,
+    )
+
+    assert [project['slug'] for project in updated] == ['bitcoin', 'instadapp']
+    instadapp = updated[-1]
+    assert instadapp['id'] == 'dry-run-instadapp'
+    assert instadapp['name'] == 'Fluid'
+    assert 'fluid' in instadapp['aliases']
+
+
+def test_ensure_runtime_project_seed_upserts_known_slug_for_publish(ws):
+    sb = MutableFakeSupabase({'tracked_projects': []})
+
+    updated = ws._ensure_runtime_project_seed(
+        sb,
+        [],
+        '1inch',
+        dry_run=False,
+    )
+
+    assert len(updated) == 1
+    assert updated[0]['id'] == 'r1'
+    assert updated[0]['slug'] == '1inch'
+    assert updated[0]['symbol'] == '1INCH'
+    assert '1inch network' in updated[0]['aliases']
+    assert sb.tables['tracked_projects'][0]['discovery_source'] == 'slide-runtime-report-gap-repair'
+
+
 def test_report_source_identity_reuses_existing_drive_source(ws):
     project = {'id': 'p-bitcoin', 'slug': 'bitcoin', 'name': 'Bitcoin'}
     source_patch = ws._report_source_patch(

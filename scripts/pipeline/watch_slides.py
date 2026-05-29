@@ -74,6 +74,7 @@ from watch_slides_inspection import (
     _resolve_lang,
 )
 from watch_slides_matching import (
+    PROJECT_ALIAS_REGISTRY,
     _detect_slug_content_mismatch,
     _explicit_report_project_prefix,
     _match_project_by_text,
@@ -104,6 +105,33 @@ from watch_slides_telemetry import (
 )
 
 _TESSERACT_AVAILABLE: Optional[bool] = None
+
+REPORT_GAP_PROJECT_SEEDS: Dict[str, Dict[str, Any]] = {
+    '1inch': {
+        'name': '1inch',
+        'symbol': '1INCH',
+        'category': 'DeFi',
+        'coingecko_id': '1inch',
+    },
+    'instadapp': {
+        'name': 'Fluid',
+        'symbol': 'FLUID',
+        'category': 'DeFi',
+        'coingecko_id': 'instadapp',
+    },
+    'vision': {
+        'name': 'Vision',
+        'symbol': 'VSN',
+        'category': 'Infrastructure',
+        'coingecko_id': 'vision-3',
+    },
+    'newton': {
+        'name': 'Newton',
+        'symbol': 'N',
+        'category': 'Infrastructure',
+        'coingecko_id': None,
+    },
+}
 
 
 def _ocr_first_page_text(pdf_path: str, max_pages: int = _inspection_helpers.PDF_TEXT_PAGES) -> str:
@@ -508,6 +536,59 @@ def _load_tracked_projects(sb) -> List[Dict[str, Any]]:
             break
         offset += page_size
     return out
+
+
+def _runtime_project_seed_for_slug(slug: Optional[str]) -> Optional[Dict[str, Any]]:
+    slug_lc = (slug or '').strip().lower()
+    seed = REPORT_GAP_PROJECT_SEEDS.get(slug_lc)
+    if not seed:
+        return None
+    aliases = PROJECT_ALIAS_REGISTRY.get(slug_lc, [])
+    return {
+        'slug': slug_lc,
+        'name': seed['name'],
+        'symbol': seed['symbol'],
+        'category': seed['category'],
+        'status': 'active',
+        'discovery_source': 'slide-runtime-report-gap-repair',
+        'coingecko_id': seed.get('coingecko_id'),
+        'aliases': aliases,
+    }
+
+
+def _ensure_runtime_project_seed(
+    sb,
+    projects: List[Dict[str, Any]],
+    filter_slug: Optional[str],
+    *,
+    dry_run: bool,
+) -> List[Dict[str, Any]]:
+    """Ensure targeted repair runs can materialize known Top 200 report gaps.
+
+    Some CMC rows exist only as score-table snapshot slugs until the first
+    Drive report is published. If the explicit report filename is unresolved,
+    the watcher refuses OCR fallback by design. For known safe aliases, create
+    the missing tracked_project row at runtime so the normal publish path can
+    attach reports to a canonical project.
+    """
+    if not filter_slug or _project_by_slug(projects, filter_slug):
+        return projects
+
+    seed = _runtime_project_seed_for_slug(filter_slug)
+    if not seed:
+        return projects
+
+    if dry_run:
+        return projects + [{**seed, 'id': f"dry-run-{seed['slug']}"}]
+
+    result = sb.table('tracked_projects').upsert(
+        seed,
+        on_conflict='slug',
+    ).execute()
+    rows = result.data or []
+    if rows:
+        return projects + [rows[0]]
+    return projects
 
 
 def _lang_map_has_value(value: Any) -> bool:
@@ -2619,6 +2700,12 @@ def process(
     if sb is not None:
         try:
             projects = _load_tracked_projects(sb)
+            projects = _ensure_runtime_project_seed(
+                sb,
+                projects,
+                filter_slug,
+                dry_run=dry_run,
+            )
         except Exception as e:
             print(f"  [WARN] tracked_projects fetch failed: {e}")
             projects = []
