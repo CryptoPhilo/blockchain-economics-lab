@@ -41,6 +41,34 @@ interface ScoreTableGateProps {
 }
 
 type GateStatus = 'locked' | 'submitting' | 'unlocked' | 'error'
+type ReportTypeKey = 'econ' | 'maturity' | 'forensic'
+
+const SCOREBOARD_ROW_OVERRIDES: Record<string, { slug: string; reportTypes?: ReportTypeKey[] }> = {
+  ethgas: {
+    slug: 'eth-gas',
+    reportTypes: ['econ'],
+  },
+}
+
+function mergeReportTypes(reportTypes: string[], overrides: ReportTypeKey[] | undefined) {
+  if (!overrides?.length) return reportTypes
+  return Array.from(new Set([...reportTypes, ...overrides]))
+}
+
+function getScoreboardRowDisplayState(row: ScoreRow) {
+  const override = SCOREBOARD_ROW_OVERRIDES[row.slug]
+  if (!override) {
+    return {
+      slug: row.slug,
+      reportTypes: row.reportTypes,
+    }
+  }
+
+  return {
+    slug: override.slug,
+    reportTypes: mergeReportTypes(row.reportTypes, override.reportTypes),
+  }
+}
 
 function formatMarketCap(value: number): string {
   if (value >= 1e12) return `$${(value / 1e12).toFixed(2)}T`
@@ -127,7 +155,8 @@ export default function ScoreTableGate({
   }
 
   function renderRow(row: ScoreRow, blurred = false) {
-    const detailHref = `/${locale}/projects/${row.slug}`
+    const displayState = getScoreboardRowDisplayState(row)
+    const detailHref = `/${locale}/projects/${displayState.slug}`
     const handleRowClick = blurred
       ? undefined
       : (e: React.MouseEvent<HTMLTableRowElement>) => {
@@ -160,7 +189,7 @@ export default function ScoreTableGate({
               </div>
             ) : (
               <Link
-                href={`/${locale}/projects/${row.slug}`}
+                href={detailHref}
                 className="group inline-block"
                 title={isKo ? `${row.name} 상세 페이지` : `${row.name} project page`}
               >
@@ -205,7 +234,7 @@ export default function ScoreTableGate({
           <div className="flex gap-1 justify-end">
             {/* ECON Badge */}
             <div className="relative">
-              {row.reportTypes.includes('econ') ? (
+              {displayState.reportTypes.includes('econ') ? (
                 <span
                   className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-blue-500/15 text-blue-400"
                   title={isKo ? 'ECON 보고서 발행됨' : 'ECON report published'}
@@ -220,7 +249,7 @@ export default function ScoreTableGate({
                   ECON
                 </span>
               )}
-              {row.reportTypes.includes('econ') && isReportNew(row.reportDates.econ) && (
+              {displayState.reportTypes.includes('econ') && isReportNew(row.reportDates.econ) && (
                 <span className="absolute -top-1 -right-1 text-[8px] px-1 py-0.5 rounded bg-black/80 border border-red-500 text-red-500 font-bold shadow-lg">
                   New
                 </span>
@@ -229,7 +258,7 @@ export default function ScoreTableGate({
 
             {/* MAT Badge */}
             <div className="relative">
-              {row.reportTypes.includes('maturity') ? (
+              {displayState.reportTypes.includes('maturity') ? (
                 <span
                   className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-green-500/15 text-green-400"
                   title={isKo ? 'MAT 보고서 발행됨' : 'MAT report published'}
@@ -244,7 +273,7 @@ export default function ScoreTableGate({
                   MAT
                 </span>
               )}
-              {row.reportTypes.includes('maturity') && isReportNew(row.reportDates.maturity) && (
+              {displayState.reportTypes.includes('maturity') && isReportNew(row.reportDates.maturity) && (
                 <span className="absolute -top-1 -right-1 text-[8px] px-1 py-0.5 rounded bg-black/80 border border-red-500 text-red-500 font-bold shadow-lg">
                   New
                 </span>
@@ -253,7 +282,7 @@ export default function ScoreTableGate({
 
             {/* FOR Badge */}
             <div className="relative">
-              {row.reportTypes.includes('forensic') ? (
+              {displayState.reportTypes.includes('forensic') ? (
                 <span
                   className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-red-500/15 text-red-400"
                   title={isKo ? 'FOR 보고서 발행됨' : 'FOR report published'}
@@ -268,7 +297,7 @@ export default function ScoreTableGate({
                   FOR
                 </span>
               )}
-              {row.reportTypes.includes('forensic') && isReportNew(row.reportDates.forensic) && (
+              {displayState.reportTypes.includes('forensic') && isReportNew(row.reportDates.forensic) && (
                 <span className="absolute -top-1 -right-1 text-[8px] px-1 py-0.5 rounded bg-black/80 border border-red-500 text-red-500 font-bold shadow-lg">
                   New
                 </span>
