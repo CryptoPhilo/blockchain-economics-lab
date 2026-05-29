@@ -234,7 +234,7 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
     })
   })
 
-  it('uses canonical alias target report availability even when only the market project is in the row lookup', () => {
+  it('uses canonical alias target report availability when CMC identifies ETHGas by GWEI', () => {
     const activeMarketProjects = [
       {
         id: 'ethgas-market-project',
@@ -244,7 +244,7 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
         category: 'Infrastructure',
         market_cap_usd: 100,
         coingecko_id: 'ethgas',
-        cmc_id: null,
+        cmc_id: 'gwei',
         aliases: [],
         maturity_score: null,
         last_econ_report_at: null,
@@ -264,7 +264,7 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
     ])
     const snapshotRows = Array.from(
       { length: 200 },
-      (_, index) => makeSnapshotRow(index + 1, index === 142 ? 'ethgas' : `cmc-project-${index + 1}`),
+      (_, index) => makeSnapshotRow(index + 1, index === 142 ? 'gwei' : `cmc-project-${index + 1}`),
     )
 
     const rows = canonicalSnapshotRowsToScoreRows(

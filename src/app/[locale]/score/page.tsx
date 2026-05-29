@@ -37,6 +37,7 @@ const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'world-liberty-financial-wlfi', slug: 'world-liberty-financial' },
   { alias: 'genius-3', slug: 'genius-terminal' },
   { alias: 'ethgas', slug: 'eth-gas' },
+  { alias: 'gwei', slug: 'eth-gas' },
 ] as const
 const SCOREBOARD_CANONICAL_ALIAS_TARGET_SLUGS = Array.from(
   new Set(SCOREBOARD_CANONICAL_ALIASES.map(({ slug }) => slug)),
