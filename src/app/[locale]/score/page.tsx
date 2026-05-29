@@ -41,6 +41,9 @@ const SCOREBOARD_CANONICAL_ALIASES = [
 const SCOREBOARD_CANONICAL_ALIAS_TARGET_SLUGS = Array.from(
   new Set(SCOREBOARD_CANONICAL_ALIASES.map(({ slug }) => slug)),
 )
+const SCOREBOARD_CANONICAL_ALIAS_TARGET_BY_ALIAS = new Map<string, string>(
+  SCOREBOARD_CANONICAL_ALIASES.map(({ alias, slug }) => [alias, slug]),
+)
 
 type TrackedScoreboardProject = Awaited<
   ReturnType<ReturnType<typeof createProjectsRepository>['getProjectsForScoreboard']>
@@ -69,6 +72,10 @@ type ScoreboardVisibleReportRow = {
   gdrive_urls_by_lang?: ProjectReport['gdrive_urls_by_lang']
   file_urls_by_lang?: ProjectReport['file_urls_by_lang']
   slide_html_urls_by_lang?: unknown
+}
+
+type ScoreboardVisibleReportRowWithProjectSlug = ScoreboardVisibleReportRow & {
+  tracked_projects?: { slug?: string | null } | null
 }
 
 function normalizeKey(value: unknown): string | null {
@@ -194,8 +201,10 @@ function createFallbackReportAvailability(project: TrackedScoreboardProject | un
 function getReportAvailability(
   project: TrackedScoreboardProject | undefined,
   availabilityByProjectId?: Map<string, ReportAvailability>,
+  canonicalAvailability?: ReportAvailability,
 ): ReportAvailability {
   const fallback = createFallbackReportAvailability(project)
+  if (canonicalAvailability) return canonicalAvailability
   const live = project?.id ? availabilityByProjectId?.get(project.id) : undefined
   if (!availabilityByProjectId) return fallback
   if (!live) {
@@ -214,6 +223,11 @@ function getReportAvailability(
       forensic: live.reportDates.forensic,
     },
   }
+}
+
+function getCanonicalScoreboardTargetSlug(snapshotSlug: unknown) {
+  const normalized = normalizeKey(snapshotSlug)
+  return normalized ? SCOREBOARD_CANONICAL_ALIAS_TARGET_BY_ALIAS.get(normalized) : undefined
 }
 
 export function buildReportAvailabilityByProjectId(
@@ -248,6 +262,48 @@ export function buildReportAvailabilityByProjectId(
     }
 
     map.set(report.project_id, existing)
+  }
+
+  return map
+}
+
+export function buildReportAvailabilityByProjectSlug(
+  reports: ScoreboardVisibleReportRowWithProjectSlug[],
+  locale: string,
+) {
+  const map = new Map<string, ReportAvailability>()
+  const latestByProjectType = new Map<string, ScoreboardVisibleReportRowWithProjectSlug>()
+
+  for (const report of reports) {
+    const slug = normalizeKey(report.tracked_projects?.slug)
+    if (!slug) continue
+    if (!reportSupportsLocale(report as ProjectReport, locale)) continue
+    const key = `${slug}:${report.report_type}`
+    const latest = pickLatestReport(
+      [latestByProjectType.get(key), report].filter(Boolean) as ScoreboardVisibleReportRowWithProjectSlug[],
+    )
+    if (latest) latestByProjectType.set(key, latest)
+  }
+
+  for (const report of latestByProjectType.values()) {
+    const slug = normalizeKey(report.tracked_projects?.slug)
+    if (!slug) continue
+    const existing = map.get(slug) ?? {
+      reportTypes: [],
+      reportDates: { econ: null, maturity: null, forensic: null },
+    }
+
+    if (!existing.reportTypes.includes(report.report_type)) {
+      existing.reportTypes.push(report.report_type)
+    }
+
+    const timestamp = getReportTimestamp(report)
+    const current = existing.reportDates[report.report_type]
+    if (timestamp && (!current || new Date(timestamp).getTime() > new Date(current).getTime())) {
+      existing.reportDates[report.report_type] = timestamp
+    }
+
+    map.set(slug, existing)
   }
 
   return map
@@ -301,6 +357,56 @@ export async function fetchVisibleReportsForScoreboard(
   return { reports, loaded: true }
 }
 
+export async function fetchVisibleReportsForScoreboardByProjectSlugs(
+  projectSlugs: string[],
+  reportSupabase?: SupabaseClient,
+): Promise<{ reports: ScoreboardVisibleReportRowWithProjectSlug[]; loaded: boolean }> {
+  const normalizedSlugs = Array.from(new Set(projectSlugs.map(normalizeKey).filter(Boolean) as string[]))
+  if (normalizedSlugs.length === 0) {
+    return { reports: [], loaded: true }
+  }
+
+  const supabase = reportSupabase ?? createSupabaseAdminClient()
+  const reports: ScoreboardVisibleReportRowWithProjectSlug[] = []
+
+  for (let index = 0; index < normalizedSlugs.length; index += REPORT_AVAILABILITY_QUERY_CHUNK_SIZE) {
+    const chunk = normalizedSlugs.slice(index, index + REPORT_AVAILABILITY_QUERY_CHUNK_SIZE)
+    const { data, error } = await supabase
+      .from('project_reports')
+      .select([
+        'project_id',
+        'id',
+        'report_type',
+        'version',
+        'is_latest',
+        'language',
+        'published_at',
+        'updated_at',
+        'created_at',
+        'gdrive_urls_by_lang',
+        'file_urls_by_lang',
+        'slide_html_urls_by_lang',
+        'tracked_projects!inner(slug)',
+      ].join(', '))
+      .in('tracked_projects.slug', chunk)
+      .in('report_type', ['econ', 'maturity', 'forensic'])
+      .in('status', ['published', 'coming_soon', 'in_review'])
+
+    if (error) {
+      console.error('Failed to fetch scoreboard canonical alias report availability', {
+        message: error.message,
+        chunkStart: index,
+        chunkSize: chunk.length,
+      })
+      return { reports: [], loaded: false }
+    }
+
+    reports.push(...((data || []) as unknown as ScoreboardVisibleReportRowWithProjectSlug[]))
+  }
+
+  return { reports, loaded: true }
+}
+
 export async function fetchScoreboardCanonicalAliasTargetProjects(
   reportSupabase?: SupabaseClient,
 ): Promise<TrackedScoreboardProject[]> {
@@ -330,18 +436,25 @@ export function snapshotRowsToScoreRows(
   snapshotRows: ScoreboardSnapshotRow[],
   trackedLookup: Map<string, TrackedScoreboardProject>,
   availabilityByProjectId?: Map<string, ReportAvailability>,
+  availabilityByProjectSlug?: Map<string, ReportAvailability>,
 ) {
   return snapshotRows
     .slice(0, MAX_RANK)
     .map((snapshot, index) => {
-      const project = trackedLookup.get(normalizeKey(snapshot.slug) || '')
-      const reportAvailability = getReportAvailability(project, availabilityByProjectId)
+      const snapshotSlug = normalizeKey(snapshot.slug) || ''
+      const canonicalTargetSlug = getCanonicalScoreboardTargetSlug(snapshotSlug)
+      const canonicalProject = canonicalTargetSlug ? trackedLookup.get(canonicalTargetSlug) : undefined
+      const project = canonicalProject ?? trackedLookup.get(snapshotSlug)
+      const canonicalAvailability = canonicalTargetSlug
+        ? availabilityByProjectSlug?.get(canonicalTargetSlug)
+        : undefined
+      const reportAvailability = getReportAvailability(project, availabilityByProjectId, canonicalAvailability)
 
       return {
         rank: toCmcCanonicalRank(snapshot.cmc_rank) ?? index + 1,
         name: project?.name || formatSnapshotName(snapshot.slug),
         symbol: project?.symbol || formatSnapshotSymbol(snapshot.slug),
-        slug: project?.slug || snapshot.slug,
+        slug: canonicalTargetSlug || project?.slug || snapshot.slug,
         change24h: snapshot.change_24h == null ? null : toNumber(snapshot.change_24h),
         marketCap: toNumber(snapshot.market_cap),
         score: project?.maturity_score == null ? null : toNumber(project.maturity_score),
@@ -356,6 +469,7 @@ export function canonicalSnapshotRowsToScoreRows(
   snapshotRows: ScoreboardSnapshotRow[],
   trackedProjects: TrackedScoreboardProject[],
   availabilityByProjectId?: Map<string, ReportAvailability>,
+  availabilityByProjectSlug?: Map<string, ReportAvailability>,
 ) {
   const canonicalRows = snapshotRows
     .filter((row) => toCmcCanonicalRank(row.cmc_rank) !== null)
@@ -366,6 +480,7 @@ export function canonicalSnapshotRowsToScoreRows(
     canonicalRows,
     buildTrackedProjectLookup(trackedProjects, { includeProjectAliases: false }),
     availabilityByProjectId,
+    availabilityByProjectSlug,
   )
 }
 
@@ -405,22 +520,31 @@ export default async function ScorePage({
   const trackedProjects = mergeScoreboardProjects(baseTrackedProjects, canonicalAliasTargetProjects)
   const trackedProjectIds = trackedProjects.map((project) => project.id).filter(Boolean)
   let visibleReportResult: Awaited<ReturnType<typeof fetchVisibleReportsForScoreboard>>
+  let canonicalAliasReportResult: Awaited<ReturnType<typeof fetchVisibleReportsForScoreboardByProjectSlugs>>
   try {
-    visibleReportResult = await fetchVisibleReportsForScoreboard(trackedProjectIds)
+    ;[visibleReportResult, canonicalAliasReportResult] = await Promise.all([
+      fetchVisibleReportsForScoreboard(trackedProjectIds),
+      fetchVisibleReportsForScoreboardByProjectSlugs(SCOREBOARD_CANONICAL_ALIAS_TARGET_SLUGS),
+    ])
   } catch (error) {
     console.error('Failed to initialize scoreboard report availability boundary', {
       message: error instanceof Error ? error.message : String(error),
     })
     visibleReportResult = { reports: [], loaded: false }
+    canonicalAliasReportResult = { reports: [], loaded: false }
   }
   const reportAvailabilityByProjectId = visibleReportResult.loaded
     ? buildReportAvailabilityByProjectId(visibleReportResult.reports, locale)
+    : undefined
+  const reportAvailabilityByProjectSlug = canonicalAliasReportResult.loaded
+    ? buildReportAvailabilityByProjectSlug(canonicalAliasReportResult.reports, locale)
     : undefined
 
   const allRows = canonicalSnapshotRowsToScoreRows(
     cmcSnapshotRows,
     trackedProjects,
     reportAvailabilityByProjectId,
+    reportAvailabilityByProjectSlug,
   )
 
   // Paginate: 100 per page

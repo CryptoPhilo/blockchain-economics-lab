@@ -233,6 +233,58 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
       reportTypes: ['econ'],
     })
   })
+
+  it('uses canonical alias target report availability even when only the market project is in the row lookup', () => {
+    const activeMarketProjects = [
+      {
+        id: 'ethgas-market-project',
+        name: 'ETHGas',
+        slug: 'ethgas',
+        symbol: 'GWEI',
+        category: 'Infrastructure',
+        market_cap_usd: 100,
+        coingecko_id: 'ethgas',
+        cmc_id: null,
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const availabilityByProjectSlug = new Map([
+      ['eth-gas', {
+        reportTypes: ['econ'],
+        reportDates: {
+          econ: '2026-05-28T18:28:12.000Z',
+          maturity: null,
+          forensic: null,
+        },
+      }],
+    ])
+    const snapshotRows = Array.from(
+      { length: 200 },
+      (_, index) => makeSnapshotRow(index + 1, index === 142 ? 'ethgas' : `cmc-project-${index + 1}`),
+    )
+
+    const rows = canonicalSnapshotRowsToScoreRows(
+      snapshotRows,
+      activeMarketProjects,
+      undefined,
+      availabilityByProjectSlug,
+    )
+
+    expect(rows[142]).toMatchObject({
+      rank: 143,
+      name: 'ETHGas',
+      symbol: 'GWEI',
+      slug: 'eth-gas',
+      reportTypes: ['econ'],
+      reportDates: {
+        econ: '2026-05-28T18:28:12.000Z',
+      },
+    })
+  })
 })
 
 describe('score page tracked project aliases', () => {
