@@ -35,6 +35,10 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
     'deepbook-protocol': ['deepbook'],
     'golem-network-tokens': ['golem', 'golem network', 'golem_network'],
     'mx-token': ['mexc'],
+    '1inch': ['1inch network', '1inch_network', '1inch-network'],
+    'instadapp': ['fluid', 'fluid protocol', 'fluid_protocol', 'instadapp fluid'],
+    'vision': ['vsn', 'vision token', 'vision-token'],
+    'newton': ['newton protocol', 'newton_protocol', 'newt'],
     'ethereum-name-service': [
         'ens',
         'ens 이더리움 네임 서비스',

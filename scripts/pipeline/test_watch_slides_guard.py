@@ -395,6 +395,12 @@ def test_immutable_short_filename_resolves_to_immutable_x(ws):
         ('deepbook-protocol', 'DeepBook Protocol', 'DEEP', 'DeepBook_MAT_jp.pdf'),
         ('golem-network-tokens', 'Golem Network Tokens', 'GNT', 'golem_network_ECON_cn.pdf'),
         ('mx-token', 'MX Token', 'MX', 'MEXC_ECON_en.pdf'),
+        ('1inch', '1inch', '1INCH', '1inch_ECON_ko.pdf'),
+        ('instadapp', 'Fluid', 'FLUID', 'fluid_ECON_en.pdf'),
+        ('instadapp', 'Fluid', 'FLUID', 'Fluid_MAT_jp.pdf'),
+        ('vision', 'Vision', 'VSN', 'VSN_ECON_cn.pdf'),
+        ('vision', 'Vision', 'VSN', 'vision_token_MAT_ko.pdf'),
+        ('newton', 'Newton', 'N', 'NEWT_MAT_en.pdf'),
     ],
 )
 def test_operational_short_filename_aliases_resolve_to_canonical_projects(ws, slug, name, symbol, filename):
