@@ -4,6 +4,7 @@ import {
   canonicalSnapshotRowsToScoreRows,
   fetchVisibleReportsForScoreboard,
   hasCompleteCmcCanonicalTop200Snapshot,
+  mergeScoreboardProjects,
   MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS,
   snapshotRowsToScoreRows,
 } from './page'
@@ -175,6 +176,60 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
       rank: 37,
       name: 'Ethena',
       slug: 'ethena',
+      reportTypes: ['econ'],
+    })
+  })
+
+  it('uses supplemental canonical alias targets when a CMC row has a separate market project', () => {
+    const activeMarketProjects = [
+      {
+        id: 'ethgas-market-project',
+        name: 'ETHGas',
+        slug: 'ethgas',
+        symbol: 'GWEI',
+        category: 'Infrastructure',
+        market_cap_usd: 100,
+        coingecko_id: 'ethgas',
+        cmc_id: null,
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const reportBearingAliasTargets = [
+      {
+        id: 'eth-gas-project',
+        name: 'ETHGas',
+        slug: 'eth-gas',
+        symbol: 'GWEI',
+        category: 'Infrastructure',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: '2026-05-28T18:28:12.000Z',
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const snapshotRows = Array.from(
+      { length: 200 },
+      (_, index) => makeSnapshotRow(index + 1, index === 142 ? 'ethgas' : `cmc-project-${index + 1}`),
+    )
+
+    const rows = canonicalSnapshotRowsToScoreRows(
+      snapshotRows,
+      mergeScoreboardProjects(activeMarketProjects, reportBearingAliasTargets),
+    )
+
+    expect(rows[142]).toMatchObject({
+      rank: 143,
+      name: 'ETHGas',
+      symbol: 'GWEI',
+      slug: 'eth-gas',
       reportTypes: ['econ'],
     })
   })

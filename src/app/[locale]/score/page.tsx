@@ -38,6 +38,9 @@ const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'genius-3', slug: 'genius-terminal' },
   { alias: 'ethgas', slug: 'eth-gas' },
 ] as const
+const SCOREBOARD_CANONICAL_ALIAS_TARGET_SLUGS = Array.from(
+  new Set(SCOREBOARD_CANONICAL_ALIASES.map(({ slug }) => slug)),
+)
 
 type TrackedScoreboardProject = Awaited<
   ReturnType<ReturnType<typeof createProjectsRepository>['getProjectsForScoreboard']>
@@ -126,6 +129,25 @@ export function buildTrackedProjectLookup(
   }
 
   return lookup
+}
+
+export function mergeScoreboardProjects(
+  primaryProjects: TrackedScoreboardProject[],
+  supplementalProjects: TrackedScoreboardProject[],
+) {
+  const merged = new Map<string, TrackedScoreboardProject>()
+
+  for (const project of primaryProjects) {
+    const key = project.id || project.slug
+    if (key) merged.set(key, project)
+  }
+
+  for (const project of supplementalProjects) {
+    const key = project.id || project.slug
+    if (key && !merged.has(key)) merged.set(key, project)
+  }
+
+  return Array.from(merged.values())
 }
 
 function formatSnapshotName(slug: string) {
@@ -279,6 +301,31 @@ export async function fetchVisibleReportsForScoreboard(
   return { reports, loaded: true }
 }
 
+export async function fetchScoreboardCanonicalAliasTargetProjects(
+  reportSupabase?: SupabaseClient,
+): Promise<TrackedScoreboardProject[]> {
+  if (SCOREBOARD_CANONICAL_ALIAS_TARGET_SLUGS.length === 0) return []
+
+  const supabase = reportSupabase ?? createSupabaseAdminClient()
+  const { data, error } = await supabase
+    .from('tracked_projects')
+    .select(`
+      id, name, slug, symbol, category,
+      market_cap_usd, coingecko_id, cmc_id, aliases, maturity_score,
+      last_econ_report_at, last_maturity_report_at, last_forensic_report_at
+    `)
+    .in('slug', SCOREBOARD_CANONICAL_ALIAS_TARGET_SLUGS)
+
+  if (error) {
+    console.error('Failed to fetch scoreboard canonical alias target projects', {
+      message: error.message,
+    })
+    return []
+  }
+
+  return (data || []) as TrackedScoreboardProject[]
+}
+
 export function snapshotRowsToScoreRows(
   snapshotRows: ScoreboardSnapshotRow[],
   trackedLookup: Map<string, TrackedScoreboardProject>,
@@ -350,10 +397,12 @@ export default async function ScorePage({
 
   const currentPage = Math.max(1, Math.min(2, parseInt(pageStr || '1', 10)))
 
-  const [trackedProjects, cmcSnapshotRows] = await Promise.all([
+  const [baseTrackedProjects, cmcSnapshotRows, canonicalAliasTargetProjects] = await Promise.all([
     projectsRepository.getProjectsForScoreboard(),
     projectsRepository.getLatestScoreboardMarketSnapshot(MAX_RANK),
+    fetchScoreboardCanonicalAliasTargetProjects(),
   ])
+  const trackedProjects = mergeScoreboardProjects(baseTrackedProjects, canonicalAliasTargetProjects)
   const trackedProjectIds = trackedProjects.map((project) => project.id).filter(Boolean)
   let visibleReportResult: Awaited<ReturnType<typeof fetchVisibleReportsForScoreboard>>
   try {
