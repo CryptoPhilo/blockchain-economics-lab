@@ -9,6 +9,7 @@ assert SPEC and SPEC.loader
 SPEC.loader.exec_module(cmc_market_sync)
 
 cmc_to_market_row = cmc_market_sync.cmc_to_market_row
+build_slug_map = cmc_market_sync.build_slug_map
 CMCClient = cmc_market_sync.CMCClient
 mode_top200 = cmc_market_sync.mode_top200
 
@@ -47,11 +48,12 @@ class FakeCMC:
 
 
 class FakeDB:
-    def __init__(self):
+    def __init__(self, tracked_projects=None):
         self.rows = []
+        self.tracked_projects = tracked_projects or []
 
     def get_tracked_projects(self):
-        return []
+        return self.tracked_projects
 
     def upsert_market_data(self, rows):
         self.rows.extend(rows)
@@ -123,3 +125,38 @@ def test_mode_top200_upserts_response_order_as_canonical_rank_1_to_200():
     assert 'rain' not in {row['slug'] for row in db.rows}
     assert 'htx-dao' not in {row['slug'] for row in db.rows}
     assert 'falcon-usd' not in {row['slug'] for row in db.rows}
+
+
+def test_build_slug_map_does_not_match_by_symbol_only():
+    tracked_projects = [
+        {
+            'slug': 'irys',
+            'name': 'Irys',
+            'symbol': 'MEGA',
+            'coingecko_id': 'irys',
+            'cmc_id': None,
+        },
+    ]
+    tokens = [make_token(120, 'unrelated-top-token', 'MEGA')]
+
+    assert build_slug_map(tracked_projects, tokens) == {}
+
+
+def test_mode_top200_preserves_cmc_slug_when_tracked_symbol_collides():
+    tokens = [make_token(rank, f'rank-{rank}', f'R{rank}') for rank in range(1, 201)]
+    tokens[149] = make_token(150, 'unrelated-top-token', 'MEGA')
+    db = FakeDB([
+        {
+            'slug': 'megaeth',
+            'name': 'MegaETH',
+            'symbol': 'MEGA',
+            'coingecko_id': 'megaeth',
+            'cmc_id': None,
+        },
+    ])
+
+    mode_top200(FakeCMC(tokens), db)
+
+    assert db.rows[149]['slug'] == 'unrelated-top-token'
+    assert db.rows[149]['cmc_rank'] == 150
+    assert 'megaeth' not in {row['slug'] for row in db.rows}
