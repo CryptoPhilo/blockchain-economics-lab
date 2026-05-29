@@ -2301,7 +2301,7 @@
     "source_path": "Slide/for/ETHGas_GWEI_FOR_jp.pdf",
     "started_at": "2026-05-29T06:09:59.165123+00:00",
     "status": "published",
-    "updated_at": "2026-05-29T10:05:58.453525+00:00",
+    "updated_at": "2026-05-29T12:57:31.345591+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/eth-gas/1/ja.html"
   },
@@ -2845,7 +2845,7 @@
     "source_path": "Slide/for/ETHGas_GWEI_FOR_en.pdf",
     "started_at": "2026-05-29T06:10:27.490653+00:00",
     "status": "published",
-    "updated_at": "2026-05-29T10:05:59.095730+00:00",
+    "updated_at": "2026-05-29T12:57:32.188594+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/eth-gas/2/en.html"
   },
@@ -5127,7 +5127,7 @@
     "source_path": "Slide/mat/Fluid_MAT_jp.pdf",
     "started_at": "2026-05-29T08:03:14.666996+00:00",
     "status": "published",
-    "updated_at": "2026-05-29T10:05:55.249544+00:00",
+    "updated_at": "2026-05-29T12:57:27.667387+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/instadapp/1/ja.html"
   },
@@ -5377,7 +5377,7 @@
     "source_path": "Slide/for/ETHGas_GWEI_FOR_cn.pdf",
     "started_at": "2026-05-29T06:08:01.923131+00:00",
     "status": "published",
-    "updated_at": "2026-05-29T10:05:57.809600+00:00",
+    "updated_at": "2026-05-29T12:57:30.508060+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/eth-gas/1/zh.html"
   },
@@ -6172,7 +6172,7 @@
     "source_path": "Slide/mat/Fluid_MAT_cn.pdf",
     "started_at": "2026-05-29T08:04:36.487512+00:00",
     "status": "published",
-    "updated_at": "2026-05-29T10:05:56.753340+00:00",
+    "updated_at": "2026-05-29T12:57:29.220958+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/instadapp/1/zh.html"
   },
@@ -9498,6 +9498,36 @@
     "updated_at": "2026-05-17T17:50:56.525152+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/uniswap/1/en.html"
+  },
+  "1MQLjlhX-eU3av72fV9CcTOxF84GKhh6W": {
+    "error": null,
+    "finished_at": "2026-05-29T12:57:25.628777+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-29T06:54:33.000Z",
+    "name": "Sentient_ECON_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 540.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 960.0
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sentient/latest/ko.html",
+    "report_id": "80748fcc-20bf-4235-b9bc-02c695c32a20",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "sentient",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/Sentient_ECON_ko.pdf",
+    "started_at": "2026-05-29T12:57:06.907809+00:00",
+    "status": "published",
+    "updated_at": "2026-05-29T12:57:25.628798+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sentient/1/ko.html"
   },
   "1Mc1FKeOfrfj6qB_rt-TYH5gnPdvMd9hy": {
     "error": "slug/content mismatch — filename resolved 'flare' (body score 10) but body strongly matches 'flare-networks' (score 26)",
@@ -15171,6 +15201,36 @@
     "version": 3,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ethereum/3/ja.html"
   },
+  "1asdKYk79Ztoww9bxqFt4XCOBLOjHTK-D": {
+    "error": null,
+    "finished_at": "2026-05-29T12:56:40.600844+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-29T07:43:30.000Z",
+    "name": "Sentient_ECON_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 540.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 960.0
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sentient/latest/en.html",
+    "report_id": "0a35516f-614d-4153-b980-4d8c57ed4d02",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "sentient",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/Sentient_ECON_en.pdf",
+    "started_at": "2026-05-29T12:56:20.099613+00:00",
+    "status": "published",
+    "updated_at": "2026-05-29T12:56:40.600864+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sentient/1/en.html"
+  },
   "1b0KPmLiMxsXzr0TFBUAnmuSboH8FjNjY": {
     "error": null,
     "finished_at": "2026-05-17T06:51:49.740166+00:00",
@@ -18366,6 +18426,36 @@
     "status": "language_mismatch",
     "updated_at": "2026-05-12T18:05:51.682907+00:00"
   },
+  "1jAO2OLDMUqvU8KzgxZws5jDgqDyo4_o4": {
+    "error": null,
+    "finished_at": "2026-05-29T12:55:25.125765+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-29T12:27:00.000Z",
+    "name": "Sentient_ECON_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 540.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 960.0
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sentient/latest/zh.html",
+    "report_id": "83fa312f-b379-49ac-81b2-891a821a71b3",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "sentient",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/Sentient_ECON_cn.pdf",
+    "started_at": "2026-05-29T12:54:54.034601+00:00",
+    "status": "published",
+    "updated_at": "2026-05-29T12:55:25.125785+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sentient/1/zh.html"
+  },
   "1jBINSl7SBQxqJPuaH1QSQdvjBxEBhmBk": {
     "error": null,
     "finished_at": "2026-05-18T11:38:35.486529+00:00",
@@ -19942,6 +20032,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bittensor/1/ja.html"
   },
+  "1mmjK0bZ1VWxVmPVI-7TNuY_JOH2d0y16": {
+    "error": null,
+    "finished_at": "2026-05-29T12:56:15.404985+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-29T12:03:30.000Z",
+    "name": "Sentient_ECON_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 540.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 960.0
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sentient/latest/ja.html",
+    "report_id": "7cfb9341-1a43-4bed-a1e7-be08fce6065a",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "sentient",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/Sentient_ECON_jp.pdf",
+    "started_at": "2026-05-29T12:55:54.478210+00:00",
+    "status": "published",
+    "updated_at": "2026-05-29T12:56:15.405006+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sentient/1/ja.html"
+  },
   "1n-Bn30hedOAa25lp_af6_cgc_OuOlnUC": {
     "error": null,
     "finished_at": "2026-05-17T08:17:07.953275+00:00",
@@ -20045,7 +20165,7 @@
     "source_path": "Slide/for/ETHGas_GWEI_FOR_ko.pdf",
     "started_at": "2026-05-29T06:11:17.387222+00:00",
     "status": "published",
-    "updated_at": "2026-05-29T10:05:59.734126+00:00",
+    "updated_at": "2026-05-29T12:57:33.029388+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/eth-gas/1/ko.html"
   },
