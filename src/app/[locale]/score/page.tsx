@@ -85,6 +85,19 @@ function normalizeKey(value: unknown): string | null {
   return normalized.length > 0 ? normalized : null
 }
 
+function normalizeIdentityKey(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .replace(/[’']/g, '')
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return normalized.length > 0 ? normalized : null
+}
+
 function toNumber(value: unknown): number {
   if (typeof value === 'number') return Number.isFinite(value) ? value : 0
   if (typeof value === 'string') {
@@ -137,6 +150,33 @@ export function buildTrackedProjectLookup(
   }
 
   return lookup
+}
+
+export function buildTrackedProjectIdentityLookup(projects: TrackedScoreboardProject[]) {
+  const byName = new Map<string, TrackedScoreboardProject>()
+  const symbolCandidates = new Map<string, TrackedScoreboardProject | null>()
+
+  for (const project of projects) {
+    const nameKey = normalizeIdentityKey(project.name)
+    if (nameKey && !byName.has(nameKey)) {
+      byName.set(nameKey, project)
+    }
+
+    const symbolKey = normalizeIdentityKey(project.symbol)
+    if (!symbolKey || symbolKey.length < 3) continue
+    if (symbolCandidates.has(symbolKey)) {
+      symbolCandidates.set(symbolKey, null)
+    } else {
+      symbolCandidates.set(symbolKey, project)
+    }
+  }
+
+  const byUniqueSymbol = new Map<string, TrackedScoreboardProject>()
+  for (const [symbol, project] of symbolCandidates) {
+    if (project) byUniqueSymbol.set(symbol, project)
+  }
+
+  return { byName, byUniqueSymbol }
 }
 
 export function mergeScoreboardProjects(
@@ -249,6 +289,33 @@ function getReportAvailability(
 function getCanonicalScoreboardTargetSlug(snapshotSlug: unknown) {
   const normalized = normalizeKey(snapshotSlug)
   return normalized ? SCOREBOARD_CANONICAL_ALIAS_TARGET_BY_ALIAS.get(normalized) : undefined
+}
+
+function findTrackedProjectForSnapshot(
+  snapshot: ScoreboardSnapshotRow,
+  trackedLookup: Map<string, TrackedScoreboardProject>,
+  identityLookup?: ReturnType<typeof buildTrackedProjectIdentityLookup>,
+) {
+  const snapshotSlug = normalizeKey(snapshot.slug) || ''
+  const canonicalTargetSlug = getCanonicalScoreboardTargetSlug(snapshotSlug)
+  const canonicalProject = canonicalTargetSlug ? trackedLookup.get(canonicalTargetSlug) : undefined
+  if (canonicalProject) return canonicalProject
+
+  const directProject = trackedLookup.get(snapshotSlug)
+  if (directProject) return directProject
+
+  const cmcNameKey = normalizeIdentityKey(snapshot.cmc_name)
+  if (cmcNameKey) {
+    const nameProject = identityLookup?.byName.get(cmcNameKey)
+    if (nameProject) return nameProject
+  }
+
+  const cmcSymbolKey = normalizeIdentityKey(snapshot.cmc_symbol)
+  if (cmcSymbolKey) {
+    return identityLookup?.byUniqueSymbol.get(cmcSymbolKey)
+  }
+
+  return undefined
 }
 
 export function buildReportAvailabilityByProjectId(
@@ -458,14 +525,14 @@ export function snapshotRowsToScoreRows(
   trackedLookup: Map<string, TrackedScoreboardProject>,
   availabilityByProjectId?: Map<string, ReportAvailability>,
   availabilityByProjectSlug?: Map<string, ReportAvailability>,
+  identityLookup?: ReturnType<typeof buildTrackedProjectIdentityLookup>,
 ) {
   return snapshotRows
     .slice(0, MAX_RANK)
     .map((snapshot, index) => {
       const snapshotSlug = normalizeKey(snapshot.slug) || ''
       const canonicalTargetSlug = getCanonicalScoreboardTargetSlug(snapshotSlug)
-      const canonicalProject = canonicalTargetSlug ? trackedLookup.get(canonicalTargetSlug) : undefined
-      const project = canonicalProject ?? trackedLookup.get(snapshotSlug)
+      const project = findTrackedProjectForSnapshot(snapshot, trackedLookup, identityLookup)
       const canonicalAvailability = canonicalTargetSlug
         ? availabilityByProjectSlug?.get(canonicalTargetSlug)
         : undefined
@@ -502,6 +569,7 @@ export function canonicalSnapshotRowsToScoreRows(
     buildTrackedProjectLookup(trackedProjects, { includeProjectAliases: false }),
     availabilityByProjectId,
     availabilityByProjectSlug,
+    buildTrackedProjectIdentityLookup(trackedProjects),
   )
 }
 
