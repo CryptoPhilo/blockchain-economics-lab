@@ -2,14 +2,13 @@
 -- report-bearing projects for rows whose CMC identity differs from the
 -- report project naming convention.
 
-WITH project_seed(name, slug, symbol, category, cmc_id, aliases) AS (
+WITH project_seed(name, slug, symbol, category, aliases) AS (
   VALUES
     (
       'AB Chain',
       'ab-chain',
       'AB',
       'Infrastructure',
-      'ab',
       ARRAY['ab', 'ab chain', 'ab_chain', 'ab-chain']::text[]
     ),
     (
@@ -17,7 +16,6 @@ WITH project_seed(name, slug, symbol, category, cmc_id, aliases) AS (
       'river',
       'RIVER',
       'Infrastructure',
-      'river',
       ARRAY['river', 'river protocol', 'river_protocol', 'river-protocol']::text[]
     )
 )
@@ -28,7 +26,6 @@ INSERT INTO tracked_projects (
   category,
   status,
   discovery_source,
-  cmc_id,
   aliases,
   created_at,
   updated_at
@@ -40,7 +37,6 @@ SELECT
   category,
   'active'::project_status,
   'drive-report-gap-repair',
-  cmc_id,
   aliases,
   now(),
   now()
@@ -55,7 +51,6 @@ SET
     ELSE tracked_projects.status
   END,
   discovery_source = COALESCE(tracked_projects.discovery_source, EXCLUDED.discovery_source),
-  cmc_id = COALESCE(tracked_projects.cmc_id, EXCLUDED.cmc_id),
   aliases = (
     SELECT ARRAY(
       SELECT DISTINCT alias
