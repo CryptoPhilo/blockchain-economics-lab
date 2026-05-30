@@ -406,7 +406,10 @@ def test_immutable_short_filename_resolves_to_immutable_x(ws):
         ('wemix', 'WEMIX', 'WEMIX', 'WEMIX_ECON_cn.pdf'),
         ('usd-ai', 'USD.AI', 'CHIP', 'USD_AI_ECON_ko.pdf'),
         ('usd-ai', 'USD.AI', 'CHIP', 'CHIP_MAT_en.pdf'),
-        ('river-protocol', 'River Protocol', 'RVR', 'River_Protocol_ECON_jp.pdf'),
+        ('ab-chain', 'AB Chain', 'AB', 'AB_Chain_ECON_ko.pdf'),
+        ('ab-chain', 'AB Chain', 'AB', 'AB_MAT_en.pdf'),
+        ('river', 'River', 'RIVER', 'River_ECON_ko.pdf'),
+        ('river', 'River', 'RIVER', 'River_Protocol_ECON_jp.pdf'),
         ('river-protocol', 'River Protocol', 'RVR', 'RVR_MAT_cn.pdf'),
     ],
 )

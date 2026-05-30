@@ -38,6 +38,9 @@ const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'genius-3', slug: 'genius-terminal' },
   { alias: 'ethgas', slug: 'eth-gas' },
   { alias: 'gwei', slug: 'eth-gas' },
+  { alias: 'river-protocol', slug: 'river' },
+  { alias: 'river', slug: 'river' },
+  { alias: 'ab', slug: 'ab-chain' },
 ] as const
 const SCOREBOARD_CANONICAL_ALIAS_TARGET_SLUGS = Array.from(
   new Set(SCOREBOARD_CANONICAL_ALIASES.map(({ slug }) => slug)),
@@ -286,9 +289,13 @@ function getReportAvailability(
   }
 }
 
-function getCanonicalScoreboardTargetSlug(snapshotSlug: unknown) {
-  const normalized = normalizeKey(snapshotSlug)
-  return normalized ? SCOREBOARD_CANONICAL_ALIAS_TARGET_BY_ALIAS.get(normalized) : undefined
+function getCanonicalScoreboardTargetSlug(...values: unknown[]) {
+  for (const value of values) {
+    const normalized = normalizeKey(value)
+    const targetSlug = normalized ? SCOREBOARD_CANONICAL_ALIAS_TARGET_BY_ALIAS.get(normalized) : undefined
+    if (targetSlug) return targetSlug
+  }
+  return undefined
 }
 
 function findTrackedProjectForSnapshot(
@@ -297,7 +304,11 @@ function findTrackedProjectForSnapshot(
   identityLookup?: ReturnType<typeof buildTrackedProjectIdentityLookup>,
 ) {
   const snapshotSlug = normalizeKey(snapshot.slug) || ''
-  const canonicalTargetSlug = getCanonicalScoreboardTargetSlug(snapshotSlug)
+  const canonicalTargetSlug = getCanonicalScoreboardTargetSlug(
+    snapshotSlug,
+    snapshot.cmc_name,
+    snapshot.cmc_symbol,
+  )
   const canonicalProject = canonicalTargetSlug ? trackedLookup.get(canonicalTargetSlug) : undefined
   if (canonicalProject) return canonicalProject
 
@@ -531,7 +542,11 @@ export function snapshotRowsToScoreRows(
     .slice(0, MAX_RANK)
     .map((snapshot, index) => {
       const snapshotSlug = normalizeKey(snapshot.slug) || ''
-      const canonicalTargetSlug = getCanonicalScoreboardTargetSlug(snapshotSlug)
+      const canonicalTargetSlug = getCanonicalScoreboardTargetSlug(
+        snapshotSlug,
+        snapshot.cmc_name,
+        snapshot.cmc_symbol,
+      )
       const project = findTrackedProjectForSnapshot(snapshot, trackedLookup, identityLookup)
       const canonicalAvailability = canonicalTargetSlug
         ? availabilityByProjectSlug?.get(canonicalTargetSlug)
