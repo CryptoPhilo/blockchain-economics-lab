@@ -117,6 +117,16 @@ function toCmcCanonicalRank(value: unknown): number | null {
   return Number.isInteger(rank) && rank >= 1 && rank <= MAX_RANK ? rank : null
 }
 
+function getProjectLookupQuality(project: TrackedScoreboardProject) {
+  let quality = 0
+  if (project.last_econ_report_at) quality += 10
+  if (project.last_maturity_report_at) quality += 10
+  if (project.last_forensic_report_at) quality += 10
+  if (project.maturity_score != null) quality += 5
+  if (project.category) quality += 1
+  return quality
+}
+
 function addProjectLookup(
   lookup: Map<string, TrackedScoreboardProject>,
   key: unknown,
@@ -124,7 +134,13 @@ function addProjectLookup(
   options: { overwrite?: boolean } = {}
 ) {
   const normalized = normalizeKey(key)
-  if (normalized && (options.overwrite || !lookup.has(normalized))) {
+  if (!normalized) return
+  const existing = lookup.get(normalized)
+  if (
+    options.overwrite
+    || !existing
+    || getProjectLookupQuality(project) > getProjectLookupQuality(existing)
+  ) {
     lookup.set(normalized, project)
   }
 }
