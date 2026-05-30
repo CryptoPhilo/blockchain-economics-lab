@@ -1,0 +1,84 @@
+name: CMC Market Sync
+
+on:
+  schedule:
+    # Keep the public Top 200 score table aligned with CoinMarketCap daily.
+    - cron: '23 3 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'CMC sync mode'
+        required: false
+        default: 'top200'
+        type: choice
+        options:
+          - top200
+          - tracked
+          - full
+      dry_run:
+        description: 'Fetch CMC data without writing to Supabase'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cmc-market-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync CoinMarketCap Snapshot
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade requests
+
+      - name: Validate required secrets
+        env:
+          CMC_API_KEY: ${{ secrets.COINMARKETCAP_API_KEY }}
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          set -euo pipefail
+
+          missing=0
+          for name in CMC_API_KEY SUPABASE_URL SUPABASE_SERVICE_KEY; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::required secret ${name} is not configured"
+              missing=1
+            else
+              echo "${name}=present"
+            fi
+          done
+
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+
+      - name: Run CMC market sync
+        env:
+          CMC_API_KEY: ${{ secrets.COINMARKETCAP_API_KEY }}
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          set -euo pipefail
+
+          MODE="${{ inputs.mode || 'top200' }}"
+          args=(--mode "$MODE")
+
+          if [ "${{ inputs.dry_run || false }}" = "true" ]; then
+            args+=(--dry-run)
+          fi
+
+          python3 scripts/pipeline/cmc_market_sync.py "${args[@]}"
