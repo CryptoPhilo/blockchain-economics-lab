@@ -1,6 +1,28 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import type { TrackedProject, ProjectStatus } from '../types'
 
+const MARKET_SNAPSHOT_SELECT_COLUMNS =
+  'slug, price_usd, market_cap, change_24h, recorded_at, cmc_rank, cmc_symbol, cmc_name'
+const LEGACY_MARKET_SNAPSHOT_SELECT_COLUMNS =
+  'slug, price_usd, market_cap, change_24h, recorded_at, cmc_rank'
+
+export type ScoreboardMarketSnapshotRow = {
+  slug: string
+  price_usd: number | string | null
+  market_cap: number | string | null
+  change_24h: number | string | null
+  recorded_at: string
+  cmc_rank: number | string | null
+  cmc_symbol?: string | null
+  cmc_name?: string | null
+}
+
+function isMissingCmcIdentityColumnError(error: { message?: string; code?: string } | null) {
+  if (!error) return false
+  if (error.code === '42703') return true
+  return /cmc_(symbol|name)/i.test(error.message || '')
+}
+
 /**
  * Repository for project-related data access
  * Encapsulates all database queries for tracked projects
@@ -26,7 +48,7 @@ export class ProjectsRepository {
     return data || []
   }
 
-  async getLatestScoreboardMarketSnapshot(limit = 200) {
+  async getLatestScoreboardMarketSnapshot(limit = 200): Promise<ScoreboardMarketSnapshotRow[]> {
     const { data: latestSnapshot, error: latestError } = await this.supabase
       .from('market_data_daily')
       .select('recorded_at')
@@ -42,20 +64,26 @@ export class ProjectsRepository {
       return []
     }
 
-    const { data, error } = await this.supabase
+    const runSnapshotQuery = (selectColumns: string) => this.supabase
       .from('market_data_daily')
-      .select('slug, price_usd, market_cap, change_24h, recorded_at, cmc_rank')
+      .select(selectColumns)
       .eq('recorded_at', latestSnapshot.recorded_at)
       .gte('cmc_rank', 1)
       .lte('cmc_rank', 200)
       .order('cmc_rank', { ascending: true, nullsFirst: false })
       .limit(limit)
 
+    let { data, error } = await runSnapshotQuery(MARKET_SNAPSHOT_SELECT_COLUMNS)
+
+    if (isMissingCmcIdentityColumnError(error)) {
+      ;({ data, error } = await runSnapshotQuery(LEGACY_MARKET_SNAPSHOT_SELECT_COLUMNS))
+    }
+
     if (error) {
       throw new Error(`Failed to fetch scoreboard market snapshot: ${error.message}`)
     }
 
-    return data || []
+    return (data || []) as unknown as ScoreboardMarketSnapshotRow[]
   }
 
   /**

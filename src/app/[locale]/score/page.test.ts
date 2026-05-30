@@ -97,6 +97,42 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
     expect(canonicalSnapshotRowsToScoreRows(partialSnapshotRows, trackedProjects)).toEqual([])
   })
 
+  it('uses CoinMarketCap identity for ranked row name and ticker display', () => {
+    const trackedProjects = [
+      {
+        id: 'synthetix-project',
+        name: 'Synthetics',
+        slug: 'synthetix',
+        symbol: 'S',
+        category: 'DeFi',
+        market_cap_usd: 100,
+        coingecko_id: 'synthetix',
+        cmc_id: 'synthetix',
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const [row] = snapshotRowsToScoreRows(
+      [
+        {
+          ...makeSnapshotRow(190, 'synthetix'),
+          cmc_symbol: 'SNX',
+          cmc_name: 'Synthetix',
+        },
+      ],
+      buildTrackedProjectLookup(trackedProjects),
+    )
+
+    expect(row).toMatchObject({
+      name: 'Synthetix',
+      symbol: 'SNX',
+      slug: 'synthetix',
+    })
+  })
+
   it('excludes rows outside the canonical CMC Top 200 before rendering', () => {
     const snapshotRows = [
       ...Array.from({ length: 200 }, (_, index) => makeSnapshotRow(index + 1)),

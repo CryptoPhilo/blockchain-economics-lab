@@ -95,10 +95,12 @@ def test_cmc_get_listings_requests_canonical_rank_aux():
 
 
 def test_cmc_to_market_row_preserves_cmc_rank_and_source():
-    row = cmc_to_market_row(make_token(28, 'rain'), slug_override='rain')
+    row = cmc_to_market_row(make_token(28, 'synthetix', 'SNX'), slug_override='synthetix')
 
-    assert row['slug'] == 'rain'
+    assert row['slug'] == 'synthetix'
     assert row['cmc_rank'] == 28
+    assert row['cmc_symbol'] == 'SNX'
+    assert row['cmc_name'] == 'Synthetix'
     assert row['source'] == 'coinmarketcap'
 
 
