@@ -1,5 +1,6 @@
 import {
   buildReportAvailabilityByProjectId,
+  buildReportAvailabilityByProjectSlug,
   buildTrackedProjectLookup,
   canonicalSnapshotRowsToScoreRows,
   fetchVisibleReportsForScoreboard,
@@ -334,6 +335,7 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
           maturity: null,
           forensic: null,
         },
+        maturityScore: null,
       }],
     ])
     const snapshotRows = Array.from(
@@ -859,6 +861,7 @@ describe('score page report availability policy', () => {
         maturity: null,
         forensic: null,
       },
+      maturityScore: null,
     })
   })
 
@@ -1004,6 +1007,7 @@ describe('score page report availability policy', () => {
         maturity: null,
         forensic: null,
       },
+      maturityScore: null,
     })
   })
 
@@ -1042,6 +1046,63 @@ describe('score page report availability policy', () => {
         maturity: null,
         forensic: null,
       },
+      maturityScore: null,
+    })
+  })
+
+  it('falls back to MAT report card score when the tracked project score is empty', () => {
+    const trackedProjects = [
+      {
+        id: 'river-project',
+        name: 'River',
+        slug: 'river',
+        symbol: 'RIVER',
+        category: 'Infrastructure',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: 'river',
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const availabilityByProjectSlug = buildReportAvailabilityByProjectSlug([
+      {
+        project_id: 'river-project',
+        report_type: 'maturity',
+        language: 'ko',
+        published_at: '2026-05-30T12:03:10.455466+00:00',
+        card_data: {
+          maturity_score: 46,
+        },
+        slide_html_urls_by_lang: {
+          ko: 'https://www.bcelab.xyz/reports/river/maturity',
+        },
+        tracked_projects: {
+          slug: 'river',
+        },
+      },
+    ], 'ko')
+
+    const [row] = snapshotRowsToScoreRows(
+      [
+        {
+          ...makeSnapshotRow(173, 'river-protocol'),
+          cmc_name: 'River',
+          cmc_symbol: 'RIVER',
+        },
+      ],
+      buildTrackedProjectLookup(trackedProjects),
+      undefined,
+      availabilityByProjectSlug,
+    )
+
+    expect(row).toMatchObject({
+      slug: 'river',
+      score: 46,
+      reportTypes: ['maturity'],
     })
   })
 
