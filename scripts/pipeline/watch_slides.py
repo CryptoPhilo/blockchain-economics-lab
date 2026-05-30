@@ -149,6 +149,12 @@ REPORT_GAP_PROJECT_SEEDS: Dict[str, Dict[str, Any]] = {
         'category': 'Stablecoin',
         'coingecko_id': None,
     },
+    'synthetix': {
+        'name': 'Synthetix',
+        'symbol': 'SNX',
+        'category': 'DeFi',
+        'coingecko_id': 'havven',
+    },
     'river': {
         'name': 'River',
         'symbol': 'RIVER',
@@ -1676,6 +1682,8 @@ RECONCILE_FILENAME_PREFIX_ALIASES: Dict[str, str] = {
     'abchain': 'ab-chain',
     'riverprotocol': 'river',
     'story': 'story-protocol',
+    'snx': 'synthetix',
+    'synthetix': 'synthetix',
     'usdai': 'usd-ai',
     'wemix': 'wemix',
 }
