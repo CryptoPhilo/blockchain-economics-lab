@@ -61,6 +61,7 @@ type ReportTypeKey = 'econ' | 'maturity' | 'forensic'
 type ReportAvailability = {
   reportTypes: string[]
   reportDates: Record<ReportTypeKey, string | null>
+  maturityScore: number | null
 }
 
 type ScoreboardVisibleReportRow = {
@@ -76,6 +77,7 @@ type ScoreboardVisibleReportRow = {
   gdrive_urls_by_lang?: ProjectReport['gdrive_urls_by_lang']
   file_urls_by_lang?: ProjectReport['file_urls_by_lang']
   slide_html_urls_by_lang?: unknown
+  card_data?: ProjectReport['card_data']
 }
 
 type ScoreboardVisibleReportRowWithProjectSlug = ScoreboardVisibleReportRow & {
@@ -259,6 +261,7 @@ function createFallbackReportAvailability(project: TrackedScoreboardProject | un
       maturity: project?.last_maturity_report_at ?? null,
       forensic: project?.last_forensic_report_at ?? null,
     },
+    maturityScore: project?.maturity_score == null ? null : toNumber(project.maturity_score),
   }
 }
 
@@ -275,6 +278,7 @@ function getReportAvailability(
     return {
       reportTypes: [],
       reportDates: { econ: null, maturity: null, forensic: null },
+      maturityScore: null,
     }
   }
 
@@ -286,7 +290,17 @@ function getReportAvailability(
       maturity: live.reportDates.maturity,
       forensic: live.reportDates.forensic,
     },
+    maturityScore: live.maturityScore,
   }
+}
+
+function extractReportMaturityScore(report: ScoreboardVisibleReportRow): number | null {
+  if (report.report_type !== 'maturity') return null
+  const cardData = report.card_data as Record<string, unknown> | null | undefined
+  const rawScore = cardData?.maturity_score ?? cardData?.score
+  if (rawScore == null) return null
+  const score = toNumber(rawScore)
+  return Number.isFinite(score) ? score : null
 }
 
 function getCanonicalScoreboardTargetSlug(...values: unknown[]) {
@@ -348,6 +362,7 @@ export function buildReportAvailabilityByProjectId(
     const existing = map.get(report.project_id) ?? {
       reportTypes: [],
       reportDates: { econ: null, maturity: null, forensic: null },
+      maturityScore: null,
     }
 
     if (!existing.reportTypes.includes(report.report_type)) {
@@ -358,6 +373,11 @@ export function buildReportAvailabilityByProjectId(
     const current = existing.reportDates[report.report_type]
     if (timestamp && (!current || new Date(timestamp).getTime() > new Date(current).getTime())) {
       existing.reportDates[report.report_type] = timestamp
+    }
+
+    const reportMaturityScore = extractReportMaturityScore(report)
+    if (reportMaturityScore != null) {
+      existing.maturityScore = reportMaturityScore
     }
 
     map.set(report.project_id, existing)
@@ -390,6 +410,7 @@ export function buildReportAvailabilityByProjectSlug(
     const existing = map.get(slug) ?? {
       reportTypes: [],
       reportDates: { econ: null, maturity: null, forensic: null },
+      maturityScore: null,
     }
 
     if (!existing.reportTypes.includes(report.report_type)) {
@@ -400,6 +421,11 @@ export function buildReportAvailabilityByProjectSlug(
     const current = existing.reportDates[report.report_type]
     if (timestamp && (!current || new Date(timestamp).getTime() > new Date(current).getTime())) {
       existing.reportDates[report.report_type] = timestamp
+    }
+
+    const reportMaturityScore = extractReportMaturityScore(report)
+    if (reportMaturityScore != null) {
+      existing.maturityScore = reportMaturityScore
     }
 
     map.set(slug, existing)
@@ -436,6 +462,7 @@ export async function fetchVisibleReportsForScoreboard(
         'gdrive_urls_by_lang',
         'file_urls_by_lang',
         'slide_html_urls_by_lang',
+        'card_data',
       ].join(', '))
       .in('project_id', chunk)
       .in('report_type', ['econ', 'maturity', 'forensic'])
@@ -485,6 +512,7 @@ export async function fetchVisibleReportsForScoreboardByProjectSlugs(
         'gdrive_urls_by_lang',
         'file_urls_by_lang',
         'slide_html_urls_by_lang',
+        'card_data',
         'tracked_projects!inner(slug)',
       ].join(', '))
       .in('tracked_projects.slug', chunk)
@@ -560,7 +588,7 @@ export function snapshotRowsToScoreRows(
         slug: canonicalTargetSlug || project?.slug || snapshot.slug,
         change24h: snapshot.change_24h == null ? null : toNumber(snapshot.change_24h),
         marketCap: toNumber(snapshot.market_cap),
-        score: project?.maturity_score == null ? null : toNumber(project.maturity_score),
+        score: project?.maturity_score == null ? reportAvailability.maturityScore : toNumber(project.maturity_score),
         category: project?.category || '',
         reportTypes: reportAvailability.reportTypes,
         reportDates: reportAvailability.reportDates,
