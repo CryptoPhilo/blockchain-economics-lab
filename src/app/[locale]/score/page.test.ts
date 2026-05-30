@@ -448,6 +448,60 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
       reportTypes: ['econ', 'maturity'],
     })
   })
+
+  it('prefers report-bearing duplicate tracked projects for canonical scoreboard rows', () => {
+    const trackedProjects = [
+      {
+        id: 'river-market-shell',
+        name: 'River',
+        slug: 'river',
+        symbol: 'RIVER',
+        category: 'infrastructure',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: 'river',
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+      {
+        id: 'river-report-project',
+        name: 'River',
+        slug: 'river',
+        symbol: 'RIVER',
+        category: 'Infrastructure',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: [],
+        maturity_score: 46,
+        last_econ_report_at: '2026-05-30T12:02:31.576246+00:00',
+        last_maturity_report_at: '2026-05-30T12:03:10.455466+00:00',
+        last_forensic_report_at: null,
+      },
+    ]
+    const snapshotRows = Array.from(
+      { length: 200 },
+      (_, index) => ({
+        ...makeSnapshotRow(index + 1, index === 172 ? 'river' : `cmc-project-${index + 1}`),
+        cmc_name: index === 172 ? 'River' : `CMC Project ${index + 1}`,
+        cmc_symbol: index === 172 ? 'RIVER' : `P${index + 1}`,
+      }),
+    )
+
+    const rows = canonicalSnapshotRowsToScoreRows(snapshotRows, trackedProjects)
+
+    expect(rows[172]).toMatchObject({
+      rank: 173,
+      name: 'River',
+      symbol: 'RIVER',
+      slug: 'river',
+      score: 46,
+      reportTypes: ['econ', 'maturity'],
+    })
+  })
 })
 
 describe('score page tracked project aliases', () => {
