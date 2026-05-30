@@ -176,6 +176,26 @@ function formatSnapshotSymbol(slug: string) {
     .toUpperCase() || slug.slice(0, 6).toUpperCase()
 }
 
+function formatCmcIdentity(value: unknown) {
+  if (typeof value !== 'string') return null
+  const normalized = value.trim()
+  return normalized.length > 0 ? normalized : null
+}
+
+function getSnapshotDisplayName(
+  snapshot: ScoreboardSnapshotRow,
+  project: TrackedScoreboardProject | undefined,
+) {
+  return formatCmcIdentity(snapshot.cmc_name) || project?.name || formatSnapshotName(snapshot.slug)
+}
+
+function getSnapshotDisplaySymbol(
+  snapshot: ScoreboardSnapshotRow,
+  project: TrackedScoreboardProject | undefined,
+) {
+  return formatCmcIdentity(snapshot.cmc_symbol) || project?.symbol || formatSnapshotSymbol(snapshot.slug)
+}
+
 function getReportTimestamp(report: {
   published_at?: string | null
   updated_at?: string | null
@@ -453,8 +473,8 @@ export function snapshotRowsToScoreRows(
 
       return {
         rank: toCmcCanonicalRank(snapshot.cmc_rank) ?? index + 1,
-        name: project?.name || formatSnapshotName(snapshot.slug),
-        symbol: project?.symbol || formatSnapshotSymbol(snapshot.slug),
+        name: getSnapshotDisplayName(snapshot, project),
+        symbol: getSnapshotDisplaySymbol(snapshot, project),
         slug: canonicalTargetSlug || project?.slug || snapshot.slug,
         change24h: snapshot.change_24h == null ? null : toNumber(snapshot.change_24h),
         marketCap: toNumber(snapshot.market_cap),

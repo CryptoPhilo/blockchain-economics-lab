@@ -202,6 +202,14 @@ def parse_cmc_rank(token: Dict) -> Optional[int]:
     return rank if rank > 0 else None
 
 
+def clean_cmc_text(value) -> Optional[str]:
+    """Return a trimmed CoinMarketCap text field or None when absent."""
+    if not isinstance(value, str):
+        return None
+    value = value.strip()
+    return value or None
+
+
 def cmc_to_market_row(
     token: Dict,
     slug_override: str = None,
@@ -222,6 +230,8 @@ def cmc_to_market_row(
         'slug': slug_override or cmc_slug,
         'coingecko_id': slug_override or cmc_slug,  # 호환성: 기존 JOIN 조건 유지
         'cmc_rank': cmc_rank,
+        'cmc_symbol': clean_cmc_text(token.get('symbol')),
+        'cmc_name': clean_cmc_text(token.get('name')),
         'source': 'coinmarketcap',
         'price_usd': quote.get('price'),
         'market_cap': quote.get('market_cap'),
