@@ -65,6 +65,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/chainlink/1/en.html"
   },
+  "1-7dINvg-UdbDW8V6-1OlT3bHfJF2689_": {
+    "error": null,
+    "finished_at": "2026-05-30T10:33:14.068658+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-30T06:14:20.000Z",
+    "name": "river_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/river/latest/ja.html",
+    "report_id": "660573d1-d319-49ba-bf56-0c617ddf193e",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "river",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/river_MAT_jp.pdf",
+    "started_at": "2026-05-30T10:32:37.490118+00:00",
+    "status": "published",
+    "updated_at": "2026-05-30T10:33:14.068675+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/river/1/ja.html"
+  },
   "1-DmqvQ7OlP2-kRRkHzwOqhW3PdfH5LHX": {
     "error": null,
     "finished_at": "2026-05-17T07:25:14.407161+00:00",
@@ -1114,7 +1144,7 @@
     "source_path": "Slide/mat/Cheems_MAT_cn.pdf",
     "started_at": "2026-05-30T08:53:40.284117+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:54:35.769836+00:00",
+    "updated_at": "2026-05-30T10:31:44.600289+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/cheems-pet/1/zh.html"
   },
@@ -1808,7 +1838,7 @@
     "source_path": "Slide/econ/cheems_ECON_jp.pdf",
     "started_at": "2026-05-30T08:43:02.707855+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:43:23.196873+00:00",
+    "updated_at": "2026-05-30T10:31:27.884876+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/cheems-pet/1/ja.html"
   },
@@ -2113,7 +2143,7 @@
     "source_path": "Slide/econ/River_ECON_jp.pdf",
     "started_at": "2026-05-30T06:05:27.594901+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:50:15.937808+00:00",
+    "updated_at": "2026-05-30T10:31:36.368337+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/river/1/ja.html"
   },
@@ -2591,7 +2621,7 @@
     "source_path": "Slide/mat/Horizen_MAT_cn.pdf",
     "started_at": "2026-05-30T08:56:59.392662+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:57:30.364661+00:00",
+    "updated_at": "2026-05-30T10:31:50.766708+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/horizen/1/zh.html"
   },
@@ -4908,6 +4938,36 @@
     "status": "failed",
     "updated_at": "2026-05-17T18:02:03.206153+00:00"
   },
+  "1BmZPRV-4C5Ydzur-EL-E60uwiepFr7KQ": {
+    "error": null,
+    "finished_at": "2026-05-30T10:30:15.678672+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-30T09:24:08.000Z",
+    "name": "livepeer_ECON_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/livepeer/latest/zh.html",
+    "report_id": "61cc037d-b74a-46e4-90b0-b221d43324b4",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "livepeer",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/livepeer_ECON_cn.pdf",
+    "started_at": "2026-05-30T10:29:53.746451+00:00",
+    "status": "published",
+    "updated_at": "2026-05-30T10:30:15.678687+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/livepeer/1/zh.html"
+  },
   "1BoXnT5u8U30H1Pu2YjxRySILo_nGt9UA": {
     "error": null,
     "finished_at": "2026-05-28T18:33:31.136833+00:00",
@@ -5024,7 +5084,7 @@
     "source_path": "Slide/mat/Cheems_MAT_jp.pdf",
     "started_at": "2026-05-30T08:55:16.980432+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:55:58.184451+00:00",
+    "updated_at": "2026-05-30T10:31:46.675141+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/cheems-pet/1/ja.html"
   },
@@ -6632,6 +6692,26 @@
     "status": "failed",
     "updated_at": "2026-05-17T17:27:24.849901+00:00"
   },
+  "1EsE1NaBEOnQE-_gAEHe2shMaZaaQCoJb": {
+    "error": "unresolved (slug=? via filename_unresolved; lang=ko via filename)",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-30T05:37:40.000Z",
+    "name": "synthetix_MAT_ko.pdf",
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": null,
+    "report_id": null,
+    "rtype": "mat",
+    "slug": null,
+    "slug_source": "filename_unresolved",
+    "source_depth": 0,
+    "source_path": "Slide/mat/synthetix_MAT_ko.pdf",
+    "status": "unresolved",
+    "updated_at": "2026-05-30T10:34:05.090374+00:00",
+    "version": null,
+    "versioned_url": null
+  },
   "1Et_YXTmETG4Dy4dIdL6JaX4ITxd5Oq1P": {
     "error": null,
     "finished_at": "2026-05-17T13:13:11.674617+00:00",
@@ -6798,6 +6878,26 @@
     "slug_source": "filename",
     "status": "language_mismatch",
     "updated_at": "2026-05-12T18:05:15.175977+00:00"
+  },
+  "1FANtY6WWYhQ3nbdoPp3BQbrfLcQgD8uP": {
+    "error": "unresolved (slug=? via filename_unresolved; lang=en via filename)",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-30T06:11:59.000Z",
+    "name": "synthetix_MAT_en.pdf",
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": null,
+    "report_id": null,
+    "rtype": "mat",
+    "slug": null,
+    "slug_source": "filename_unresolved",
+    "source_depth": 0,
+    "source_path": "Slide/mat/synthetix_MAT_en.pdf",
+    "status": "unresolved",
+    "updated_at": "2026-05-30T10:33:35.261209+00:00",
+    "version": null,
+    "versioned_url": null
   },
   "1FEp3qavITmS7NFcOmstHeUa3y5YJCJDY": {
     "error": "Storage upload failed for slides/econ/stellar/2/ko_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
@@ -7435,7 +7535,7 @@
     "source_path": "Slide/mat/river_MAT_cn.pdf",
     "started_at": "2026-05-30T09:02:30.680024+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T09:03:45.446633+00:00",
+    "updated_at": "2026-05-30T10:32:03.316832+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/river/1/zh.html"
   },
@@ -8334,7 +8434,7 @@
     "source_path": "Slide/mat/Cheems_MAT_en.pdf",
     "started_at": "2026-05-30T08:57:39.239857+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:58:38.153444+00:00",
+    "updated_at": "2026-05-30T10:31:52.784537+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/cheems-pet/1/en.html"
   },
@@ -9050,7 +9150,7 @@
     "source_path": "Slide/mat/Horizen_MAT_jp.pdf",
     "started_at": "2026-05-30T08:59:50.559299+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T09:00:04.715524+00:00",
+    "updated_at": "2026-05-30T10:31:56.661656+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/horizen/1/ja.html"
   },
@@ -10852,7 +10952,7 @@
     "source_path": "Slide/econ/Grass_ECON_en.pdf",
     "started_at": "2026-05-30T08:43:27.239944+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:43:43.666690+00:00",
+    "updated_at": "2026-05-30T10:31:28.723099+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/grass/1/en.html"
   },
@@ -10882,7 +10982,7 @@
     "source_path": "Slide/econ/Horizen_ECON_cn.pdf",
     "started_at": "2026-05-30T08:44:02.541117+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:44:28.384104+00:00",
+    "updated_at": "2026-05-30T10:31:29.568433+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/horizen/1/zh.html"
   },
@@ -11568,7 +11668,7 @@
     "source_path": "Slide/mat/Grass_MAT_ko.pdf",
     "started_at": "2026-05-30T08:59:04.528411+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:59:24.236447+00:00",
+    "updated_at": "2026-05-30T10:31:54.539301+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/grass/1/ko.html"
   },
@@ -11903,7 +12003,7 @@
     "source_path": "Slide/econ/cheems_ECON_en.pdf",
     "started_at": "2026-05-30T08:44:33.164454+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:44:51.294144+00:00",
+    "updated_at": "2026-05-30T10:31:30.419858+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/cheems-pet/1/en.html"
   },
@@ -12635,7 +12735,7 @@
     "source_path": "Slide/econ/cheems_ECON_cn.pdf",
     "started_at": "2026-05-30T08:41:22.658047+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:41:58.232692+00:00",
+    "updated_at": "2026-05-30T10:31:26.178912+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/cheems-pet/1/zh.html"
   },
@@ -12712,7 +12812,7 @@
     "source_path": "Slide/econ/cheems_ECON_ko.pdf",
     "started_at": "2026-05-30T08:47:01.144750+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:47:28.113044+00:00",
+    "updated_at": "2026-05-30T10:31:32.990417+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/cheems-pet/1/ko.html"
   },
@@ -12871,6 +12971,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pudgy-penguins/1/ja.html"
   },
+  "1TaaIzIru3aAQa5rLVAe2RdJxsXN7RDS0": {
+    "error": null,
+    "finished_at": "2026-05-30T10:31:24.447469+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-30T08:43:56.000Z",
+    "name": "Livepeer_ECON_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 540.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 960.0
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/livepeer/latest/ko.html",
+    "report_id": "9dfff93e-146b-405d-aa72-ab50d2585f9c",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "livepeer",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/Livepeer_ECON_ko.pdf",
+    "started_at": "2026-05-30T10:31:04.872191+00:00",
+    "status": "published",
+    "updated_at": "2026-05-30T10:31:24.447485+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/livepeer/1/ko.html"
+  },
   "1TiKLT1PHpRdUEXhyJyXPPYVzgQLF2kjG": {
     "error": null,
     "finished_at": "2026-05-30T08:56:23.336682+00:00",
@@ -12897,7 +13027,7 @@
     "source_path": "Slide/mat/Grass_MAT_en.pdf",
     "started_at": "2026-05-30T08:56:05.451515+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:56:23.336696+00:00",
+    "updated_at": "2026-05-30T10:31:48.694556+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/grass/1/en.html"
   },
@@ -13111,7 +13241,7 @@
     "source_path": "Slide/econ/River_ECON_en.pdf",
     "started_at": "2026-05-30T06:05:51.684206+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:50:16.584451+00:00",
+    "updated_at": "2026-05-30T10:31:37.217224+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/river/1/en.html"
   },
@@ -13821,7 +13951,7 @@
     "source_path": "Slide/mat/Sentient_MAT_cn.pdf",
     "started_at": "2026-05-30T00:03:00.933765+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T06:07:11.280954+00:00",
+    "updated_at": "2026-05-30T10:35:31.328553+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/sentient/1/zh.html"
   },
@@ -14754,7 +14884,7 @@
     "source_path": "Slide/mat/Grass_MAT_jp.pdf",
     "started_at": "2026-05-30T08:52:21.689707+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:52:59.785114+00:00",
+    "updated_at": "2026-05-30T10:31:42.369723+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/grass/1/ja.html"
   },
@@ -14784,7 +14914,7 @@
     "source_path": "Slide/econ/Horizen_ECON_jp.pdf",
     "started_at": "2026-05-30T08:45:54.802890+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:46:09.530330+00:00",
+    "updated_at": "2026-05-30T10:31:32.137241+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/horizen/1/ja.html"
   },
@@ -14839,7 +14969,7 @@
     "source_path": "Slide/mat/Cheems_MAT_ko.pdf",
     "started_at": "2026-05-30T09:00:32.941062+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T09:00:50.541375+00:00",
+    "updated_at": "2026-05-30T10:31:58.807153+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/cheems-pet/1/ko.html"
   },
@@ -15444,7 +15574,7 @@
     "source_path": "Slide/mat/Grass_MAT_cn.pdf",
     "started_at": "2026-05-30T08:50:41.162494+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:51:44.683701+00:00",
+    "updated_at": "2026-05-30T10:31:40.463292+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/grass/1/zh.html"
   },
@@ -16107,7 +16237,7 @@
     "source_path": "Slide/econ/Grass_ECON_jp.pdf",
     "started_at": "2026-05-30T08:42:21.782046+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:42:39.276967+00:00",
+    "updated_at": "2026-05-30T10:31:27.018839+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/grass/1/ja.html"
   },
@@ -16701,7 +16831,7 @@
     "source_path": "Slide/mat/Horizen_MAT_ko.pdf",
     "started_at": "2026-05-30T09:04:46.454979+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T09:05:02.941836+00:00",
+    "updated_at": "2026-05-30T10:32:05.198608+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/horizen/1/ko.html"
   },
@@ -16963,7 +17093,7 @@
     "source_path": "Slide/econ/River_ECON_cn.pdf",
     "started_at": "2026-05-30T06:04:29.384423+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:50:15.295258+00:00",
+    "updated_at": "2026-05-30T10:31:35.521708+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/river/1/zh.html"
   },
@@ -17635,6 +17765,36 @@
     "started_at": "2026-05-17T13:54:22.538517+00:00",
     "status": "failed",
     "updated_at": "2026-05-17T13:54:48.846333+00:00"
+  },
+  "1ebOqc0lRrQ5xfsV0yfV3nfkgQ_spYryg": {
+    "error": null,
+    "finished_at": "2026-05-30T10:35:29.063886+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-30T00:30:51.000Z",
+    "name": "river_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/river/latest/ko.html",
+    "report_id": "3ecde7b3-93e7-46c4-a772-088028b6b2cf",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "river",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/river_MAT_ko.pdf",
+    "started_at": "2026-05-30T10:35:05.652904+00:00",
+    "status": "published",
+    "updated_at": "2026-05-30T10:35:29.063902+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/river/1/ko.html"
   },
   "1ejljun4fktDR4hC_PW0EeF-zPuGiwlAV": {
     "error": null,
@@ -18575,7 +18735,7 @@
     "source_path": "Slide/econ/Grass_ECON_ko.pdf",
     "started_at": "2026-05-30T08:45:14.455423+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:45:32.722874+00:00",
+    "updated_at": "2026-05-30T10:31:31.265051+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/grass/1/ko.html"
   },
@@ -20911,9 +21071,39 @@
     "source_path": "Slide/mat/Horizen_MAT_en.pdf",
     "started_at": "2026-05-30T09:01:40.866991+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T09:02:05.246672+00:00",
+    "updated_at": "2026-05-30T10:32:00.968472+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/horizen/1/en.html"
+  },
+  "1mE54hOIE83-SuQPtQFe6z88OEsd193zc": {
+    "error": null,
+    "finished_at": "2026-05-30T10:30:42.961689+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-30T09:17:49.000Z",
+    "name": "Livepeer_ECON_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/livepeer/latest/en.html",
+    "report_id": "67aba9ff-b464-4e4f-94c1-635b6c1cc3d3",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "livepeer",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/Livepeer_ECON_en.pdf",
+    "started_at": "2026-05-30T10:30:20.159353+00:00",
+    "status": "published",
+    "updated_at": "2026-05-30T10:30:42.961705+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/livepeer/1/en.html"
   },
   "1mEBAkZomkT8fj3mBOlQt2rajS_BRmy7d": {
     "error": null,
@@ -22611,6 +22801,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/avalanche-2/1/en.html"
   },
+  "1qD6P0jV8BbvRyU00edeXl3pKKN6KJ6XW": {
+    "error": null,
+    "finished_at": "2026-05-30T10:29:19.098948+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-30T09:35:52.000Z",
+    "name": "Livepeer_ECON_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/livepeer/latest/ja.html",
+    "report_id": "013a2063-7239-4da0-9182-6dddb0442c6d",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "livepeer",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/econ/Livepeer_ECON_jp.pdf",
+    "started_at": "2026-05-30T10:28:43.862621+00:00",
+    "status": "published",
+    "updated_at": "2026-05-30T10:29:19.098964+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/livepeer/1/ja.html"
+  },
   "1qFVhLCI7pQSwq4w18Kze5o1Ld6eFbx04": {
     "error": null,
     "finished_at": "2026-05-17T07:13:07.386611+00:00",
@@ -22873,6 +23093,36 @@
     "updated_at": "2026-05-29T07:49:32.479641+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/1inch/1/zh.html"
+  },
+  "1rLEkDI2Xb2grnFfbUkBYktczeqz2qeZO": {
+    "error": null,
+    "finished_at": "2026-05-30T10:34:37.136620+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-30T04:52:15.000Z",
+    "name": "river_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/river/latest/en.html",
+    "report_id": "b4bd3970-4f9d-49db-b214-7d65f439ba95",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "river",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/river_MAT_en.pdf",
+    "started_at": "2026-05-30T10:34:11.305297+00:00",
+    "status": "published",
+    "updated_at": "2026-05-30T10:34:37.136636+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/river/1/en.html"
   },
   "1rNIV8jlXO6mbOfH7iW2IvaFJB75l2LAy": {
     "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
@@ -24088,7 +24338,7 @@
     "source_path": "Slide/econ/Grass_ECON_cn.pdf",
     "started_at": "2026-05-30T08:40:14.511689+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:41:01.309008+00:00",
+    "updated_at": "2026-05-30T10:31:25.312483+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/grass/1/zh.html"
   },
@@ -24588,7 +24838,7 @@
     "source_path": "Slide/econ/Horizen_ECON_ko.pdf",
     "started_at": "2026-05-30T08:48:56.637197+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:49:21.908972+00:00",
+    "updated_at": "2026-05-30T10:31:34.678236+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/horizen/1/ko.html"
   },
@@ -24780,7 +25030,7 @@
     "source_path": "Slide/econ/River_ECON_ko.pdf",
     "started_at": "2026-05-30T06:06:35.407594+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:50:17.229926+00:00",
+    "updated_at": "2026-05-30T10:31:38.138269+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/river/1/ko.html"
   },
@@ -24981,7 +25231,7 @@
     "source_path": "Slide/econ/Horizen_ECON_en.pdf",
     "started_at": "2026-05-30T08:47:34.880224+00:00",
     "status": "published",
-    "updated_at": "2026-05-30T08:47:53.668002+00:00",
+    "updated_at": "2026-05-30T10:31:33.838122+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/horizen/1/en.html"
   },
