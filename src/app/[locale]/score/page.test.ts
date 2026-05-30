@@ -359,6 +359,93 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
       },
     })
   })
+
+  it('uses CMC identity aliases before stale snapshot slugs for renamed market rows', () => {
+    const trackedProjects = [
+      {
+        id: 'river-project',
+        name: 'River',
+        slug: 'river',
+        symbol: 'RIVER',
+        category: 'Infrastructure',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: 'river',
+        aliases: ['river protocol'],
+        maturity_score: null,
+        last_econ_report_at: '2026-05-30T06:00:00.000Z',
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+      {
+        id: 'newton-project',
+        name: 'Newton',
+        slug: 'newton',
+        symbol: 'N',
+        category: 'Infrastructure',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+      {
+        id: 'ab-chain-project',
+        name: 'AB Chain',
+        slug: 'ab-chain',
+        symbol: 'AB',
+        category: 'Infrastructure',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: 'ab',
+        aliases: ['ab', 'ab chain'],
+        maturity_score: null,
+        last_econ_report_at: '2026-05-30T07:00:00.000Z',
+        last_maturity_report_at: '2026-05-30T07:05:00.000Z',
+        last_forensic_report_at: null,
+      },
+    ]
+    const snapshotRows = Array.from(
+      { length: 200 },
+      (_, index) => {
+        if (index === 172) {
+          return {
+            ...makeSnapshotRow(173, 'river'),
+            cmc_name: 'River',
+            cmc_symbol: 'RIVER',
+          }
+        }
+        if (index === 173) {
+          return {
+            ...makeSnapshotRow(174, 'newton'),
+            cmc_name: 'AB',
+            cmc_symbol: 'AB',
+          }
+        }
+        return makeSnapshotRow(index + 1, `cmc-project-${index + 1}`)
+      },
+    )
+
+    const rows = canonicalSnapshotRowsToScoreRows(snapshotRows, trackedProjects)
+
+    expect(rows[172]).toMatchObject({
+      rank: 173,
+      name: 'River',
+      symbol: 'RIVER',
+      slug: 'river',
+      reportTypes: ['econ'],
+    })
+    expect(rows[173]).toMatchObject({
+      rank: 174,
+      name: 'AB',
+      symbol: 'AB',
+      slug: 'ab-chain',
+      reportTypes: ['econ', 'maturity'],
+    })
+  })
 })
 
 describe('score page tracked project aliases', () => {
