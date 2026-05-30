@@ -40,6 +40,7 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
     'vision': ['vsn', 'vision token', 'vision-token'],
     'newton': ['newton protocol', 'newton_protocol', 'newt'],
     'reserve-rights': ['reserve protocol', 'reserve_protocol', 'reserve-protocol', 'reserve rights', 'rsr'],
+    'synthetix': ['snx', 'havven'],
     'wemix': ['wemix network', 'wemix-network', 'wemix_network'],
     'usd-ai': ['usd ai', 'usd.ai', 'usd_ai', 'chip'],
     'river': ['river protocol', 'river_protocol', 'river-protocol'],

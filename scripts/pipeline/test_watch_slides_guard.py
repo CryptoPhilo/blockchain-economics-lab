@@ -403,6 +403,8 @@ def test_immutable_short_filename_resolves_to_immutable_x(ws):
         ('newton', 'Newton', 'N', 'NEWT_MAT_en.pdf'),
         ('reserve-rights', 'Reserve Rights', 'RSR', 'Reserve_Protocol_ECON_ko.pdf'),
         ('reserve-rights', 'Reserve Rights', 'RSR', 'Reserve_Rights_MAT_en.pdf'),
+        ('synthetix', 'Synthetix', 'SNX', 'synthetix_ECON_ko.pdf'),
+        ('synthetix', 'Synthetix', 'SNX', 'SNX_MAT_en.pdf'),
         ('wemix', 'WEMIX', 'WEMIX', 'WEMIX_ECON_cn.pdf'),
         ('usd-ai', 'USD.AI', 'CHIP', 'USD_AI_ECON_ko.pdf'),
         ('usd-ai', 'USD.AI', 'CHIP', 'CHIP_MAT_en.pdf'),
