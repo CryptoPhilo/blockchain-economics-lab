@@ -183,6 +183,44 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
     expect(rows.map((row) => row.slug)).not.toContain('irys')
   })
 
+  it('uses CMC identity to recover report-bearing projects when the CMC slug differs', () => {
+    const trackedProjects = [
+      {
+        id: 'instadapp-project',
+        name: 'Fluid',
+        slug: 'instadapp',
+        symbol: 'FLUID',
+        category: 'DeFi',
+        market_cap_usd: 100,
+        coingecko_id: 'instadapp',
+        cmc_id: null,
+        aliases: ['fluid', 'fluid protocol'],
+        maturity_score: null,
+        last_econ_report_at: '2026-05-29T00:00:00.000Z',
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const snapshotRows = Array.from(
+      { length: 200 },
+      (_, index) => ({
+        ...makeSnapshotRow(index + 1, index === 155 ? 'fluid-protocol' : `cmc-project-${index + 1}`),
+        cmc_name: index === 155 ? 'Fluid' : `CMC Project ${index + 1}`,
+        cmc_symbol: index === 155 ? 'FLUID' : `P${index + 1}`,
+      }),
+    )
+
+    const rows = canonicalSnapshotRowsToScoreRows(snapshotRows, trackedProjects)
+
+    expect(rows[155]).toMatchObject({
+      rank: 156,
+      name: 'Fluid',
+      symbol: 'FLUID',
+      slug: 'instadapp',
+      reportTypes: ['econ'],
+    })
+  })
+
   it('still applies explicit scoreboard canonical aliases for CMC snapshot rows', () => {
     const trackedProjects = [
       {
