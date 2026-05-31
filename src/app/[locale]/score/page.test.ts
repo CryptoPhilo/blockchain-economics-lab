@@ -735,6 +735,21 @@ describe('score page tracked project aliases', () => {
         last_maturity_report_at: null,
         last_forensic_report_at: null,
       },
+      {
+        id: 'starknet-project',
+        name: 'Starknet',
+        slug: 'starknet',
+        symbol: 'STRK',
+        category: 'Layer 2',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: [],
+        maturity_score: 74,
+        last_econ_report_at: '2026-05-31T07:38:51.000Z',
+        last_maturity_report_at: '2026-05-31T07:45:29.000Z',
+        last_forensic_report_at: null,
+      },
     ]
     const snapshotRows = [
       makeSnapshotRow(89, 'sei-network'),
@@ -743,6 +758,7 @@ describe('score page tracked project aliases', () => {
       makeSnapshotRow(100, 'curve-dao-token'),
       makeSnapshotRow(38, 'world-liberty-financial-wlfi'),
       makeSnapshotRow(143, 'ethgas'),
+      makeSnapshotRow(131, 'starknet-token'),
     ]
 
     const rows = snapshotRowsToScoreRows(snapshotRows, buildTrackedProjectLookup(trackedProjects))
@@ -758,6 +774,7 @@ describe('score page tracked project aliases', () => {
       { name: 'Curve DAO', slug: 'curve-dao', reportTypes: ['econ'] },
       { name: 'World Liberty Financial', slug: 'world-liberty-financial', reportTypes: ['econ', 'maturity'] },
       { name: 'ETHGas', slug: 'eth-gas', reportTypes: ['econ'] },
+      { name: 'Starknet', slug: 'starknet', reportTypes: ['econ', 'maturity'] },
     ])
   })
 
