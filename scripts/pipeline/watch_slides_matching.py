@@ -53,6 +53,15 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
     'river': ['river protocol', 'river_protocol', 'river-protocol'],
     'river-protocol': ['rvr'],
     'ab-chain': ['ab', 'ab chain', 'ab_chain'],
+    'maplestory-universe': [
+        'nexpace',
+        'nxpc',
+        'maplestory',
+        'maplestory universe',
+        'maplestory_universe',
+        'maple story universe',
+        'msu',
+    ],
     'ethereum-name-service': [
         'ens',
         'ens 이더리움 네임 서비스',
