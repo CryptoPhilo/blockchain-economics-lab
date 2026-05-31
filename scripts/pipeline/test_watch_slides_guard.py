@@ -430,6 +430,9 @@ def test_immutable_short_filename_resolves_to_immutable_x(ws):
         ('usd-ai', 'USD.AI', 'CHIP', 'CHIP_MAT_en.pdf'),
         ('ab-chain', 'AB Chain', 'AB', 'AB_Chain_ECON_ko.pdf'),
         ('ab-chain', 'AB Chain', 'AB', 'AB_MAT_en.pdf'),
+        ('maplestory-universe', 'NEXPACE', 'NXPC', 'MapleStory_Universe_ECON_ko.pdf'),
+        ('maplestory-universe', 'NEXPACE', 'NXPC', 'MapleStory_Universe_MSU_MAT_en.pdf'),
+        ('maplestory-universe', 'NEXPACE', 'NXPC', 'NXPC_ECON_cn.pdf'),
         ('river', 'River', 'RIVER', 'River_ECON_ko.pdf'),
         ('river', 'River', 'RIVER', 'River_Protocol_ECON_jp.pdf'),
         ('river-protocol', 'River Protocol', 'RVR', 'RVR_MAT_cn.pdf'),
@@ -1271,6 +1274,18 @@ def test_ensure_runtime_project_seed_appends_known_slug_in_dry_run(ws):
     assert instadapp['id'] == 'dry-run-instadapp'
     assert instadapp['name'] == 'Fluid'
     assert 'fluid' in instadapp['aliases']
+
+    updated = ws._ensure_runtime_project_seed(
+        object(),
+        projects,
+        'maplestory-universe',
+        dry_run=True,
+    )
+    nexpace = updated[-1]
+    assert nexpace['id'] == 'dry-run-maplestory-universe'
+    assert nexpace['name'] == 'NEXPACE'
+    assert nexpace['symbol'] == 'NXPC'
+    assert 'msu' in nexpace['aliases']
 
 
 def test_ensure_runtime_project_seed_upserts_known_slug_for_publish(ws):

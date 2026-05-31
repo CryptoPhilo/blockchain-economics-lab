@@ -900,6 +900,21 @@ describe('score page tracked project aliases', () => {
         last_maturity_report_at: '2026-05-30T00:00:00.000Z',
         last_forensic_report_at: null,
       },
+      {
+        id: 'maplestory-project',
+        name: 'NEXPACE',
+        slug: 'maplestory-universe',
+        symbol: 'NXPC',
+        category: 'Gaming',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: ['MapleStory Universe', 'MSU'],
+        maturity_score: 64,
+        last_econ_report_at: '2026-05-30T00:00:00.000Z',
+        last_maturity_report_at: '2026-05-30T00:00:00.000Z',
+        last_forensic_report_at: null,
+      },
     ]
     const snapshotRows = [
       makeSnapshotRow(4, 'bnb'),
@@ -910,6 +925,7 @@ describe('score page tracked project aliases', () => {
       makeSnapshotRow(53, 'worldcoin-org'),
       makeSnapshotRow(66, 'gatetoken'),
       makeSnapshotRow(72, 'flare'),
+      makeSnapshotRow(184, 'nexpace'),
     ]
 
     const rows = snapshotRowsToScoreRows(snapshotRows, buildTrackedProjectLookup(trackedProjects))
@@ -927,6 +943,7 @@ describe('score page tracked project aliases', () => {
       { slug: 'worldcoin', reportTypes: ['econ', 'maturity'], score: 72 },
       { slug: 'gate', reportTypes: ['econ', 'maturity'], score: 69 },
       { slug: 'flare-networks', reportTypes: ['econ', 'maturity'], score: 68 },
+      { slug: 'maplestory-universe', reportTypes: ['econ', 'maturity'], score: 64 },
     ])
   })
 

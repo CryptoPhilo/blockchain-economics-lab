@@ -50,6 +50,9 @@ const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'river', slug: 'river' },
   { alias: 'ab', slug: 'ab-chain' },
   { alias: 'starknet-token', slug: 'starknet' },
+  { alias: 'nexpace', slug: 'maplestory-universe' },
+  { alias: 'nxpc', slug: 'maplestory-universe' },
+  { alias: 'msu', slug: 'maplestory-universe' },
 ] as const
 const SCOREBOARD_CANONICAL_ALIAS_TARGET_SLUGS = Array.from(
   new Set(SCOREBOARD_CANONICAL_ALIASES.map(({ slug }) => slug)),
