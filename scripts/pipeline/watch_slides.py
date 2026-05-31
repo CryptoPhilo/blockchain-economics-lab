@@ -215,6 +215,12 @@ REPORT_GAP_PROJECT_SEEDS: Dict[str, Dict[str, Any]] = {
         'category': 'Stablecoin',
         'coingecko_id': 'dai',
     },
+    'awe-network': {
+        'name': 'AWE',
+        'symbol': 'AWE',
+        'category': 'AI',
+        'coingecko_id': None,
+    },
     'maplestory-universe': {
         'name': 'NEXPACE',
         'symbol': 'NXPC',
@@ -1746,6 +1752,8 @@ RECONCILE_FILENAME_PREFIX_ALIASES: Dict[str, str] = {
     'reserverights': 'reserve-rights',
     'ab': 'ab-chain',
     'abchain': 'ab-chain',
+    'awe': 'awe-network',
+    'awenetwork': 'awe-network',
     'binancecoin': 'binancecoin',
     'bnb': 'binancecoin',
     'bnbchain': 'binancecoin',

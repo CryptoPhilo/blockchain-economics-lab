@@ -430,6 +430,8 @@ def test_immutable_short_filename_resolves_to_immutable_x(ws):
         ('usd-ai', 'USD.AI', 'CHIP', 'CHIP_MAT_en.pdf'),
         ('ab-chain', 'AB Chain', 'AB', 'AB_Chain_ECON_ko.pdf'),
         ('ab-chain', 'AB Chain', 'AB', 'AB_MAT_en.pdf'),
+        ('awe-network', 'AWE', 'AWE', 'AWE_Network_ECON_ko.pdf'),
+        ('awe-network', 'AWE', 'AWE', 'AWE_MAT_en.pdf'),
         ('maplestory-universe', 'NEXPACE', 'NXPC', 'MapleStory_Universe_ECON_ko.pdf'),
         ('maplestory-universe', 'NEXPACE', 'NXPC', 'MapleStory_Universe_MSU_MAT_en.pdf'),
         ('maplestory-universe', 'NEXPACE', 'NXPC', 'NXPC_ECON_cn.pdf'),
@@ -1286,6 +1288,18 @@ def test_ensure_runtime_project_seed_appends_known_slug_in_dry_run(ws):
     assert nexpace['name'] == 'NEXPACE'
     assert nexpace['symbol'] == 'NXPC'
     assert 'msu' in nexpace['aliases']
+
+    updated = ws._ensure_runtime_project_seed(
+        object(),
+        projects,
+        'awe-network',
+        dry_run=True,
+    )
+    awe = updated[-1]
+    assert awe['id'] == 'dry-run-awe-network'
+    assert awe['name'] == 'AWE'
+    assert awe['symbol'] == 'AWE'
+    assert 'awe network' in awe['aliases']
 
 
 def test_ensure_runtime_project_seed_upserts_known_slug_for_publish(ws):

@@ -53,6 +53,7 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
     'river': ['river protocol', 'river_protocol', 'river-protocol'],
     'river-protocol': ['rvr'],
     'ab-chain': ['ab', 'ab chain', 'ab_chain'],
+    'awe-network': ['awe', 'awe network', 'awe_network'],
     'maplestory-universe': [
         'nexpace',
         'nxpc',

@@ -915,6 +915,21 @@ describe('score page tracked project aliases', () => {
         last_maturity_report_at: '2026-05-30T00:00:00.000Z',
         last_forensic_report_at: null,
       },
+      {
+        id: 'awe-project',
+        name: 'AWE',
+        slug: 'awe-network',
+        symbol: 'AWE',
+        category: 'AI',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: ['AWE Network'],
+        maturity_score: null,
+        last_econ_report_at: '2026-05-30T00:00:00.000Z',
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
     ]
     const snapshotRows = [
       makeSnapshotRow(4, 'bnb'),
@@ -926,6 +941,7 @@ describe('score page tracked project aliases', () => {
       makeSnapshotRow(66, 'gatetoken'),
       makeSnapshotRow(72, 'flare'),
       makeSnapshotRow(184, 'nexpace'),
+      makeSnapshotRow(196, 'awe-network'),
     ]
 
     const rows = snapshotRowsToScoreRows(snapshotRows, buildTrackedProjectLookup(trackedProjects))
@@ -944,6 +960,7 @@ describe('score page tracked project aliases', () => {
       { slug: 'gate', reportTypes: ['econ', 'maturity'], score: 69 },
       { slug: 'flare-networks', reportTypes: ['econ', 'maturity'], score: 68 },
       { slug: 'maplestory-universe', reportTypes: ['econ', 'maturity'], score: 64 },
+      { slug: 'awe-network', reportTypes: ['econ'], score: null },
     ])
   })
 
