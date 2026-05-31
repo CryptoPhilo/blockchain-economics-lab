@@ -41,6 +41,7 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
     'newton': ['newton protocol', 'newton_protocol', 'newt'],
     'reserve-rights': ['reserve protocol', 'reserve_protocol', 'reserve-protocol', 'reserve rights', 'rsr'],
     'synthetix': ['snx', 'havven'],
+    'starknet': ['strk', 'stark net', 'stark-net'],
     'wemix': ['wemix network', 'wemix-network', 'wemix_network'],
     'usd-ai': ['usd ai', 'usd.ai', 'usd_ai', 'chip'],
     'river': ['river protocol', 'river_protocol', 'river-protocol'],
