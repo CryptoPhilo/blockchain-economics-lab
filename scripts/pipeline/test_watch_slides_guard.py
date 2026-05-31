@@ -405,6 +405,8 @@ def test_immutable_short_filename_resolves_to_immutable_x(ws):
         ('reserve-rights', 'Reserve Rights', 'RSR', 'Reserve_Rights_MAT_en.pdf'),
         ('synthetix', 'Synthetix', 'SNX', 'synthetix_ECON_ko.pdf'),
         ('synthetix', 'Synthetix', 'SNX', 'SNX_MAT_en.pdf'),
+        ('starknet', 'Starknet', 'STRK', 'Starknet_ECON_ko.pdf'),
+        ('starknet', 'Starknet', 'STRK', 'STRK_MAT_en.pdf'),
         ('wemix', 'WEMIX', 'WEMIX', 'WEMIX_ECON_cn.pdf'),
         ('usd-ai', 'USD.AI', 'CHIP', 'USD_AI_ECON_ko.pdf'),
         ('usd-ai', 'USD.AI', 'CHIP', 'CHIP_MAT_en.pdf'),

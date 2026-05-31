@@ -155,6 +155,12 @@ REPORT_GAP_PROJECT_SEEDS: Dict[str, Dict[str, Any]] = {
         'category': 'DeFi',
         'coingecko_id': 'havven',
     },
+    'starknet': {
+        'name': 'Starknet',
+        'symbol': 'STRK',
+        'category': 'Layer 2',
+        'coingecko_id': 'starknet',
+    },
     'river': {
         'name': 'River',
         'symbol': 'RIVER',
@@ -1683,6 +1689,8 @@ RECONCILE_FILENAME_PREFIX_ALIASES: Dict[str, str] = {
     'riverprotocol': 'river',
     'story': 'story-protocol',
     'snx': 'synthetix',
+    'starknet': 'starknet',
+    'strk': 'starknet',
     'synthetix': 'synthetix',
     'usdai': 'usd-ai',
     'wemix': 'wemix',
