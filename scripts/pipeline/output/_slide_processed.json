@@ -25,7 +25,7 @@
     "source_path": "Slide/econ/defi_app_ECON_ko.pdf",
     "started_at": "2026-05-31T04:58:14.031136+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T10:30:07.532141+00:00",
+    "updated_at": "2026-05-31T11:59:24.848653+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/defi-app/1/ko.html"
   },
@@ -736,7 +736,8 @@
     "updated_at": "2026-05-12T18:08:24.666992+00:00"
   },
   "10a1Hr3rQaFB64aYa89tUa_L8OWfrw-OY": {
-    "error": "<ConnectionTerminated error_code:0, last_stream_id:3, additional_data:None>",
+    "error": null,
+    "finished_at": "2026-05-31T12:01:24.152868+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-31T09:57:24.000Z",
@@ -750,15 +751,19 @@
     },
     "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
     "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/safe1/latest/ja.html",
+    "report_id": "d3c7656f-eb08-49d1-a780-d29016ab9b6b",
     "retry_count": 0,
     "rtype": "mat",
     "slug": "safe1",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/mat/Safe_Global_MAT_jp.pdf",
-    "started_at": "2026-05-31T10:31:08.219981+00:00",
-    "status": "failed",
-    "updated_at": "2026-05-31T10:32:26.194653+00:00"
+    "started_at": "2026-05-31T12:00:41.674444+00:00",
+    "status": "published",
+    "updated_at": "2026-05-31T12:01:24.152884+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/safe1/1/ja.html"
   },
   "10bvjkEXvJqEY8YTz9-SQPsW-_Z17CkB7": {
     "error": null,
@@ -2318,7 +2323,7 @@
     "source_path": "Slide/mat/Safe_Global_MAT_ko.pdf",
     "started_at": "2026-05-31T10:33:30.584830+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T10:33:56.863645+00:00",
+    "updated_at": "2026-05-31T12:02:01.041291+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/safe1/1/ko.html"
   },
@@ -3791,7 +3796,7 @@
     "source_path": "Slide/econ/Nexus_ECON_ko.pdf",
     "started_at": "2026-05-31T08:15:57.669118+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T10:30:05.209817+00:00",
+    "updated_at": "2026-05-31T11:59:21.407971+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/nexus-labs/1/ko.html"
   },
@@ -5695,7 +5700,7 @@
     "source_path": "Slide/mat/Nexus_MAT_cn.pdf",
     "started_at": "2026-05-31T08:16:45.939975+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T10:34:58.260666+00:00",
+    "updated_at": "2026-05-31T12:02:03.359393+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/nexus-labs/1/zh.html"
   },
@@ -8544,7 +8549,7 @@
     "source_path": "Slide/econ/AWE_Network_ECON_cn.pdf",
     "started_at": "2026-05-31T11:27:35.324426+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T11:28:00.882021+00:00",
+    "updated_at": "2026-05-31T11:59:23.991998+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/awe-network/1/zh.html"
   },
@@ -11939,7 +11944,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/immutable-x/1/en.html"
   },
   "1PY0nXP60253jNh0l1oMmbe9TqjkAH3G2": {
-    "error": "<ConnectionTerminated error_code:0, last_stream_id:3, additional_data:None>",
+    "error": null,
+    "finished_at": "2026-05-31T11:58:14.886356+00:00",
     "lang": "en",
     "lang_source": "filename",
     "modifiedTime": "2026-05-31T09:49:13.000Z",
@@ -11953,15 +11959,19 @@
     },
     "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
     "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/safe1/latest/en.html",
+    "report_id": "274a19ba-8d81-4b08-817e-ab364b9f6a28",
     "retry_count": 0,
     "rtype": "econ",
     "slug": "safe1",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/Safe_global_ECON_en.pdf",
-    "started_at": "2026-05-31T10:28:02.065508+00:00",
-    "status": "failed",
-    "updated_at": "2026-05-31T10:29:06.018995+00:00"
+    "started_at": "2026-05-31T11:57:31.841906+00:00",
+    "status": "published",
+    "updated_at": "2026-05-31T11:58:14.886371+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/safe1/1/en.html"
   },
   "1P_uAaCufKemaaEeiA1qW32gHyLyoxTTe": {
     "error": null,
@@ -13707,7 +13717,7 @@
     "source_path": "Slide/econ/Nexus_ECON_en.pdf",
     "started_at": "2026-05-31T08:15:06.991482+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T10:30:04.294499+00:00",
+    "updated_at": "2026-05-31T11:59:20.505773+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/nexus-labs/1/en.html"
   },
@@ -14816,7 +14826,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pax-gold/1/ko.html"
   },
   "1Wa7qp_GugGpRZE7f8Qr6Dar3CZPqLdd2": {
-    "error": "Storage upload failed for slides/mat/safe1/latest/en.html: <ConnectionTerminated error_code:0, last_stream_id:3, additional_data:None>",
+    "error": null,
+    "finished_at": "2026-05-31T12:01:58.859848+00:00",
     "lang": "en",
     "lang_source": "filename",
     "modifiedTime": "2026-05-31T09:50:02.000Z",
@@ -14830,15 +14841,19 @@
     },
     "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
     "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/safe1/latest/en.html",
+    "report_id": "8750becc-95c2-4d79-a295-a20126a1549e",
     "retry_count": 0,
     "rtype": "mat",
     "slug": "safe1",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/mat/Safe_Global_MAT_en.pdf",
-    "started_at": "2026-05-31T10:32:30.028893+00:00",
-    "status": "failed",
-    "updated_at": "2026-05-31T10:33:02.593304+00:00"
+    "started_at": "2026-05-31T12:01:29.988898+00:00",
+    "status": "published",
+    "updated_at": "2026-05-31T12:01:58.859858+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/safe1/1/en.html"
   },
   "1Wnsv9NlqD-aGKUE9SuRmUTeblUynSgUi": {
     "error": null,
@@ -19150,7 +19165,7 @@
     "source_path": "Slide/mat/Nexus_MAT_en.pdf",
     "started_at": "2026-05-31T08:18:06.726778+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T10:35:02.623071+00:00",
+    "updated_at": "2026-05-31T12:02:07.617243+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/nexus-labs/1/en.html"
   },
@@ -20091,7 +20106,7 @@
     "source_path": "Slide/econ/defi_app_ECON_en.pdf",
     "started_at": "2026-05-31T04:56:55.829884+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T10:30:06.857114+00:00",
+    "updated_at": "2026-05-31T11:59:23.125135+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/defi-app/1/en.html"
   },
@@ -21912,7 +21927,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/arbitrum/1/ja.html"
   },
   "1lB-PtDphbNw3rbb32psSuNF00N-_i4Of": {
-    "error": "Storage upload failed for slides/econ/safe1/latest/ja.html: <ConnectionTerminated error_code:0, last_stream_id:3, additional_data:None>",
+    "error": null,
+    "finished_at": "2026-05-31T11:57:24.449752+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-31T09:58:43.000Z",
@@ -21926,15 +21942,19 @@
     },
     "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
     "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/safe1/latest/ja.html",
+    "report_id": "b8c9767d-eb66-479c-aca8-05ec63129333",
     "retry_count": 0,
     "rtype": "econ",
     "slug": "safe1",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/Safe_global_ECON_jp.pdf",
-    "started_at": "2026-05-31T10:27:18.905693+00:00",
-    "status": "failed",
-    "updated_at": "2026-05-31T10:27:53.010641+00:00"
+    "started_at": "2026-05-31T11:56:27.224638+00:00",
+    "status": "published",
+    "updated_at": "2026-05-31T11:57:24.449766+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/safe1/1/ja.html"
   },
   "1lFtvRSDuBqkOLalWTBgBrWXOxqZzMTgS": {
     "error": null,
@@ -22537,7 +22557,7 @@
     "source_path": "Slide/econ/Nexus_ECON_jp.pdf",
     "started_at": "2026-05-31T08:14:29.282436+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T10:30:03.030190+00:00",
+    "updated_at": "2026-05-31T11:59:19.621458+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/nexus-labs/1/ja.html"
   },
@@ -22859,7 +22879,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sentient/1/ja.html"
   },
   "1mvIi8TFMFDgsvDCojJaOCdLN4RRNtlIC": {
-    "error": "<ConnectionTerminated error_code:0, last_stream_id:3, additional_data:None>",
+    "error": null,
+    "finished_at": "2026-05-31T11:59:17.776781+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "modifiedTime": "2026-05-31T09:14:10.000Z",
@@ -22873,15 +22894,19 @@
     },
     "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
     "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/safe1/latest/ko.html",
+    "report_id": "00e39e10-25db-4165-ae92-3d0aa964ebe6",
     "retry_count": 0,
     "rtype": "econ",
     "slug": "safe1",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/Safe_global_ECON_ko.pdf",
-    "started_at": "2026-05-31T10:29:28.846421+00:00",
-    "status": "failed",
-    "updated_at": "2026-05-31T10:30:02.595674+00:00"
+    "started_at": "2026-05-31T11:58:38.108602+00:00",
+    "status": "published",
+    "updated_at": "2026-05-31T11:59:17.776794+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/safe1/1/ko.html"
   },
   "1n-Bn30hedOAa25lp_af6_cgc_OuOlnUC": {
     "error": null,
@@ -22939,7 +22964,7 @@
     "source_path": "Slide/econ/Nexus_ECON_cn.pdf",
     "started_at": "2026-05-31T08:13:01.375564+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T10:30:02.819756+00:00",
+    "updated_at": "2026-05-31T11:59:18.724154+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/nexus-labs/1/zh.html"
   },
@@ -23475,7 +23500,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/injective/1/en.html"
   },
   "1oe_HpjqQaRSTyIxBMo9mgPaUrvy_bWUb": {
-    "error": "<ConnectionTerminated error_code:0, last_stream_id:3, additional_data:None>",
+    "error": null,
+    "finished_at": "2026-05-31T12:00:20.936322+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "modifiedTime": "2026-05-31T10:16:18.000Z",
@@ -23489,15 +23515,19 @@
     },
     "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
     "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/safe1/latest/zh.html",
+    "report_id": "e3cefbee-1ca0-481d-9cd5-dfc9c9d45e7d",
     "retry_count": 0,
     "rtype": "mat",
     "slug": "safe1",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/mat/Safe_Global_MAT_cn.pdf",
-    "started_at": "2026-05-31T10:30:29.564350+00:00",
-    "status": "failed",
-    "updated_at": "2026-05-31T10:30:47.507605+00:00"
+    "started_at": "2026-05-31T11:59:49.260767+00:00",
+    "status": "published",
+    "updated_at": "2026-05-31T12:00:20.936330+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/safe1/1/zh.html"
   },
   "1ogt1Asym3iy8pGZDw5zkFSgJm6etDt0t": {
     "error": null,
@@ -24666,7 +24696,7 @@
     "source_path": "Slide/econ/defi_app_ECON_cn.pdf",
     "started_at": "2026-05-31T04:56:28.221852+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T10:30:06.183325+00:00",
+    "updated_at": "2026-05-31T11:59:22.275422+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/defi-app/1/zh.html"
   },
@@ -25098,7 +25128,7 @@
     "source_path": "Slide/mat/Nexus_MAT_jp.pdf",
     "started_at": "2026-05-31T08:17:40.969982+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T10:35:00.595561+00:00",
+    "updated_at": "2026-05-31T12:02:05.615590+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/nexus-labs/1/ja.html"
   },
@@ -25275,7 +25305,7 @@
     "source_path": "Slide/mat/Nexus_MAT_ko.pdf",
     "started_at": "2026-05-31T08:18:43.366729+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T10:35:04.652286+00:00",
+    "updated_at": "2026-05-31T12:02:09.613037+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/nexus-labs/1/ko.html"
   },
@@ -27564,7 +27594,7 @@
     "source_path": "Slide/mat/Defi_App_MAT_cn.pdf",
     "started_at": "2026-05-31T05:00:59.453507+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T10:35:33.598087+00:00",
+    "updated_at": "2026-05-31T12:02:11.285223+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/defi-app/1/zh.html"
   },
@@ -27800,7 +27830,7 @@
     "source_path": "Slide/econ/Safe_global_ECON_cn.pdf",
     "started_at": "2026-05-31T10:25:49.318898+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T10:26:45.882624+00:00",
+    "updated_at": "2026-05-31T11:55:51.198871+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/safe1/1/zh.html"
   },
