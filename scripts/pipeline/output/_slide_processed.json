@@ -761,7 +761,7 @@
     "source_path": "Slide/mat/Safe_Global_MAT_jp.pdf",
     "started_at": "2026-05-31T12:00:41.674444+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T15:02:27.199692+00:00",
+    "updated_at": "2026-05-31T16:23:42.299891+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/safe1/1/ja.html"
   },
@@ -2323,7 +2323,7 @@
     "source_path": "Slide/mat/Safe_Global_MAT_ko.pdf",
     "started_at": "2026-05-31T10:33:30.584830+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T15:02:31.082850+00:00",
+    "updated_at": "2026-05-31T16:23:46.612280+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/safe1/1/ko.html"
   },
@@ -5700,7 +5700,7 @@
     "source_path": "Slide/mat/Nexus_MAT_cn.pdf",
     "started_at": "2026-05-31T08:16:45.939975+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T15:02:33.937870+00:00",
+    "updated_at": "2026-05-31T16:23:49.799858+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/nexus-labs/1/zh.html"
   },
@@ -7249,6 +7249,26 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/synthetix/1/en.html"
   },
+  "1FCDsGTYgK9L5dIvnXzeHWjqCILhQ0wFV": {
+    "error": "unresolved (slug=? via filename_unresolved; lang=zh via filename)",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-31T14:57:04.000Z",
+    "name": "GAS_MAT_cn.pdf",
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": null,
+    "report_id": null,
+    "rtype": "mat",
+    "slug": null,
+    "slug_source": "filename_unresolved",
+    "source_depth": 0,
+    "source_path": "Slide/mat/GAS_MAT_cn.pdf",
+    "status": "unresolved",
+    "updated_at": "2026-05-31T16:21:19.815204+00:00",
+    "version": null,
+    "versioned_url": null
+  },
   "1FEp3qavITmS7NFcOmstHeUa3y5YJCJDY": {
     "error": "Storage upload failed for slides/econ/stellar/2/ko_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
     "lang": "ko",
@@ -8024,6 +8044,26 @@
     "updated_at": "2026-05-17T18:01:08.634806+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/algorand/1/ja.html"
+  },
+  "1HCS5oGdVsPwcBYfYVcrr2QsCMrDZHdbc": {
+    "error": "unresolved (slug=? via filename_unresolved; lang=en via filename)",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-31T13:16:56.000Z",
+    "name": "GAS_MAT_en.pdf",
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": null,
+    "report_id": null,
+    "rtype": "mat",
+    "slug": null,
+    "slug_source": "filename_unresolved",
+    "source_depth": 0,
+    "source_path": "Slide/mat/GAS_MAT_en.pdf",
+    "status": "unresolved",
+    "updated_at": "2026-05-31T16:22:44.651333+00:00",
+    "version": null,
+    "versioned_url": null
   },
   "1HFpE8drmgj4SHoUbrQNkHIn7GkFeW18f": {
     "error": null,
@@ -11969,7 +12009,7 @@
     "source_path": "Slide/econ/Safe_global_ECON_en.pdf",
     "started_at": "2026-05-31T11:57:31.841906+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T15:02:16.447757+00:00",
+    "updated_at": "2026-05-31T16:20:25.394972+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/safe1/1/en.html"
   },
@@ -13566,6 +13606,26 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/1/ko.html"
   },
+  "1TFd7gYeIOVY6nRpGh29hjbXfhMJM44GJ": {
+    "error": "unresolved (slug=? via filename_unresolved; lang=ko via filename)",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-31T11:51:36.000Z",
+    "name": "GAS_MAT_ko.pdf",
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": null,
+    "report_id": null,
+    "rtype": "mat",
+    "slug": null,
+    "slug_source": "filename_unresolved",
+    "source_depth": 0,
+    "source_path": "Slide/mat/GAS_MAT_ko.pdf",
+    "status": "unresolved",
+    "updated_at": "2026-05-31T16:23:35.806899+00:00",
+    "version": null,
+    "versioned_url": null
+  },
   "1TQA7ZI-VutIoTAjlOHelkAhPBDhxFja6": {
     "error": null,
     "finished_at": "2026-05-17T13:47:22.138952+00:00",
@@ -13717,7 +13777,7 @@
     "source_path": "Slide/econ/Nexus_ECON_en.pdf",
     "started_at": "2026-05-31T08:15:06.991482+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T15:02:21.425689+00:00",
+    "updated_at": "2026-05-31T16:20:29.112516+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/nexus-labs/1/en.html"
   },
@@ -14851,7 +14911,7 @@
     "source_path": "Slide/mat/Safe_Global_MAT_en.pdf",
     "started_at": "2026-05-31T12:01:29.988898+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T15:02:29.189621+00:00",
+    "updated_at": "2026-05-31T16:23:44.612198+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/safe1/1/en.html"
   },
@@ -15367,6 +15427,26 @@
     "updated_at": "2026-05-14T06:45:42.165286+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/1/en.html"
+  },
+  "1XlscPpPnTKuy0FiqzQZKGgknE3LHI91p": {
+    "error": "unresolved (slug=? via filename_unresolved; lang=ja via filename)",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-31T13:35:28.000Z",
+    "name": "GAS_MAT_jp.pdf",
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": null,
+    "report_id": null,
+    "rtype": "mat",
+    "slug": null,
+    "slug_source": "filename_unresolved",
+    "source_depth": 0,
+    "source_path": "Slide/mat/GAS_MAT_jp.pdf",
+    "status": "unresolved",
+    "updated_at": "2026-05-31T16:22:15.691604+00:00",
+    "version": null,
+    "versioned_url": null
   },
   "1XnkUxDT9IBiZRgOnJhkqbsz5Hv6OJ4eB": {
     "error": null,
@@ -19165,7 +19245,7 @@
     "source_path": "Slide/mat/Nexus_MAT_en.pdf",
     "started_at": "2026-05-31T08:18:06.726778+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T15:02:39.530085+00:00",
+    "updated_at": "2026-05-31T16:23:54.438504+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/nexus-labs/1/en.html"
   },
@@ -21952,7 +22032,7 @@
     "source_path": "Slide/econ/Safe_global_ECON_jp.pdf",
     "started_at": "2026-05-31T11:56:27.224638+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T15:02:15.452403+00:00",
+    "updated_at": "2026-05-31T16:20:24.466205+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/safe1/1/ja.html"
   },
@@ -22557,7 +22637,7 @@
     "source_path": "Slide/econ/Nexus_ECON_jp.pdf",
     "started_at": "2026-05-31T08:14:29.282436+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T15:02:20.242002+00:00",
+    "updated_at": "2026-05-31T16:20:28.189706+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/nexus-labs/1/ja.html"
   },
@@ -22904,7 +22984,7 @@
     "source_path": "Slide/econ/Safe_global_ECON_ko.pdf",
     "started_at": "2026-05-31T11:58:38.108602+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T15:02:17.421687+00:00",
+    "updated_at": "2026-05-31T16:20:26.327716+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/safe1/1/ko.html"
   },
@@ -22964,7 +23044,7 @@
     "source_path": "Slide/econ/Nexus_ECON_cn.pdf",
     "started_at": "2026-05-31T08:13:01.375564+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T15:02:19.046291+00:00",
+    "updated_at": "2026-05-31T16:20:27.258653+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/nexus-labs/1/zh.html"
   },
@@ -23525,7 +23605,7 @@
     "source_path": "Slide/mat/Safe_Global_MAT_cn.pdf",
     "started_at": "2026-05-31T11:59:49.260767+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T15:02:25.114281+00:00",
+    "updated_at": "2026-05-31T16:23:39.628740+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/safe1/1/zh.html"
   },
@@ -25128,7 +25208,7 @@
     "source_path": "Slide/mat/Nexus_MAT_jp.pdf",
     "started_at": "2026-05-31T08:17:40.969982+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T15:02:36.758244+00:00",
+    "updated_at": "2026-05-31T16:23:52.384819+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/nexus-labs/1/ja.html"
   },
@@ -27830,7 +27910,7 @@
     "source_path": "Slide/econ/Safe_global_ECON_cn.pdf",
     "started_at": "2026-05-31T10:25:49.318898+00:00",
     "status": "published",
-    "updated_at": "2026-05-31T15:02:14.021442+00:00",
+    "updated_at": "2026-05-31T16:20:23.526539+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/safe1/1/zh.html"
   },
