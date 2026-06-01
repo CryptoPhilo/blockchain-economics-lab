@@ -244,6 +244,37 @@ def test_wlf_token_alone_is_not_a_world_liberty_financial_alias(ws):
     assert source == 'none'
 
 
+def test_usd1_world_liberty_financial_body_does_not_mismatch_to_wlfi(ws):
+    projects = [
+        {'slug': 'usd1', 'name': 'USD1', 'symbol': 'USD1'},
+        {'slug': 'world-liberty-financial', 'name': 'World Liberty Financial', 'symbol': 'WLFI'},
+    ]
+
+    project, source = ws._resolve_slug('USD1_ECON_ko.pdf', '', '', projects)
+    body = (
+        'USD1 is the World Liberty Financial USD stablecoin issued for dollar '
+        'settlement. The analysis discusses World Liberty Financial reserves, '
+        'WLFI governance links, liquidity venues, redemption risk, and stablecoin '
+        'market positioning while the report subject remains USD1. '
+    ) * 4
+
+    assert project['slug'] == 'usd1'
+    assert source == 'filename'
+    assert ws._detect_slug_content_mismatch(project, body, '', projects) is None
+
+
+def test_neo_gas_filename_does_not_resolve_to_ethgas(ws):
+    projects = [
+        {'slug': 'gas', 'name': 'Gas', 'symbol': 'GAS'},
+        {'slug': 'eth-gas', 'name': 'ETHGas', 'symbol': 'GWEI'},
+    ]
+
+    project, source = ws._resolve_slug('GAS_MAT_ko.pdf', '', '', projects)
+
+    assert project['slug'] == 'gas'
+    assert source == 'filename'
+
+
 @pytest.mark.parametrize(
     'filename',
     [
@@ -425,6 +456,8 @@ def test_immutable_short_filename_resolves_to_immutable_x(ws):
         ('usd1', 'World Liberty Financial USD', 'USD1', 'World_Liberty_Financial_USD_MAT_en.pdf'),
         ('dai', 'Dai', 'DAI', 'DAI_ECON_ko.pdf'),
         ('dai', 'Dai', 'DAI', 'Dai_MAT_en.pdf'),
+        ('gas', 'Gas', 'GAS', 'GAS_ECON_ko.pdf'),
+        ('gas', 'Gas', 'GAS', 'Neo_GAS_MAT_en.pdf'),
         ('wemix', 'WEMIX', 'WEMIX', 'WEMIX_ECON_cn.pdf'),
         ('usd-ai', 'USD.AI', 'CHIP', 'USD_AI_ECON_ko.pdf'),
         ('usd-ai', 'USD.AI', 'CHIP', 'CHIP_MAT_en.pdf'),

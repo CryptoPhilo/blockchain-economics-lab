@@ -811,6 +811,21 @@ describe('score page tracked project aliases', () => {
         last_forensic_report_at: null,
       },
       {
+        id: 'dai-project',
+        name: 'Dai',
+        slug: 'dai',
+        symbol: 'DAI',
+        category: 'Stablecoin',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: [],
+        maturity_score: 78,
+        last_econ_report_at: '2026-05-30T00:00:00.000Z',
+        last_maturity_report_at: '2026-05-30T00:00:00.000Z',
+        last_forensic_report_at: null,
+      },
+      {
         id: 'hedera-project',
         name: 'Hedera',
         slug: 'hedera-hashgraph',
@@ -930,9 +945,25 @@ describe('score page tracked project aliases', () => {
         last_maturity_report_at: null,
         last_forensic_report_at: null,
       },
+      {
+        id: 'gas-project',
+        name: 'Gas',
+        slug: 'gas',
+        symbol: 'GAS',
+        category: 'Layer 1',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: ['Neo GAS'],
+        maturity_score: 61,
+        last_econ_report_at: '2026-05-30T00:00:00.000Z',
+        last_maturity_report_at: '2026-05-30T00:00:00.000Z',
+        last_forensic_report_at: null,
+      },
     ]
     const snapshotRows = [
       makeSnapshotRow(4, 'bnb'),
+      makeSnapshotRow(19, 'multi-collateral-dai'),
       makeSnapshotRow(20, 'toncoin'),
       makeSnapshotRow(21, 'world-liberty-financial-usd'),
       makeSnapshotRow(23, 'hedera'),
@@ -942,6 +973,7 @@ describe('score page tracked project aliases', () => {
       makeSnapshotRow(72, 'flare'),
       makeSnapshotRow(184, 'nexpace'),
       makeSnapshotRow(196, 'awe-network'),
+      makeSnapshotRow(199, 'gas'),
     ]
 
     const rows = snapshotRowsToScoreRows(snapshotRows, buildTrackedProjectLookup(trackedProjects))
@@ -952,6 +984,7 @@ describe('score page tracked project aliases', () => {
       score: row.score,
     }))).toEqual([
       { slug: 'binancecoin', reportTypes: ['econ', 'maturity'], score: 83 },
+      { slug: 'dai', reportTypes: ['econ', 'maturity'], score: 78 },
       { slug: 'the-open-network', reportTypes: ['econ', 'maturity'], score: 80 },
       { slug: 'usd1', reportTypes: ['econ', 'maturity'], score: 60 },
       { slug: 'hedera-hashgraph', reportTypes: ['econ', 'maturity'], score: 78 },
@@ -961,6 +994,7 @@ describe('score page tracked project aliases', () => {
       { slug: 'flare-networks', reportTypes: ['econ', 'maturity'], score: 68 },
       { slug: 'maplestory-universe', reportTypes: ['econ', 'maturity'], score: 64 },
       { slug: 'awe-network', reportTypes: ['econ'], score: null },
+      { slug: 'gas', reportTypes: ['econ', 'maturity'], score: 61 },
     ])
   })
 
