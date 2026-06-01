@@ -100,3 +100,22 @@ field is omitted rather than publishing raw report text.
 This does not change MAT pipeline nodes, triggers, approval gates, or output
 storage. It narrows the accepted text contract inside the existing
 `draft_report` and `summary_marketing_localization` nodes.
+
+### BCE-1938 Hyperliquid MAT Backfill Evidence
+
+As of 2026-06-02 07:56 KST, Hyperliquid MAT card auxiliary text was regenerated
+through the approved remote production-write path at commit
+`8a7ab63b8d7be1c64c2325867fc17812ffd8a70a`.
+
+Evidence:
+
+- Dry-run:
+  `https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/26786915326`
+  completed successfully with `mode=dry_run`, `report_type=mat`,
+  `slug=hyperliquid`, `seen=1`, `matched=1`, `updated=0`, and
+  `status=matched_dry_run`.
+- Apply:
+  `https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/26787039918`
+  completed successfully with `mode=apply`, `report_type=mat`,
+  `slug=hyperliquid`, `seen=1`, `matched=1`, `updated=1`, and
+  `status=updated`.
