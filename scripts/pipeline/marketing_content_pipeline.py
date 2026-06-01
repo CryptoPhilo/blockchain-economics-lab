@@ -142,6 +142,29 @@ CARD_SUMMARY_FORBIDDEN_RE = re.compile(
     r")",
     re.I,
 )
+CARD_RAW_FORMAT_RE = re.compile(
+    r"("
+    r"\$\$|"
+    r"\\\(|"
+    r"\\\[|"
+    r"\\(?:times|frac|sqrt|sum|prod|begin|end|left|right|cdot|Delta|alpha|beta|gamma)|"
+    r"\{[A-Za-z0-9_+\-]+\}|"
+    r"`{1,3}|"
+    r"^\s{0,3}#{1,6}\s+|"
+    r"\[[^\]]+\]\([^)]+\)|"
+    r"</?[A-Za-z][^>]*>"
+    r")",
+    re.I,
+)
+CARD_FORMULA_FRAGMENT_RE = re.compile(
+    r"("
+    r"\b(?:round|sqrt|log|exp|min|max)\s*\(|"
+    r"\b[A-Za-z]{1,4}\s*[_{]?[A-Za-z0-9-]*[}]?\s*=\s*|"
+    r"=\s*[A-Za-z]{1,4}\s*[_{]?[A-Za-z0-9-]*[}]?|"
+    r"\b[A-Za-z]{1,4}\s*\{[A-Za-z0-9_+\-]+\}"
+    r")",
+    re.I,
+)
 REPORT_TYPE_PRIORITY_TOKENS = {
     "econ": (
         "프로젝트", "경제", "설계", "가치", "보상", "토큰", "수요", "공급",
@@ -537,6 +560,8 @@ def validate_card_summary(
         reasons.append("too_many_sentences")
     if CARD_SUMMARY_FORBIDDEN_RE.search(text) or SUMMARY_BOILERPLATE_RE.search(text):
         reasons.append("forbidden_phrase")
+    if CARD_RAW_FORMAT_RE.search(text) or CARD_FORMULA_FRAGMENT_RE.search(text):
+        reasons.append("raw_format_fragment")
     if (
         "|" in text
         or "=" in text
@@ -579,7 +604,7 @@ def _card_sentence_candidates(source: MarkdownSource, project: Optional[Dict[str
         if not sentence:
             continue
         reasons = validate_card_summary(sentence, locale="ko", source=source)
-        if any(reason in reasons for reason in ("too_short", "too_long", "forbidden_phrase", "table_or_list_fragment", "metadata_fragment", "sentence_fragment")):
+        if any(reason in reasons for reason in ("too_short", "too_long", "forbidden_phrase", "raw_format_fragment", "table_or_list_fragment", "metadata_fragment", "sentence_fragment")):
             continue
         score = 100 - min(index, 60)
         score += _report_type_score(sentence, source.report_type) * 8
@@ -606,7 +631,7 @@ def derive_card_copy(source: MarkdownSource, *, project: Optional[Dict[str, Any]
     for _score, sentence in candidates:
         candidate = " ".join([*selected, sentence]).strip()
         reasons = validate_card_summary(candidate, locale="ko", source=source, project=project)
-        if any(reason in reasons for reason in ("too_long", "too_many_sentences", "forbidden_phrase", "table_or_list_fragment")):
+        if any(reason in reasons for reason in ("too_long", "too_many_sentences", "forbidden_phrase", "raw_format_fragment", "table_or_list_fragment")):
             continue
         selected.append(sentence)
         if len(selected) >= 2:
@@ -629,7 +654,8 @@ def _derive_korean_copy(source: MarkdownSource, *, project: Optional[Dict[str, A
     sentences = _candidate_sentences(source.text)
     if not sentences:
         fallback = card_copy.summary or _limit_words(_strip_markdown(source.text), MAX_WORDS)
-        return title, fallback, fallback
+        marketing = fallback if not validate_card_summary(fallback, locale="ko", source=source, project=project) else ""
+        return title, fallback, marketing
 
     summary = card_copy.summary
 
@@ -637,8 +663,16 @@ def _derive_korean_copy(source: MarkdownSource, *, project: Optional[Dict[str, A
         sentence for sentence in sentences
         if any(token in sentence for token in ("기회", "리스크", "투자", "시장", "성장", "평가", "결론", "전략"))
     ]
-    marketing_base = " ".join((marketing_candidates or sentences)[-3:])
-    marketing = _limit_words(marketing_base, MAX_WORDS)
+    marketing = ""
+    for candidate in reversed(marketing_candidates or sentences):
+        candidate = _clean_card_candidate(candidate)
+        if not candidate or candidate == summary:
+            continue
+        candidate = _limit_words(candidate, CARD_SUMMARY_MAX_WORDS)
+        reasons = validate_card_summary(candidate, locale="ko", source=source, project=project)
+        if not reasons:
+            marketing = candidate
+            break
     return title, summary, marketing
 
 
@@ -741,16 +775,23 @@ def derive_content(
 ) -> DerivedContent:
     title, summary_ko, marketing_ko = _derive_korean_copy(source, project=project)
     if translate:
+        translation_inputs = {"summary": summary_ko}
+        if marketing_ko:
+            translation_inputs["marketing"] = marketing_ko
         translated = _translate_texts(
-            {"summary": summary_ko, "marketing": marketing_ko},
+            translation_inputs,
             TARGET_LANGUAGES,
             dry_run=dry_run,
         )
         summary_by_lang = {lang: _limit_words(text, MAX_WORDS) for lang, text in translated["summary"].items()}
-        marketing_by_lang = {lang: _limit_words(text, MAX_WORDS) for lang, text in translated["marketing"].items()}
+        marketing_by_lang = (
+            {lang: _limit_words(text, MAX_WORDS) for lang, text in translated["marketing"].items()}
+            if "marketing" in translated
+            else {}
+        )
     else:
         summary_by_lang = {"ko": summary_ko}
-        marketing_by_lang = {"ko": marketing_ko}
+        marketing_by_lang = {"ko": marketing_ko} if marketing_ko else {}
     return DerivedContent(
         title=title,
         summary_ko=summary_ko,

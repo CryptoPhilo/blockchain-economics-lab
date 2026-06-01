@@ -107,3 +107,17 @@ writes `scripts/pipeline/output/card_summary_backfill_audit.json`. Approved
 remote execution uses `.github/workflows/report-card-summary-backfill.yml`; apply
 mode requires a slug-scoped dispatch and remains reserved for the approved
 production-write path.
+
+## BCE-1937 Card Auxiliary Text Quality Gate
+
+As of 2026-06-02, the shared summary/marketing node also applies the card text
+quality gate to auxiliary card copy such as `marketing_content_by_lang` /
+`card_data.marketing_by_lang`, which the website labels as `Investment View`.
+LaTeX/math tokens, raw markdown, table/code fragments, formula fragments, and
+overlong source excerpts must not be published as card-visible auxiliary text.
+When a safe natural-language auxiliary sentence cannot be derived, the field is
+omitted instead of falling back to raw report text.
+
+The website helper `src/lib/report-marketing-content.ts` is a display-time
+last-resort guard for existing rows that may still contain unsafe auxiliary
+copy before a remote production backfill/update is applied.

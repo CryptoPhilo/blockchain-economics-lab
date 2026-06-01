@@ -117,6 +117,36 @@ available through `.github/workflows/report-card-summary-backfill.yml`.
 Production writes remain remote-only and require approval plus slug-scoped
 `mode=apply`.
 
+## BCE-1937 Report Card Auxiliary Text Boundary
+
+As of 2026-06-02, website report cards treat `Investment View` /
+`marketing_content_by_lang` as short card-visible copy, not as unrestricted
+body excerpt text. `src/lib/report-marketing-content.ts` cleans and suppresses
+unsafe auxiliary text that contains LaTeX/math tokens, raw markdown, table/code
+fragments, formula fragments, or excessive excerpt length. This display guard is
+a last-resort defense for existing rows; the primary generation gate remains in
+`scripts/pipeline/marketing_content_pipeline.py`.
+
+## BCE-1938 Production Deployment Evidence
+
+As of 2026-06-02 07:55 KST, BCE-1937/BCE-1938 was deployed through
+`.github/workflows/production-deploy.yml` at expected commit
+`8a7ab63b8d7be1c64c2325867fc17812ffd8a70a`.
+
+Evidence:
+
+- Production deploy:
+  `https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/26786922309`
+  completed successfully. Remote verification passed report publication policy,
+  pipeline verifier, runtime pipeline manifest, TypeScript, full Jest suite, and
+  production build.
+- Vercel production URL:
+  `https://blockchain-economics-16w9n8urt-michael-zhangs-projects-df54ac7d.vercel.app`.
+- Production alias and Vercel URL returned HTTP 200 for
+  `/ko/projects/hyperliquid`. Rendered HTML/text verification found `px i`,
+  `round(px`, `\times`, and `{i-1}` absent. The remaining `투자 관점` label
+  rendered safe natural-language copy: `리스크: HyperEVM 앱 생태계가 실제 수요를 만들지 못하면, 시장은 Hyperliquid를 “수익성 높은 perp DEX”로만 재평가할 수 있다.`
+
 ## BCE-1869 Relationship
 
 BCE-1869 affected the report-publishing watcher boundary, not this website
