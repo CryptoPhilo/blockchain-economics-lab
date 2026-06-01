@@ -1,0 +1,201 @@
+name: Report Card Summary Backfill
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Backfill mode'
+        required: true
+        type: choice
+        default: dry_run
+        options:
+          - dry_run
+          - apply
+      report_type:
+        description: 'Report type filter'
+        required: false
+        type: choice
+        default: all
+        options:
+          - all
+          - econ
+          - mat
+          - for
+      slug:
+        description: 'Tracked project slug filter; repeat with separate dispatches for apply'
+        required: false
+        type: string
+      version:
+        description: 'Report version filter'
+        required: false
+        type: string
+      limit:
+        description: 'Maximum sources after filters'
+        required: false
+        type: string
+      no_translate:
+        description: 'Only derive Korean summaries'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: report-card-summary-backfill-${{ github.event.inputs.slug || 'samples' }}
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    name: Backfill Report Card Summaries
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          cd scripts/pipeline
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
+            pip install supabase requests python-dotenv
+          fi
+
+      - name: Validate required secrets
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          set -euo pipefail
+
+          missing=0
+          for name in SUPABASE_URL SUPABASE_SERVICE_KEY GDRIVE_SERVICE_ACCOUNT_JSON; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::required secret ${name} is not configured"
+              missing=1
+            else
+              echo "${name}=present"
+            fi
+          done
+
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+
+      - name: Validate dispatch scope
+        env:
+          MODE: ${{ github.event.inputs.mode || 'dry_run' }}
+          REPORT_TYPE: ${{ github.event.inputs.report_type || 'all' }}
+          SLUG: ${{ github.event.inputs.slug }}
+          VERSION: ${{ github.event.inputs.version }}
+          LIMIT: ${{ github.event.inputs.limit }}
+        run: |
+          set -euo pipefail
+
+          if [ "$MODE" != "dry_run" ] && [ "$MODE" != "apply" ]; then
+            echo "::error::mode must be dry_run or apply"
+            exit 1
+          fi
+
+          case "$REPORT_TYPE" in
+            all|econ|mat|for) ;;
+            *)
+              echo "::error::report_type must be all, econ, mat, or for"
+              exit 1
+              ;;
+          esac
+
+          if [ "$MODE" = "apply" ] && [ -z "$SLUG" ]; then
+            echo "::error::slug is required when mode=apply"
+            exit 1
+          fi
+
+          for value_name in VERSION LIMIT; do
+            value="${!value_name:-}"
+            if [ -n "$value" ] && ! [[ "$value" =~ ^[0-9]+$ ]]; then
+              echo "::error::${value_name,,} must be a positive integer when provided"
+              exit 1
+            fi
+          done
+
+      - name: Create runtime credentials
+        run: |
+          cat > .env.local << EOF
+          NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
+          GDRIVE_DELEGATE_EMAIL=${{ secrets.GDRIVE_DELEGATE_EMAIL }}
+          BCE_MARKETING_FOR_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_FOR_SOURCE_FOLDER_ID }}
+          EOF
+
+          echo '${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}' > scripts/pipeline/.gdrive_service_account.json
+
+      - name: Run card summary backfill
+        env:
+          GDRIVE_SERVICE_ACCOUNT_FILE: ${{ github.workspace }}/scripts/pipeline/.gdrive_service_account.json
+          MODE: ${{ github.event.inputs.mode || 'dry_run' }}
+          REPORT_TYPE: ${{ github.event.inputs.report_type || 'all' }}
+          SLUG: ${{ github.event.inputs.slug }}
+          VERSION: ${{ github.event.inputs.version }}
+          LIMIT: ${{ github.event.inputs.limit }}
+          NO_TRANSLATE: ${{ github.event.inputs.no_translate || 'false' }}
+        run: |
+          set -euo pipefail
+
+          args=(--source drive --output scripts/pipeline/output/card_summary_backfill_audit.json)
+          if [ -n "$SLUG" ]; then
+            args+=(--slug "$SLUG")
+          fi
+          if [ "$REPORT_TYPE" != "all" ]; then
+            args+=(--report-type "$REPORT_TYPE")
+          fi
+          if [ -n "$VERSION" ]; then
+            args+=(--version "$VERSION")
+          fi
+          if [ -n "$LIMIT" ]; then
+            args+=(--limit "$LIMIT")
+          fi
+          if [ "$NO_TRANSLATE" = "true" ]; then
+            args+=(--no-translate)
+          fi
+          if [ "$MODE" = "apply" ]; then
+            args+=(--apply)
+          fi
+
+          echo "Invoking: python3 scripts/pipeline/backfill_card_summaries.py ${args[*]}"
+          python3 scripts/pipeline/backfill_card_summaries.py "${args[@]}" | tee report-card-summary-backfill.log
+
+      - name: Upload backfill artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-card-summary-backfill-${{ github.run_number }}
+          path: |
+            report-card-summary-backfill.log
+            scripts/pipeline/output/card_summary_backfill_audit.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Report Card Summary Backfill" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Mode**: ${{ github.event.inputs.mode || 'dry_run' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Report type**: ${{ github.event.inputs.report_type || 'all' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Slug**: ${{ github.event.inputs.slug || '(BCE-1933 samples)' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Run ID**: ${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Timestamp**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> "$GITHUB_STEP_SUMMARY"

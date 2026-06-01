@@ -212,6 +212,17 @@
           }
         },
         {
+          "key": "report_card_summary_backfill",
+          "paperclipLabel": "Approved report card summary backfill",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/report-card-summary-backfill.yml",
+            "entrypoint": "scripts/pipeline/backfill_card_summaries.py",
+            "commandContains": "backfill_card_summaries.py",
+            "localAllowed": ["dry_run", "development"]
+          }
+        },
+        {
           "key": "post_deploy_monitoring",
           "paperclipLabel": "Post-deploy monitoring",
           "execution": {

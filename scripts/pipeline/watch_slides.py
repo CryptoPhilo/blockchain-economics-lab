@@ -1257,7 +1257,7 @@ def _generate_summary_after_slide_publish(
         current = sb.table('project_reports').select('card_data').eq('id', report_id).single().execute()
         row = current.data or {}
         existing_card_data = row.get('card_data') if isinstance(row.get('card_data'), dict) else {}
-        patch = build_project_report_patch_from_drive_source(source, translate=True)
+        patch = build_project_report_patch_from_drive_source(source, translate=True, project=project)
         patch_card_data = patch.get('card_data') if isinstance(patch.get('card_data'), dict) else {}
         source_md = patch_card_data.get('source_md') if isinstance(patch_card_data.get('source_md'), dict) else {}
         lang = getattr(source, 'lang', None) or 'ko'
