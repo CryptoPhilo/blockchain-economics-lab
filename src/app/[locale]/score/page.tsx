@@ -1,4 +1,3 @@
-import { getTranslations } from 'next-intl/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 import { createProjectsRepository } from '@/lib/repositories/projects'
@@ -6,7 +5,6 @@ import { reportSupportsLocale } from '@/lib/report-locale'
 import type { ProjectReport } from '@/lib/types'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import ScoreTableGate from '@/components/ScoreTableGate'
-import SubscribeForm from '@/components/SubscribeForm'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -315,7 +313,6 @@ export default async function ScorePage({
 }) {
   const { locale } = await params
   const { page: pageStr } = await searchParams
-  const t = await getTranslations()
   const supabase = await createServerSupabaseClient()
   const projectsRepository = createProjectsRepository(supabase)
 
@@ -354,9 +351,9 @@ export default async function ScorePage({
   const isKo = locale === 'ko'
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-12">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
       {/* Header */}
-      <div className="mb-10 text-center">
+      <div className="mb-6 text-center">
         <h1 className="text-4xl font-bold mb-3">
           {isKo ? '리포트' : 'Report'}
         </h1>
@@ -386,7 +383,7 @@ export default async function ScorePage({
           locale={locale}
           currentPage={currentPage}
           totalPages={totalPages}
-          className="max-h-[clamp(320px,calc(100dvh-18rem),640px)] overflow-auto overscroll-contain pr-1"
+          className="max-h-[clamp(460px,calc(100dvh-12rem),860px)] overflow-auto overscroll-contain pr-1"
         />
       ) : (
         <div className="text-center py-20">
@@ -398,45 +395,6 @@ export default async function ScorePage({
           </p>
         </div>
       )}
-
-      {/* Newsletter CTA */}
-      <div className="mt-16 p-8 rounded-2xl bg-gradient-to-r from-indigo-500/5 to-purple-500/5 border border-indigo-500/15 text-center">
-        <h3 className="text-xl font-bold mb-2">
-          {isKo ? '시장 업데이트 알림 받기' : 'Get Market Update Alerts'}
-        </h3>
-        <p className="text-gray-400 text-sm mb-4">
-          {isKo
-            ? '새로운 보고서와 시장 변동 알림을 받아보세요'
-            : 'Be the first to know about new reports and market movements'}
-        </p>
-        <SubscribeForm
-          locale={locale}
-          source="newsletter"
-          translations={{
-            placeholder: t('subscribe.emailPlaceholder'),
-            cta: t('subscribe.cta'),
-            success: t('subscribe.checkEmail'),
-          }}
-        />
-      </div>
-
-      {/* Stats */}
-      <div className="mt-10 pt-6 border-t border-white/5 flex justify-center gap-8 text-sm text-gray-600">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-white">{allRows.length}</div>
-          <div>{isKo ? '상위 프로젝트' : 'Top Projects'}</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-white">
-            {allRows.filter((r) => r.reportTypes.length > 0).length}
-          </div>
-          <div>{isKo ? '분석 보고서' : 'Reports'}</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-white">{totalPages}</div>
-          <div>{isKo ? '페이지' : 'Pages'}</div>
-        </div>
-      </div>
     </div>
   )
 }
