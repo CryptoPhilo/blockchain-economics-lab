@@ -395,6 +395,28 @@ def test_card_summary_quality_gate_rejects_forbidden_and_table_fragments(mcp):
     assert "table_or_list_fragment" in reasons
 
 
+def test_card_summary_quality_gate_rejects_latex_formula_fragments(mcp):
+    source = mcp.MarkdownSource(
+        slug="hyperliquid",
+        report_type="mat",
+        db_report_type="maturity",
+        version=1,
+        lang="ko",
+        name="hyperliquid_mat_v1_ko.md",
+        text="# Hyperliquid\n\n본문",
+    )
+
+    reasons = mcp.validate_card_summary(
+        r"$$ px i = round(px {i-1} \times 1.003) $$ 각 level 간격은 약 0.3% 전략은 최소 3초마다 조정된다.",
+        locale="ko",
+        source=source,
+        project={"slug": "hyperliquid", "name": "Hyperliquid", "symbol": "HYPE"},
+    )
+
+    assert "raw_format_fragment" in reasons
+    assert "table_or_list_fragment" in reasons
+
+
 def test_card_summary_quality_gate_rejects_state_mapping_and_numbered_fragments(mcp):
     source = mcp.MarkdownSource(
         slug="bitcoin",
@@ -518,6 +540,31 @@ def test_card_summary_quality_gate_counts_cited_sentence_boundaries(mcp):
     )
 
     assert "too_many_sentences" in reasons
+
+
+def test_derive_content_omits_invalid_investment_view_formula(mcp):
+    source = mcp.MarkdownSource(
+        slug="hyperliquid",
+        report_type="mat",
+        db_report_type="maturity",
+        version=1,
+        lang="ko",
+        name="hyperliquid_mat_v1_ko.md",
+        text=(
+            "# Hyperliquid MAT\n\n"
+            "Hyperliquid는 자체 L1과 온체인 주문장 구조를 결합한 파생상품 거래 인프라로, 높은 실행 속도와 커뮤니티 중심 운영을 강점으로 가진다. "
+            r"투자 관점: $$ px i = round(px {i-1} \times 1.003) $$ 각 level 간격은 약 0.3% 전략은 최소 3초마다 조정된다."
+        ),
+    )
+
+    content = mcp.derive_content(
+        source,
+        translate=False,
+        project={"slug": "hyperliquid", "name": "Hyperliquid", "symbol": "HYPE"},
+    )
+
+    assert content.summary_ko.startswith("Hyperliquid는 자체 L1")
+    assert content.marketing_by_lang == {}
 
 
 def test_derive_content_skips_project_metadata_lists(mcp):

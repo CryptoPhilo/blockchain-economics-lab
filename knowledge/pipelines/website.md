@@ -117,6 +117,16 @@ available through `.github/workflows/report-card-summary-backfill.yml`.
 Production writes remain remote-only and require approval plus slug-scoped
 `mode=apply`.
 
+## BCE-1937 Report Card Auxiliary Text Boundary
+
+As of 2026-06-02, website report cards treat `Investment View` /
+`marketing_content_by_lang` as short card-visible copy, not as unrestricted
+body excerpt text. `src/lib/report-marketing-content.ts` cleans and suppresses
+unsafe auxiliary text that contains LaTeX/math tokens, raw markdown, table/code
+fragments, formula fragments, or excessive excerpt length. This display guard is
+a last-resort defense for existing rows; the primary generation gate remains in
+`scripts/pipeline/marketing_content_pipeline.py`.
+
 ## BCE-1869 Relationship
 
 BCE-1869 affected the report-publishing watcher boundary, not this website

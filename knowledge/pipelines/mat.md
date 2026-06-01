@@ -87,3 +87,16 @@ DB publication contract behind `website_publish`:
 - Slide-backed rows with website-visible assets are published/default latest;
   production DB rollout requires the BCE-1907 migration/backfill before remote
   production writes.
+
+## BCE-1937 Card Auxiliary Text Quality Gate
+
+As of 2026-06-02, MAT card auxiliary copy such as `Investment View`
+(`marketing_content_by_lang` / `card_data.marketing_by_lang`) uses the same
+short-card quality gate as card summaries. The gate rejects LaTeX/math tokens,
+raw markdown, table/code fragments, formula fragments, and overlong source
+excerpts. If the MAT source only yields unsafe auxiliary copy, the auxiliary
+field is omitted rather than publishing raw report text.
+
+This does not change MAT pipeline nodes, triggers, approval gates, or output
+storage. It narrows the accepted text contract inside the existing
+`draft_report` and `summary_marketing_localization` nodes.
