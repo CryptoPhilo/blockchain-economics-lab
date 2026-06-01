@@ -172,6 +172,41 @@ describe('SlideReportPage locale availability', () => {
     expect(screen.getByText('장기 투자 관점 문장')).toBeTruthy()
   })
 
+  it('renders forensic slide reports through the shared report viewer', async () => {
+    mockReportQueries(
+      { id: 'project-1', slug: 'hedera-hashgraph', name: 'Hedera', symbol: 'HBAR' },
+      [
+        {
+          id: 'report-ko',
+          language: 'ko',
+          report_type: 'forensic',
+          status: 'published',
+          version: 1,
+          card_risk_score: 58,
+          card_summary_ko: '포렌식 리스크 요약',
+          slide_html_urls_by_lang: {
+            ko: 'https://example.test/for/hedera/ko.html',
+          },
+        },
+      ],
+    )
+
+    const page = await SlideReportPage({
+      locale: 'ko',
+      slug: 'hedera-hashgraph',
+      reportType: 'forensic',
+    })
+    render(page)
+
+    expect(mockNotFound).not.toHaveBeenCalled()
+    expect(screen.getByTestId('slide-viewer').getAttribute('data-url')).toBe(
+      'https://example.test/for/hedera/ko.html',
+    )
+    expect(screen.getByText('forensicLabel')).toBeTruthy()
+    expect(screen.getByText('scoreLabel 58')).toBeTruthy()
+    expect(screen.getByText('포렌식 리스크 요약')).toBeTruthy()
+  })
+
   it('renders slide-coming-soon instead of locale-pending when the English Google Drive PDF exists without a slide URL', async () => {
     mockReportQueries(
       { id: 'project-1', slug: 'litecoin', name: 'Litecoin', symbol: 'LTC' },
