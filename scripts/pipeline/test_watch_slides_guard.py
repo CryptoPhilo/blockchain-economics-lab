@@ -2814,8 +2814,9 @@ def test_summary_generation_overwrites_stale_cross_project_card_identity(ws, mon
         modified_time = '2026-05-25T00:00:00Z'
         text = '# Ethereum MAT\n\nEthereum maturity summary.'
 
-    def fake_patch(source, translate=True):
+    def fake_patch(source, translate=True, project=None):
         assert source.name == 'ethereum_mat_v4_ko.md'
+        assert project and project.get('slug') == 'ethereum'
         return {
             'card_summary_ko': 'Ethereum summary text',
             'card_data': {

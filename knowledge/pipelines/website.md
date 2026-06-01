@@ -103,6 +103,20 @@ The executable pipeline manifest still runs the website quality gate through
 `npm run build`; `scripts/verify-website-pipeline.mjs` accepts this production
 environment prefix as part of the build script contract.
 
+## BCE-1933 Report Card Summary Boundary
+
+As of 2026-06-01, website report cards should receive concise, card-specific
+summary copy from the report publishing pipeline instead of relying on the first
+available report body sentences. The semantic quality gate lives in
+`scripts/pipeline/marketing_content_pipeline.py`; frontend cleanup remains a
+last-resort display defense only.
+
+Backfills must use `scripts/pipeline/backfill_card_summaries.py` in dry-run
+first and keep the generated diff audit artifact. Approved remote execution is
+available through `.github/workflows/report-card-summary-backfill.yml`.
+Production writes remain remote-only and require approval plus slug-scoped
+`mode=apply`.
+
 ## BCE-1869 Relationship
 
 BCE-1869 affected the report-publishing watcher boundary, not this website

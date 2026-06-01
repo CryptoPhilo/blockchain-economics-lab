@@ -168,6 +168,17 @@ def test_score_drive_source_for_project_supports_polygon_alias_for_matic(mcp):
     assert score >= 90
 
 
+def test_score_drive_source_for_project_supports_flare_alias(mcp):
+    project = {"slug": "flare-networks", "name": "Flare Network", "symbol": "FLR", "aliases": []}
+
+    score = mcp.score_drive_source_for_project(
+        "Flare의 크립토 이코노미 발전 단계 및 서사 진화 평가 보고서_ 2023 - 2026.md",
+        project,
+    )
+
+    assert score >= 90
+
+
 def test_score_drive_source_for_project_prefers_world_alias_possessive(mcp):
     project = {"slug": "worldcoin", "name": "Worldcoin", "symbol": "WLD", "aliases": []}
 
@@ -281,6 +292,232 @@ def test_derive_content_skips_report_boilerplate_for_card_summary(mcp):
     assert "개요 및 개념 정의" not in content.summary_ko
     assert "크립토 이코노미 설계 방법론" not in content.summary_ko
     assert "본 보고서는" not in content.summary_ko
+
+
+def test_derive_content_skips_forensic_source_provenance_for_card_summary(mcp):
+    source = mcp.MarkdownSource(
+        slug="ub",
+        report_type="for",
+        db_report_type="forensic",
+        version=1,
+        lang="ko",
+        name="ub_for_v1_ko.md",
+        text=(
+            "# UB 포렌식 보고서\n\n"
+            "분석 기준은 사용자가 제공한 KuCoin UB/USDT 15분봉 차트 이미지와, "
+            "업로드된 분석 지침 파일의 포렌식 보고서 구조를 따랐습니다. "
+            "UB는 단기 급등 이후 체결 강도가 약화되며 매수 추격 구간의 손실 위험이 커진 상태다. "
+            "거래량은 가격 상승 구간에서 집중됐지만 후속 매수 유입은 제한적이어서 유동성 공백 리스크가 남아 있다. "
+            "핵심 리스크는 고점 부근 변동성 확대와 되돌림 구간의 매도 압력이다."
+        ),
+    )
+
+    content = mcp.derive_content(source, translate=False)
+
+    assert content.summary_ko.startswith("UB는 단기 급등")
+    assert "분석 기준" not in content.summary_ko
+    assert "사용자가 제공한" not in content.summary_ko
+    assert "업로드된 분석 지침" not in content.summary_ko
+    assert "차트 이미지" not in content.summary_ko
+    assert "포렌식 보고서 구조" not in content.summary_ko
+
+
+def test_derive_card_copy_prefers_econ_identity_and_risk_judgment(mcp):
+    source = mcp.MarkdownSource(
+        slug="ethereum",
+        report_type="econ",
+        db_report_type="econ",
+        version=1,
+        lang="ko",
+        name="ethereum_econ_v1_ko.md",
+        text=(
+            "# Ethereum 보고서\n\n"
+            "본 보고서는 투자 조언이 아니며 가격 예측을 제공하지 않는다. "
+            "Ethereum은 스마트컨트랙트와 롤업 생태계 수요를 ETH 수수료 소각 및 스테이킹 보상 구조로 연결하는 범용 결제 레이어다. "
+            "핵심 리스크는 롤업 수수료 하락 이후 기본 레이어 수익성과 검증자 집중도 사이의 균형이다. "
+            "분석 목적은 방법론을 설명하는 것이다."
+        ),
+    )
+
+    card = mcp.derive_card_copy(source, project={"slug": "ethereum", "name": "Ethereum", "symbol": "ETH"})
+
+    assert card.summary.startswith("Ethereum은 스마트컨트랙트")
+    assert "본 보고서는" not in card.summary
+    assert "분석 목적" not in card.summary
+    assert card.quality_reasons == ()
+    assert card.confidence >= 0.9
+
+
+def test_derive_card_copy_prefers_maturity_stage_and_strength_weakness(mcp):
+    source = mcp.MarkdownSource(
+        slug="bitcoin",
+        report_type="mat",
+        db_report_type="maturity",
+        version=1,
+        lang="ko",
+        name="bitcoin_mat_v1_ko.md",
+        text=(
+            "# Bitcoin MAT\n\n"
+            "프로젝트 기본 정보: 항목 상세 내용 프로젝트 이름 Bitcoin. "
+            "Bitcoin은 성숙 단계에 진입한 가치저장 네트워크로 높은 보안성과 브랜드 신뢰를 강점으로 가진다. "
+            "약점은 수수료 시장의 장기 지속성과 채굴 보상 감소 이후의 보안 예산 불확실성이다."
+        ),
+    )
+
+    card = mcp.derive_card_copy(source, project={"slug": "bitcoin", "name": "Bitcoin", "symbol": "BTC"})
+
+    assert "성숙 단계" in card.summary
+    assert "강점" in card.summary
+    assert "약점" in card.summary
+    assert "프로젝트 기본 정보" not in card.summary
+    assert card.quality_reasons == ()
+
+
+def test_card_summary_quality_gate_rejects_forbidden_and_table_fragments(mcp):
+    source = mcp.MarkdownSource(
+        slug="awe-network",
+        report_type="mat",
+        db_report_type="maturity",
+        version=1,
+        lang="ko",
+        name="awe-network_mat_v1_ko.md",
+        text="# AWE\n\n본문",
+    )
+
+    reasons = mcp.validate_card_summary(
+        "본 보고서는 투자 조언이 아니며 | 항목 | 상세 내용 | 을 설명한다.",
+        locale="ko",
+        source=source,
+        project={"slug": "awe-network", "name": "AWE Network", "symbol": "AWE"},
+    )
+
+    assert "forbidden_phrase" in reasons
+    assert "table_or_list_fragment" in reasons
+
+
+def test_card_summary_quality_gate_rejects_state_mapping_and_numbered_fragments(mcp):
+    source = mcp.MarkdownSource(
+        slug="bitcoin",
+        report_type="econ",
+        db_report_type="econ",
+        version=1,
+        lang="ko",
+        name="bitcoin_econ_v1_ko.md",
+        text="# Bitcoin\n\n본문",
+    )
+
+    state_reasons = mcp.validate_card_summary(
+        "UTXO 온체인 state 매핑 : 존재. Bitcoin은 계정 잔고 대신 출력 집합을 사용한다.",
+        locale="ko",
+        source=source,
+        project={"slug": "bitcoin", "name": "Bitcoin", "symbol": "BTC"},
+    )
+    numbered_reasons = mcp.validate_card_summary(
+        "Bitcoin은 출력 집합으로 소유권을 표현한다. 경제 기능 : 이중지불 방지와 병렬 검증이다. 2.",
+        locale="ko",
+        source=source,
+        project={"slug": "bitcoin", "name": "Bitcoin", "symbol": "BTC"},
+    )
+    ordinal_reasons = mcp.validate_card_summary(
+        "Ethereum은 상태 전이 규칙으로 자원 비용을 계산한다. 둘째, gas 기반 자원 가격화 다.",
+        locale="ko",
+        source=source,
+        project={"slug": "ethereum", "name": "Ethereum", "symbol": "ETH"},
+    )
+
+    assert "forbidden_phrase" in state_reasons
+    assert "forbidden_phrase" in numbered_reasons
+    assert "table_or_list_fragment" in numbered_reasons
+    assert "forbidden_phrase" in ordinal_reasons
+    assert "table_or_list_fragment" in ordinal_reasons
+
+
+def test_card_summary_quality_gate_detects_locale_script_mismatch(mcp):
+    source = mcp.MarkdownSource(
+        slug="starknet",
+        report_type="econ",
+        db_report_type="econ",
+        version=1,
+        lang="ko",
+        name="starknet_econ_v1_ko.md",
+        text="# Starknet\n\n본문",
+    )
+
+    reasons = mcp.validate_card_summary(
+        "Starknet is a rollup ecosystem with sequencer decentralization risk.",
+        locale="ko",
+        source=source,
+        project={"slug": "starknet", "name": "Starknet", "symbol": "STRK"},
+    )
+
+    assert "locale_script_mismatch" in reasons
+
+
+def test_derive_card_copy_skips_citation_prefix_and_incomplete_fragments(mcp):
+    source = mcp.MarkdownSource(
+        slug="ethereum",
+        report_type="econ",
+        db_report_type="econ",
+        version=4,
+        lang="ko",
+        name="ethereum_econ_v4_ko.md",
+        text=(
+            "# Ethereum ECON\n\n"
+            "(Bitpanda) Ethereum의 수수료 시장은 롤업 확장 이후 L1 정산 수요와 ETH 소각 구조를 함께 반영한다. "
+            "다만 L2 확장이 L1 실행 수수료를 낮추면, L1 수익은 execution gas보다 "
+            "Ethereum의 핵심 리스크는 롤업 데이터 수요가 약해질 때 ETH 소각과 검증자 보상 간 균형이 흔들릴 수 있다는 점이다."
+        ),
+    )
+
+    card = mcp.derive_card_copy(source, project={"slug": "ethereum", "name": "Ethereum", "symbol": "ETH"})
+
+    assert "Ethereum의 수수료 시장" in card.summary
+    assert not card.summary.startswith("(")
+    assert not card.summary.endswith("보다")
+    assert "execution gas보다" not in card.summary
+    assert card.quality_reasons == ()
+
+
+def test_card_summary_quality_gate_rejects_incomplete_trailing_phrase(mcp):
+    source = mcp.MarkdownSource(
+        slug="ethereum",
+        report_type="econ",
+        db_report_type="econ",
+        version=4,
+        lang="ko",
+        name="ethereum_econ_v4_ko.md",
+        text="# Ethereum\n\n본문",
+    )
+
+    reasons = mcp.validate_card_summary(
+        "Ethereum의 L1 수익은 execution gas보다",
+        locale="ko",
+        source=source,
+        project={"slug": "ethereum", "name": "Ethereum", "symbol": "ETH"},
+    )
+
+    assert "sentence_fragment" in reasons
+
+
+def test_card_summary_quality_gate_counts_cited_sentence_boundaries(mcp):
+    source = mcp.MarkdownSource(
+        slug="ethereum",
+        report_type="econ",
+        db_report_type="econ",
+        version=4,
+        lang="ko",
+        name="ethereum_econ_v4_ko.md",
+        text="# Ethereum\n\n본문",
+    )
+
+    reasons = mcp.validate_card_summary(
+        "Ethereum은 정산 계층으로 작동한다.[1][2] ETH는 수수료와 보상에 쓰인다.[3] 추가 한계도 있다.",
+        locale="ko",
+        source=source,
+        project={"slug": "ethereum", "name": "Ethereum", "symbol": "ETH"},
+    )
+
+    assert "too_many_sentences" in reasons
 
 
 def test_derive_content_skips_project_metadata_lists(mcp):
@@ -570,7 +807,11 @@ def test_patch_contains_summary_and_marketing_provenance(mcp):
         version=1,
         lang="ko",
         name="bitcoin_econ_v1_ko.md",
-        text="본문",
+        text=(
+            "# Bitcoin\n\n"
+            "Bitcoin은 중앙 발행자 없이 공개 원장과 작업증명으로 희소한 디지털 결제 네트워크를 구성한다. "
+            "핵심 리스크는 보조금 감소 이후 수수료 시장과 보안 예산의 균형이다."
+        ),
         drive_file_id="drive-md-1",
     )
     content = mcp.DerivedContent(
@@ -592,6 +833,26 @@ def test_patch_contains_summary_and_marketing_provenance(mcp):
     assert patch["marketing_content_by_lang"]["en"] == "English marketing"
     assert patch["summary_source_md_file_id"] == "drive-md-1"
     assert patch["card_data"]["source_md"]["archived_drive_file_id"] == "archive-1"
+
+
+def test_publish_patch_blocks_invalid_card_summary(mcp):
+    source = mcp.MarkdownSource(
+        slug="bitcoin",
+        report_type="econ",
+        db_report_type="econ",
+        version=1,
+        lang="ko",
+        name="bitcoin_econ_v1_ko.md",
+        text="# Bitcoin\n\n본 보고서는 투자 조언이 아니며 가격 예측을 제공하지 않는다.",
+        drive_file_id="drive-md-1",
+    )
+
+    with pytest.raises(ValueError, match="quality gate failed"):
+        mcp.build_project_report_patch_from_drive_source(
+            source,
+            translate=False,
+            project={"slug": "bitcoin", "name": "Bitcoin", "symbol": "BTC"},
+        )
 
 
 def test_persist_dry_run_matches_without_update(monkeypatch, mcp):

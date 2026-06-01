@@ -85,3 +85,25 @@ DB publication contract behind `website_publish`:
 - Slide-backed rows with website-visible assets are published/default latest;
   production DB rollout requires the BCE-1907 migration/backfill before remote
   production writes.
+
+## BCE-1933 Card Summary Quality Gate
+
+As of 2026-06-01, the shared summary/marketing node treats report card summary
+copy as a separate contract from longer marketing copy. `scripts/pipeline/marketing_content_pipeline.py`
+derives card summaries through `derive_card_copy`, gates them against
+disclaimer/methodology/table/metadata fragments, locale script mismatch, length
+limits, and project subject mismatch, then stores summary provenance under
+`card_data.summary_quality`.
+
+The report-type extraction priority is:
+
+- ECON: project identity, economic design, core risk or sustainability judgment.
+- MAT: maturity stage/score, strengths/weaknesses, investor or operating implication.
+- FOR: event/risk type, core signal, short-term observation point.
+
+Existing rows must be audited before writes with
+`scripts/pipeline/backfill_card_summaries.py`, which defaults to dry-run and
+writes `scripts/pipeline/output/card_summary_backfill_audit.json`. Approved
+remote execution uses `.github/workflows/report-card-summary-backfill.yml`; apply
+mode requires a slug-scoped dispatch and remains reserved for the approved
+production-write path.
