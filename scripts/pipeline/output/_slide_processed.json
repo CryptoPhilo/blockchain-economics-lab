@@ -4729,7 +4729,8 @@
     "updated_at": "2026-05-17T17:45:47.724699+00:00"
   },
   "1AIEUatSnVD7hxKpPCDYSxjEM4eNp0tUB": {
-    "error": "slug/content mismatch — filename resolved 'usd1' (body score 8) but body strongly matches 'world-liberty-financial' (score 46)",
+    "error": null,
+    "finished_at": "2026-06-01T07:39:42.615259+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "mismatch": {
@@ -4740,19 +4741,28 @@
     },
     "modifiedTime": "2026-06-01T04:35:03.000Z",
     "name": "USD1_ECON_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
     "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
     "parent_folder_name": "econ",
-    "public_url": null,
-    "report_id": null,
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usd1/latest/ja.html",
+    "report_id": "da2269fc-9fba-4d9f-8bb2-c29767a4333d",
+    "retry_count": 0,
     "rtype": "econ",
     "slug": "usd1",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/USD1_ECON_jp.pdf",
-    "status": "mismatch",
-    "updated_at": "2026-06-01T05:20:38.740775+00:00",
-    "version": null,
-    "versioned_url": null
+    "started_at": "2026-06-01T07:39:21.201865+00:00",
+    "status": "published",
+    "updated_at": "2026-06-01T07:39:42.615274+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usd1/1/ja.html"
   },
   "1AK3aNgGYUD6SVWyIrton0zA8EdmW4Ta8": {
     "error": null,
@@ -20388,7 +20398,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/matic-network/1/zh.html"
   },
   "1fX20-_gLWZKRElX22XE-Naab3sWqDI7x": {
-    "error": "slug/content mismatch — filename resolved 'usd1' (body score 8) but body strongly matches 'world-liberty-financial' (score 46)",
+    "error": null,
+    "finished_at": "2026-06-01T07:40:43.754609+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "mismatch": {
@@ -20399,19 +20410,28 @@
     },
     "modifiedTime": "2026-06-01T04:08:27.000Z",
     "name": "USD1_ECON_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
     "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
     "parent_folder_name": "econ",
-    "public_url": null,
-    "report_id": null,
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usd1/latest/ko.html",
+    "report_id": "fb1277e1-34af-45ef-b860-13da951ef052",
+    "retry_count": 0,
     "rtype": "econ",
     "slug": "usd1",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/USD1_ECON_ko.pdf",
-    "status": "mismatch",
-    "updated_at": "2026-06-01T05:23:09.252357+00:00",
-    "version": null,
-    "versioned_url": null
+    "started_at": "2026-06-01T07:40:24.400384+00:00",
+    "status": "published",
+    "updated_at": "2026-06-01T07:40:43.754623+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usd1/1/ko.html"
   },
   "1fdqGsX6HSAN6Cwc5LPUODuSuhpitimvp": {
     "error": null,
@@ -25755,7 +25775,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/kucoin/1/en.html"
   },
   "1qcEF-Xj0rnSGjcStoWI918JirJEV6fe0": {
-    "error": "slug/content mismatch — filename resolved 'usd1' (body score 8) but body strongly matches 'world-liberty-financial' (score 46)",
+    "error": null,
+    "finished_at": "2026-06-01T07:38:53.085269+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "mismatch": {
@@ -25766,23 +25787,32 @@
     },
     "modifiedTime": "2026-06-01T04:51:24.000Z",
     "name": "USD1_ECON_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 540.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 960.0
+    },
     "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
     "parent_folder_name": "econ",
-    "public_url": null,
-    "report_id": null,
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usd1/latest/zh.html",
+    "report_id": "c62ea8ed-850d-452e-8ab5-59fd1f2fa09e",
+    "retry_count": 0,
     "rtype": "econ",
     "slug": "usd1",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/USD1_ECON_cn.pdf",
-    "status": "mismatch",
-    "updated_at": "2026-06-01T05:20:09.594685+00:00",
-    "version": null,
-    "versioned_url": null
+    "started_at": "2026-06-01T07:38:24.469043+00:00",
+    "status": "published",
+    "updated_at": "2026-06-01T07:38:53.085283+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usd1/1/zh.html"
   },
   "1qkyvkVgEqWJnPvPifB2v8XKGn8u_yLJZ": {
     "error": null,
-    "finished_at": "2026-06-01T05:22:00.220846+00:00",
+    "finished_at": "2026-06-01T07:39:58.611884+00:00",
     "lang": "en",
     "lang_source": "filename",
     "modifiedTime": "2026-06-01T04:16:30.000Z",
@@ -25804,9 +25834,9 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/USD1_ECON_en.pdf",
-    "started_at": "2026-06-01T05:21:30.500570+00:00",
+    "started_at": "2026-06-01T07:39:44.720791+00:00",
     "status": "published",
-    "updated_at": "2026-06-01T07:34:30.341124+00:00",
+    "updated_at": "2026-06-01T07:39:58.611900+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usd1/1/en.html"
   },
