@@ -19,7 +19,7 @@ import {
   resolveSlideUrl,
 } from './slide-report-utils'
 
-type ReportTypeKey = 'econ' | 'maturity'
+type ReportTypeKey = 'econ' | 'maturity' | 'forensic'
 
 type ReportRecord = Record<string, unknown> & {
   id: string
@@ -61,6 +61,13 @@ const themeByType: Record<ReportTypeKey, {
     badgeBorder: 'border-green-500/30',
     border: 'border-green-500/20',
     emoji: '🌱',
+  },
+  forensic: {
+    badgeBg: 'bg-red-500/10',
+    badgeText: 'text-red-400',
+    badgeBorder: 'border-red-500/30',
+    border: 'border-red-500/20',
+    emoji: '🔍',
   },
 }
 
@@ -158,9 +165,19 @@ export async function SlideReportPage({
   }
 
   const theme = themeByType[reportType]
-  const reportLabel = reportType === 'econ' ? t('econLabel') : t('maturityLabel')
-  const reportTypeName = reportType === 'econ' ? t('econTypeName') : t('maturityTypeName')
-  const allReportsHref = `/${locale}/score`
+  const reportLabel =
+    reportType === 'econ'
+      ? t('econLabel')
+      : reportType === 'maturity'
+        ? t('maturityLabel')
+        : t('forensicLabel')
+  const reportTypeName =
+    reportType === 'econ'
+      ? t('econTypeName')
+      : reportType === 'maturity'
+        ? t('maturityTypeName')
+        : t('forensicTypeName')
+  const allReportsHref = reportType === 'forensic' ? `/${locale}/reports` : `/${locale}/score`
 
   const cardData = report?.card_data as CardDataRecord | null
   const slideUrl = report ? resolveSlideUrl(mergedSlideUrls, locale) : null
@@ -173,6 +190,8 @@ export async function SlideReportPage({
   const score =
     report && reportType === 'maturity'
       ? (project.maturity_score ?? cardData?.maturity_score ?? cardData?.score ?? null)
+      : report && reportType === 'forensic'
+        ? (report.card_risk_score ?? cardData?.risk_score ?? cardData?.score ?? null)
       : report
         ? (cardData?.economy_score ?? cardData?.score ?? null)
         : null
