@@ -106,6 +106,26 @@ function getLocalizedKeywords(
   )
 }
 
+function pickDefaultReportForLocale(
+  sortedRows: ReportRecord[],
+  locale: string,
+): ReportRecord | undefined {
+  const seenVersions = new Set<number>()
+
+  for (const row of sortedRows) {
+    const version = Number(row.version || 0)
+    if (seenVersions.has(version)) continue
+    seenVersions.add(version)
+
+    const versionRows = sortedRows.filter((candidate) => Number(candidate.version || 0) === version)
+    if (getLocaleReportState(versionRows, locale).status === 'available') {
+      return row
+    }
+  }
+
+  return sortedRows[0]
+}
+
 interface SlideReportPageProps {
   locale: string
   slug: string
@@ -141,12 +161,14 @@ export async function SlideReportPage({
     .order('updated_at', { ascending: false })
 
   const sortedRows = sortReportsLatestFirst((allRows || []) as ReportRecord[])
-  const requestedOrLatest = pickRequestedOrLatestReport(sortedRows, {
-    version: requestedVersion,
-    language: requestedLanguage,
-  })
+  const requestedOrLatest = requestedVersion || requestedLanguage
+    ? pickRequestedOrLatestReport(sortedRows, {
+        version: requestedVersion,
+        language: requestedLanguage,
+      })
+    : pickDefaultReportForLocale(sortedRows, locale)
   const versionRows = requestedOrLatest
-    ? sortedRows.filter((row) => row.version === requestedOrLatest.version)
+    ? sortedRows.filter((row) => Number(row.version || 0) === Number(requestedOrLatest.version || 0))
     : []
   const reportState = getLocaleReportState(versionRows, locale)
   if (reportState.status === 'not_found') notFound()
