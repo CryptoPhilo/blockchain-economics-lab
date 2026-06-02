@@ -95,3 +95,15 @@ DB publication contract behind `website_publish`:
   FOR `coming_soon` placeholders without assets remain governed by the existing
   placeholder policy. Production DB rollout requires the BCE-1907
   migration/backfill before remote production writes.
+
+## BCE-1939 Semantic Insight Quality Gate
+
+As of 2026-06-02, FOR card summaries share the semantic insight gate in
+`scripts/pipeline/marketing_content_pipeline.py`. FOR candidates are prioritized
+for event/risk signals, abnormal movement, liquidity, volatility, buy/sell
+pressure, and short-term observation points, while source-provenance,
+methodology, table, prompt-template, and raw-format fragments remain rejected.
+
+This does not change FOR pipeline nodes or placeholder policy; it narrows the
+accepted card-visible text contract inside the existing shared summary and
+marketing localization node.

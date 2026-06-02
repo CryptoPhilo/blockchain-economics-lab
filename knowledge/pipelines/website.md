@@ -127,6 +127,18 @@ fragments, formula fragments, or excessive excerpt length. This display guard is
 a last-resort defense for existing rows; the primary generation gate remains in
 `scripts/pipeline/marketing_content_pipeline.py`.
 
+## BCE-1939 Report Card Insight Boundary
+
+As of 2026-06-02, website report cards depend on `card_summary_v2` output from
+the report publishing pipeline for semantic insight quality. The website layer
+does not rewrite weak summaries; the pipeline must reject definitions,
+methodology/table fragments, internal prompt/template leakage, and raw fallback
+source text before persistence.
+
+Backfills remain dry-run first through `scripts/pipeline/backfill_card_summaries.py`
+or the approved remote workflow. Production writes are still remote-only and
+approval-gated.
+
 ## BCE-1938 Production Deployment Evidence
 
 As of 2026-06-02 07:55 KST, BCE-1937/BCE-1938 was deployed through

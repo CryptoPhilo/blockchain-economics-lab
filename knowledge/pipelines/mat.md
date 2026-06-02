@@ -101,6 +101,19 @@ This does not change MAT pipeline nodes, triggers, approval gates, or output
 storage. It narrows the accepted text contract inside the existing
 `draft_report` and `summary_marketing_localization` nodes.
 
+## BCE-1939 Semantic Insight Quality Gate
+
+As of 2026-06-02, MAT card summaries and card-visible `Investment View` copy
+must express maturity-stage insight, verified strengths/weaknesses, bottlenecks,
+or observation points. `scripts/pipeline/marketing_content_pipeline.py` now
+rejects template leakage such as `요청 템플릿` and `예상 가격 항목`, requires
+report-type insight signals, and omits unsafe auxiliary copy instead of falling
+back to raw source fragments.
+
+Dogecoin MAT is covered as a regression fixture: template metadata must fail,
+while copy about meme premium, unlimited issuance, real-use conversion risk,
+and development continuity must pass.
+
 ### BCE-1938 Hyperliquid MAT Backfill Evidence
 
 As of 2026-06-02 07:56 KST, Hyperliquid MAT card auxiliary text was regenerated
