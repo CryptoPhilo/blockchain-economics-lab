@@ -212,6 +212,12 @@ PROJECT_DEFINITION_TOKENS = (
     "블록체인", "네트워크", "프로젝트", "프로토콜", "생태계", "플랫폼",
     "결제", "거래", "인프라", "레이어", "토큰", "자산",
 )
+CURATED_DETERMINISTIC_CARD_FALLBACKS = {
+    ("dogecoin", "econ"): (
+        "Dogecoin은 Scrypt 기반 PoW와 지속 발행 보상으로 낮은 수수료 결제 네트워크를 유지한다. "
+        "핵심 리스크는 밈 프리미엄을 실제 결제 수요와 개발 지속성으로 전환하지 못하면 가치 포착이 약해질 수 있다는 점이다."
+    ),
+}
 CARD_FRAGMENT_START_RE = re.compile(
     r"^(?:[a-z][a-z0-9_-]*은|소재가|일부가|증가\s*시|수익성\s+있게|기반\s|작을\s+수\s+있으므로|공유한다는\s+점이다|EIP와)\b",
 )
@@ -645,6 +651,9 @@ def _project_display_name(source: MarkdownSource, project: Optional[Dict[str, An
 
 
 def _deterministic_card_fallback(source: MarkdownSource, project: Optional[Dict[str, Any]] = None) -> str:
+    curated = CURATED_DETERMINISTIC_CARD_FALLBACKS.get((source.slug, source.report_type))
+    if curated:
+        return curated
     name = _project_display_name(source, project)
     labels = {
         "econ": "경제 설계의 핵심 메커니즘과 지속가능성 리스크",
@@ -699,6 +708,13 @@ def derive_card_copy(source: MarkdownSource, *, project: Optional[Dict[str, Any]
     if not candidates:
         fallback = _deterministic_card_fallback(source, project)
         reasons = validate_card_summary(fallback, locale="ko", source=source, project=project)
+        curated_key = (source.slug, source.report_type)
+        if (
+            curated_key in CURATED_DETERMINISTIC_CARD_FALLBACKS
+            and not reasons
+            and _report_type_insight_score(fallback, source.report_type) > 0
+        ):
+            return CardCopy(fallback, (), (), 0.7, ())
         return CardCopy(
             fallback,
             (),
