@@ -357,7 +357,7 @@ describe('LatestReportShowcase component', () => {
     jest.useRealTimers()
   })
 
-  it('automatically advances the visible report every three seconds', () => {
+  it('automatically advances the visible report after a slower six-second hold', () => {
     jest.useFakeTimers()
     const products = [
       createProduct({
@@ -384,9 +384,17 @@ describe('LatestReportShowcase component', () => {
     expect(dots()).toHaveLength(2)
     expect(dots()[0].classList.contains('w-8')).toBe(true)
     expect(dots()[1].classList.contains('w-8')).toBe(false)
+    expect(container.querySelector('.transition-transform')?.classList.contains('duration-1000')).toBe(true)
 
     act(() => {
-      jest.advanceTimersByTime(3000)
+      jest.advanceTimersByTime(5999)
+    })
+
+    expect(dots()[0].classList.contains('w-8')).toBe(true)
+    expect(dots()[1].classList.contains('w-8')).toBe(false)
+
+    act(() => {
+      jest.advanceTimersByTime(1)
     })
 
     expect(dots()[0].classList.contains('w-8')).toBe(false)
