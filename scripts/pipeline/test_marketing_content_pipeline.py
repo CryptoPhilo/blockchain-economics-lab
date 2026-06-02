@@ -515,6 +515,39 @@ def test_dogecoin_good_card_copy_keeps_actual_investment_insight(mcp):
     assert card.source_sentence_ids == (0, 1)
 
 
+def test_dogecoin_econ_uses_curated_fallback_when_source_only_has_fragments(mcp):
+    source = mcp.MarkdownSource(
+        slug="dogecoin",
+        report_type="econ",
+        db_report_type="econ",
+        version=3,
+        lang="ko",
+        name="dogecoin_econ_v3_ko.md",
+        text=(
+            "# Dogecoin ECON\n\n"
+            "UTXO 잔액, 트랜잭션 출력, 블록 보상으로 기록된다. "
+            "정의 : Dogecoin 네트워크의 네이티브 결제 단위이며 송금, 팁, 결제, 채굴 보상에 쓰인다. "
+            "기능 : 가치 이전 수단, 채굴자 보상 수단, 수수료 지불 수단이다. "
+            "노드 온체인 state 매핑 : 간접 존재."
+        ),
+    )
+
+    content = mcp.derive_content(
+        source,
+        translate=False,
+        project={"slug": "dogecoin", "name": "Dogecoin", "symbol": "DOGE"},
+    )
+    card = mcp.derive_card_copy(source, project={"slug": "dogecoin", "name": "Dogecoin", "symbol": "DOGE"})
+
+    assert content.summary_ko.startswith("Dogecoin은 Scrypt 기반 PoW")
+    assert "실제 결제 수요" in content.summary_ko
+    assert "개발 지속성" in content.summary_ko
+    assert "UTXO 잔액" not in content.summary_ko
+    assert "온체인 state 매핑" not in content.summary_ko
+    assert card.quality_reasons == ()
+    assert card.source_sentence_ids == ()
+
+
 def test_card_summary_quality_gate_detects_locale_script_mismatch(mcp):
     source = mcp.MarkdownSource(
         slug="starknet",
