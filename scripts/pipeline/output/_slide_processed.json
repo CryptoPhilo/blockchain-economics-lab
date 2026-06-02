@@ -1414,7 +1414,7 @@
     "source_path": "Slide/mat/Canton_Network_MAT_jp.pdf",
     "started_at": "2026-06-02T09:21:02.502358+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:21:56.539374+00:00",
+    "updated_at": "2026-06-02T12:50:59.447018+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/canton-network/2/ja.html"
   },
@@ -1948,7 +1948,7 @@
     "source_path": "Slide/econ/Chainlink_ECON_ko (1).pdf",
     "started_at": "2026-06-02T09:11:48.723653+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:12:09.081094+00:00",
+    "updated_at": "2026-06-02T12:50:44.432421+00:00",
     "version": 3,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/chainlink/3/ko.html"
   },
@@ -2313,7 +2313,7 @@
     "source_path": "Slide/econ/stellar_ECON_ko.pdf",
     "started_at": "2026-06-02T09:17:05.079276+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:17:22.495101+00:00",
+    "updated_at": "2026-06-02T12:50:49.826370+00:00",
     "version": 3,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/stellar/3/ko.html"
   },
@@ -4623,7 +4623,7 @@
     "source_path": "Slide/econ/Chainlink_ECON_jp (1).pdf",
     "started_at": "2026-06-02T09:08:11.664977+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:08:36.227493+00:00",
+    "updated_at": "2026-06-02T12:50:41.376621+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/chainlink/2/ja.html"
   },
@@ -7684,7 +7684,7 @@
     "source_path": "Slide/mat/Chainlink_MAT_en.pdf",
     "started_at": "2026-06-02T09:23:44.558317+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:24:27.063969+00:00",
+    "updated_at": "2026-06-02T12:52:13.029449+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/chainlink/2/en.html"
   },
@@ -8395,7 +8395,7 @@
     "source_path": "Slide/mat/Zcash_MAT_cn.pdf",
     "started_at": "2026-06-02T09:28:41.299074+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:29:13.145243+00:00",
+    "updated_at": "2026-06-02T12:52:26.616714+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zcash/2/zh.html"
   },
@@ -8791,7 +8791,7 @@
     "source_path": "Slide/econ/stellar_ECON_en.pdf",
     "started_at": "2026-06-02T09:15:41.755695+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:15:58.784919+00:00",
+    "updated_at": "2026-06-02T12:50:48.315775+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/stellar/2/en.html"
   },
@@ -9870,7 +9870,7 @@
     "source_path": "Slide/econ/canton_ECON_en.pdf",
     "started_at": "2026-06-02T09:10:11.376944+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:11:18.851871+00:00",
+    "updated_at": "2026-06-02T12:50:43.663223+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/canton-network/2/en.html"
   },
@@ -10706,7 +10706,7 @@
     "source_path": "Slide/econ/stellar_ECON_cn.pdf",
     "started_at": "2026-06-02T09:13:31.399971+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:13:52.995835+00:00",
+    "updated_at": "2026-06-02T12:50:45.992348+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/stellar/2/zh.html"
   },
@@ -12305,6 +12305,36 @@
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/2/ko.html"
   },
+  "1NpbbMtWWtJSVhtb-tsujDX_P4MCl8O9G": {
+    "error": null,
+    "finished_at": "2026-06-02T12:53:32.725456+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-02T06:04:52.000Z",
+    "name": "Zcash_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zcash/latest/ja.html",
+    "report_id": "f8f48022-258a-4d64-944e-3a658494ed88",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "zcash",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/Zcash_MAT_jp.pdf",
+    "started_at": "2026-06-02T12:52:59.449306+00:00",
+    "status": "published",
+    "updated_at": "2026-06-02T12:53:32.725472+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zcash/2/ja.html"
+  },
   "1NrVQl3YqZEH53us1qeFsTzzZDwJpTjyB": {
     "error": null,
     "finished_at": "2026-05-17T08:07:06.441634+00:00",
@@ -12387,7 +12417,7 @@
     "source_path": "Slide/econ/Zcash_ECON_jp (1).pdf",
     "started_at": "2026-06-02T09:16:25.750094+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:16:44.743662+00:00",
+    "updated_at": "2026-06-02T12:50:49.077020+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/zcash/2/ja.html"
   },
@@ -12572,7 +12602,7 @@
     "source_path": "Slide/mat/Canton_Network_MAT_ko.pdf",
     "started_at": "2026-06-02T09:24:55.752608+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:25:17.512954+00:00",
+    "updated_at": "2026-06-02T12:52:15.083239+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/canton-network/2/ko.html"
   },
@@ -12995,7 +13025,7 @@
     "source_path": "Slide/mat/Stellar_MAT_en.pdf",
     "started_at": "2026-06-02T09:29:21.725116+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:29:42.300706+00:00",
+    "updated_at": "2026-06-02T12:52:28.521511+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/stellar/2/en.html"
   },
@@ -13025,7 +13055,7 @@
     "source_path": "Slide/econ/stellar_ECON_jp.pdf",
     "started_at": "2026-06-02T09:15:19.896790+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:15:37.495590+00:00",
+    "updated_at": "2026-06-02T12:50:47.552403+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/stellar/2/ja.html"
   },
@@ -14309,7 +14339,7 @@
     "source_path": "Slide/mat/Chainlink_MAT_ko.pdf",
     "started_at": "2026-06-02T09:25:47.684977+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:26:13.586213+00:00",
+    "updated_at": "2026-06-02T12:52:17.788069+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/chainlink/2/ko.html"
   },
@@ -14434,7 +14464,7 @@
     "source_path": "Slide/econ/canton_ECON_jp.pdf",
     "started_at": "2026-06-02T09:09:14.148782+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:09:38.488304+00:00",
+    "updated_at": "2026-06-02T12:50:42.131814+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/canton-network/2/ja.html"
   },
@@ -15874,7 +15904,7 @@
     "source_path": "Slide/for/BERA_FOR_ko.pdf",
     "started_at": "2026-06-02T05:01:07.584321+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T05:01:31.141974+00:00",
+    "updated_at": "2026-06-02T12:55:49.408732+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/berachain/1/ko.html"
   },
@@ -17573,7 +17603,7 @@
     "source_path": "Slide/mat/Canton_Network_MAT_cn.pdf",
     "started_at": "2026-06-02T09:19:06.495500+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:19:38.709790+00:00",
+    "updated_at": "2026-06-02T12:50:55.472774+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/canton-network/2/zh.html"
   },
@@ -19489,7 +19519,7 @@
     "source_path": "Slide/mat/Stellar_MAT_jp.pdf",
     "started_at": "2026-06-02T09:27:56.450165+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:28:14.155795+00:00",
+    "updated_at": "2026-06-02T12:52:24.382100+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/stellar/2/ja.html"
   },
@@ -19584,7 +19614,7 @@
     "source_path": "Slide/econ/canton_ECON_ko.pdf",
     "started_at": "2026-06-02T09:12:38.605409+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:13:04.615017+00:00",
+    "updated_at": "2026-06-02T12:50:45.218978+00:00",
     "version": 3,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/canton-network/3/ko.html"
   },
@@ -19614,7 +19644,7 @@
     "source_path": "Slide/mat/Chainlink_MAT_cn.pdf",
     "started_at": "2026-06-02T09:19:57.170323+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:20:23.783181+00:00",
+    "updated_at": "2026-06-02T12:50:57.379993+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/chainlink/2/zh.html"
   },
@@ -19849,7 +19879,7 @@
     "source_path": "Slide/econ/berachain_ECON_cn.pdf",
     "started_at": "2026-06-02T04:56:39.598198+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:18:36.383971+00:00",
+    "updated_at": "2026-06-02T12:50:52.119365+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/berachain/1/zh.html"
   },
@@ -20257,7 +20287,7 @@
     "source_path": "Slide/mat/Canton_Network_MAT_en.pdf",
     "started_at": "2026-06-02T09:23:17.333634+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:23:43.024193+00:00",
+    "updated_at": "2026-06-02T12:52:11.027382+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/canton-network/2/en.html"
   },
@@ -22471,7 +22501,7 @@
     "source_path": "Slide/econ/canton_ECON_cn.pdf",
     "started_at": "2026-06-02T09:06:59.242982+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:07:26.905303+00:00",
+    "updated_at": "2026-06-02T12:50:40.604487+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/canton-network/2/zh.html"
   },
@@ -23019,7 +23049,7 @@
     "source_path": "Slide/mat/Stellar_MAT_cn.pdf",
     "started_at": "2026-06-02T09:26:41.068775+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:27:29.042842+00:00",
+    "updated_at": "2026-06-02T12:52:22.376432+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/stellar/2/zh.html"
   },
@@ -23337,6 +23367,36 @@
     "slug_source": "filename",
     "status": "language_mismatch",
     "updated_at": "2026-05-12T18:08:43.461434+00:00"
+  },
+  "1jKklcJB30JPLVIhuEf5y9ZsrmPVxkTwa": {
+    "error": null,
+    "finished_at": "2026-06-02T12:55:43.345865+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-02T05:30:53.000Z",
+    "name": "Zcash_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 540.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 960.0
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zcash/latest/ko.html",
+    "report_id": "0f5e3d35-74f6-4856-98bc-68e3de0a9e13",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "zcash",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/Zcash_MAT_ko.pdf",
+    "started_at": "2026-06-02T12:55:26.249077+00:00",
+    "status": "published",
+    "updated_at": "2026-06-02T12:55:43.345880+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zcash/2/ko.html"
   },
   "1jQzONAlEhItatWqDzWVhMxpha33ItSyx": {
     "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
@@ -24669,7 +24729,7 @@
     "source_path": "Slide/mat/Berachain_MAT_cn.pdf",
     "started_at": "2026-06-02T04:57:30.269440+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T04:58:03.081071+00:00",
+    "updated_at": "2026-06-02T12:55:45.984768+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/berachain/1/zh.html"
   },
@@ -25751,7 +25811,7 @@
     "source_path": "Slide/for/BERA_FOR_cn.pdf",
     "started_at": "2026-06-02T04:58:41.097068+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T04:59:17.360179+00:00",
+    "updated_at": "2026-06-02T12:55:47.188105+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/berachain/1/zh.html"
   },
@@ -25841,7 +25901,7 @@
     "source_path": "Slide/for/BERA_FOR_en.pdf",
     "started_at": "2026-06-02T05:00:20.929147+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T05:00:34.424885+00:00",
+    "updated_at": "2026-06-02T12:55:48.668782+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/berachain/2/en.html"
   },
@@ -27406,9 +27466,39 @@
     "source_path": "Slide/econ/Chainlink_ECON_cn (1).pdf",
     "started_at": "2026-06-02T09:05:06.893702+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:06:23.492216+00:00",
+    "updated_at": "2026-06-02T12:50:39.834862+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/chainlink/2/zh.html"
+  },
+  "1rBmh0gzffeHjF9jDA6LTSXyQkT37iy29": {
+    "error": null,
+    "finished_at": "2026-06-02T12:54:42.372307+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-02T05:55:21.000Z",
+    "name": "Stellar_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/stellar/latest/ko.html",
+    "report_id": "ab789c5e-033d-45b1-89f0-7fc7cf60a784",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "stellar",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/Stellar_MAT_ko.pdf",
+    "started_at": "2026-06-02T12:54:09.785694+00:00",
+    "status": "published",
+    "updated_at": "2026-06-02T12:54:42.372322+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/stellar/2/ko.html"
   },
   "1rHH2hHNod2Nor8HaK_GLOcWREYrrjiFp": {
     "error": null,
@@ -28606,7 +28696,7 @@
     "source_path": "Slide/econ/Chainlink_ECON_en (1).pdf",
     "started_at": "2026-06-02T09:09:47.291481+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:10:09.572818+00:00",
+    "updated_at": "2026-06-02T12:50:42.901285+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/chainlink/2/en.html"
   },
@@ -28636,7 +28726,7 @@
     "source_path": "Slide/for/BERA_FOR_jp.pdf",
     "started_at": "2026-06-02T04:59:54.417203+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T05:00:19.026559+00:00",
+    "updated_at": "2026-06-02T12:55:47.933342+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/berachain/1/ja.html"
   },
@@ -28904,7 +28994,7 @@
     "source_path": "Slide/econ/Zcash_ECON_ko (1).pdf",
     "started_at": "2026-06-02T09:18:14.655111+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:18:35.404942+00:00",
+    "updated_at": "2026-06-02T12:50:51.359584+00:00",
     "version": 3,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/zcash/3/ko.html"
   },
@@ -29720,6 +29810,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/river/1/ko.html"
   },
+  "1vN8GQlV5BvUs5OiaCvXYgZ440tsIqBiJ": {
+    "error": null,
+    "finished_at": "2026-06-02T12:55:03.638014+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-02T05:43:14.000Z",
+    "name": "Zcash_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 540.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 960.0
+    },
+    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zcash/latest/en.html",
+    "report_id": "22014ae9-b049-404a-af24-cf31b6603265",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "zcash",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide/mat/Zcash_MAT_en.pdf",
+    "started_at": "2026-06-02T12:54:48.705611+00:00",
+    "status": "published",
+    "updated_at": "2026-06-02T12:55:03.638029+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zcash/2/en.html"
+  },
   "1vTWqiB6XFMfSOPAzRDNkbH5XbIDbIK5-": {
     "error": null,
     "finished_at": "2026-05-07T15:08:36.963236+00:00",
@@ -30144,7 +30264,7 @@
     "source_path": "Slide/econ/Zcash_ECON_en (1).pdf",
     "started_at": "2026-06-02T09:17:29.535021+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:17:50.872077+00:00",
+    "updated_at": "2026-06-02T12:50:50.594494+00:00",
     "version": 3,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/zcash/3/en.html"
   },
@@ -30990,7 +31110,8 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/conflux-network/1/en.html"
   },
   "1ySPyQi36VAWS1uyjl12iulUingHfLgP7": {
-    "error": "Storage upload failed for slides/mat/chainlink/2/ja_assets/page-002.png: Expecting value: line 1 column 1 (char 0)",
+    "error": null,
+    "finished_at": "2026-06-02T12:52:08.216287+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-06-02T08:38:45.000Z",
@@ -31004,15 +31125,19 @@
     },
     "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
     "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/chainlink/latest/ja.html",
+    "report_id": "d06cc0ba-a092-4425-aeb1-11d944384b4a",
     "retry_count": 0,
     "rtype": "mat",
     "slug": "chainlink",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/mat/Chainlink_MAT_jp.pdf",
-    "started_at": "2026-06-02T09:22:14.105137+00:00",
-    "status": "failed",
-    "updated_at": "2026-06-02T09:23:08.758101+00:00"
+    "started_at": "2026-06-02T12:51:15.317516+00:00",
+    "status": "published",
+    "updated_at": "2026-06-02T12:52:08.216303+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/chainlink/2/ja.html"
   },
   "1yU7r2rN1vjUeKWQNCK180TOYw0f26oWc": {
     "error": null,
@@ -31444,7 +31569,7 @@
     "source_path": "Slide/econ/Zcash_ECON_cn (1).pdf",
     "started_at": "2026-06-02T09:14:23.355884+00:00",
     "status": "published",
-    "updated_at": "2026-06-02T09:14:54.941757+00:00",
+    "updated_at": "2026-06-02T12:50:46.791726+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/zcash/2/zh.html"
   },
