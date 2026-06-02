@@ -65,7 +65,7 @@ const supportedCoverLocales = ['en', 'ko', 'fr', 'es', 'de', 'ja', 'zh'] as cons
 const requiredShowcaseCoverLocales = ['en', 'ko', 'ja', 'zh'] as const
 const MIN_SHOWCASE_ITEMS = 4
 const MAX_SHOWCASE_ITEMS = 8
-const SHOWCASE_ROLL_INTERVAL_MS = 3000
+const SHOWCASE_ROLL_INTERVAL_MS = 6000
 
 function getProduct(report: ReportWithCover) {
   return Array.isArray(report.product) ? report.product[0] : report.product
@@ -403,7 +403,7 @@ export default function LatestReportShowcase({ reports, products, locale }: Late
         <div className="min-w-0">
           <div className="relative overflow-hidden rounded-xl border border-white/10 bg-gray-950 shadow-2xl shadow-black/30">
             <div
-              className="flex transition-transform duration-500 ease-out"
+              className="flex transition-transform duration-1000 ease-out"
               style={{ transform: `translateX(-${safeActiveIndex * 100}%)` }}
             >
               {showcaseItems.map((item, index) => {
