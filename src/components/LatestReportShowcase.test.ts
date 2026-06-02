@@ -1,4 +1,7 @@
-import {
+import { act, render } from '@testing-library/react'
+import { createElement, type ImgHTMLAttributes } from 'react'
+
+import LatestReportShowcase, {
   getLocalizedCoverUrls,
   getReportCoverAsset,
   getReportCoverUrls,
@@ -8,7 +11,27 @@ import {
   hasReportCover,
   isPublishedReportCoverCandidate,
 } from './LatestReportShowcase'
-import type { ProjectReport } from '@/lib/types'
+import type { Product, ProjectReport } from '@/lib/types'
+
+jest.mock('next/image', () => ({
+  __esModule: true,
+  default: function MockImage({
+    alt,
+    ...props
+  }: ImgHTMLAttributes<HTMLImageElement> & {
+    fill?: boolean
+    priority?: boolean
+    unoptimized?: boolean
+    sizes?: string
+  }) {
+    const React = jest.requireActual('react')
+    const imageProps = { ...props } as Record<string, unknown>
+    for (const key of ['fill', 'priority', 'unoptimized', 'sizes']) {
+      delete imageProps[key]
+    }
+    return React.createElement('img', { alt, ...imageProps })
+  },
+}))
 
 const completeCoverUrlsByLang = {
   en: 'https://example.supabase.co/storage/v1/object/public/slides/econ/sei/latest/en-cover.png',
@@ -59,6 +82,27 @@ function createReport(overrides: Partial<ProjectReport> = {}) {
     },
     ...overrides,
   } as ProjectReport
+}
+
+function createProduct(overrides: Partial<Product> = {}) {
+  return {
+    id: 'product-1',
+    type: 'single_report',
+    status: 'published',
+    slug: 'report-product',
+    title_en: 'Report Product',
+    title_ko: '리포트 상품',
+    description_en: 'Product report summary',
+    description_ko: '상품 리포트 요약',
+    price_usd_cents: 0,
+    cover_image_url: 'https://example.supabase.co/storage/v1/object/public/slides/econ/product/latest/en-cover.png',
+    tags: [],
+    featured: false,
+    report_type: 'econ',
+    published_at: '2026-05-01T00:00:00.000Z',
+    created_at: '2026-05-01T00:00:00.000Z',
+    ...overrides,
+  } as Product
 }
 
 describe('LatestReportShowcase helpers', () => {
@@ -145,7 +189,7 @@ describe('LatestReportShowcase helpers', () => {
     ])
   })
 
-  it('excludes homepage showcase groups missing any required locale cover', () => {
+  it('backs off the strict cover requirement when fewer than four homepage report items are available', () => {
     const rows = (['en', 'ko', 'ja'] as const).map((language) => createReport({
       id: `report-${language}`,
       language,
@@ -157,7 +201,60 @@ describe('LatestReportShowcase helpers', () => {
       },
     }))
 
-    expect(getReportShowcaseItems(rows, 'ko')).toEqual([])
+    const items = getReportShowcaseItems(rows, 'ko')
+
+    expect(items).toHaveLength(1)
+    expect(items[0].coverUrls).toEqual([
+      completeCoverUrlsByLang.ko,
+      completeCoverUrlsByLang.en,
+      completeCoverUrlsByLang.ja,
+    ])
+  })
+
+  it('uses older relaxed-cover report candidates to keep at least four homepage showcase items', () => {
+    const strictReport = createReport({
+      id: 'strict-report',
+      project_id: 'strict-project',
+      project: {
+        ...createReport().project!,
+        id: 'strict-project',
+        name: 'Strict Project',
+        slug: 'strict-project',
+        symbol: 'STRICT',
+      },
+      cover_image_urls_by_lang: completeCoverUrlsByLang,
+      slide_html_urls_by_lang: completeSlideUrlsByLang,
+      published_at: '2026-05-10T00:00:00.000Z',
+    })
+    const relaxedReports = ['one', 'two', 'three'].map((slug, index) => createReport({
+      id: `relaxed-${slug}`,
+      project_id: `relaxed-project-${slug}`,
+      project: {
+        ...createReport().project!,
+        id: `relaxed-project-${slug}`,
+        name: `Relaxed ${slug}`,
+        slug: `relaxed-${slug}`,
+        symbol: `R${index}`,
+      },
+      cover_image_urls_by_lang: {
+        ko: `https://example.supabase.co/storage/v1/object/public/slides/econ/relaxed-${slug}/latest/ko-cover.png`,
+      },
+      slide_html_urls_by_lang: {
+        ko: `https://example.supabase.co/storage/v1/object/public/slides/econ/relaxed-${slug}/latest/ko.html`,
+      },
+      language: 'ko',
+      published_at: `2026-04-0${index + 1}T00:00:00.000Z`,
+    }))
+
+    const items = getReportShowcaseItems([strictReport, ...relaxedReports], 'ko')
+
+    expect(items).toHaveLength(4)
+    expect(items.map((item) => item.title)).toEqual([
+      'Strict Project',
+      'Relaxed one',
+      'Relaxed two',
+      'Relaxed three',
+    ])
   })
 
   it('excludes homepage showcase groups without a published slide for the current locale', () => {
@@ -252,5 +349,47 @@ describe('LatestReportShowcase helpers', () => {
     expect(getReportHref(createReport({ report_type: 'forensic' }), 'en')).toBe('/en/reports/forensic/pump-fun')
     expect(getReportHref(createReport({ report_type: 'econ' }), 'ko')).toBe('/ko/reports/pump-fun/econ')
     expect(getReportHref(createReport({ report_type: 'maturity' }), 'en')).toBe('/en/reports/pump-fun/maturity')
+  })
+})
+
+describe('LatestReportShowcase component', () => {
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
+  it('automatically advances the visible report every three seconds', () => {
+    jest.useFakeTimers()
+    const products = [
+      createProduct({
+        id: 'product-1',
+        slug: 'product-one',
+        title_en: 'Product One',
+        published_at: '2026-05-04T00:00:00.000Z',
+      }),
+      createProduct({
+        id: 'product-2',
+        slug: 'product-two',
+        title_en: 'Product Two',
+        published_at: '2026-05-03T00:00:00.000Z',
+      }),
+    ]
+
+    const { container } = render(createElement(LatestReportShowcase, {
+      products,
+      reports: [],
+      locale: 'en',
+    }))
+    const dots = () => [...container.querySelectorAll<HTMLButtonElement>('button[aria-label^="Show report"]')]
+
+    expect(dots()).toHaveLength(2)
+    expect(dots()[0].classList.contains('w-8')).toBe(true)
+    expect(dots()[1].classList.contains('w-8')).toBe(false)
+
+    act(() => {
+      jest.advanceTimersByTime(3000)
+    })
+
+    expect(dots()[0].classList.contains('w-8')).toBe(false)
+    expect(dots()[1].classList.contains('w-8')).toBe(true)
   })
 })
