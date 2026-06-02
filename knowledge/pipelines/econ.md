@@ -121,3 +121,12 @@ omitted instead of falling back to raw report text.
 The website helper `src/lib/report-marketing-content.ts` is a display-time
 last-resort guard for existing rows that may still contain unsafe auxiliary
 copy before a remote production backfill/update is applied.
+
+## BCE-1940 AWE ECON Backfill Target Selection
+
+As of 2026-06-02, report card summary backfill target selection uses the same
+website-visible status boundary as report display: `published`, `coming_soon`,
+and `in_review`, combined with the shared locale asset support check. This keeps
+`scripts/pipeline/backfill_card_summaries.py` and
+`find_matching_korean_slide_row()` aligned for slide-backed ECON rows such as
+AWE Network ECON, which are visible on website cards while still `in_review`.

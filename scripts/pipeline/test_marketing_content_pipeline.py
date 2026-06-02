@@ -792,6 +792,88 @@ def test_matching_row_requires_korean_slide_url(mcp):
     assert mcp.find_matching_korean_slide_row(sb, source)["id"] == "r1"
 
 
+def test_matching_row_includes_website_visible_in_review_status(mcp):
+    source = mcp.MarkdownSource(
+        slug="awe-network",
+        report_type="econ",
+        db_report_type="econ",
+        version=1,
+        lang="ko",
+        name="awe-network_econ_v1_ko.md",
+        text="AWE Network 본문",
+    )
+    sb = FakeSupabase({
+        "tracked_projects": [{"id": "p1", "slug": "awe-network"}],
+        "project_reports": [{
+            "id": "r1",
+            "project_id": "p1",
+            "report_type": "econ",
+            "version": 1,
+            "language": "ko",
+            "status": "in_review",
+            "slide_html_urls_by_lang": {"ko": "https://example.com/awe-ko.html"},
+        }],
+    })
+
+    assert mcp.find_matching_korean_slide_row(sb, source)["id"] == "r1"
+
+
+def test_backfill_drive_source_selection_includes_in_review_and_keeps_slug_scope(monkeypatch, mcp):
+    spec = importlib.util.spec_from_file_location(
+        "backfill_card_summaries",
+        Path(__file__).with_name("backfill_card_summaries.py"),
+    )
+    backfill = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(backfill)
+
+    sb = FakeSupabase({
+        "tracked_projects": [
+            {"id": "p-awe", "slug": "awe-network", "name": "AWE Network", "symbol": "AWE"},
+            {"id": "p-btc", "slug": "bitcoin", "name": "Bitcoin", "symbol": "BTC"},
+        ],
+        "project_reports": [
+            {
+                "id": "r-awe",
+                "project_id": "p-awe",
+                "report_type": "econ",
+                "version": 1,
+                "language": "ko",
+                "status": "in_review",
+                "slide_html_urls_by_lang": {"ko": "https://example.com/awe-ko.html"},
+                "updated_at": "2026-06-01T00:00:00Z",
+            },
+            {
+                "id": "r-btc",
+                "project_id": "p-btc",
+                "report_type": "econ",
+                "version": 1,
+                "language": "ko",
+                "status": "in_review",
+                "slide_html_urls_by_lang": {"ko": "https://example.com/btc-ko.html"},
+                "updated_at": "2026-06-01T00:00:00Z",
+            },
+        ],
+    })
+    calls = []
+
+    def fake_find_drive_source_for_project(project, *, report_type, version):
+        calls.append((project["slug"], report_type, version))
+        return SimpleNamespace(slug=project["slug"], report_type=report_type, version=version)
+
+    monkeypatch.setattr(backfill, "_get_supabase_client", lambda: sb)
+    monkeypatch.setattr(backfill, "find_drive_source_for_project", fake_find_drive_source_for_project)
+
+    sources = backfill.load_drive_sources_for_slugs(
+        ["awe-network"],
+        report_type="econ",
+        version=None,
+        limit=None,
+    )
+
+    assert [source.slug for source in sources] == ["awe-network"]
+    assert calls == [("awe-network", "econ", 1)]
+
+
 def test_load_local_sources_refuses_generated_output_directory(tmp_path, monkeypatch, capsys, mcp):
     output_dir = tmp_path / "pipeline" / "output"
     output_dir.mkdir(parents=True)
