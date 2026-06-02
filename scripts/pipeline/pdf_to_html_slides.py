@@ -36,6 +36,9 @@ DEFAULT_RENDER_DPI = int(os.environ.get("SLIDE_HTML_RENDER_DPI", "300"))
 DEFAULT_IMAGE_FORMAT = (os.environ.get("SLIDE_HTML_IMAGE_FORMAT", "png").strip().lower() or "png")
 DEFAULT_JPEG_QUALITY = int(os.environ.get("SLIDE_HTML_JPEG_QUALITY", "100"))
 SUPPORTED_IMAGE_FORMATS = {"png", "jpeg"}
+FULLSCREEN_CHROME_VISIBLE_MS = 2400
+SLIDE_VIEWER_INTERACTION_MESSAGE = "bcelab-slide-viewer-interaction"
+SLIDE_VIEWER_FULLSCREEN_STATE_MESSAGE = "bcelab-slide-viewer-fullscreen-state"
 
 
 def _normalize_image_format(fmt: str | None) -> str:
@@ -472,11 +475,92 @@ body {{
   background: rgba(255,255,255,0.2);
   color: #fff;
 }}
+
+body.bcelab-parent-fullscreen {{
+  min-height: 100vh;
+  overflow: hidden;
+}}
+
+body.bcelab-parent-fullscreen .viewer-container,
+.viewer-container:fullscreen,
+.viewer-container:-webkit-full-screen {{
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #050712;
+}}
+
+body.bcelab-parent-fullscreen .slide-wrapper,
+.viewer-container:fullscreen .slide-wrapper,
+.viewer-container:-webkit-full-screen .slide-wrapper {{
+  width: 100vw;
+  height: 100vh;
+  padding-bottom: 0;
+  border-radius: 0;
+  box-shadow: none;
+}}
+
+body.bcelab-parent-fullscreen .title-bar,
+body.bcelab-parent-fullscreen .controls,
+.viewer-container:fullscreen .title-bar,
+.viewer-container:fullscreen .controls,
+.viewer-container:-webkit-full-screen .title-bar,
+.viewer-container:-webkit-full-screen .controls {{
+  position: absolute;
+  left: max(12px, env(safe-area-inset-left));
+  right: max(12px, env(safe-area-inset-right));
+  z-index: 30;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 12px;
+  background: rgba(8,10,24,0.76);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-8px);
+  transition: opacity 180ms ease, transform 180ms ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}}
+
+body.bcelab-parent-fullscreen .title-bar,
+.viewer-container:fullscreen .title-bar,
+.viewer-container:-webkit-full-screen .title-bar {{
+  top: max(12px, env(safe-area-inset-top));
+}}
+
+body.bcelab-parent-fullscreen .controls,
+.viewer-container:fullscreen .controls,
+.viewer-container:-webkit-full-screen .controls {{
+  bottom: max(12px, env(safe-area-inset-bottom));
+  transform: translateY(8px);
+}}
+
+body.bcelab-parent-fullscreen.bcelab-chrome-visible .title-bar,
+body.bcelab-parent-fullscreen.bcelab-chrome-visible .controls,
+.viewer-container.bcelab-chrome-visible:fullscreen .title-bar,
+.viewer-container.bcelab-chrome-visible:fullscreen .controls,
+.viewer-container.bcelab-chrome-visible:-webkit-full-screen .title-bar,
+.viewer-container.bcelab-chrome-visible:-webkit-full-screen .controls {{
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}}
+
+body.bcelab-parent-fullscreen .nav-overlay,
+.viewer-container:fullscreen .nav-overlay,
+.viewer-container:-webkit-full-screen .nav-overlay {{
+  z-index: 20;
+}}
 </style>
 </head>
 <body>
 
-<div class="viewer-container" id="viewer">
+<div class="viewer-container" id="viewer" data-bcelab-fullscreen-overlay="true">
   <div class="title-bar">
     <h1>{title}</h1>
     <div style="display:flex;gap:8px;align-items:center;">
@@ -562,11 +646,59 @@ wrapper.addEventListener('touchend', (e) => {{
 function toggleFullscreen() {{
   const el = document.getElementById('viewer');
   if (!document.fullscreenElement) {{
-    el.requestFullscreen?.() || el.webkitRequestFullscreenElement?.();
+    el.requestFullscreen?.() || el.webkitRequestFullscreen?.();
   }} else {{
     document.exitFullscreen?.() || document.webkitExitFullscreen?.();
   }}
 }}
+
+let bcelabChromeTimer = null;
+
+function bcelabIsViewerFullscreen() {{
+  const viewer = document.getElementById('viewer');
+  return document.fullscreenElement === viewer || document.webkitFullscreenElement === viewer;
+}}
+
+function bcelabShouldAutoHideChrome() {{
+  return document.body.classList.contains('bcelab-parent-fullscreen') || bcelabIsViewerFullscreen();
+}}
+
+function bcelabSetChromeVisible(visible) {{
+  const viewer = document.getElementById('viewer');
+  if (!viewer) return;
+  const enabled = visible && bcelabShouldAutoHideChrome();
+  viewer.classList.toggle('bcelab-chrome-visible', enabled);
+  document.body.classList.toggle('bcelab-chrome-visible', enabled);
+  if (bcelabChromeTimer) window.clearTimeout(bcelabChromeTimer);
+  if (enabled) {{
+    bcelabChromeTimer = window.setTimeout(() => bcelabSetChromeVisible(false), {FULLSCREEN_CHROME_VISIBLE_MS});
+  }}
+}}
+
+function bcelabRevealChrome() {{
+  bcelabSetChromeVisible(true);
+  try {{
+    window.parent?.postMessage({{ type: '{SLIDE_VIEWER_INTERACTION_MESSAGE}' }}, '*');
+  }} catch (_) {{}}
+}}
+
+function bcelabInstallFullscreenOverlayControls() {{
+  const viewer = document.getElementById('viewer');
+  if (!viewer || viewer.dataset.bcelabFullscreenOverlayInstalled === 'true') return;
+  viewer.dataset.bcelabFullscreenOverlayInstalled = 'true';
+  viewer.addEventListener('touchstart', bcelabRevealChrome, {{ passive: true }});
+  viewer.addEventListener('pointerdown', bcelabRevealChrome);
+  viewer.addEventListener('mousemove', bcelabRevealChrome);
+  document.addEventListener('fullscreenchange', () => bcelabSetChromeVisible(false));
+  document.addEventListener('webkitfullscreenchange', () => bcelabSetChromeVisible(false));
+  window.addEventListener('message', (event) => {{
+    if (event.data?.type !== '{SLIDE_VIEWER_FULLSCREEN_STATE_MESSAGE}') return;
+    document.body.classList.toggle('bcelab-parent-fullscreen', Boolean(event.data.active));
+    bcelabSetChromeVisible(false);
+  }});
+}}
+
+bcelabInstallFullscreenOverlayControls();
 
 // Load first slide
 goTo(0);

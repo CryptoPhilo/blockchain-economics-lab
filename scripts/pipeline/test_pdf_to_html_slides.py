@@ -330,3 +330,20 @@ class SlideHtmlRenderingTests(TestCase):
 
         self.assertIn("https://storage.example/slides/econ/foo/1/ko_assets/page-001.png", html)
         self.assertNotIn("data:image/png;base64", html)
+
+    def test_html_viewer_hides_fullscreen_chrome_until_interaction(self):
+        html = build_viewer_html_from_sources(
+            ["https://storage.example/slides/econ/foo/1/ko_assets/page-001.png"],
+            title="Sample",
+            lang="ko",
+        )
+
+        self.assertIn('data-bcelab-fullscreen-overlay="true"', html)
+        self.assertIn("body.bcelab-parent-fullscreen .title-bar", html)
+        self.assertIn(".viewer-container:fullscreen .title-bar", html)
+        self.assertIn(".viewer-container.bcelab-chrome-visible:fullscreen .title-bar", html)
+        self.assertIn("function bcelabRevealChrome()", html)
+        self.assertIn("bcelab-slide-viewer-fullscreen-state", html)
+        self.assertIn("bcelab-slide-viewer-interaction", html)
+        self.assertIn("bcelabFullscreenOverlayInstalled", html)
+        self.assertIn("el.webkitRequestFullscreen?.()", html)
