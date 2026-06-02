@@ -207,6 +207,61 @@ describe('SlideReportPage locale availability', () => {
     expect(screen.getByText('포렌식 리스크 요약')).toBeTruthy()
   })
 
+  it('uses the latest locale-available version on default report routes', async () => {
+    mockReportQueries(
+      { id: 'project-1', slug: 'monero', name: 'Monero', symbol: 'XMR' },
+      [
+        {
+          id: 'report-en-v2',
+          language: 'en',
+          report_type: 'forensic',
+          status: 'published',
+          version: 2,
+          card_risk_score: 61,
+          card_summary_en: 'English v2 forensic summary.',
+          card_data: {
+            generated_at: '2026-06-01T04:05:52.000Z',
+            keywords_en: ['English v2 signal'],
+          },
+          slide_html_urls_by_lang: {
+            en: 'https://example.test/for/monero/v2/en.html',
+          },
+        },
+        {
+          id: 'report-ko-v1',
+          language: 'ko',
+          report_type: 'forensic',
+          status: 'published',
+          version: 1,
+          card_risk_score: 61,
+          card_summary_ko: '한국어 v1 포렌식 요약',
+          card_data: {
+            generated_at: '2026-06-01T03:45:31.000Z',
+            keywords_ko: ['한국어 v1 신호'],
+          },
+          slide_html_urls_by_lang: {
+            ko: 'https://example.test/for/monero/v1/ko.html',
+          },
+        },
+      ],
+    )
+
+    const page = await SlideReportPage({
+      locale: 'ko',
+      slug: 'monero',
+      reportType: 'forensic',
+    })
+    render(page)
+
+    expect(mockNotFound).not.toHaveBeenCalled()
+    expect(screen.getByTestId('slide-viewer').getAttribute('data-url')).toBe(
+      'https://example.test/for/monero/v1/ko.html',
+    )
+    expect(screen.queryByText('localePendingTitle')).toBeNull()
+    expect(screen.getByText('한국어 v1 포렌식 요약')).toBeTruthy()
+    expect(screen.queryByText('English v2 forensic summary.')).toBeNull()
+  })
+
   it('renders slide-coming-soon instead of locale-pending when the English Google Drive PDF exists without a slide URL', async () => {
     mockReportQueries(
       { id: 'project-1', slug: 'litecoin', name: 'Litecoin', symbol: 'LTC' },
