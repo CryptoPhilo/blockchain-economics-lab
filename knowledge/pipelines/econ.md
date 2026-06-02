@@ -122,6 +122,20 @@ The website helper `src/lib/report-marketing-content.ts` is a display-time
 last-resort guard for existing rows that may still contain unsafe auxiliary
 copy before a remote production backfill/update is applied.
 
+## BCE-1939 Semantic Insight Quality Gate
+
+As of 2026-06-02, ECON card summaries and card-visible `Investment View` copy
+must pass a semantic insight gate, not only a formatting safety gate.
+`scripts/pipeline/marketing_content_pipeline.py` separates raw-format rejection
+from report-type insight checks, rejects internal prompt/template fragments such
+as `요청 템플릿` and `예상 가격 항목`, and refuses to persist raw source fallback
+when no safe insight candidate exists.
+
+The card summary provenance contract is `card_summary_v2`, with
+`source_sentence_ids` recorded alongside source sentences. Direct post-publish
+generation in `scripts/pipeline/watch_slides.py` passes project context into the
+same gate used by dry-run/backfill execution.
+
 ## BCE-1940 AWE ECON Backfill Target Selection
 
 As of 2026-06-02, report card summary backfill target selection uses the same

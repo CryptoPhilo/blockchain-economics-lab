@@ -454,6 +454,67 @@ def test_card_summary_quality_gate_rejects_state_mapping_and_numbered_fragments(
     assert "table_or_list_fragment" in ordinal_reasons
 
 
+def test_dogecoin_bad_card_fragments_fail_semantic_gate(mcp):
+    source = mcp.MarkdownSource(
+        slug="dogecoin",
+        report_type="econ",
+        db_report_type="econ",
+        version=1,
+        lang="ko",
+        name="dogecoin_econ_v1_ko.md",
+        text="# Dogecoin ECON\n\n본문",
+    )
+
+    econ_reasons = mcp.validate_card_summary(
+        "UTXO 잔액, 트랜잭션 출력, 블록 보상. 정의: 온체인 state 매핑 기능: 결제 처리.",
+        locale="ko",
+        source=source,
+        project={"slug": "dogecoin", "name": "Dogecoin", "symbol": "DOGE"},
+    )
+    mat_reasons = mcp.validate_card_summary(
+        "요청 템플릿의 예상 가격 항목은 투자 조언이 아니며 Dogecoin의 가격 예측을 제공하지 않는다.",
+        locale="ko",
+        source=source,
+        project={"slug": "dogecoin", "name": "Dogecoin", "symbol": "DOGE"},
+    )
+
+    assert "forbidden_phrase" in econ_reasons
+    assert "table_or_list_fragment" in econ_reasons
+    assert "forbidden_phrase" in mat_reasons
+
+
+def test_dogecoin_good_card_copy_keeps_actual_investment_insight(mcp):
+    source = mcp.MarkdownSource(
+        slug="dogecoin",
+        report_type="mat",
+        db_report_type="maturity",
+        version=1,
+        lang="ko",
+        name="dogecoin_mat_v1_ko.md",
+        text=(
+            "# Dogecoin MAT\n\n"
+            "Dogecoin은 결제 네트워크와 밈 프리미엄을 결합한 오래된 공개 블록체인이다. "
+            "Dogecoin은 브랜드 인지도와 거래소 유동성을 강점으로 유지하지만, 무제한 발행 구조와 개발 지속성은 실사용 전환을 확인해야 하는 핵심 리스크다. "
+            "요청 템플릿의 예상 가격 항목은 내부 작성 흔적이다."
+        ),
+    )
+
+    content = mcp.derive_content(
+        source,
+        translate=False,
+        project={"slug": "dogecoin", "name": "Dogecoin", "symbol": "DOGE"},
+    )
+    card = mcp.derive_card_copy(source, project={"slug": "dogecoin", "name": "Dogecoin", "symbol": "DOGE"})
+
+    assert "밈 프리미엄" in content.summary_ko
+    assert "무제한 발행" in content.summary_ko
+    assert "개발 지속성" in content.summary_ko
+    assert "요청 템플릿" not in content.summary_ko
+    assert "예상 가격" not in " ".join(content.marketing_by_lang.values())
+    assert content.marketing_by_lang["ko"].startswith("Dogecoin은 브랜드 인지도")
+    assert card.source_sentence_ids == (0, 1)
+
+
 def test_card_summary_quality_gate_detects_locale_script_mismatch(mcp):
     source = mcp.MarkdownSource(
         slug="starknet",
@@ -992,7 +1053,11 @@ def test_persist_dry_run_matches_without_update(monkeypatch, mcp):
         version=1,
         lang="ko",
         name="bitcoin_econ_v1_ko.md",
-        text="# Bitcoin\n\n시장은 성장 기회와 리스크를 함께 보여준다. 투자자는 유동성과 평가 변화를 점검해야 한다.",
+        text=(
+            "# Bitcoin\n\n"
+            "Bitcoin은 가치저장 수요와 수수료 시장을 결합한 성숙한 결제 네트워크다. "
+            "핵심 리스크는 채굴 보상 감소 이후 보안 예산과 유동성 지속성을 함께 점검해야 한다는 점이다."
+        ),
     )
     sb = FakeSupabase({
         "tracked_projects": [{"id": "p1", "slug": "bitcoin"}],

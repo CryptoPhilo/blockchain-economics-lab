@@ -76,6 +76,7 @@ BLOCKED_LOCAL_SOURCE_DIRS = (PIPELINE_DIR / "output",)
 SOURCE_ALIAS_REGISTRY = {
     "bittensor": ("비텐서",),
     "cosmos-hub": ("cosmos",),
+    "dogecoin": ("도지코인",),
     "flare-networks": ("flare",),
     "hedera-hashgraph": ("헤데라",),
     "humanity-protocol": ("humanity",),
@@ -86,6 +87,7 @@ SOURCE_ALIAS_REGISTRY = {
     "shiba-inu": ("시바이누",),
     "stellar": ("스텔라",),
     "tether-gold": ("테더골드", "tether gold"),
+    "the-open-network": ("ton",),
     "venice-token": ("venice.ai", "venice ai", "venice_ai"),
     "worldcoin": ("world",),
     "world-liberty-financial": ("wlf", "wlfi"),
@@ -114,7 +116,9 @@ SUMMARY_BOILERPLATE_RE = re.compile(
     r"사용자\s*가\s*제공\s*한|"
     r"업로드\s*된\s*분석\s*지침|"
     r"차트\s*이미지|"
-    r"포렌식\s*보고서\s*구조"
+    r"포렌식\s*보고서\s*구조|"
+    r"평가\s*자료|"
+    r"백서\s*부재"
     r")",
     re.I,
 )
@@ -124,6 +128,12 @@ CARD_SUMMARY_FORBIDDEN_RE = re.compile(
     r"본\s*분석은|"
     r"투자\s*조언|"
     r"가격\s*예측|"
+    r"요청\s*템플릿|"
+    r"템플릿\s*의|"
+    r"예상\s*가격\s*항목|"
+    r"내부\s*프롬프트|"
+    r"평가\s*자료|"
+    r"백서\s*부재|"
     r"분석\s*목적|"
     r"개요\s*및\s*개념\s*정의|"
     r"프로젝트\s*기본\s*정보|"
@@ -160,8 +170,8 @@ CARD_RAW_FORMAT_RE = re.compile(
 CARD_FORMULA_FRAGMENT_RE = re.compile(
     r"("
     r"\b(?:round|sqrt|log|exp|min|max)\s*\(|"
-    r"\b[A-Za-z]{1,4}\s*[_{]?[A-Za-z0-9-]*[}]?\s*=\s*|"
-    r"=\s*[A-Za-z]{1,4}\s*[_{]?[A-Za-z0-9-]*[}]?|"
+    r"\b[A-Za-z]{1,4}\s*[_{]?[A-Za-z0-9-]*[}]?\s*[=+\-*/^]\s*|"
+    r"[=+\-*/^]\s*[A-Za-z]{1,4}\s*[_{]?[A-Za-z0-9-]*[}]?|"
     r"\b[A-Za-z]{1,4}\s*\{[A-Za-z0-9_+\-]+\}"
     r")",
     re.I,
@@ -180,9 +190,30 @@ REPORT_TYPE_PRIORITY_TOKENS = {
         "event", "risk", "signal", "volume", "volatility",
     ),
 }
+REPORT_TYPE_INSIGHT_TOKENS = {
+    "econ": (
+        "가치", "포착", "보상", "인센티브", "수요", "공급", "발행", "소각",
+        "수수료", "지속", "리스크", "성장", "조건", "유동성",
+    ),
+    "mat": (
+        "성숙", "단계", "점수", "강점", "약점", "병목", "미성숙", "검증",
+        "운영", "리스크", "관찰", "평가", "지속성",
+    ),
+    "for": (
+        "이벤트", "이상", "신호", "리스크", "변동성", "거래량", "유동성",
+        "관찰", "확인", "단기", "위험", "손실", "매수", "매도", "급등",
+    ),
+}
+INVESTMENT_VIEW_TOKENS = (
+    "리스크", "기회", "촉매", "관찰", "확인", "성장", "지속", "불확실",
+    "병목", "강점", "약점", "성숙", "수요", "공급", "유동성", "검증",
+)
+PROJECT_DEFINITION_TOKENS = (
+    "블록체인", "네트워크", "프로젝트", "프로토콜", "생태계", "플랫폼",
+    "결제", "거래", "인프라", "레이어", "토큰", "자산",
+)
 CARD_FRAGMENT_START_RE = re.compile(
-    r"^(?:소재가|일부가|증가\s*시|수익성\s+있게|기반\s|작을\s+수\s+있으므로|공유한다는\s+점이다|EIP와)\b",
-    re.I,
+    r"^(?:[a-z][a-z0-9_-]*은|소재가|일부가|증가\s*시|수익성\s+있게|기반\s|작을\s+수\s+있으므로|공유한다는\s+점이다|EIP와)\b",
 )
 CARD_INCOMPLETE_END_RE = re.compile(
     r"(?:보다|보다도|통해|위해|따라|때문에|경우|반면|대비|중심으로|기준으로|"
@@ -197,7 +228,7 @@ LEADING_PROJECT_METADATA_RE = re.compile(
 LEADING_SECTION_FRAGMENT_RE = re.compile(
     r"^\s*(?:\d+(?:\.\d+)*\.?\s*)?"
     r"(?:가치\s*시스템\s*(?:구조\s*및\s*서사|분석)?|보상\s*시스템\s*분석|"
-    r"화폐\s*시스템\s*분석|부트스트래핑\s*전략|개념\s*정의(?:\s*목록)?)"
+    r"보상\s*수단\s*시스템|화폐\s*시스템\s*분석|부트스트래핑\s*전략|개념\s*정의(?:\s*목록)?)"
     r"(?:\s*\([^)]*\))?\s*",
     re.I,
 )
@@ -250,6 +281,7 @@ class DerivedContent:
 class CardCopy:
     summary: str
     source_sentences: Tuple[str, ...]
+    source_sentence_ids: Tuple[int, ...]
     confidence: float
     quality_reasons: Tuple[str, ...]
 
@@ -588,30 +620,71 @@ def _report_type_score(sentence: str, report_type: str) -> int:
     return sum(1 for token in tokens if token.lower() in sentence.lower())
 
 
+def _report_type_insight_score(sentence: str, report_type: str) -> int:
+    tokens = REPORT_TYPE_INSIGHT_TOKENS.get(report_type, ())
+    return sum(1 for token in tokens if token.lower() in sentence.lower())
+
+
+def _has_investment_view_signal(sentence: str) -> bool:
+    return any(token in sentence for token in INVESTMENT_VIEW_TOKENS)
+
+
+def _is_project_definition_sentence(sentence: str, source: MarkdownSource, project: Optional[Dict[str, Any]] = None) -> bool:
+    return _contains_expected_subject(sentence, source, project) and any(
+        token.lower() in sentence.lower() for token in PROJECT_DEFINITION_TOKENS
+    )
+
+
+def _project_display_name(source: MarkdownSource, project: Optional[Dict[str, Any]] = None) -> str:
+    if project:
+        for key in ("name", "symbol", "slug"):
+            value = str(project.get(key) or "").strip()
+            if value:
+                return value
+    return source.slug.replace("-", " ").title()
+
+
+def _deterministic_card_fallback(source: MarkdownSource, project: Optional[Dict[str, Any]] = None) -> str:
+    name = _project_display_name(source, project)
+    labels = {
+        "econ": "경제 설계의 핵심 메커니즘과 지속가능성 리스크",
+        "mat": "성숙도 단계와 검증된 강점 및 병목",
+        "for": "이상 신호와 단기 리스크 확인 포인트",
+    }
+    label = labels.get(source.report_type, "핵심 판단")
+    return f"{name} {source.report_type.upper()} 보고서는 {label}를 상세 본문에서 확인해야 한다."
+
+
 def _clean_card_candidate(sentence: str) -> str:
     text = _normalize_text(sentence).strip()
     text = re.sub(r"^\([^)]{1,40}\)\s*", "", text).strip()
-    text = re.sub(r"^(?:시사점|요약)\s*[:：]\s*", "", text, flags=re.I).strip()
+    text = re.sub(r"^(?:시사점|요약|해석|결론|투자\s*관점|관찰\s*포인트)\s*[:：]\s*", "", text, flags=re.I).strip()
     text = re.sub(r"\s+(?:경제\s*)?기능\s*[:：].*$", "", text, flags=re.I).strip()
     text = re.sub(r"\s+\d+\.\s*$", "", text).strip()
     text = re.sub(r"\s+", " ", text)
     return text
 
 
-def _card_sentence_candidates(source: MarkdownSource, project: Optional[Dict[str, Any]] = None) -> List[Tuple[int, str]]:
-    scored: List[Tuple[int, str]] = []
+def _card_sentence_candidates(source: MarkdownSource, project: Optional[Dict[str, Any]] = None) -> List[Tuple[int, int, str]]:
+    scored: List[Tuple[int, int, str]] = []
     for index, sentence in enumerate(_candidate_sentences(source.text)):
         sentence = _clean_card_candidate(sentence)
         if not sentence:
+            continue
+        if (
+            _report_type_insight_score(sentence, source.report_type) == 0
+            and not _is_project_definition_sentence(sentence, source, project)
+        ):
             continue
         reasons = validate_card_summary(sentence, locale="ko", source=source)
         if any(reason in reasons for reason in ("too_short", "too_long", "forbidden_phrase", "raw_format_fragment", "table_or_list_fragment", "metadata_fragment", "sentence_fragment")):
             continue
         score = 100 - min(index, 60)
         score += _report_type_score(sentence, source.report_type) * 8
+        score += _report_type_insight_score(sentence, source.report_type) * 12
         if _contains_expected_subject(sentence, source, project):
             score += 25
-        scored.append((score, sentence))
+        scored.append((score, index, sentence))
     return sorted(scored, key=lambda pair: pair[0], reverse=True)
 
 
@@ -624,29 +697,45 @@ def derive_card_copy(source: MarkdownSource, *, project: Optional[Dict[str, Any]
     """
     candidates = _card_sentence_candidates(source, project)
     if not candidates:
-        fallback = _limit_words(_strip_markdown(source.text), CARD_SUMMARY_MAX_WORDS)
+        fallback = _deterministic_card_fallback(source, project)
         reasons = validate_card_summary(fallback, locale="ko", source=source, project=project)
-        return CardCopy(fallback, (fallback,), 0.2 if not reasons else 0.0, tuple(reasons))
+        return CardCopy(
+            fallback,
+            (),
+            (),
+            0.0,
+            tuple(["no_insight_candidate", *reasons]),
+        )
 
     selected: List[str] = []
-    for _score, sentence in candidates:
+    selected_ids: List[int] = []
+    for _score, index, sentence in candidates:
         candidate = " ".join([*selected, sentence]).strip()
         reasons = validate_card_summary(candidate, locale="ko", source=source, project=project)
         if any(reason in reasons for reason in ("too_long", "too_many_sentences", "forbidden_phrase", "raw_format_fragment", "table_or_list_fragment")):
             continue
         selected.append(sentence)
+        selected_ids.append(index)
         if len(selected) >= 2:
             break
 
     if not selected:
-        selected = [candidates[0][1]]
+        selected = [candidates[0][2]]
+        selected_ids = [candidates[0][1]]
+
+    if len(selected) > 1:
+        ordered = sorted(zip(selected_ids, selected), key=lambda pair: pair[0])
+        selected_ids = [index for index, _sentence in ordered]
+        selected = [sentence for _index, sentence in ordered]
 
     summary = _limit_words(" ".join(selected), CARD_SUMMARY_MAX_WORDS)
     reasons = validate_card_summary(summary, locale="ko", source=source, project=project)
+    if _report_type_insight_score(summary, source.report_type) == 0:
+        reasons.append("insight_missing")
     confidence = 0.95 if not reasons else 0.65
     if "subject_missing_or_mismatch" in reasons:
         confidence = min(confidence, 0.45)
-    return CardCopy(summary, tuple(selected), confidence, tuple(reasons))
+    return CardCopy(summary, tuple(selected), tuple(selected_ids), confidence, tuple(reasons))
 
 
 def _derive_korean_copy(source: MarkdownSource, *, project: Optional[Dict[str, Any]] = None) -> Tuple[str, str, str]:
@@ -662,7 +751,7 @@ def _derive_korean_copy(source: MarkdownSource, *, project: Optional[Dict[str, A
 
     marketing_candidates = [
         sentence for sentence in sentences
-        if any(token in sentence for token in ("기회", "리스크", "투자", "시장", "성장", "평가", "결론", "전략"))
+        if _has_investment_view_signal(sentence)
     ]
     marketing = ""
     for candidate in reversed(marketing_candidates or sentences):
@@ -953,7 +1042,14 @@ def build_project_report_patch_from_drive_source(
     project: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     content = derive_content(source, translate=translate, dry_run=False, project=project)
-    patch = build_project_report_patch(source, content, project=project)
+    card_copy = derive_card_copy(source, project=project)
+    blocking_reasons = [
+        reason for reason in card_copy.quality_reasons
+        if reason != "subject_missing_or_mismatch"
+    ]
+    if blocking_reasons:
+        raise ValueError(f"card summary quality gate failed: {', '.join(blocking_reasons)}")
+    patch = build_project_report_patch(source, content, project=project, card_copy=card_copy)
     if source_web_view_link:
         patch["summary_source_md_archived_url"] = source_web_view_link
     card_data = patch.get("card_data") if isinstance(patch.get("card_data"), dict) else {}
@@ -1098,10 +1194,15 @@ def build_project_report_patch(
     *,
     archived_drive_file: Optional[Dict[str, Any]] = None,
     project: Optional[Dict[str, Any]] = None,
+    card_copy: Optional[CardCopy] = None,
 ) -> Dict[str, Any]:
-    card_copy = derive_card_copy(source, project=project)
-    if card_copy.quality_reasons:
-        reasons = ", ".join(card_copy.quality_reasons)
+    card_copy = card_copy or derive_card_copy(source, project=project)
+    blocking_reasons = [
+        reason for reason in card_copy.quality_reasons
+        if reason != "subject_missing_or_mismatch"
+    ]
+    if blocking_reasons:
+        reasons = ", ".join(blocking_reasons)
         raise ValueError(f"card summary quality gate failed: {reasons}")
     card_data = {
         "source_md": {
@@ -1118,10 +1219,11 @@ def build_project_report_patch(
         "summary_by_lang": content.summary_by_lang,
         "marketing_by_lang": content.marketing_by_lang,
         "summary_quality": {
-            "contract": "card_summary_v1",
+            "contract": "card_summary_v2",
             "max_words": CARD_SUMMARY_MAX_WORDS,
             "max_chars": CARD_SUMMARY_MAX_CHARS,
             "source_sentences": list(card_copy.source_sentences),
+            "source_sentence_ids": list(card_copy.source_sentence_ids),
             "confidence": card_copy.confidence,
             "quality_reasons": list(card_copy.quality_reasons),
         },
@@ -1144,11 +1246,23 @@ def build_project_report_patch(
 
 def persist_content(sb, row: Dict[str, Any], source: MarkdownSource, content: DerivedContent, archived: Optional[Dict[str, Any]]) -> None:
     existing_card = row.get("card_data") if isinstance(row.get("card_data"), dict) else {}
+    project = row.get("_matched_project") if isinstance(row.get("_matched_project"), dict) else None
+    card_copy = derive_card_copy(source, project=project)
+    blocking_reasons = [
+        reason for reason in card_copy.quality_reasons
+        if reason != "subject_missing_or_mismatch"
+    ]
+    if blocking_reasons:
+        raise ValueError(
+            "card summary quality gate failed before persist: "
+            + ", ".join(blocking_reasons)
+        )
     patch = build_project_report_patch(
         source,
         content,
         archived_drive_file=archived,
-        project=row.get("_matched_project") or None,
+        project=project,
+        card_copy=card_copy,
     )
     patch["card_data"] = {
         **existing_card,
@@ -1215,6 +1329,7 @@ def run_pipeline(
                 "confidence": card_copy.confidence,
                 "quality_reasons": list(card_copy.quality_reasons),
                 "source_sentences": list(card_copy.source_sentences),
+                "source_sentence_ids": list(card_copy.source_sentence_ids),
             }
             blocking_reasons = [
                 reason for reason in card_copy.quality_reasons
