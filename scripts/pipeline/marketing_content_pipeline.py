@@ -51,6 +51,7 @@ REPORT_TYPE_TO_DB = {
     "for": "forensic",
 }
 DB_TYPE_TO_SHORT = {value: key for key, value in REPORT_TYPE_TO_DB.items()}
+WEBSITE_VISIBLE_REPORT_STATUSES = ("published", "coming_soon", "in_review")
 
 DEFAULT_SOURCE_FOLDER_ID = "1E87EcasPlrGuet0t6e1CA9kLFO0sTdFq"
 SOURCE_FOLDER_ID = os.environ.get("BCE_MARKETING_SOURCE_FOLDER_ID", DEFAULT_SOURCE_FOLDER_ID)
@@ -1034,11 +1035,32 @@ def assert_marketing_schema_available(sb) -> None:
         ) from exc
 
 
-def _as_bool_slide_present(value: Any) -> bool:
-    if isinstance(value, dict):
-        ko_value = value.get("ko")
-        return isinstance(ko_value, str) and bool(ko_value.strip())
+def _has_non_empty_asset_value(value: Any) -> bool:
+    if isinstance(value, str):
+        return bool(value.strip())
+    if isinstance(value, list):
+        return any(_has_non_empty_asset_value(item) for item in value)
     return False
+
+
+def _has_url_entry(value: Any) -> bool:
+    if isinstance(value, str):
+        return bool(value.strip())
+    if isinstance(value, dict):
+        return _has_non_empty_asset_value(value.get("url")) or _has_non_empty_asset_value(value.get("download_url"))
+    return False
+
+
+def report_row_supports_locale(row: Dict[str, Any], locale: str) -> bool:
+    """Mirror src/lib/report-locale.ts for backfill/persist target selection."""
+    gdrive_urls = row.get("gdrive_urls_by_lang") if isinstance(row.get("gdrive_urls_by_lang"), dict) else {}
+    file_urls = row.get("file_urls_by_lang") if isinstance(row.get("file_urls_by_lang"), dict) else {}
+    slide_urls = row.get("slide_html_urls_by_lang") if isinstance(row.get("slide_html_urls_by_lang"), dict) else {}
+    if _has_url_entry(gdrive_urls.get(locale)) or _has_url_entry(file_urls.get(locale)):
+        return True
+    if _has_non_empty_asset_value(slide_urls.get(locale)):
+        return True
+    return row.get("language") == locale and (_has_url_entry(row.get("gdrive_url")) or _has_url_entry(row.get("file_url")))
 
 
 def find_matching_korean_slide_row(sb, source: MarkdownSource) -> Optional[Dict[str, Any]]:
@@ -1050,12 +1072,13 @@ def find_matching_korean_slide_row(sb, source: MarkdownSource) -> Optional[Dict[
     project_id = project_rows[0]["id"]
     res = sb.table("project_reports").select(
         "id, project_id, report_type, version, language, status, "
+        "gdrive_url, file_url, gdrive_urls_by_lang, file_urls_by_lang, "
         "slide_html_urls_by_lang, card_data, card_summary_ko"
     ).eq("project_id", project_id) \
         .eq("report_type", source.db_report_type) \
         .eq("version", source.version) \
         .eq("language", "ko") \
-        .in_("status", ["published", "approved", "coming_soon"]) \
+        .in_("status", list(WEBSITE_VISIBLE_REPORT_STATUSES)) \
         .limit(1) \
         .execute()
     rows = res.data or []
@@ -1063,7 +1086,7 @@ def find_matching_korean_slide_row(sb, source: MarkdownSource) -> Optional[Dict[
         return None
 
     row = rows[0]
-    if not _as_bool_slide_present(row.get("slide_html_urls_by_lang")):
+    if not report_row_supports_locale(row, "ko"):
         return None
     row["_matched_project"] = project_rows[0]
     return row

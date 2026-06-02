@@ -14,17 +14,18 @@ from typing import Optional, Sequence
 from marketing_content_pipeline import (
     DB_TYPE_TO_SHORT,
     REPORT_TYPE_TO_DB,
+    WEBSITE_VISIBLE_REPORT_STATUSES,
     _get_supabase_client,
     find_drive_source_for_project,
     load_drive_sources,
     load_local_sources,
+    report_row_supports_locale,
     run_pipeline,
 )
 
 
 DEFAULT_SAMPLE_SLUGS = ("awe-network", "bitcoin", "ethereum", "starknet", "vision-token")
 DEFAULT_OUTPUT = Path("scripts/pipeline/output/card_summary_backfill_audit.json")
-VISIBLE_REPORT_STATUSES = ("published", "approved", "coming_soon")
 
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
@@ -61,10 +62,14 @@ def filter_sources(sources, *, slugs, report_type, version, limit):
 def _latest_report_rows_for_project(sb, project_id: str, *, report_type: Optional[str], version: Optional[int]):
     query = (
         sb.table("project_reports")
-        .select("id, project_id, report_type, version, language, status, slide_html_urls_by_lang, updated_at, published_at")
+        .select(
+            "id, project_id, report_type, version, language, status, "
+            "gdrive_url, file_url, gdrive_urls_by_lang, file_urls_by_lang, "
+            "slide_html_urls_by_lang, updated_at, published_at"
+        )
         .eq("project_id", project_id)
         .eq("language", "ko")
-        .in_("status", list(VISIBLE_REPORT_STATUSES))
+        .in_("status", list(WEBSITE_VISIBLE_REPORT_STATUSES))
     )
     if report_type:
         query = query.eq("report_type", REPORT_TYPE_TO_DB[report_type])
@@ -73,9 +78,7 @@ def _latest_report_rows_for_project(sb, project_id: str, *, report_type: Optiona
     rows = query.execute().data or []
     rows = [
         row for row in rows
-        if isinstance(row.get("slide_html_urls_by_lang"), dict)
-        and isinstance(row["slide_html_urls_by_lang"].get("ko"), str)
-        and row["slide_html_urls_by_lang"]["ko"].strip()
+        if report_row_supports_locale(row, "ko")
     ]
     rows.sort(
         key=lambda row: (
