@@ -7,6 +7,9 @@ import DisclaimerBanner from '@/components/DisclaimerBanner'
 import SubscribeForm from '@/components/SubscribeForm'
 import LatestReportShowcase from '@/components/LatestReportShowcase'
 
+const SHOWCASE_PRODUCT_BACKFILL_LIMIT = 24
+const SHOWCASE_REPORT_BACKFILL_LIMIT = 120
+
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const t = await getTranslations()
@@ -42,7 +45,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         .in('report_type', ['econ', 'maturity', 'forensic'])
         .not('cover_image_url', 'is', null)
         .order('published_at', { ascending: false, nullsFirst: false })
-        .limit(8),
+        // Keep a wider backfill pool so the first-screen showcase can stay populated
+        // when the newest reports lack locale-ready covers or slides.
+        .limit(SHOWCASE_PRODUCT_BACKFILL_LIMIT),
       supabase
         .from('project_reports')
         .select(`
@@ -66,7 +71,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         .in('report_type', ['econ', 'maturity', 'forensic'])
         .order('published_at', { ascending: false, nullsFirst: false })
         .order('updated_at', { ascending: false, nullsFirst: false })
-        .limit(40),
+        .limit(SHOWCASE_REPORT_BACKFILL_LIMIT),
     ])
     featuredProducts = productsRes.data || []
     categories = categoriesRes.data || []

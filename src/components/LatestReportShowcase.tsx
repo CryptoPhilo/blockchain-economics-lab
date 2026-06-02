@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 import { reportHasSlideAssetForLocale, reportSupportsLocale } from '@/lib/report-locale'
@@ -63,6 +63,9 @@ const reportTypeLabels: Record<ReportType, { label: string; tone: string }> = {
 
 const supportedCoverLocales = ['en', 'ko', 'fr', 'es', 'de', 'ja', 'zh'] as const
 const requiredShowcaseCoverLocales = ['en', 'ko', 'ja', 'zh'] as const
+const MIN_SHOWCASE_ITEMS = 4
+const MAX_SHOWCASE_ITEMS = 8
+const SHOWCASE_ROLL_INTERVAL_MS = 3000
 
 function getProduct(report: ReportWithCover) {
   return Array.isArray(report.product) ? report.product[0] : report.product
@@ -195,6 +198,10 @@ type ShowcaseItem = {
   projectSymbol?: string
 }
 
+type ShowcaseCandidate = ShowcaseItem & {
+  hasRequiredLocaleCovers: boolean
+}
+
 function getProductReportType(product: Product): ReportType {
   if (product.report_type === 'maturity') return 'maturity'
   if (product.report_type === 'forensic') return 'forensic'
@@ -263,15 +270,15 @@ export function getReportShowcaseItems(reports: ReportWithCover[] | undefined, l
     groups.set(key, [...(groups.get(key) ?? []), report])
   }
 
-  return [...groups.values()]
+  const candidates: ShowcaseCandidate[] = [...groups.values()]
     .map((group) => group.sort((a, b) => getReportSortTime(b) - getReportSortTime(a)))
-    .filter((group) => hasRequiredShowcaseCoverUrlMap(mergeReportGroupCoverUrls(group)))
     .filter((group) => group.some((report) => reportHasSlideAssetForLocale(report, locale)))
     .map((group) => {
       const report = pickLocalizedReportFromGroup(group, locale)
       const project = report.tracked_projects ?? report.project
       const title = getLocalizedProductTitle(report, locale)
-      const coverUrls = getLocalizedCoverUrlsByLang(mergeReportGroupCoverUrls(group), normalizeCoverLocale(locale))
+      const coverUrlMap = mergeReportGroupCoverUrls(group)
+      const coverUrls = getLocalizedCoverUrlsByLang(coverUrlMap, normalizeCoverLocale(locale))
 
       return {
         id: getReportGroupKey(report),
@@ -283,10 +290,18 @@ export function getReportShowcaseItems(reports: ReportWithCover[] | undefined, l
         dateValue: group[0].published_at ?? getProduct(group[0])?.published_at ?? group[0].updated_at ?? group[0].created_at,
         projectName: project?.name,
         projectSymbol: project?.symbol,
+        hasRequiredLocaleCovers: hasRequiredShowcaseCoverUrlMap(coverUrlMap),
       }
     })
     .filter((item) => item.coverUrls.length > 0)
-    .slice(0, 8)
+
+  const completeCoverItems = candidates.filter((item) => item.hasRequiredLocaleCovers)
+  const relaxedCoverItems = candidates.filter((item) => !item.hasRequiredLocaleCovers)
+  const items = completeCoverItems.length >= MIN_SHOWCASE_ITEMS
+    ? completeCoverItems
+    : [...completeCoverItems, ...relaxedCoverItems]
+
+  return items.slice(0, MAX_SHOWCASE_ITEMS)
 }
 
 function sortShowcaseItemsByDate(items: ShowcaseItem[]) {
@@ -354,19 +369,32 @@ export default function LatestReportShowcase({ reports, products, locale }: Late
     () => {
       const reportItems = getReportShowcaseItems(reports, locale)
       const productItems = getProductShowcaseItems(products, locale)
-      const items = reportItems.length > 0 ? reportItems : productItems
-      return dedupeShowcaseItems(sortShowcaseItemsByDate(items)).slice(0, 8)
+      const items = reportItems.length >= MIN_SHOWCASE_ITEMS
+        ? reportItems
+        : [...reportItems, ...productItems]
+      return dedupeShowcaseItems(sortShowcaseItemsByDate(items)).slice(0, MAX_SHOWCASE_ITEMS)
     },
     [products, reports, locale],
   )
   const [activeIndex, setActiveIndex] = useState(0)
-  const featured = showcaseItems[activeIndex] ?? showcaseItems[0]
+  const safeActiveIndex = showcaseItems.length > 0 ? activeIndex % showcaseItems.length : 0
+  const featured = showcaseItems[safeActiveIndex] ?? showcaseItems[0]
+
+  useEffect(() => {
+    if (showcaseItems.length <= 1) return undefined
+
+    const intervalId = window.setInterval(() => {
+      setActiveIndex((index) => (index + 1) % showcaseItems.length)
+    }, SHOWCASE_ROLL_INTERVAL_MS)
+
+    return () => window.clearInterval(intervalId)
+  }, [showcaseItems.length])
 
   if (!featured) return null
 
   const isKo = locale === 'ko'
   const hasMultipleReports = showcaseItems.length > 1
-  const goToPrevious = () => setActiveIndex((index) => (index === 0 ? showcaseItems.length - 1 : index - 1))
+  const goToPrevious = () => setActiveIndex((index) => (index + showcaseItems.length - 1) % showcaseItems.length)
   const goToNext = () => setActiveIndex((index) => (index + 1) % showcaseItems.length)
 
   return (
@@ -376,7 +404,7 @@ export default function LatestReportShowcase({ reports, products, locale }: Late
           <div className="relative overflow-hidden rounded-xl border border-white/10 bg-gray-950 shadow-2xl shadow-black/30">
             <div
               className="flex transition-transform duration-500 ease-out"
-              style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+              style={{ transform: `translateX(-${safeActiveIndex * 100}%)` }}
             >
               {showcaseItems.map((item, index) => {
                 const label = reportTypeLabels[item.reportType] ?? reportTypeLabels.forensic
@@ -385,7 +413,7 @@ export default function LatestReportShowcase({ reports, products, locale }: Late
                   <div
                     key={item.id}
                     className="group relative block min-h-[620px] min-w-full overflow-hidden md:min-h-[680px]"
-                    aria-hidden={index !== activeIndex}
+                    aria-hidden={index !== safeActiveIndex}
                   >
                     <ReportCoverImage key={item.coverUrls.join('|')} urls={item.coverUrls} title={item.title} priority={index === 0} />
                     <div className="absolute inset-0 bg-black/20" aria-hidden="true" />
@@ -420,14 +448,14 @@ export default function LatestReportShowcase({ reports, products, locale }: Late
                       <div className="mt-8 flex flex-wrap items-center gap-3">
                         <Link
                           href={item.href}
-                          tabIndex={index === activeIndex ? 0 : -1}
+                          tabIndex={index === safeActiveIndex ? 0 : -1}
                           className="inline-flex rounded-lg bg-white px-5 py-3 text-sm font-semibold text-gray-950 transition-colors hover:bg-gray-200"
                         >
                           {isKo ? '현재 리포트 보기' : 'Open current report'}
                         </Link>
                         <Link
                           href={`/${locale}/reports`}
-                          tabIndex={index === activeIndex ? 0 : -1}
+                          tabIndex={index === safeActiveIndex ? 0 : -1}
                           className="inline-flex rounded-lg border border-white/20 px-5 py-3 text-sm font-semibold text-gray-100 transition-colors hover:border-white/40 hover:text-white"
                         >
                           {isKo ? '전체 리포트 보기' : 'View all reports'}
@@ -469,7 +497,7 @@ export default function LatestReportShowcase({ reports, products, locale }: Late
                   type="button"
                   onClick={() => setActiveIndex(index)}
                   className={`h-2.5 rounded-full transition-all ${
-                    index === activeIndex ? 'w-8 bg-white' : 'w-2.5 bg-white/25 hover:bg-white/45'
+                    index === safeActiveIndex ? 'w-8 bg-white' : 'w-2.5 bg-white/25 hover:bg-white/45'
                   }`}
                   aria-label={isKo ? `${index + 1}번째 리포트 보기` : `Show report ${index + 1}`}
                 />
