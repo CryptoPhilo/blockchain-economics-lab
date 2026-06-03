@@ -299,25 +299,6 @@ export async function SlideReportPage({
                 {t('localePendingDesc', { locale: locale.toUpperCase() })}
               </p>
             </div>
-          ) : reportPdfUrl ? (
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-10 text-center">
-              <p className="text-base font-semibold text-white mb-2">
-                {locale === 'ko' ? 'PDF 보고서를 열 수 있습니다' : 'PDF report is available'}
-              </p>
-              <p className="text-sm text-gray-400 mb-6">
-                {locale === 'ko'
-                  ? '슬라이드 뷰어는 아직 준비 중이지만 원문 PDF 보고서는 공개되어 있습니다.'
-                  : 'The slide viewer is still being prepared, but the source PDF report is published.'}
-              </p>
-              <a
-                href={reportPdfUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`inline-flex items-center justify-center rounded-lg border px-5 py-3 text-sm font-semibold transition-colors ${theme.badgeBg} ${theme.badgeText} ${theme.badgeBorder} hover:bg-white/10`}
-              >
-                {locale === 'ko' ? 'PDF 보고서 열기' : 'Open PDF Report'} →
-              </a>
-            </div>
           ) : (
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-10 text-center">
               <p className="text-base font-semibold text-white mb-2">
