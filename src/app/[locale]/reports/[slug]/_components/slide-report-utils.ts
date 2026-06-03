@@ -21,15 +21,6 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0
 }
 
-function hasUrlEntry(value: unknown): boolean {
-  if (isNonEmptyString(value)) return true
-
-  if (!value || typeof value !== 'object') return false
-
-  const entry = value as { url?: unknown; download_url?: unknown }
-  return isNonEmptyString(entry.url) || isNonEmptyString(entry.download_url)
-}
-
 function resolveUrlEntry(value: unknown, preferDownload = false): string | null {
   if (isNonEmptyString(value)) return value
 
@@ -87,17 +78,6 @@ function hasSlideAssetForLocale(
   locale: string,
 ): boolean {
   return resolveSlideUrlForLocale(report.slide_html_urls_by_lang, locale, false) !== null
-}
-
-function hasPdfAssetForLocale(
-  report: {
-    gdrive_urls_by_lang?: Record<string, unknown> | null
-    file_urls_by_lang?: Record<string, unknown> | null
-  },
-  locale: string,
-): boolean {
-  return hasUrlEntry(report.gdrive_urls_by_lang?.[locale])
-    || hasUrlEntry(report.file_urls_by_lang?.[locale])
 }
 
 export function resolveSlideUrl(
@@ -223,13 +203,15 @@ export function getLocaleReportState<T extends {
     return { status: 'not_found' }
   }
 
-  const localeReport = reports.find((report) => report.language === locale)
+  const localeReport = reports.find((report) => (
+    report.language === locale && hasSlideAssetForLocale(report, locale)
+  ))
   if (localeReport) {
     return { status: 'available', report: localeReport }
   }
 
-  // Slide HTML availability is distinct from legacy PDF availability. Prefer a
-  // sibling row with real slide output before falling back to PDF-only rows.
+  // A report is considered available only after its HTML slide output exists.
+  // Newly uploaded PDFs are ingestion inputs, not website-ready reports.
   const localeSlideReport = reports.find((report) => (
     hasSlideAssetForLocale(report, locale)
   ))
@@ -243,18 +225,6 @@ export function getLocaleReportState<T extends {
     ))
     if (englishSlideReport) {
       return { status: 'available', report: englishSlideReport }
-    }
-  }
-
-  const localePdfReport = reports.find((report) => hasPdfAssetForLocale(report, locale))
-  if (localePdfReport) {
-    return { status: 'available', report: localePdfReport }
-  }
-
-  if (ENGLISH_ASSET_FALLBACK_LOCALES.has(locale)) {
-    const englishPdfReport = reports.find((report) => hasPdfAssetForLocale(report, 'en'))
-    if (englishPdfReport) {
-      return { status: 'available', report: englishPdfReport }
     }
   }
 

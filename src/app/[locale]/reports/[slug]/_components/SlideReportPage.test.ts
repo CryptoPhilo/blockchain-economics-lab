@@ -262,7 +262,7 @@ describe('SlideReportPage locale availability', () => {
     expect(screen.queryByText('English v2 forensic summary.')).toBeNull()
   })
 
-  it('renders slide-coming-soon instead of locale-pending when the English Google Drive PDF exists without a slide URL', async () => {
+  it('renders locale-pending without a PDF CTA when a Google Drive PDF exists without slide HTML', async () => {
     mockReportQueries(
       { id: 'project-1', slug: 'litecoin', name: 'Litecoin', symbol: 'LTC' },
       [
@@ -290,15 +290,13 @@ describe('SlideReportPage locale availability', () => {
     expect(screen.queryByTestId('slide-viewer')).toBeNull()
     expect(screen.queryByText('slideComingSoonTitle')).toBeNull()
     expect(screen.queryByText('slideComingSoonDesc')).toBeNull()
-    expect(screen.getByRole('link', { name: /Open PDF Report/ }).getAttribute('href')).toBe(
-      'https://drive.google.com/file/d/litecoin-en/view',
-    )
-    expect(screen.queryByText('localePendingTitle')).toBeNull()
-    expect(screen.queryByText('localePendingDesc:EN')).toBeNull()
-    expect(screen.getByText('Litecoin English PDF summary.')).toBeTruthy()
+    expect(screen.queryByRole('link', { name: /Open PDF Report/ })).toBeNull()
+    expect(screen.getByText('localePendingTitle')).toBeTruthy()
+    expect(screen.getByText('localePendingDesc:EN')).toBeTruthy()
+    expect(screen.queryByText('Litecoin English PDF summary.')).toBeNull()
   })
 
-  it('renders the Ethena English PDF CTA when the English report has no slide URL', async () => {
+  it('keeps the English route pending when the English report has a PDF but no slide URL', async () => {
     mockReportQueries(
       { id: 'ethena', slug: 'ethena', name: 'Ethena', symbol: 'ENA' },
       [
@@ -326,10 +324,53 @@ describe('SlideReportPage locale availability', () => {
 
     expect(mockNotFound).not.toHaveBeenCalled()
     expect(screen.queryByTestId('slide-viewer')).toBeNull()
-    expect(screen.getByRole('link', { name: /Open PDF Report/ }).getAttribute('href')).toBe(
-      'https://drive.google.com/file/d/1EFts9d07kjs2-Q24cexj9oLoVkzHE27E/view',
+    expect(screen.queryByRole('link', { name: /Open PDF Report/ })).toBeNull()
+    expect(screen.getByText('localePendingTitle')).toBeTruthy()
+  })
+
+  it('falls back to the newest prior HTML version when the latest version only has a PDF', async () => {
+    mockReportQueries(
+      { id: 'project-1', slug: 'chainlink', name: 'Chainlink', symbol: 'LINK' },
+      [
+        {
+          id: 'chainlink-ko-v2',
+          language: 'ko',
+          report_type: 'maturity',
+          status: 'published',
+          version: 2,
+          card_summary_ko: '최신 PDF 전용 요약은 아직 노출되지 않아야 한다.',
+          gdrive_urls_by_lang: {
+            ko: 'https://drive.google.com/file/d/chainlink-v2-ko/view',
+          },
+        },
+        {
+          id: 'chainlink-ko-v1',
+          language: 'ko',
+          report_type: 'maturity',
+          status: 'published',
+          version: 1,
+          card_summary_ko: '이전 HTML 버전 요약',
+          slide_html_urls_by_lang: {
+            ko: 'https://example.test/slides/mat/chainlink/v1/ko.html',
+          },
+        },
+      ],
     )
-    expect(screen.queryByText('localePendingTitle')).toBeNull()
+
+    const page = await SlideReportPage({
+      locale: 'ko',
+      slug: 'chainlink',
+      reportType: 'maturity',
+    })
+    render(page)
+
+    expect(mockNotFound).not.toHaveBeenCalled()
+    expect(screen.getByTestId('slide-viewer').getAttribute('data-url')).toBe(
+      'https://example.test/slides/mat/chainlink/v1/ko.html',
+    )
+    expect(screen.getByText('이전 HTML 버전 요약')).toBeTruthy()
+    expect(screen.queryByText('최신 PDF 전용 요약은 아직 노출되지 않아야 한다.')).toBeNull()
+    expect(screen.queryByRole('link', { name: /PDF/ })).toBeNull()
   })
 
   it('keeps the project-missing path as notFound', async () => {
@@ -605,7 +646,7 @@ describe('getLocaleReportState', () => {
     },
   )
 
-  it('returns an available sibling report when the requested locale only has a Google Drive PDF', () => {
+  it('returns locale_pending when the requested locale only has a Google Drive PDF', () => {
     const report = {
       id: 'report-litecoin-ko',
       language: 'ko',
@@ -616,7 +657,7 @@ describe('getLocaleReportState', () => {
 
     expect(
       getLocaleReportState([report], 'en'),
-    ).toEqual({ status: 'available', report })
+    ).toEqual({ status: 'locale_pending' })
   })
 
   it('prefers slide HTML rows over PDF-only legacy rows for sibling locale availability', () => {
@@ -641,7 +682,7 @@ describe('getLocaleReportState', () => {
   })
 
   it.each(['de', 'es', 'fr'])(
-    'returns an available sibling report for %s when only the English Google Drive PDF exists',
+    'returns locale_pending for %s when only the English Google Drive PDF exists',
     (locale) => {
       const report = {
         id: 'report-litecoin-ko',
@@ -653,7 +694,7 @@ describe('getLocaleReportState', () => {
 
       expect(
         getLocaleReportState([report], locale),
-      ).toEqual({ status: 'available', report })
+      ).toEqual({ status: 'locale_pending' })
     },
   )
 
@@ -679,8 +720,28 @@ describe('getLocaleReportState', () => {
     expect(getLocaleReportState(null, 'ja')).toEqual({ status: 'not_found' })
   })
 
-  it('returns the exact locale report when available', () => {
+  it('returns locale_pending when the exact locale row has no slide HTML', () => {
     const report = { id: 'report-ja', language: 'ja' }
+
+    expect(
+      getLocaleReportState(
+        [
+          { id: 'report-en', language: 'en' },
+          report,
+        ],
+        'ja',
+      ),
+    ).toEqual({ status: 'locale_pending' })
+  })
+
+  it('returns the exact locale report when it has slide HTML', () => {
+    const report = {
+      id: 'report-ja',
+      language: 'ja',
+      slide_html_urls_by_lang: {
+        ja: 'https://example.supabase.co/storage/v1/object/public/slides/econ/usd-coin/latest/ja.html',
+      },
+    }
 
     expect(
       getLocaleReportState(
