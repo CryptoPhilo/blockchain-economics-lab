@@ -68,7 +68,6 @@ def _latest_report_rows_for_project(sb, project_id: str, *, report_type: Optiona
             "slide_html_urls_by_lang, updated_at, published_at"
         )
         .eq("project_id", project_id)
-        .eq("language", "ko")
         .in_("status", list(WEBSITE_VISIBLE_REPORT_STATUSES))
     )
     if report_type:
@@ -78,7 +77,7 @@ def _latest_report_rows_for_project(sb, project_id: str, *, report_type: Optiona
     rows = query.execute().data or []
     rows = [
         row for row in rows
-        if report_row_supports_locale(row, "ko")
+        if row.get("language") and report_row_supports_locale(row, row["language"])
     ]
     rows.sort(
         key=lambda row: (
@@ -88,10 +87,13 @@ def _latest_report_rows_for_project(sb, project_id: str, *, report_type: Optiona
         ),
         reverse=True,
     )
-    latest_by_type = {}
+    latest_by_type_version = {}
     for row in rows:
-        latest_by_type.setdefault(row.get("report_type"), row)
-    return list(latest_by_type.values())
+        latest_by_type_version.setdefault(
+            (row.get("report_type"), int(row.get("version") or 0)),
+            row,
+        )
+    return list(latest_by_type_version.values())
 
 
 def load_drive_sources_for_slugs(slugs, *, report_type: Optional[str], version: Optional[int], limit: Optional[int]):

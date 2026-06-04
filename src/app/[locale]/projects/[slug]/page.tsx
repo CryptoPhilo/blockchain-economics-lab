@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { getLocalizedMarketingContent } from '@/lib/report-marketing-content'
-import { cleanCardSummary } from '@/lib/report-summary'
+import { getLocalizedCardSummary } from '@/lib/report-summary'
 import { pickLocaleReport, reportSupportsLocale } from '@/lib/report-locale'
 import {
   buildReportVersionHref,
@@ -93,10 +93,7 @@ export function pickLocalizedTitle(_report: ProjectReport, _locale: string, proj
 }
 
 function pickLocalizedSummary(report: ProjectReport, locale: string): string | null {
-  const direct = report[`card_summary_${locale}` as keyof ProjectReport] as string | undefined
-  if (direct) return cleanCardSummary(direct)
-  if (locale === 'en' && report.card_summary_en) return cleanCardSummary(report.card_summary_en)
-  return null
+  return getLocalizedCardSummary(report, locale) || null
 }
 
 function isNonEmptyString(value: unknown): value is string {

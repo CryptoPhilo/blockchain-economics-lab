@@ -45,6 +45,7 @@ except Exception:
 
 LANGUAGES = ("ko", "en", "fr", "es", "de", "ja", "zh")
 TARGET_LANGUAGES = ("en", "fr", "es", "de", "ja", "zh")
+ENGLISH_ASSET_FALLBACK_LOCALES = {"de", "es", "fr"}
 REPORT_TYPE_TO_DB = {
     "econ": "econ",
     "mat": "maturity",
@@ -1172,14 +1173,19 @@ def report_row_supports_locale(row: Dict[str, Any], locale: str) -> bool:
         return True
     if _has_non_empty_asset_value(slide_urls.get(locale)):
         return True
+    if locale in ENGLISH_ASSET_FALLBACK_LOCALES:
+        if _has_url_entry(gdrive_urls.get("en")) or _has_url_entry(file_urls.get("en")):
+            return True
+        if _has_non_empty_asset_value(slide_urls.get("en")):
+            return True
     return row.get("language") == locale and (_has_url_entry(row.get("gdrive_url")) or _has_url_entry(row.get("file_url")))
 
 
-def find_matching_korean_slide_row(sb, source: MarkdownSource) -> Optional[Dict[str, Any]]:
+def find_matching_report_rows(sb, source: MarkdownSource) -> List[Dict[str, Any]]:
     project_res = sb.table("tracked_projects").select("id, slug, name, symbol").eq("slug", source.slug).limit(1).execute()
     project_rows = project_res.data or []
     if not project_rows:
-        return None
+        return []
 
     project_id = project_rows[0]["id"]
     res = sb.table("project_reports").select(
@@ -1189,19 +1195,34 @@ def find_matching_korean_slide_row(sb, source: MarkdownSource) -> Optional[Dict[
     ).eq("project_id", project_id) \
         .eq("report_type", source.db_report_type) \
         .eq("version", source.version) \
-        .eq("language", "ko") \
         .in_("status", list(WEBSITE_VISIBLE_REPORT_STATUSES)) \
-        .limit(1) \
         .execute()
     rows = res.data or []
     if not rows:
-        return None
+        return []
 
-    row = rows[0]
-    if not report_row_supports_locale(row, "ko"):
-        return None
-    row["_matched_project"] = project_rows[0]
-    return row
+    korean_rows = [
+        row for row in rows
+        if row.get("language") == "ko" and report_row_supports_locale(row, "ko")
+    ]
+    if not korean_rows:
+        return []
+
+    selected = []
+    for row in rows:
+        language = row.get("language")
+        if language in LANGUAGES and not report_row_supports_locale(row, language):
+            continue
+        row["_matched_project"] = project_rows[0]
+        selected.append(row)
+    return selected
+
+
+def find_matching_korean_slide_row(sb, source: MarkdownSource) -> Optional[Dict[str, Any]]:
+    for row in find_matching_report_rows(sb, source):
+        if row.get("language") == "ko":
+            return row
+    return None
 
 
 def build_project_report_patch(
@@ -1322,7 +1343,8 @@ def run_pipeline(
             "status": "derived",
         }
 
-        row = None if sb is None else find_matching_korean_slide_row(sb, source)
+        rows = [] if sb is None else find_matching_report_rows(sb, source)
+        row = rows[0] if rows else None
         if persist and sb is not None and row is None:
             item["status"] = "skipped_no_matching_korean_slide"
             stats["skipped"] += 1
@@ -1339,6 +1361,7 @@ def run_pipeline(
 
             stats["matched"] += 1
             item["project_report_id"] = row.get("id")
+            item["project_report_ids"] = [target.get("id") for target in rows]
             project = row.get("_matched_project") or {}
             card_copy = derive_card_copy(source, project=project)
             item["summary_quality"] = {
@@ -1367,12 +1390,15 @@ def run_pipeline(
                     "existing_card_summary_ko": row.get("card_summary_ko") or existing_summary_by_lang.get("ko"),
                     "new_card_summary_ko": content.summary_by_lang.get("ko") or content.summary_ko,
                     "changed": (row.get("card_summary_ko") or existing_summary_by_lang.get("ko")) != (content.summary_by_lang.get("ko") or content.summary_ko),
+                    "target_report_ids": [target.get("id") for target in rows],
                 }
             else:
                 archived = _archive_source_if_needed(source)
-                persist_content(sb, row, source, content, archived)
-                stats["updated"] += 1
+                for target in rows:
+                    persist_content(sb, target, source, content, archived)
+                stats["updated"] += len(rows)
                 item["status"] = "updated"
+                item["updated_report_ids"] = [target.get("id") for target in rows]
                 if archived:
                     item["archived_drive_file_id"] = archived.get("id")
 
