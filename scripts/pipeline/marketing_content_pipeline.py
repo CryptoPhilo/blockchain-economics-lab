@@ -81,6 +81,7 @@ SOURCE_ALIAS_REGISTRY = {
     "flare-networks": ("flare",),
     "hedera-hashgraph": ("헤데라",),
     "humanity-protocol": ("humanity",),
+    "lido-dao": ("lido finance", "리도", "리도 파이낸스"),
     "mantle": ("맨틀",),
     "matic-network": ("polygon", "폴리곤"),
     "monero": ("모네로",),
@@ -214,6 +215,14 @@ PROJECT_DEFINITION_TOKENS = (
     "결제", "거래", "인프라", "레이어", "토큰", "자산",
 )
 CURATED_DETERMINISTIC_CARD_FALLBACKS = {
+    ("berachain", "econ"): (
+        "Berachain은 PoL 구조로 검증자 보상과 DeFi 유동성 공급을 연결하는 레이어1 네트워크다. "
+        "핵심 리스크는 BGT 거버넌스와 인센티브가 실제 수수료 수요와 지속 가능한 유동성으로 이어지는지다."
+    ),
+    ("canton-network", "econ"): (
+        "Canton Network는 기관 정산과 프라이버시 상호운용성을 토큰화 자산 흐름에 연결하는 인프라다. "
+        "핵심 리스크는 네트워크 사용량과 수수료 수요가 Canton Coin 가치 포착으로 충분히 이어지는지다."
+    ),
     ("dogecoin", "econ"): (
         "Dogecoin은 Scrypt 기반 PoW와 지속 발행 보상으로 낮은 수수료 결제 네트워크를 유지한다. "
         "핵심 리스크는 밈 프리미엄을 실제 결제 수요와 개발 지속성으로 전환하지 못하면 가치 포착이 약해질 수 있다는 점이다."
@@ -508,12 +517,7 @@ def _source_subject_matches_project(source: MarkdownSource, project: Dict[str, A
 
     expected_tokens = {
         token
-        for token in (
-            _normalize_subject_token(project.get("name")),
-            _normalize_subject_token(project.get("symbol")),
-            _normalize_subject_token(project.get("slug")),
-            _normalize_subject_token(source.slug),
-        )
+        for token in _expected_subject_tokens(source, project)
         if len(token) >= 2
     }
 
@@ -1199,13 +1203,6 @@ def find_matching_report_rows(sb, source: MarkdownSource) -> List[Dict[str, Any]
         .execute()
     rows = res.data or []
     if not rows:
-        return []
-
-    korean_rows = [
-        row for row in rows
-        if row.get("language") == "ko" and report_row_supports_locale(row, "ko")
-    ]
-    if not korean_rows:
         return []
 
     selected = []

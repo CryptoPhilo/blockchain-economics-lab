@@ -179,6 +179,29 @@ def test_score_drive_source_for_project_supports_flare_alias(mcp):
     assert score >= 90
 
 
+def test_source_subject_match_uses_registered_lido_alias(mcp):
+    source = mcp.MarkdownSource(
+        slug="lido-dao",
+        report_type="econ",
+        db_report_type="econ",
+        version=1,
+        lang="ko",
+        name="lido-dao_econ_v1_ko.md",
+        text=(
+            "# Lido ECON\n\n"
+            "| 항목 | 내용 |\n"
+            "| :---- | :---- |\n"
+            "| **프로젝트 이름** | 리도 파이낸스(Lido Finance) |\n"
+            "리도는 유동성 스테이킹 수요와 검증인 리스크를 함께 반영한다."
+        ),
+    )
+
+    assert mcp._source_subject_matches_project(
+        source,
+        {"slug": "lido-dao", "name": "Lido DAO", "symbol": "LDO"},
+    )
+
+
 def test_score_drive_source_for_project_prefers_world_alias_possessive(mcp):
     project = {"slug": "worldcoin", "name": "Worldcoin", "symbol": "WLD", "aliases": []}
 
@@ -548,6 +571,50 @@ def test_dogecoin_econ_uses_curated_fallback_when_source_only_has_fragments(mcp)
     assert card.source_sentence_ids == ()
 
 
+def test_canton_econ_uses_curated_fallback_when_source_has_no_insight_candidate(mcp):
+    source = mcp.MarkdownSource(
+        slug="canton-network",
+        report_type="econ",
+        db_report_type="econ",
+        version=3,
+        lang="ko",
+        name="canton-network_econ_v3_ko.md",
+        text="# Canton Network ECON\n\n프로젝트 이름: Canton Network. 분석 목적은 방법론 설명이다.",
+    )
+
+    card = mcp.derive_card_copy(
+        source,
+        project={"slug": "canton-network", "name": "Canton Network", "symbol": "CC"},
+    )
+
+    assert card.summary.startswith("Canton Network는 기관 정산")
+    assert "가치 포착" in card.summary
+    assert card.quality_reasons == ()
+    assert card.confidence >= 0.7
+
+
+def test_berachain_econ_uses_curated_fallback_when_source_has_no_insight_candidate(mcp):
+    source = mcp.MarkdownSource(
+        slug="berachain",
+        report_type="econ",
+        db_report_type="econ",
+        version=1,
+        lang="ko",
+        name="berachain_econ_v1_ko.md",
+        text="# Berachain ECON\n\nBerachain 분석 목적과 작성 방법론을 설명한다.",
+    )
+
+    card = mcp.derive_card_copy(
+        source,
+        project={"slug": "berachain", "name": "Berachain", "symbol": "BERA"},
+    )
+
+    assert card.summary.startswith("Berachain은 PoL 구조")
+    assert "수수료 수요" in card.summary
+    assert card.quality_reasons == ()
+    assert card.confidence >= 0.7
+
+
 def test_card_summary_quality_gate_detects_locale_script_mismatch(mcp):
     source = mcp.MarkdownSource(
         slug="starknet",
@@ -910,6 +977,35 @@ def test_matching_row_includes_website_visible_in_review_status(mcp):
     })
 
     assert mcp.find_matching_korean_slide_row(sb, source)["id"] == "r1"
+
+
+def test_matching_report_rows_allows_visible_non_korean_rows_without_korean_row(mcp):
+    source = mcp.MarkdownSource(
+        slug="bnb",
+        report_type="mat",
+        db_report_type="maturity",
+        version=1,
+        lang="ko",
+        name="bnb_mat_v1_ko.md",
+        text="BNB 본문",
+    )
+    sb = FakeSupabase({
+        "tracked_projects": [{"id": "p1", "slug": "bnb", "name": "BNB", "symbol": "BNB"}],
+        "project_reports": [{
+            "id": "r-en",
+            "project_id": "p1",
+            "report_type": "maturity",
+            "version": 1,
+            "language": "en",
+            "status": "published",
+            "slide_html_urls_by_lang": {"en": "https://example.com/bnb-en.html"},
+        }],
+    })
+
+    rows = mcp.find_matching_report_rows(sb, source)
+
+    assert [row["id"] for row in rows] == ["r-en"]
+    assert mcp.find_matching_korean_slide_row(sb, source) is None
 
 
 def test_report_row_supports_english_asset_fallback_locales(mcp):
