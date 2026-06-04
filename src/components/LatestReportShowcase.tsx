@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 import { reportHasSlideAssetForLocale, reportSupportsLocale } from '@/lib/report-locale'
-import { cleanCardSummary } from '@/lib/report-summary'
+import { getLocalizedCardSummary } from '@/lib/report-summary'
 import { getLocalizedField, type Locale, type Product, type ProjectReport, type ReportType, type TrackedProject } from '@/lib/types'
 
 type ReportWithCover = ProjectReport & {
@@ -169,21 +169,7 @@ function getLocalizedProductTitle(report: ReportWithCover, locale: string) {
 }
 
 function getLocalizedSummary(report: ProjectReport, locale: string) {
-  const cardData = report.card_data
-  const localizedSummary = cardData?.summary_by_lang?.[locale]
-    ?? report[`card_summary_${locale}` as keyof ProjectReport]
-  const fallback = cardData?.summary_by_lang?.en
-    ?? cardData?.summary_en
-    ?? report.card_summary_en
-    ?? cardData?.summary
-
-  return cleanCardSummary(
-    typeof localizedSummary === 'string' && localizedSummary.trim()
-      ? localizedSummary
-      : typeof fallback === 'string'
-        ? fallback
-        : '',
-  )
+  return getLocalizedCardSummary(report, locale, { allowEnglishFallback: true })
 }
 
 type ShowcaseItem = {

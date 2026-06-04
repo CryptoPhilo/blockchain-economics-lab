@@ -912,6 +912,88 @@ def test_matching_row_includes_website_visible_in_review_status(mcp):
     assert mcp.find_matching_korean_slide_row(sb, source)["id"] == "r1"
 
 
+def test_report_row_supports_english_asset_fallback_locales(mcp):
+    row = {
+        "language": "en",
+        "gdrive_urls_by_lang": {},
+        "file_urls_by_lang": {},
+        "slide_html_urls_by_lang": {"en": "https://example.com/en.html"},
+    }
+
+    assert mcp.report_row_supports_locale(row, "de") is True
+    assert mcp.report_row_supports_locale(row, "es") is True
+    assert mcp.report_row_supports_locale(row, "fr") is True
+    assert mcp.report_row_supports_locale(row, "ja") is False
+
+
+def test_backfill_updates_all_matching_report_locale_rows(monkeypatch, mcp):
+    source = mcp.MarkdownSource(
+        slug="bitcoin",
+        report_type="econ",
+        db_report_type="econ",
+        version=1,
+        lang="ko",
+        name="bitcoin_econ_v1_ko.md",
+        text="Bitcoin은 희소한 디지털 결제 네트워크다.",
+    )
+    content = mcp.DerivedContent(
+        title="Bitcoin",
+        summary_ko="한국어 요약",
+        marketing_ko="한국어 마케팅",
+        summary_by_lang={"ko": "한국어 요약", "en": "English summary"},
+        marketing_by_lang={"ko": "한국어 마케팅", "en": "English marketing"},
+    )
+    rows = [
+        {
+            "id": "r-ko",
+            "project_id": "p1",
+            "report_type": "econ",
+            "version": 1,
+            "language": "ko",
+            "_matched_project": {"id": "p1", "slug": "bitcoin", "name": "Bitcoin", "symbol": "BTC"},
+        },
+        {
+            "id": "r-en",
+            "project_id": "p1",
+            "report_type": "econ",
+            "version": 1,
+            "language": "en",
+            "_matched_project": {"id": "p1", "slug": "bitcoin", "name": "Bitcoin", "symbol": "BTC"},
+        },
+    ]
+    updated = []
+
+    monkeypatch.setattr(mcp, "_get_supabase_client", lambda: object())
+    monkeypatch.setattr(mcp, "assert_marketing_schema_available", lambda _sb: None)
+    monkeypatch.setattr(mcp, "derive_content", lambda *_args, **_kwargs: content)
+    monkeypatch.setattr(
+        mcp,
+        "derive_card_copy",
+        lambda *_args, **_kwargs: mcp.CardCopy(
+            summary="한국어 요약",
+            source_sentences=("Bitcoin은 희소한 디지털 결제 네트워크다.",),
+            source_sentence_ids=(1,),
+            confidence=1.0,
+            quality_reasons=(),
+        ),
+    )
+    monkeypatch.setattr(mcp, "find_matching_report_rows", lambda _sb, _source: rows)
+    monkeypatch.setattr(mcp, "_source_subject_matches_project", lambda *_args, **_kwargs: True)
+    monkeypatch.setattr(mcp, "_archive_source_if_needed", lambda _source: None)
+    monkeypatch.setattr(
+        mcp,
+        "persist_content",
+        lambda _sb, row, *_args, **_kwargs: updated.append(row["id"]),
+    )
+
+    stats = mcp.run_pipeline([source], persist=True, translate=True, dry_run=False)
+
+    assert updated == ["r-ko", "r-en"]
+    assert stats["matched"] == 1
+    assert stats["updated"] == 2
+    assert stats["items"][0]["updated_report_ids"] == ["r-ko", "r-en"]
+
+
 def test_backfill_drive_source_selection_includes_in_review_and_keeps_slug_scope(monkeypatch, mcp):
     spec = importlib.util.spec_from_file_location(
         "backfill_card_summaries",

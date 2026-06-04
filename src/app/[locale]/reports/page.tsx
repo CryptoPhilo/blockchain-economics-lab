@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import Link from 'next/link'
 import type { ProjectReport } from '@/lib/types'
 import { getLocalizedMarketingContent } from '@/lib/report-marketing-content'
+import { getLocalizedCardSummary } from '@/lib/report-summary'
 import { buildReportVersionHref, getReportVersionLabel } from '@/lib/report-versioning'
 import { prepareRapidChangeReports } from './reports-page-utils'
 
@@ -60,15 +61,7 @@ function formatRelativeTime(dateStr: string, locale: string): string {
 }
 
 function getLocalizedSummary(report: ProjectReport, locale: string): string {
-  const summaryByLang = report.card_data?.summary_by_lang
-  const candidate =
-    (summaryByLang && typeof summaryByLang === 'object'
-      ? summaryByLang[locale]
-      : undefined)
-    ?? report[`card_summary_${locale}` as keyof ProjectReport]
-    ?? (locale === 'en' ? report.card_summary_en : undefined)
-
-  return typeof candidate === 'string' ? candidate : ''
+  return getLocalizedCardSummary(report, locale)
 }
 
 function getRapidChangeReason(report: ProjectReport, locale: string): string {

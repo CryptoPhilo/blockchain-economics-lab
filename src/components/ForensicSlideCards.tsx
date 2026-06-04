@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-import { cleanCardSummary } from '@/lib/report-summary'
+import { getLocalizedCardSummary } from '@/lib/report-summary'
 
 /**
  * ForensicSlideCards — Auto-scrolling carousel of forensic report thumbnails.
@@ -61,19 +61,16 @@ function SlideCard({ report, locale }: { report: any; locale: string }) {
     localizedKeywords ?? sourceKeywords ?? englishKeywords ?? []
 
   // Multilingual: pick summary by locale (7 languages)
-  const summaryByLang = cardData?.summary_by_lang as Record<string, string> | undefined
   const defaultSummary: Record<string, string> = {
     ko: '포렌식 분석 진행 중...', en: 'Forensic analysis in progress...',
     ja: 'フォレンジック分析進行中...', zh: '取证分析进行中...',
     fr: 'Analyse forensique en cours...', es: 'Análisis forense en curso...',
     de: 'Forensische Analyse läuft...',
   }
-  const localizedSummary = summaryByLang?.[locale] || report[`card_summary_${locale}`]
-  const sourceSummary = report.language === locale ? (cardData?.summary || report.card_summary_en || '') : ''
-  const englishSummary = locale === 'en' ? (summaryByLang?.en || report.card_summary_en || '') : ''
-  const summary = cleanCardSummary(
-    localizedSummary || sourceSummary || englishSummary || (defaultSummary[locale] || defaultSummary.en),
-  )
+  const summary = getLocalizedCardSummary(report, locale, {
+    allowEnglishFallback: locale === 'en',
+    fallback: defaultSummary[locale] || defaultSummary.en,
+  })
 
   const change24h = cardData?.price_change_24h ?? cardData?.change_24h ?? 0
   const slug = tp?.slug ?? ''
