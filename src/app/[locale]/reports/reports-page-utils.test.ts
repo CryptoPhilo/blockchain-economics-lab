@@ -68,6 +68,59 @@ describe('rapid change report list helpers', () => {
     expect(deduped.map((report) => report.id)).toEqual(['alpha-new', 'beta-old'])
   })
 
+  it('deduplicates rapid-change placeholders and published reports for the same symbol', () => {
+    const reports = [
+      createReport({
+        id: 'pol-placeholder',
+        project_id: 'polygon-ecosystem-token',
+        status: 'coming_soon',
+        title_en: 'POL 11.0% Drop Detected: Forensic Analysis Initiated',
+        created_at: '2026-06-05T10:17:38.000Z',
+        project: {
+          id: 'polygon-ecosystem-token',
+          name: 'Polygon (prev. MATIC)',
+          slug: 'polygon-ecosystem-token',
+          symbol: 'POL',
+          status: 'active',
+          discovered_at: '2026-04-01T00:00:00.000Z',
+          forensic_monitoring: true,
+          created_at: '2026-04-01T00:00:00.000Z',
+        },
+      }),
+      createReport({
+        id: 'pol-published',
+        project_id: 'pol-ex-matic',
+        status: 'published',
+        language: 'ko',
+        title_ko: 'POL (ex-MATIC)',
+        published_at: '2026-06-05T13:39:49.000Z',
+        created_at: '2026-06-05T13:28:07.000Z',
+        gdrive_urls_by_lang: { ko: { url: 'https://example.com/pol-ko.pdf' } },
+        project: {
+          id: 'pol-ex-matic',
+          name: 'POL (ex-MATIC)',
+          slug: 'pol-ex-matic',
+          symbol: 'POL',
+          coingecko_id: 'polygon-ecosystem-token',
+          status: 'active',
+          discovered_at: '2026-04-01T00:00:00.000Z',
+          forensic_monitoring: true,
+          created_at: '2026-04-01T00:00:00.000Z',
+        },
+      }),
+    ]
+
+    const result = prepareRapidChangeReports({
+      reports,
+      locale: 'ko',
+      page: 1,
+      pageSize: 20,
+    })
+
+    expect(result.totalCount).toBe(1)
+    expect(result.reports.map((report) => report.id)).toEqual(['pol-published'])
+  })
+
   it('filters, deduplicates, and paginates the rapid change list', () => {
     const reports = [
       createReport({

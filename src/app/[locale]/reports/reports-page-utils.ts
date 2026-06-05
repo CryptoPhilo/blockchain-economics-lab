@@ -75,18 +75,30 @@ function getSearchableText(report: ProjectReport): string {
     .toLowerCase()
 }
 
+function getRapidChangeAssetKey(report: ProjectReport): string {
+  const project = report.project
+  const symbol = project?.symbol?.trim().toUpperCase()
+  if (symbol) return `symbol:${symbol}`
+
+  const coingeckoId = project?.coingecko_id?.trim().toLowerCase()
+  if (coingeckoId) return `coingecko:${coingeckoId}`
+
+  return `project:${report.project_id}`
+}
+
 export function dedupeLatestReportsByProject(reports: ProjectReport[]): ProjectReport[] {
-  const latestByProject = new Map<string, ProjectReport>()
+  const latestByAsset = new Map<string, ProjectReport>()
 
   for (const report of reports) {
-    const current = latestByProject.get(report.project_id)
+    const assetKey = getRapidChangeAssetKey(report)
+    const current = latestByAsset.get(assetKey)
 
     if (!current || compareRapidChangeReports(report, current) > 0) {
-      latestByProject.set(report.project_id, report)
+      latestByAsset.set(assetKey, report)
     }
   }
 
-  return Array.from(latestByProject.values()).sort((a, b) => compareRapidChangeReports(b, a))
+  return Array.from(latestByAsset.values()).sort((a, b) => compareRapidChangeReports(b, a))
 }
 
 export function buildReportHistoryByProject(reports: ProjectReport[], latestReports: ProjectReport[]) {
