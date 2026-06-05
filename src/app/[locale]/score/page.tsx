@@ -23,6 +23,7 @@ export const revalidate = 0
 const ITEMS_PER_PAGE = 100
 const MAX_RANK = 200
 const REPORT_AVAILABILITY_QUERY_CHUNK_SIZE = 80
+const SCORE_HEADER_BACKGROUND_IMAGE = '/images/score-header-bg.png'
 export const MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS = 200
 const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'ethena-usde', slug: 'ethena' },
@@ -719,16 +720,24 @@ export default async function ScorePage({
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
       {/* Header */}
-      <div className="mb-10 text-center">
-        <h1 className="text-4xl font-bold mb-3">
-          {isKo ? '리포트' : 'Report'}
-        </h1>
-        <p className="text-gray-400 max-w-xl mx-auto">
-          {isKo
-            ? '시가총액 200위 종목들의 BCE 보고서를 확인하세요'
-            : 'Crypto project rankings by market cap with BCE analysis reports'}
-        </p>
-      </div>
+      <section
+        className="relative mb-10 overflow-hidden rounded-2xl border border-white/10 bg-slate-950 bg-cover bg-center px-6 py-16 text-center shadow-2xl shadow-black/30 sm:px-10 sm:py-20"
+        style={{
+          backgroundImage: `linear-gradient(180deg, rgba(3, 7, 18, 0.46), rgba(3, 7, 18, 0.78)), url(${SCORE_HEADER_BACKGROUND_IMAGE})`,
+        }}
+      >
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08),transparent_38%)]" />
+        <div className="relative mx-auto max-w-2xl">
+          <h1 className="mb-4 text-4xl font-bold text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.85)] sm:text-5xl">
+            {isKo ? '리포트' : 'Report'}
+          </h1>
+          <p className="mx-auto max-w-xl text-base font-medium leading-7 text-slate-200 drop-shadow-[0_2px_14px_rgba(0,0,0,0.8)] sm:text-lg">
+            {isKo
+              ? '시가총액 200위 종목들의 BCE 보고서를 확인하세요'
+              : 'Crypto project rankings by market cap with BCE analysis reports'}
+          </p>
+        </div>
+      </section>
 
       {/* Page indicator */}
       {totalPages > 1 && (
