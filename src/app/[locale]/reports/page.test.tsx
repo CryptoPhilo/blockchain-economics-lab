@@ -120,7 +120,9 @@ describe('ReportsPage rapid change cards', () => {
 
     expect(screen.getByText('Ethereum Forensic Analysis v1')).toBeTruthy()
     expect(screen.getByText('Ethereum (ETH)')).toBeTruthy()
-    expect(screen.getByText(/Coming Soon/).closest('a')).toBeNull()
+    expect(screen.getByText(/Coming Soon/).closest('a')?.getAttribute('href')).toBe(
+      '/en/reports/forensic/ethereum',
+    )
     expect(screen.getByText('Exchange inflows and whale transfers crossed the alert threshold.')).toBeTruthy()
 
     expect(screen.getByText('Bitcoin Forensic Analysis v2')).toBeTruthy()
@@ -168,7 +170,9 @@ describe('ReportsPage rapid change cards', () => {
 
     expect(screen.getByText('감지 이유')).toBeTruthy()
     expect(screen.getByText('거래소 유입과 파생 포지션 급증이 동시에 감지되었습니다.')).toBeTruthy()
-    expect(screen.getByText(/준비 중/).closest('a')).toBeNull()
+    expect(screen.getByText(/준비 중/).closest('a')?.getAttribute('href')).toBe(
+      '/ko/reports/forensic/solana',
+    )
   })
 
   it('renders a Korean coming soon candidate without report assets', async () => {
@@ -204,7 +208,9 @@ describe('ReportsPage rapid change cards', () => {
     expect(screen.getByText('Hyperliquid 급변동 알림')).toBeTruthy()
     expect(screen.getByText('Hyperliquid (HYPE)')).toBeTruthy()
     expect(screen.getByText('대규모 고래 이체와 거래소 유입이 동시에 감지되었습니다.')).toBeTruthy()
-    expect(screen.getByText(/준비 중/).closest('a')).toBeNull()
+    expect(screen.getByText(/준비 중/).closest('a')?.getAttribute('href')).toBe(
+      '/ko/reports/forensic/hyperliquid',
+    )
   })
 
   it('renders previous version links without same-version language siblings', async () => {
