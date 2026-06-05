@@ -1094,9 +1094,11 @@ def _create_report_row_for_slide(
     status: str = PUBLICATION_PUBLISHED_STATUS,
     source_patch: Optional[Dict[str, Any]] = None,
     previous_report_id: Optional[str] = None,
+    published_at: Optional[str] = None,
 ) -> Tuple[Optional[str], Optional[int]]:
     """Create a project_reports row when a slide PDF has no report shell yet."""
     now = datetime.now(timezone.utc).isoformat()
+    publish_ts = published_at or now
     resolved_version = version or 1
     if status == REVIEW_READY_STATUS:
         status = PUBLICATION_PUBLISHED_STATUS
@@ -1108,7 +1110,7 @@ def _create_report_row_for_slide(
         'language': lang,
         'status': status,
         'review_at': None,
-        'published_at': now if status == PUBLICATION_PUBLISHED_STATUS else None,
+        'published_at': publish_ts if status == PUBLICATION_PUBLISHED_STATUS else None,
         'file_url': gdrive_url,
         'gdrive_url': gdrive_url,
         'gdrive_file_id': pdf_file_id,
@@ -1151,7 +1153,7 @@ def _create_report_row_for_slide(
     timestamp_field = _tracked_timestamp_field(db_type)
     if timestamp_field and status in {PUBLICATION_PUBLISHED_STATUS, 'coming_soon'}:
         sb.table('tracked_projects').update({
-            timestamp_field: now,
+            timestamp_field: publish_ts,
             'updated_at': now,
         }).eq('id', project_id).execute()
 
@@ -1182,14 +1184,15 @@ def _merge_slide_url(
     cover_url: Optional[str] = None,
     published_at: Optional[str] = None,
 ) -> None:
-    publish_ts = published_at or datetime.now(timezone.utc).isoformat()
+    update_ts = datetime.now(timezone.utc).isoformat()
     if status in {REVIEW_READY_STATUS, PUBLICATION_APPROVED_STATUS}:
         status = PUBLICATION_PUBLISHED_STATUS
     current = sb.table('project_reports').select(
-        'slide_html_urls_by_lang, cover_image_urls_by_lang, card_data, project_id, report_type'
+        'slide_html_urls_by_lang, cover_image_urls_by_lang, card_data, project_id, report_type, published_at'
     ) \
         .eq('id', report_id).single().execute()
     row = current.data or {}
+    publish_ts = published_at or row.get('published_at') or update_ts
     # project_reports rows are language-scoped; do not carry over stale
     # sibling-language URLs left by older cross-language fallback merges.
     urls = {lang: public_url}
@@ -1200,12 +1203,12 @@ def _merge_slide_url(
         cover_urls = {**cover_urls, lang: cover_url}
     card_data = row.get('card_data')
     if isinstance(card_data, dict):
-        card_data = {**card_data, 'generated_at': publish_ts}
+        card_data = {**card_data, 'generated_at': update_ts}
     update_payload = {
         'slide_html_urls_by_lang': urls,
         'cover_image_urls_by_lang': cover_urls,
         'status': status,
-        'updated_at': publish_ts,
+        'updated_at': update_ts,
     }
     if status == PUBLICATION_PUBLISHED_STATUS:
         update_payload['published_at'] = publish_ts
@@ -1483,6 +1486,7 @@ def _repair_unchanged_manifest_publication(
         status=target_status,
         source_patch=source_patch,
         previous_report_id=previous_report_id,
+        published_at=pdf_modified_time,
     )
     return report_id, created_version or resolved_version, 'published_created' if report_id else 'create_failed'
 
@@ -1696,12 +1700,25 @@ def _active_drive_report_inventory(
     service,
     types: Iterable[str],
     projects: List[Dict[str, Any]],
+    blocked_file_ids: Optional[Set[str]] = None,
 ) -> Tuple[Set[Tuple[str, str, str]], List[Dict[str, Any]], List[Dict[str, Any]]]:
     """Return active Slide/{TYPE} report keys plus resolved Drive PDF metadata."""
     pairs: Set[Tuple[str, str, str]] = set()
     resolved_rows: List[Dict[str, Any]] = []
     unresolved: List[Dict[str, Any]] = []
+    blocked_file_ids = blocked_file_ids or set()
     for rtype, pdf in _iter_active_slide_targets(service, types, projects=projects):
+        if pdf.get('id') in blocked_file_ids:
+            unresolved.append({
+                'rtype': rtype,
+                'name': pdf.get('name'),
+                'source_path': pdf.get('source_path'),
+                'slug': None,
+                'lang': None,
+                'status': 'db_reconcile_skipped_blocked_drive_pdf',
+                'error': 'Drive PDF was blocked earlier in this run',
+            })
+            continue
         project = _match_drive_pdf_project(pdf, projects)
         lang = _lang_from_filename(pdf.get('name') or '')
         db_type = DB_REPORT_TYPE.get(rtype)
@@ -1856,6 +1873,7 @@ def _reconcile_visible_reports_with_drive(
     types: Iterable[str],
     projects: List[Dict[str, Any]],
     dry_run: bool,
+    blocked_file_ids: Optional[Set[str]] = None,
 ) -> List[Dict[str, Any]]:
     """Keep website-visible report rows aligned with current active Slide folders."""
     if sb is None:
@@ -1868,7 +1886,12 @@ def _reconcile_visible_reports_with_drive(
         }]
 
     results: List[Dict[str, Any]] = []
-    drive_pairs, drive_rows, unresolved = _active_drive_report_inventory(service, types, projects)
+    drive_pairs, drive_rows, unresolved = _active_drive_report_inventory(
+        service,
+        types,
+        projects,
+        blocked_file_ids=blocked_file_ids,
+    )
     results.extend(unresolved)
     db_types = {DB_REPORT_TYPE[rtype] for rtype in types if rtype in DB_REPORT_TYPE}
     project_by_id = {p.get('id'): p for p in projects}
@@ -1921,6 +1944,7 @@ def _reconcile_visible_reports_with_drive(
                 version=None,
                 project_name=project.get('name'),
                 status=PUBLICATION_PUBLISHED_STATUS,
+                published_at=pdf.get('modifiedTime'),
             )
         results.append({
             'rtype': drive_row.get('rtype'),
@@ -1939,7 +1963,7 @@ def _reconcile_visible_reports_with_drive(
                 'report_type': drive_row.get('db_type'),
                 'language': drive_row.get('lang'),
                 'status': PUBLICATION_PUBLISHED_STATUS,
-                'published_at': now,
+                'published_at': pdf.get('modifiedTime') or now,
                 'updated_at': now,
                 'created_at': now,
                 'gdrive_urls_by_lang': {drive_row.get('lang'): gdrive_url},
@@ -3529,7 +3553,16 @@ def process(
                 cover_url = upload_result.get('cover_url') or None
 
                 if report_id:
-                    _merge_slide_url(sb, report_id, lang, public_url, status=target_status, cover_url=cover_url)
+                    first_publish_at = modified if current_status != PUBLICATION_PUBLISHED_STATUS else None
+                    _merge_slide_url(
+                        sb,
+                        report_id,
+                        lang,
+                        public_url,
+                        status=target_status,
+                        cover_url=cover_url,
+                        published_at=first_publish_at,
+                    )
                     print(f"    ✓ DB published from Drive Slide PDF: project_reports[{report_id}].slide_html_urls_by_lang.{lang}")
                 else:
                     report_id, version = _create_report_row_for_slide(
@@ -3547,6 +3580,7 @@ def process(
                         status=target_status,
                         source_patch=source_patch,
                         previous_report_id=previous_report_id,
+                        published_at=modified,
                     )
                     if report_id:
                         print(
@@ -3678,12 +3712,24 @@ def process(
             print("  [SKIP] DB availability reconcile skipped: Supabase/projects unavailable")
         else:
             try:
+                blocked_reconcile_file_ids = {
+                    row.get('file_id')
+                    for row in list(scanned) + list(processed)
+                    if row.get('file_id')
+                    and row.get('status') in {
+                        'mismatch',
+                        'language_mismatch',
+                        'skipped_legacy_portrait_pdf',
+                        'unresolved',
+                    }
+                }
                 reconcile_results = _reconcile_visible_reports_with_drive(
                     sb,
                     service,
                     types=types,
                     projects=projects,
                     dry_run=dry_run,
+                    blocked_file_ids=blocked_reconcile_file_ids,
                 )
                 processed.extend(reconcile_results)
             except Exception as e:
