@@ -1,12 +1,12 @@
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
+import { buildLocalizedSiteMetadata } from "@/lib/site-metadata"
 import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "BCE Lab — Blockchain Economics Research",
-  description: "Institutional-grade blockchain economic research powered by AI agents",
+  ...buildLocalizedSiteMetadata("en"),
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://bcelab.xyz"),
   icons: {
     icon: [
@@ -15,18 +15,6 @@ export const metadata: Metadata = {
       { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
     apple: "/apple-touch-icon.png",
-  },
-  openGraph: {
-    title: "BCE Lab — Blockchain Economics Research",
-    description: "Institutional-grade blockchain economic research powered by AI agents",
-    url: "https://bcelab.xyz",
-    siteName: "BCE Lab",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "BCE Lab — Blockchain Economics Research",
-    description: "Institutional-grade blockchain economic research powered by AI agents",
   },
 }
 

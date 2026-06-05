@@ -2,8 +2,19 @@ import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { locales } from '@/i18n/config'
+import { buildLocalizedSiteMetadata } from '@/lib/site-metadata'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import type { Metadata } from 'next'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  return buildLocalizedSiteMetadata(locale)
+}
 
 export default async function LocaleLayout({
   children,
