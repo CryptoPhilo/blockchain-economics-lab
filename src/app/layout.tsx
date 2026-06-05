@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import { buildLocalizedSiteMetadata } from "@/lib/site-metadata"
+import { getLocale } from "next-intl/server"
+import { buildLocalizedSiteMetadata, normalizeSiteMetadataLocale } from "@/lib/site-metadata"
 import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -18,13 +19,15 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const locale = normalizeSiteMetadataLocale(await getLocale())
+
   return (
-    <html lang="en" className={inter.className}>
+    <html lang={locale} className={inter.className}>
       <body className="bg-gray-950 text-gray-100 min-h-screen">{children}</body>
     </html>
   )
