@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 
-import ReportsPage from './page'
+import ReportsPage, { dynamic, revalidate } from './page'
 
 const mockCreateServerSupabaseClient = jest.fn()
 
@@ -56,6 +56,11 @@ function mockReportsQuery(data: unknown[]) {
 describe('ReportsPage rapid change cards', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+  })
+
+  it('forces dynamic rendering so locale pages cannot cache divergent rapid-change lists', () => {
+    expect(dynamic).toBe('force-dynamic')
+    expect(revalidate).toBe(0)
   })
 
   it('queries forensic reports from the last 72 hours and renders candidate card contract fields', async () => {

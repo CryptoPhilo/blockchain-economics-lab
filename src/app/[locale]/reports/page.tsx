@@ -7,6 +7,9 @@ import { getLocalizedCardSummary } from '@/lib/report-summary'
 import { buildReportVersionHref, getReportVersionLabel } from '@/lib/report-versioning'
 import { prepareRapidChangeReports } from './reports-page-utils'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 interface Props {
   params: Promise<{ locale: string }>
   searchParams: Promise<{ page?: string; q?: string }>
