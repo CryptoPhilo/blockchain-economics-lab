@@ -281,7 +281,7 @@ describe('rapid change report list helpers', () => {
     expect(history.get('alpha')?.map((report) => report.id)).toEqual(['alpha-v1-ko'])
   })
 
-  it('does not fall back to an older localized report when the latest version lacks locale support', () => {
+  it('keeps the same latest report even when it lacks locale-specific assets', () => {
     const reports = [
       createReport({
         id: 'alpha-zh-new',
@@ -307,11 +307,11 @@ describe('rapid change report list helpers', () => {
       pageSize: 20,
     })
 
-    expect(result.totalCount).toBe(0)
-    expect(result.reports).toEqual([])
+    expect(result.totalCount).toBe(1)
+    expect(result.reports.map((report) => report.id)).toEqual(['alpha-zh-new'])
   })
 
-  it('includes language-scoped rows in another locale when that locale has a real asset', () => {
+  it('keeps language-scoped forensic rows in every locale list', () => {
     const reports = [
       createReport({
         id: 'alpha-zh',
@@ -347,11 +347,52 @@ describe('rapid change report list helpers', () => {
       pageSize: 20,
     })
 
-    expect(result.totalCount).toBe(2)
-    expect(result.reports.map((report) => report.id)).toEqual(['beta-en-ko-asset', 'gamma-ko'])
+    expect(result.totalCount).toBe(3)
+    expect(result.reports.map((report) => report.id)).toEqual([
+      'alpha-zh',
+      'beta-en-ko-asset',
+      'gamma-ko',
+    ])
   })
 
-  it('does not include language-scoped rows in another locale from translation status alone', () => {
+  it('returns the same project list across locales', () => {
+    const reports = [
+      createReport({
+        id: 'alpha-zh',
+        project_id: 'alpha',
+        language: 'zh',
+        title_zh: 'Alpha 中文报告',
+        created_at: '2026-04-24T12:00:00.000Z',
+      }),
+      createReport({
+        id: 'beta-ko',
+        project_id: 'beta',
+        language: 'ko',
+        title_ko: 'Beta 한국어 보고서',
+        created_at: '2026-04-24T11:00:00.000Z',
+      }),
+      createReport({
+        id: 'gamma-en',
+        project_id: 'gamma',
+        language: 'en',
+        title_en: 'Gamma English report',
+        created_at: '2026-04-24T10:00:00.000Z',
+      }),
+    ]
+
+    const getIds = (locale: string) => prepareRapidChangeReports({
+      reports,
+      locale,
+      page: 1,
+      pageSize: 20,
+    }).reports.map((report) => report.id)
+
+    expect(getIds('ko')).toEqual(['alpha-zh', 'beta-ko', 'gamma-en'])
+    expect(getIds('en')).toEqual(getIds('ko'))
+    expect(getIds('ja')).toEqual(getIds('ko'))
+  })
+
+  it('does not require translation status for language-invariant lists', () => {
     const reports = [
       createReport({
         id: 'alpha-en-stale-ko-status',
@@ -377,8 +418,11 @@ describe('rapid change report list helpers', () => {
       pageSize: 20,
     })
 
-    expect(result.totalCount).toBe(1)
-    expect(result.reports.map((report) => report.id)).toEqual(['beta-ko'])
+    expect(result.totalCount).toBe(2)
+    expect(result.reports.map((report) => report.id)).toEqual([
+      'alpha-en-stale-ko-status',
+      'beta-ko',
+    ])
   })
 
   it('includes coming soon forensic candidates without localized assets on Korean rapid change list', () => {
@@ -428,14 +472,15 @@ describe('rapid change report list helpers', () => {
       pageSize: 20,
     })
 
-    expect(result.totalCount).toBe(2)
+    expect(result.totalCount).toBe(3)
     expect(result.reports.map((report) => report.id)).toEqual([
+      'alpha-en-published-no-ko-asset',
       'beta-bce-1849-candidate',
       'delta-ko-published',
     ])
   })
 
-  it('does not treat empty Korean card arrays or empty URL entries as Korean availability', () => {
+  it('does not depend on Korean asset markers for list membership', () => {
     const reports = [
       createReport({
         id: 'alpha-zh-empty-ko-markers',
@@ -484,11 +529,15 @@ describe('rapid change report list helpers', () => {
       pageSize: 20,
     })
 
-    expect(result.totalCount).toBe(1)
-    expect(result.reports.map((report) => report.id)).toEqual(['gamma-ko'])
+    expect(result.totalCount).toBe(3)
+    expect(result.reports.map((report) => report.id)).toEqual([
+      'alpha-zh-empty-ko-markers',
+      'beta-en-empty-ko-markers',
+      'gamma-ko',
+    ])
   })
 
-  it('excludes Chinese reports from the English rapid change list when only English title metadata exists', () => {
+  it('keeps Chinese reports on the English rapid change list with title fallback', () => {
     const reports = [
       createReport({
         id: 'alpha-zh-with-en-title',
@@ -515,8 +564,11 @@ describe('rapid change report list helpers', () => {
       pageSize: 20,
     })
 
-    expect(result.totalCount).toBe(1)
-    expect(result.reports.map((report) => report.id)).toEqual(['beta-en'])
+    expect(result.totalCount).toBe(2)
+    expect(result.reports.map((report) => report.id)).toEqual([
+      'alpha-zh-with-en-title',
+      'beta-en',
+    ])
   })
 
   it('includes an English row for a translated report on the English rapid change list', () => {

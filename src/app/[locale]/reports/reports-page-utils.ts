@@ -1,5 +1,4 @@
 import type { ProjectReport } from '@/lib/types'
-import { reportSupportsLocale } from '@/lib/report-locale'
 import { compareReportVersions, sortReportsLatestFirst } from '@/lib/report-versioning'
 
 function getEffectiveTimestamp(report: Pick<ProjectReport, 'published_at' | 'created_at' | 'updated_at'>): number {
@@ -21,6 +20,11 @@ function getStatusRank(report: Pick<ProjectReport, 'status'>): number {
 
 function isRapidChangeCandidate(report: ProjectReport): boolean {
   return (report.status === 'coming_soon' || report.status === 'in_review') && report.report_type === 'forensic'
+}
+
+function isRapidChangeListReport(report: ProjectReport): boolean {
+  return report.report_type === 'forensic'
+    && (report.status === 'published' || report.status === 'coming_soon' || report.status === 'in_review')
 }
 
 function compareRapidChangeReports(a: ProjectReport, b: ProjectReport): number {
@@ -146,17 +150,14 @@ export function prepareRapidChangeReports(args: {
     ? args.reports.filter((report) => getSearchableText(report).includes(normalizedQuery))
     : args.reports
 
-  const publishedAssetKeys = getPublishedForensicAssetKeys(filteredReports)
-  const reportsForDedupe = filteredReports.filter((report) => (
+  const rapidChangeReports = filteredReports.filter(isRapidChangeListReport)
+  const publishedAssetKeys = getPublishedForensicAssetKeys(rapidChangeReports)
+  const reportsForDedupe = rapidChangeReports.filter((report) => (
     !suppressPlaceholderCoveredByPublishedReport(report, publishedAssetKeys)
   ))
 
   const latestReports = dedupeLatestReportsByProject(reportsForDedupe)
-    .filter((report) => isRapidChangeCandidate(report) || reportSupportsLocale(report, args.locale))
-  const localizedHistoryReports = reportsForDedupe.filter((report) => (
-    isRapidChangeCandidate(report) || reportSupportsLocale(report, args.locale)
-  ))
-  const historyByProject = buildReportHistoryByProject(localizedHistoryReports, latestReports)
+  const historyByProject = buildReportHistoryByProject(reportsForDedupe, latestReports)
   const totalCount = latestReports.length
   const totalPages = totalCount > 0 ? Math.ceil(totalCount / args.pageSize) : 0
   const currentPage = totalCount > 0
