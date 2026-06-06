@@ -121,6 +121,62 @@ describe('rapid change report list helpers', () => {
     expect(result.reports.map((report) => report.id)).toEqual(['pol-published'])
   })
 
+  it('suppresses alias placeholders when a published forensic report exists for the same symbol', () => {
+    const reports = [
+      createReport({
+        id: 'op-placeholder',
+        project_id: 'optimism-ethereum',
+        status: 'coming_soon',
+        title_ko: 'OP 16.2% 하락 감지: 포렌식 분석 개시',
+        is_latest: true,
+        updated_at: '2026-06-06T09:00:00.000Z',
+        created_at: '2026-06-06T09:00:00.000Z',
+        project: {
+          id: 'optimism-ethereum',
+          name: 'Optimism',
+          slug: 'optimism-ethereum',
+          symbol: 'OP',
+          status: 'monitoring_only',
+          discovered_at: '2026-04-01T00:00:00.000Z',
+          forensic_monitoring: true,
+          created_at: '2026-04-01T00:00:00.000Z',
+        },
+      }),
+      createReport({
+        id: 'optimism-published',
+        project_id: 'optimism',
+        status: 'published',
+        language: 'ko',
+        title_ko: 'Optimism',
+        is_latest: true,
+        published_at: '2026-06-06T06:17:49.000Z',
+        updated_at: '2026-06-06T06:17:51.000Z',
+        created_at: '2026-06-06T06:17:49.000Z',
+        slide_html_urls_by_lang: { ko: 'https://example.com/optimism-ko.html' },
+        project: {
+          id: 'optimism',
+          name: 'Optimism',
+          slug: 'optimism',
+          symbol: 'OP',
+          status: 'active',
+          discovered_at: '2026-04-01T00:00:00.000Z',
+          forensic_monitoring: true,
+          created_at: '2026-04-01T00:00:00.000Z',
+        },
+      }),
+    ]
+
+    const result = prepareRapidChangeReports({
+      reports,
+      locale: 'ko',
+      page: 1,
+      pageSize: 20,
+    })
+
+    expect(result.totalCount).toBe(1)
+    expect(result.reports.map((report) => report.id)).toEqual(['optimism-published'])
+  })
+
   it('filters, deduplicates, and paginates the rapid change list', () => {
     const reports = [
       createReport({

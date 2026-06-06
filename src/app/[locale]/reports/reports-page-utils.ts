@@ -86,6 +86,21 @@ function getRapidChangeAssetKey(report: ProjectReport): string {
   return `project:${report.project_id}`
 }
 
+function getPublishedForensicAssetKeys(reports: ProjectReport[]): Set<string> {
+  return new Set(
+    reports
+      .filter((report) => report.status === 'published' && report.report_type === 'forensic')
+      .map(getRapidChangeAssetKey)
+  )
+}
+
+function suppressPlaceholderCoveredByPublishedReport(
+  report: ProjectReport,
+  publishedAssetKeys: Set<string>
+): boolean {
+  return isRapidChangeCandidate(report) && publishedAssetKeys.has(getRapidChangeAssetKey(report))
+}
+
 export function dedupeLatestReportsByProject(reports: ProjectReport[]): ProjectReport[] {
   const latestByAsset = new Map<string, ProjectReport>()
 
@@ -131,9 +146,14 @@ export function prepareRapidChangeReports(args: {
     ? args.reports.filter((report) => getSearchableText(report).includes(normalizedQuery))
     : args.reports
 
-  const latestReports = dedupeLatestReportsByProject(filteredReports)
+  const publishedAssetKeys = getPublishedForensicAssetKeys(filteredReports)
+  const reportsForDedupe = filteredReports.filter((report) => (
+    !suppressPlaceholderCoveredByPublishedReport(report, publishedAssetKeys)
+  ))
+
+  const latestReports = dedupeLatestReportsByProject(reportsForDedupe)
     .filter((report) => isRapidChangeCandidate(report) || reportSupportsLocale(report, args.locale))
-  const localizedHistoryReports = filteredReports.filter((report) => (
+  const localizedHistoryReports = reportsForDedupe.filter((report) => (
     isRapidChangeCandidate(report) || reportSupportsLocale(report, args.locale)
   ))
   const historyByProject = buildReportHistoryByProject(localizedHistoryReports, latestReports)
