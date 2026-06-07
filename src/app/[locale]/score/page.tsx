@@ -1,4 +1,3 @@
-import { getTranslations } from 'next-intl/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 import { createProjectsRepository } from '@/lib/repositories/projects'
@@ -7,7 +6,6 @@ import { pickLatestReport } from '@/lib/report-versioning'
 import type { ProjectReport } from '@/lib/types'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import ScoreTableGate from '@/components/ScoreTableGate'
-import SubscribeForm from '@/components/SubscribeForm'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -668,7 +666,6 @@ export default async function ScorePage({
 }) {
   const { locale } = await params
   const { page: pageStr } = await searchParams
-  const t = await getTranslations()
   const supabase = await createServerSupabaseClient()
   const projectsRepository = createProjectsRepository(supabase)
 
@@ -711,44 +708,32 @@ export default async function ScorePage({
 
   // Paginate: 100 per page
   const startIdx = (currentPage - 1) * ITEMS_PER_PAGE
-  const endIdx = startIdx + ITEMS_PER_PAGE
-  const rows = allRows.slice(startIdx, endIdx)
+  const rows = allRows.slice(startIdx, startIdx + ITEMS_PER_PAGE)
   const totalPages = Math.ceil(Math.min(allRows.length, MAX_RANK) / ITEMS_PER_PAGE)
 
   const isKo = locale === 'ko'
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-12">
+    <div className="max-w-6xl mx-auto px-6 pb-8 pt-4">
       {/* Header */}
       <section
-        className="relative mb-10 overflow-hidden rounded-2xl border border-white/10 bg-slate-950 bg-cover bg-center px-6 py-16 text-center shadow-2xl shadow-black/30 sm:px-10 sm:py-20"
+        className="relative mb-4 overflow-hidden rounded-xl border border-white/10 bg-slate-950 bg-cover bg-center px-5 py-7 text-center shadow-xl shadow-black/25 sm:px-8 sm:py-9"
         style={{
           backgroundImage: `linear-gradient(180deg, rgba(3, 7, 18, 0.46), rgba(3, 7, 18, 0.78)), url(${SCORE_HEADER_BACKGROUND_IMAGE})`,
         }}
       >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08),transparent_38%)]" />
         <div className="relative mx-auto max-w-2xl">
-          <h1 className="mb-4 text-4xl font-bold text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.85)] sm:text-5xl">
+          <h1 className="mb-2 text-3xl font-bold text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.85)] sm:text-4xl">
             {isKo ? '리포트' : 'Report'}
           </h1>
-          <p className="mx-auto max-w-xl text-base font-medium leading-7 text-slate-200 drop-shadow-[0_2px_14px_rgba(0,0,0,0.8)] sm:text-lg">
+          <p className="mx-auto max-w-xl text-sm font-medium leading-6 text-slate-200 drop-shadow-[0_2px_14px_rgba(0,0,0,0.8)] sm:text-base">
             {isKo
               ? '시가총액 200위 종목들의 BCE 보고서를 확인하세요'
               : 'Crypto project rankings by market cap with BCE analysis reports'}
           </p>
         </div>
       </section>
-
-      {/* Page indicator */}
-      {totalPages > 1 && (
-        <div className="mb-4 text-center">
-          <span className="text-sm text-gray-400">
-            {isKo
-              ? `${startIdx + 1}-${Math.min(endIdx, allRows.length)}위 (전체 ${allRows.length}개 프로젝트)`
-              : `Rank ${startIdx + 1}-${Math.min(endIdx, allRows.length)} of ${allRows.length} projects`}
-          </span>
-        </div>
-      )}
 
       {/* Market cap ranking table with email gate */}
       {rows.length > 0 ? (
@@ -758,7 +743,7 @@ export default async function ScorePage({
           locale={locale}
           currentPage={currentPage}
           totalPages={totalPages}
-          className="max-h-[clamp(320px,calc(100dvh-18rem),640px)] overflow-auto overscroll-contain pr-1"
+          className="h-[clamp(720px,78dvh,880px)] overflow-auto overscroll-contain pr-1"
         />
       ) : (
         <div className="text-center py-20">
@@ -770,45 +755,6 @@ export default async function ScorePage({
           </p>
         </div>
       )}
-
-      {/* Newsletter CTA */}
-      <div className="mt-16 p-8 rounded-2xl bg-gradient-to-r from-indigo-500/5 to-purple-500/5 border border-indigo-500/15 text-center">
-        <h3 className="text-xl font-bold mb-2">
-          {isKo ? '시장 업데이트 알림 받기' : 'Get Market Update Alerts'}
-        </h3>
-        <p className="text-gray-400 text-sm mb-4">
-          {isKo
-            ? '새로운 보고서와 시장 변동 알림을 받아보세요'
-            : 'Be the first to know about new reports and market movements'}
-        </p>
-        <SubscribeForm
-          locale={locale}
-          source="newsletter"
-          translations={{
-            placeholder: t('subscribe.emailPlaceholder'),
-            cta: t('subscribe.cta'),
-            success: t('subscribe.checkEmail'),
-          }}
-        />
-      </div>
-
-      {/* Stats */}
-      <div className="mt-10 pt-6 border-t border-white/5 flex justify-center gap-8 text-sm text-gray-600">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-white">{allRows.length}</div>
-          <div>{isKo ? '상위 프로젝트' : 'Top Projects'}</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-white">
-            {allRows.filter((r) => r.reportTypes.length > 0).length}
-          </div>
-          <div>{isKo ? '분석 보고서' : 'Reports'}</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-white">{totalPages}</div>
-          <div>{isKo ? '페이지' : 'Pages'}</div>
-        </div>
-      </div>
     </div>
   )
 }
