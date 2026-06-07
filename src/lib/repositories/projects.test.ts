@@ -133,6 +133,32 @@ describe('ProjectsRepository.getLatestScoreboardMarketSnapshot', () => {
     expect(rows).toHaveLength(500)
   })
 
+  it('returns no rows when no recent candidate is a complete canonical Top 500 snapshot', async () => {
+    const latestSnapshotQuery = makeSnapshotDateQuery([
+      { recorded_at: '2026-06-07T07:00:00.000Z' },
+      { recorded_at: '2026-06-07T06:00:00.000Z' },
+    ])
+    const firstPartialMarketSnapshotQuery = makeMarketSnapshotQuery(
+      Array.from({ length: 100 }, (_, index) => makeMarketSnapshotRow(index + 1, '2026-06-07T07:00:00.000Z')),
+    )
+    const secondPartialMarketSnapshotQuery = makeMarketSnapshotQuery(
+      Array.from({ length: 250 }, (_, index) => makeMarketSnapshotRow(index + 1, '2026-06-07T06:00:00.000Z')),
+    )
+    const supabase = {
+      from: jest.fn()
+        .mockReturnValueOnce(latestSnapshotQuery)
+        .mockReturnValueOnce(firstPartialMarketSnapshotQuery)
+        .mockReturnValueOnce(secondPartialMarketSnapshotQuery),
+    }
+    const repository = new ProjectsRepository(supabase as never)
+
+    const rows = await repository.getLatestScoreboardMarketSnapshot()
+
+    expect(firstPartialMarketSnapshotQuery.eq).toHaveBeenCalledWith('recorded_at', '2026-06-07T07:00:00.000Z')
+    expect(secondPartialMarketSnapshotQuery.eq).toHaveBeenCalledWith('recorded_at', '2026-06-07T06:00:00.000Z')
+    expect(rows).toEqual([])
+  })
+
   it('falls back to the legacy snapshot select while the CMC identity migration is pending', async () => {
     const latestSnapshotQuery = makeSnapshotDateQuery([{ recorded_at: '2026-05-12' }])
     const missingColumnQuery = makeMarketSnapshotQuery(

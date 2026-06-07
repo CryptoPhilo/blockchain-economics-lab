@@ -646,31 +646,6 @@ export function canonicalSnapshotRowsToScoreRows(
   )
 }
 
-export function trackedProjectsToScoreRows(
-  trackedProjects: TrackedScoreboardProject[],
-  availabilityByProjectId?: Map<string, ReportAvailability>,
-) {
-  return trackedProjects
-    .slice(0, MAX_RANK)
-    .map((project, index) => {
-      const reportAvailability = getReportAvailability(project, availabilityByProjectId)
-      return {
-        rank: index + 1,
-        name: project.name,
-        symbol: project.symbol,
-        slug: project.slug,
-        change24h: null,
-        marketCap: toNumber(project.market_cap_usd),
-        score: project.maturity_score == null
-          ? reportAvailability.maturityScore
-          : toNumber(project.maturity_score),
-        category: project.category || '',
-        reportTypes: reportAvailability.reportTypes,
-        reportDates: reportAvailability.reportDates,
-      }
-    })
-}
-
 export function hasCompleteCmcCanonicalTop500Snapshot(snapshotRows: ScoreboardSnapshotRow[]) {
   if (snapshotRows.length !== MIN_CMC_CANONICAL_TOP_500_SNAPSHOT_ROWS) return false
 
@@ -732,9 +707,7 @@ export default async function ScorePage({
     reportAvailabilityByProjectId,
     reportAvailabilityByProjectSlug,
   )
-  const allRows = canonicalRows.length > 0
-    ? canonicalRows
-    : trackedProjectsToScoreRows(trackedProjects, reportAvailabilityByProjectId)
+  const allRows = canonicalRows
 
   // Paginate: 100 per page
   const startIdx = (currentPage - 1) * ITEMS_PER_PAGE
