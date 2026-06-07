@@ -100,6 +100,12 @@ function isReportNew(reportDate: string | null): boolean {
   return reportDateObj > sevenDaysAgo
 }
 
+function getRankRangeLabel(page: number) {
+  const start = (page - 1) * 100 + 1
+  const end = page * 100
+  return `${start}-${end}`
+}
+
 export default function ScoreTableGate({
   rows,
   freeLimit = 20,
@@ -415,7 +421,9 @@ export default function ScoreTableGate({
               href={`/${locale}/score?page=${currentPage - 1}`}
               className="px-4 sm:px-6 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white text-sm font-medium transition-colors whitespace-nowrap"
             >
-              ← {isKo ? '이전 (1-100위)' : 'Previous (1-100)'}
+              ← {isKo
+                ? `이전 (${getRankRangeLabel(currentPage - 1)}위)`
+                : `Previous (${getRankRangeLabel(currentPage - 1)})`}
             </Link>
           )}
           <div className="flex gap-2">
@@ -438,7 +446,9 @@ export default function ScoreTableGate({
               href={`/${locale}/score?page=${currentPage + 1}`}
               className="px-4 sm:px-6 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white text-sm font-medium transition-colors whitespace-nowrap"
             >
-              {isKo ? '다음 (101-200위)' : 'Next (101-200)'} →
+              {isKo
+                ? `다음 (${getRankRangeLabel(currentPage + 1)}위)`
+                : `Next (${getRankRangeLabel(currentPage + 1)})`} →
             </Link>
           )}
         </nav>

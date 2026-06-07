@@ -2,17 +2,17 @@ name: CMC Market Sync
 
 on:
   schedule:
-    # Keep the public Top 200 score table aligned with CoinMarketCap daily.
+    # Keep the public Top 500 score table aligned with CoinMarketCap daily.
     - cron: '23 3 * * *'
   workflow_dispatch:
     inputs:
       mode:
         description: 'CMC sync mode'
         required: false
-        default: 'top200'
+        default: 'top500'
         type: choice
         options:
-          - top200
+          - top500
           - tracked
           - full
       dry_run:
@@ -74,7 +74,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          MODE="${{ inputs.mode || 'top200' }}"
+          MODE="${{ inputs.mode || 'top500' }}"
           args=(--mode "$MODE")
 
           if [ "${{ inputs.dry_run || false }}" = "true" ]; then

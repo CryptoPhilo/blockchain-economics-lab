@@ -13,16 +13,16 @@ export const revalidate = 0
 /**
  * CMC-Style Market Cap Ranking Page + Report Badges (BCE-379)
  *
- * Shows top 200 projects by market cap across 2 pages (100 per page).
+ * Shows top 500 projects by market cap across 5 pages (100 per page).
  * Each row includes price, 24h change, market cap, BCE Score, and report badges.
  * Data: latest CMC market_data_daily snapshot, enriched by tracked_projects.
  */
 
 const ITEMS_PER_PAGE = 100
-const MAX_RANK = 200
+const MAX_RANK = 500
 const REPORT_AVAILABILITY_QUERY_CHUNK_SIZE = 80
 const SCORE_HEADER_BACKGROUND_IMAGE = '/images/score-header-bg.png'
-export const MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS = 200
+export const MIN_CMC_CANONICAL_TOP_500_SNAPSHOT_ROWS = 500
 const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'ethena-usde', slug: 'ethena' },
   { alias: 'usde', slug: 'ethena' },
@@ -634,7 +634,7 @@ export function canonicalSnapshotRowsToScoreRows(
     .filter((row) => toCmcCanonicalRank(row.cmc_rank) !== null)
     .sort((a, b) => (toCmcCanonicalRank(a.cmc_rank) ?? 0) - (toCmcCanonicalRank(b.cmc_rank) ?? 0))
 
-  if (!hasCompleteCmcCanonicalTop200Snapshot(canonicalRows)) return []
+  if (!hasCompleteCmcCanonicalTop500Snapshot(canonicalRows)) return []
   return snapshotRowsToScoreRows(
     canonicalRows,
     buildTrackedProjectLookup(trackedProjects, { includeProjectAliases: false }),
@@ -644,11 +644,11 @@ export function canonicalSnapshotRowsToScoreRows(
   )
 }
 
-export function hasCompleteCmcCanonicalTop200Snapshot(snapshotRows: ScoreboardSnapshotRow[]) {
-  if (snapshotRows.length !== MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS) return false
+export function hasCompleteCmcCanonicalTop500Snapshot(snapshotRows: ScoreboardSnapshotRow[]) {
+  if (snapshotRows.length !== MIN_CMC_CANONICAL_TOP_500_SNAPSHOT_ROWS) return false
 
   const ranks = new Set(snapshotRows.map((row) => toCmcCanonicalRank(row.cmc_rank)))
-  if (ranks.has(null) || ranks.size !== MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS) return false
+  if (ranks.has(null) || ranks.size !== MIN_CMC_CANONICAL_TOP_500_SNAPSHOT_ROWS) return false
 
   for (let rank = 1; rank <= MAX_RANK; rank += 1) {
     if (!ranks.has(rank)) return false
@@ -669,7 +669,7 @@ export default async function ScorePage({
   const supabase = await createServerSupabaseClient()
   const projectsRepository = createProjectsRepository(supabase)
 
-  const currentPage = Math.max(1, Math.min(2, parseInt(pageStr || '1', 10)))
+  const currentPage = Math.max(1, Math.min(5, parseInt(pageStr || '1', 10)))
 
   const [baseTrackedProjects, cmcSnapshotRows, canonicalAliasTargetProjects] = await Promise.all([
     projectsRepository.getProjectsForScoreboard(),
@@ -729,7 +729,7 @@ export default async function ScorePage({
           </h1>
           <p className="mx-auto max-w-xl text-sm font-medium leading-6 text-slate-200 drop-shadow-[0_2px_14px_rgba(0,0,0,0.8)] sm:text-base">
             {isKo
-              ? '시가총액 200위 종목들의 BCE 보고서를 확인하세요'
+              ? '시가총액 500위 종목들의 BCE 보고서를 확인하세요'
               : 'Crypto project rankings by market cap with BCE analysis reports'}
           </p>
         </div>
@@ -739,7 +739,7 @@ export default async function ScorePage({
       {rows.length > 0 ? (
         <ScoreTableGate
           rows={rows}
-          freeLimit={200}
+          freeLimit={500}
           locale={locale}
           currentPage={currentPage}
           totalPages={totalPages}

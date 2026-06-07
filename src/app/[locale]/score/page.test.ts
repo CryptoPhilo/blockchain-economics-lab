@@ -4,9 +4,9 @@ import {
   buildTrackedProjectLookup,
   canonicalSnapshotRowsToScoreRows,
   fetchVisibleReportsForScoreboard,
-  hasCompleteCmcCanonicalTop200Snapshot,
+  hasCompleteCmcCanonicalTop500Snapshot,
   mergeScoreboardProjects,
-  MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS,
+  MIN_CMC_CANONICAL_TOP_500_SNAPSHOT_ROWS,
   snapshotRowsToScoreRows,
 } from './page'
 
@@ -41,35 +41,35 @@ jest.mock('@/components/SubscribeForm', () => function SubscribeForm() {
   return null
 })
 
-describe('score page CMC canonical Top 200 snapshot guard', () => {
-  it('rejects partial snapshots as non-canonical Top 200 data', () => {
-    expect(hasCompleteCmcCanonicalTop200Snapshot([makeSnapshotRow(1)])).toBe(false)
-    expect(hasCompleteCmcCanonicalTop200Snapshot(
-      Array.from({ length: 199 }, (_, index) => makeSnapshotRow(index + 1)),
+describe('score page CMC canonical Top 500 snapshot guard', () => {
+  it('rejects partial snapshots as non-canonical Top 500 data', () => {
+    expect(hasCompleteCmcCanonicalTop500Snapshot([makeSnapshotRow(1)])).toBe(false)
+    expect(hasCompleteCmcCanonicalTop500Snapshot(
+      Array.from({ length: 499 }, (_, index) => makeSnapshotRow(index + 1)),
     )).toBe(false)
   })
 
-  it('rejects 200-row snapshots without canonical CMC ranks', () => {
-    const rowsWithoutCmcRank = Array.from({ length: 200 }, (_, index) => ({
+  it('rejects 500-row snapshots without canonical CMC ranks', () => {
+    const rowsWithoutCmcRank = Array.from({ length: 500 }, (_, index) => ({
       ...makeSnapshotRow(index + 1),
       cmc_rank: null,
     }))
 
-    expect(hasCompleteCmcCanonicalTop200Snapshot(rowsWithoutCmcRank)).toBe(false)
+    expect(hasCompleteCmcCanonicalTop500Snapshot(rowsWithoutCmcRank)).toBe(false)
     expect(canonicalSnapshotRowsToScoreRows(rowsWithoutCmcRank, [])).toEqual([])
   })
 
-  it('accepts only snapshots with contiguous CMC ranks 1 through 200', () => {
+  it('accepts only snapshots with contiguous CMC ranks 1 through 500', () => {
     const canonicalRows = Array.from(
-      { length: MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS },
+      { length: MIN_CMC_CANONICAL_TOP_500_SNAPSHOT_ROWS },
       (_, index) => makeSnapshotRow(index + 1),
     )
     const duplicateRankRows = canonicalRows.map((row, index) => (
-      index === 199 ? { ...row, cmc_rank: 199 } : row
+      index === 499 ? { ...row, cmc_rank: 499 } : row
     ))
 
-    expect(hasCompleteCmcCanonicalTop200Snapshot(canonicalRows)).toBe(true)
-    expect(hasCompleteCmcCanonicalTop200Snapshot(duplicateRankRows)).toBe(false)
+    expect(hasCompleteCmcCanonicalTop500Snapshot(canonicalRows)).toBe(true)
+    expect(hasCompleteCmcCanonicalTop500Snapshot(duplicateRankRows)).toBe(false)
   })
 
   it('does not substitute tracked projects when the CMC snapshot is incomplete', () => {
@@ -91,7 +91,7 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
       },
     ]
     const partialSnapshotRows = Array.from(
-      { length: 199 },
+      { length: 499 },
       (_, index) => makeSnapshotRow(index + 1, index === 0 ? 'bitcoin' : `cmc-project-${index}`),
     )
 
@@ -134,18 +134,18 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
     })
   })
 
-  it('excludes rows outside the canonical CMC Top 200 before rendering', () => {
+  it('excludes rows outside the canonical CMC Top 500 before rendering', () => {
     const snapshotRows = [
-      ...Array.from({ length: 200 }, (_, index) => makeSnapshotRow(index + 1)),
-      makeSnapshotRow(201, 'rain'),
-      makeSnapshotRow(203, 'htx'),
+      ...Array.from({ length: 500 }, (_, index) => makeSnapshotRow(index + 1)),
+      makeSnapshotRow(501, 'rain'),
+      makeSnapshotRow(503, 'htx'),
     ].reverse()
 
     const rows = canonicalSnapshotRowsToScoreRows(snapshotRows, [])
 
-    expect(rows).toHaveLength(200)
+    expect(rows).toHaveLength(500)
     expect(rows[0]).toMatchObject({ rank: 1, slug: 'cmc-project-1' })
-    expect(rows[199]).toMatchObject({ rank: 200, slug: 'cmc-project-200' })
+    expect(rows[499]).toMatchObject({ rank: 500, slug: 'cmc-project-500' })
     expect(rows.map((row) => row.slug)).not.toContain('rain')
     expect(rows.map((row) => row.slug)).not.toContain('htx')
   })
@@ -169,7 +169,7 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
       },
     ]
     const snapshotRows = Array.from(
-      { length: 200 },
+      { length: 500 },
       (_, index) => makeSnapshotRow(index + 1),
     )
 
@@ -203,7 +203,7 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
       },
     ]
     const snapshotRows = Array.from(
-      { length: 200 },
+      { length: 500 },
       (_, index) => ({
         ...makeSnapshotRow(index + 1, index === 155 ? 'fluid-protocol' : `cmc-project-${index + 1}`),
         cmc_name: index === 155 ? 'Fluid' : `CMC Project ${index + 1}`,
@@ -241,7 +241,7 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
       },
     ]
     const snapshotRows = Array.from(
-      { length: 200 },
+      { length: 500 },
       (_, index) => makeSnapshotRow(index + 1, index === 36 ? 'ethena-usde' : `cmc-project-${index + 1}`),
     )
 
@@ -291,7 +291,7 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
       },
     ]
     const snapshotRows = Array.from(
-      { length: 200 },
+      { length: 500 },
       (_, index) => makeSnapshotRow(index + 1, index === 142 ? 'ethgas' : `cmc-project-${index + 1}`),
     )
 
@@ -339,7 +339,7 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
       }],
     ])
     const snapshotRows = Array.from(
-      { length: 200 },
+      { length: 500 },
       (_, index) => makeSnapshotRow(index + 1, index === 142 ? 'gwei' : `cmc-project-${index + 1}`),
     )
 
@@ -411,7 +411,7 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
       },
     ]
     const snapshotRows = Array.from(
-      { length: 200 },
+      { length: 500 },
       (_, index) => {
         if (index === 172) {
           return {
@@ -483,7 +483,7 @@ describe('score page CMC canonical Top 200 snapshot guard', () => {
       },
     ]
     const snapshotRows = Array.from(
-      { length: 200 },
+      { length: 500 },
       (_, index) => ({
         ...makeSnapshotRow(index + 1, index === 172 ? 'river' : `cmc-project-${index + 1}`),
         cmc_name: index === 172 ? 'River' : `CMC Project ${index + 1}`,
@@ -778,7 +778,7 @@ describe('score page tracked project aliases', () => {
     ])
   })
 
-  it('maps CMC Top 200 slugs to report-bearing canonical report slugs', () => {
+  it('maps CMC Top 500 slugs to report-bearing canonical report slugs', () => {
     const trackedProjects = [
       {
         id: 'bnb-project',
