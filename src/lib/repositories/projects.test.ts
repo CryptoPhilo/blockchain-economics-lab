@@ -1,38 +1,51 @@
 import { ProjectsRepository } from './projects'
 
 describe('ProjectsRepository.getLatestScoreboardMarketSnapshot', () => {
-  it('queries the latest canonical CMC Top 500 by cmc_rank', async () => {
-    const latestSnapshotQuery = {
+  function makeSnapshotDateQuery(recordedAtRows: { recorded_at: string }[]) {
+    return {
       select: jest.fn().mockReturnThis(),
+      gte: jest.fn().mockReturnThis(),
+      lte: jest.fn().mockReturnThis(),
       order: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      maybeSingle: jest.fn().mockResolvedValue({
-        data: { recorded_at: '2026-05-12' },
+      limit: jest.fn().mockResolvedValue({
+        data: recordedAtRows,
         error: null,
       }),
     }
-    const marketSnapshotQuery = {
+  }
+
+  function makeMarketSnapshotQuery(rows: unknown[] | null, error: unknown = null) {
+    return {
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
       gte: jest.fn().mockReturnThis(),
       lte: jest.fn().mockReturnThis(),
       order: jest.fn().mockReturnThis(),
       limit: jest.fn().mockResolvedValue({
-        data: [
-          {
-            slug: 'bitcoin',
-            price_usd: 100000,
-            market_cap: 1,
-            change_24h: 0,
-            recorded_at: '2026-05-12',
-            cmc_rank: 1,
-            cmc_symbol: 'BTC',
-            cmc_name: 'Bitcoin',
-          },
-        ],
-        error: null,
+        data: rows,
+        error,
       }),
     }
+  }
+
+  function makeMarketSnapshotRow(rank: number, recordedAt = '2026-05-12') {
+    return {
+      slug: `cmc-project-${rank}`,
+      price_usd: 100000 - rank,
+      market_cap: 1_000_000 - rank,
+      change_24h: 0,
+      recorded_at: recordedAt,
+      cmc_rank: rank,
+      cmc_symbol: `P${rank}`,
+      cmc_name: `CMC Project ${rank}`,
+    }
+  }
+
+  it('queries the latest canonical CMC Top 500 by cmc_rank', async () => {
+    const latestSnapshotQuery = makeSnapshotDateQuery([{ recorded_at: '2026-05-12' }])
+    const marketSnapshotQuery = makeMarketSnapshotQuery(
+      Array.from({ length: 500 }, (_, index) => makeMarketSnapshotRow(index + 1)),
+    )
     const supabase = {
       from: jest.fn()
         .mockReturnValueOnce(latestSnapshotQuery)
@@ -42,6 +55,11 @@ describe('ProjectsRepository.getLatestScoreboardMarketSnapshot', () => {
 
     await repository.getLatestScoreboardMarketSnapshot()
 
+    expect(latestSnapshotQuery.select).toHaveBeenCalledWith('recorded_at')
+    expect(latestSnapshotQuery.gte).toHaveBeenCalledWith('cmc_rank', 1)
+    expect(latestSnapshotQuery.lte).toHaveBeenCalledWith('cmc_rank', 500)
+    expect(latestSnapshotQuery.order).toHaveBeenCalledWith('recorded_at', { ascending: false })
+    expect(latestSnapshotQuery.limit).toHaveBeenCalledWith(5000)
     expect(marketSnapshotQuery.select).toHaveBeenCalledWith(
       'slug, price_usd, market_cap, change_24h, recorded_at, cmc_rank, cmc_symbol, cmc_name',
     )
@@ -55,47 +73,47 @@ describe('ProjectsRepository.getLatestScoreboardMarketSnapshot', () => {
     expect(marketSnapshotQuery.limit).toHaveBeenCalledWith(500)
   })
 
+  it('skips a newer partial snapshot and returns the latest complete canonical Top 500 snapshot', async () => {
+    const latestSnapshotQuery = makeSnapshotDateQuery([
+      { recorded_at: '2026-06-07T07:00:00.000Z' },
+      { recorded_at: '2026-06-07T07:00:00.000Z' },
+      { recorded_at: '2026-06-07T06:00:00.000Z' },
+    ])
+    const partialMarketSnapshotQuery = makeMarketSnapshotQuery(
+      Array.from({ length: 12 }, (_, index) => makeMarketSnapshotRow(index + 1, '2026-06-07T07:00:00.000Z')),
+    )
+    const completeMarketSnapshotQuery = makeMarketSnapshotQuery(
+      Array.from({ length: 500 }, (_, index) => makeMarketSnapshotRow(index + 1, '2026-06-07T06:00:00.000Z')),
+    )
+    const supabase = {
+      from: jest.fn()
+        .mockReturnValueOnce(latestSnapshotQuery)
+        .mockReturnValueOnce(partialMarketSnapshotQuery)
+        .mockReturnValueOnce(completeMarketSnapshotQuery),
+    }
+    const repository = new ProjectsRepository(supabase as never)
+
+    const rows = await repository.getLatestScoreboardMarketSnapshot()
+
+    expect(partialMarketSnapshotQuery.eq).toHaveBeenCalledWith('recorded_at', '2026-06-07T07:00:00.000Z')
+    expect(completeMarketSnapshotQuery.eq).toHaveBeenCalledWith('recorded_at', '2026-06-07T06:00:00.000Z')
+    expect(rows).toHaveLength(500)
+    expect(rows[0]).toMatchObject({ cmc_rank: 1, recorded_at: '2026-06-07T06:00:00.000Z' })
+    expect(rows[499]).toMatchObject({ cmc_rank: 500, recorded_at: '2026-06-07T06:00:00.000Z' })
+  })
+
   it('falls back to the legacy snapshot select while the CMC identity migration is pending', async () => {
-    const latestSnapshotQuery = {
-      select: jest.fn().mockReturnThis(),
-      order: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      maybeSingle: jest.fn().mockResolvedValue({
-        data: { recorded_at: '2026-05-12' },
-        error: null,
+    const latestSnapshotQuery = makeSnapshotDateQuery([{ recorded_at: '2026-05-12' }])
+    const missingColumnQuery = makeMarketSnapshotQuery(
+      null,
+      { code: '42703', message: 'column market_data_daily.cmc_symbol does not exist' },
+    )
+    const legacyMarketSnapshotQuery = makeMarketSnapshotQuery(
+      Array.from({ length: 500 }, (_, index) => {
+        const { cmc_symbol: _cmcSymbol, cmc_name: _cmcName, ...row } = makeMarketSnapshotRow(index + 1)
+        return row
       }),
-    }
-    const missingColumnQuery = {
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      gte: jest.fn().mockReturnThis(),
-      lte: jest.fn().mockReturnThis(),
-      order: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockResolvedValue({
-        data: null,
-        error: { code: '42703', message: 'column market_data_daily.cmc_symbol does not exist' },
-      }),
-    }
-    const legacyMarketSnapshotQuery = {
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      gte: jest.fn().mockReturnThis(),
-      lte: jest.fn().mockReturnThis(),
-      order: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockResolvedValue({
-        data: [
-          {
-            slug: 'bitcoin',
-            price_usd: 100000,
-            market_cap: 1,
-            change_24h: 0,
-            recorded_at: '2026-05-12',
-            cmc_rank: 1,
-          },
-        ],
-        error: null,
-      }),
-    }
+    )
     const supabase = {
       from: jest.fn()
         .mockReturnValueOnce(latestSnapshotQuery)
@@ -112,6 +130,6 @@ describe('ProjectsRepository.getLatestScoreboardMarketSnapshot', () => {
     expect(legacyMarketSnapshotQuery.select).toHaveBeenCalledWith(
       'slug, price_usd, market_cap, change_24h, recorded_at, cmc_rank',
     )
-    expect(rows).toHaveLength(1)
+    expect(rows).toHaveLength(500)
   })
 })
