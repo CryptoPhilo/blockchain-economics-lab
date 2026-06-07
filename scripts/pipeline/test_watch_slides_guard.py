@@ -2792,11 +2792,40 @@ def test_merge_slide_url_updates_publish_metadata_and_project_timestamp(ws):
     assert report['cover_image_urls_by_lang']['ko'] == 'https://storage/old-ko-cover.png'
     assert report['cover_image_urls_by_lang']['en'] == 'https://storage/econ/avalanche-2/latest/en-cover.png'
     assert report['published_at'] == publish_ts
-    assert report['updated_at'] == publish_ts
-    assert report['card_data']['generated_at'] == publish_ts
+    assert report['updated_at']
+    assert report['card_data']['generated_at']
     assert report['card_data']['summary'] == 'Avalanche summary'
     assert project['last_econ_report_at'] == publish_ts
     assert project['updated_at'] == publish_ts
+
+
+def test_merge_slide_url_preserves_existing_published_at_when_repaired_without_override(ws):
+    report = {
+        'project_id': 'project-old-for',
+        'report_type': 'forensic',
+        'slide_html_urls_by_lang': {'ko': 'https://storage/old.html'},
+        'cover_image_urls_by_lang': {},
+        'card_data': {'generated_at': '2026-05-10T00:00:00Z'},
+        'published_at': '2026-05-10T16:30:33Z',
+    }
+    project = {
+        'id': 'project-old-for',
+        'last_forensic_report_at': '2026-05-10T16:30:33Z',
+    }
+    sb = _FakeMergeSupabase(report, project)
+
+    ws._merge_slide_url(
+        sb,
+        'report-old-for',
+        'ko',
+        'https://storage/for/old/latest/ko.html',
+        status=ws.PUBLICATION_PUBLISHED_STATUS,
+    )
+
+    assert report['slide_html_urls_by_lang'] == {'ko': 'https://storage/for/old/latest/ko.html'}
+    assert report['published_at'] == '2026-05-10T16:30:33Z'
+    assert project['last_forensic_report_at'] == '2026-05-10T16:30:33Z'
+    assert report['updated_at'] != report['published_at']
 
 
 def test_extract_maturity_score_from_analysis_markdown(ws):
@@ -3363,6 +3392,43 @@ def test_db_reconcile_materializes_active_drive_pdf_only_report_row(ws, monkeypa
     assert tables['tracked_projects'][0]['last_econ_report_at'] is not None
     assert any(result['status'] == 'db_reconcile_materialized' for result in results)
     assert any(result['status'] == 'db_reconcile_timestamp_synced' for result in results)
+
+
+def test_db_reconcile_does_not_materialize_blocked_drive_pdf(ws, monkeypatch):
+    projects = [
+        {'id': 'project-aster', 'slug': 'aster', 'name': 'Aster', 'symbol': 'ASTER'},
+    ]
+    tables = {
+        'project_reports': [],
+        'tracked_projects': [{
+            'id': 'project-aster',
+            'slug': 'aster',
+            'last_econ_report_at': None,
+            'last_maturity_report_at': None,
+            'last_forensic_report_at': None,
+        }],
+    }
+    monkeypatch.setattr(ws, '_iter_active_slide_targets', lambda *_args, **_kwargs: [
+        ('for', {
+            'id': 'drive-aster-cn',
+            'name': 'ASTER_FOR_cn.pdf',
+            'modifiedTime': '2026-06-01T02:33:57.000Z',
+            'source_path': 'Slide/for/ASTER_FOR_cn.pdf',
+        }),
+    ])
+
+    results = ws._reconcile_visible_reports_with_drive(
+        _FakeReconcileSupabase(tables),
+        object(),
+        types=['for'],
+        projects=projects,
+        dry_run=False,
+        blocked_file_ids={'drive-aster-cn'},
+    )
+
+    assert tables['project_reports'] == []
+    assert any(result['status'] == 'db_reconcile_skipped_blocked_drive_pdf' for result in results)
+    assert not any(result['status'] == 'db_reconcile_materialized' for result in results)
 
 
 def test_db_reconcile_dry_run_materialization_does_not_mutate_rows(ws, monkeypatch):

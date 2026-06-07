@@ -1,7 +1,7 @@
 import { ProjectsRepository } from './projects'
 
 describe('ProjectsRepository.getLatestScoreboardMarketSnapshot', () => {
-  it('queries the latest canonical CMC Top 200 by cmc_rank', async () => {
+  it('queries the latest canonical CMC Top 500 by cmc_rank', async () => {
     const latestSnapshotQuery = {
       select: jest.fn().mockReturnThis(),
       order: jest.fn().mockReturnThis(),
@@ -47,12 +47,12 @@ describe('ProjectsRepository.getLatestScoreboardMarketSnapshot', () => {
     )
     expect(marketSnapshotQuery.eq).toHaveBeenCalledWith('recorded_at', '2026-05-12')
     expect(marketSnapshotQuery.gte).toHaveBeenCalledWith('cmc_rank', 1)
-    expect(marketSnapshotQuery.lte).toHaveBeenCalledWith('cmc_rank', 200)
+    expect(marketSnapshotQuery.lte).toHaveBeenCalledWith('cmc_rank', 500)
     expect(marketSnapshotQuery.order).toHaveBeenCalledWith(
       'cmc_rank',
       { ascending: true, nullsFirst: false },
     )
-    expect(marketSnapshotQuery.limit).toHaveBeenCalledWith(200)
+    expect(marketSnapshotQuery.limit).toHaveBeenCalledWith(500)
   })
 
   it('falls back to the legacy snapshot select while the CMC identity migration is pending', async () => {

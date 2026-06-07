@@ -1,4 +1,3 @@
-import { getTranslations } from 'next-intl/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 import { createProjectsRepository } from '@/lib/repositories/projects'
@@ -7,7 +6,6 @@ import { pickLatestReport } from '@/lib/report-versioning'
 import type { ProjectReport } from '@/lib/types'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import ScoreTableGate from '@/components/ScoreTableGate'
-import SubscribeForm from '@/components/SubscribeForm'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -15,18 +13,21 @@ export const revalidate = 0
 /**
  * CMC-Style Market Cap Ranking Page + Report Badges (BCE-379)
  *
- * Shows top 200 projects by market cap across 2 pages (100 per page).
+ * Shows top 500 projects by market cap across 5 pages (100 per page).
  * Each row includes price, 24h change, market cap, BCE Score, and report badges.
  * Data: latest CMC market_data_daily snapshot, enriched by tracked_projects.
  */
 
 const ITEMS_PER_PAGE = 100
-const MAX_RANK = 200
+const MAX_RANK = 500
 const REPORT_AVAILABILITY_QUERY_CHUNK_SIZE = 80
-export const MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS = 200
+const SCORE_HEADER_BACKGROUND_IMAGE = '/images/score-header-bg.png'
+export const MIN_CMC_CANONICAL_TOP_500_SNAPSHOT_ROWS = 500
 const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'ethena-usde', slug: 'ethena' },
   { alias: 'usde', slug: 'ethena' },
+  { alias: 'ether-fi-ethfi', slug: 'ether-fi' },
+  { alias: 'optimism-ethereum', slug: 'optimism' },
   { alias: 'sei-network', slug: 'sei' },
   { alias: 'pancakeswap-token', slug: 'pancakeswap' },
   { alias: 'injective-protocol', slug: 'injective' },
@@ -635,7 +636,7 @@ export function canonicalSnapshotRowsToScoreRows(
     .filter((row) => toCmcCanonicalRank(row.cmc_rank) !== null)
     .sort((a, b) => (toCmcCanonicalRank(a.cmc_rank) ?? 0) - (toCmcCanonicalRank(b.cmc_rank) ?? 0))
 
-  if (!hasCompleteCmcCanonicalTop200Snapshot(canonicalRows)) return []
+  if (!hasCompleteCmcCanonicalTop500Snapshot(canonicalRows)) return []
   return snapshotRowsToScoreRows(
     canonicalRows,
     buildTrackedProjectLookup(trackedProjects, { includeProjectAliases: false }),
@@ -645,11 +646,11 @@ export function canonicalSnapshotRowsToScoreRows(
   )
 }
 
-export function hasCompleteCmcCanonicalTop200Snapshot(snapshotRows: ScoreboardSnapshotRow[]) {
-  if (snapshotRows.length !== MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS) return false
+export function hasCompleteCmcCanonicalTop500Snapshot(snapshotRows: ScoreboardSnapshotRow[]) {
+  if (snapshotRows.length !== MIN_CMC_CANONICAL_TOP_500_SNAPSHOT_ROWS) return false
 
   const ranks = new Set(snapshotRows.map((row) => toCmcCanonicalRank(row.cmc_rank)))
-  if (ranks.has(null) || ranks.size !== MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS) return false
+  if (ranks.has(null) || ranks.size !== MIN_CMC_CANONICAL_TOP_500_SNAPSHOT_ROWS) return false
 
   for (let rank = 1; rank <= MAX_RANK; rank += 1) {
     if (!ranks.has(rank)) return false
@@ -667,11 +668,10 @@ export default async function ScorePage({
 }) {
   const { locale } = await params
   const { page: pageStr } = await searchParams
-  const t = await getTranslations()
   const supabase = await createServerSupabaseClient()
   const projectsRepository = createProjectsRepository(supabase)
 
-  const currentPage = Math.max(1, Math.min(2, parseInt(pageStr || '1', 10)))
+  const currentPage = Math.max(1, Math.min(5, parseInt(pageStr || '1', 10)))
 
   const [baseTrackedProjects, cmcSnapshotRows, canonicalAliasTargetProjects] = await Promise.all([
     projectsRepository.getProjectsForScoreboard(),
@@ -710,46 +710,42 @@ export default async function ScorePage({
 
   // Paginate: 100 per page
   const startIdx = (currentPage - 1) * ITEMS_PER_PAGE
-  const endIdx = startIdx + ITEMS_PER_PAGE
-  const rows = allRows.slice(startIdx, endIdx)
+  const rows = allRows.slice(startIdx, startIdx + ITEMS_PER_PAGE)
   const totalPages = Math.ceil(Math.min(allRows.length, MAX_RANK) / ITEMS_PER_PAGE)
 
   const isKo = locale === 'ko'
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-12">
+    <div className="max-w-6xl mx-auto px-6 pb-8 pt-4">
       {/* Header */}
-      <div className="mb-10 text-center">
-        <h1 className="text-4xl font-bold mb-3">
-          {isKo ? '리포트' : 'Report'}
-        </h1>
-        <p className="text-gray-400 max-w-xl mx-auto">
-          {isKo
-            ? '시가총액 200위 종목들의 BCE 보고서를 확인하세요'
-            : 'Crypto project rankings by market cap with BCE analysis reports'}
-        </p>
-      </div>
-
-      {/* Page indicator */}
-      {totalPages > 1 && (
-        <div className="mb-4 text-center">
-          <span className="text-sm text-gray-400">
+      <section
+        className="relative mb-4 overflow-hidden rounded-xl border border-white/10 bg-slate-950 bg-cover bg-center px-5 py-7 text-center shadow-xl shadow-black/25 sm:px-8 sm:py-9"
+        style={{
+          backgroundImage: `linear-gradient(180deg, rgba(3, 7, 18, 0.46), rgba(3, 7, 18, 0.78)), url(${SCORE_HEADER_BACKGROUND_IMAGE})`,
+        }}
+      >
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08),transparent_38%)]" />
+        <div className="relative mx-auto max-w-2xl">
+          <h1 className="mb-2 text-3xl font-bold text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.85)] sm:text-4xl">
+            {isKo ? '리포트' : 'Report'}
+          </h1>
+          <p className="mx-auto max-w-xl text-sm font-medium leading-6 text-slate-200 drop-shadow-[0_2px_14px_rgba(0,0,0,0.8)] sm:text-base">
             {isKo
-              ? `${startIdx + 1}-${Math.min(endIdx, allRows.length)}위 (전체 ${allRows.length}개 프로젝트)`
-              : `Rank ${startIdx + 1}-${Math.min(endIdx, allRows.length)} of ${allRows.length} projects`}
-          </span>
+              ? '시가총액 500위 종목들의 BCE 보고서를 확인하세요'
+              : 'Crypto project rankings by market cap with BCE analysis reports'}
+          </p>
         </div>
-      )}
+      </section>
 
       {/* Market cap ranking table with email gate */}
       {rows.length > 0 ? (
         <ScoreTableGate
           rows={rows}
-          freeLimit={200}
+          freeLimit={500}
           locale={locale}
           currentPage={currentPage}
           totalPages={totalPages}
-          className="max-h-[clamp(320px,calc(100dvh-18rem),640px)] overflow-auto overscroll-contain pr-1"
+          className="h-[clamp(720px,78dvh,880px)] overflow-auto overscroll-contain pr-1"
         />
       ) : (
         <div className="text-center py-20">
@@ -761,45 +757,6 @@ export default async function ScorePage({
           </p>
         </div>
       )}
-
-      {/* Newsletter CTA */}
-      <div className="mt-16 p-8 rounded-2xl bg-gradient-to-r from-indigo-500/5 to-purple-500/5 border border-indigo-500/15 text-center">
-        <h3 className="text-xl font-bold mb-2">
-          {isKo ? '시장 업데이트 알림 받기' : 'Get Market Update Alerts'}
-        </h3>
-        <p className="text-gray-400 text-sm mb-4">
-          {isKo
-            ? '새로운 보고서와 시장 변동 알림을 받아보세요'
-            : 'Be the first to know about new reports and market movements'}
-        </p>
-        <SubscribeForm
-          locale={locale}
-          source="newsletter"
-          translations={{
-            placeholder: t('subscribe.emailPlaceholder'),
-            cta: t('subscribe.cta'),
-            success: t('subscribe.checkEmail'),
-          }}
-        />
-      </div>
-
-      {/* Stats */}
-      <div className="mt-10 pt-6 border-t border-white/5 flex justify-center gap-8 text-sm text-gray-600">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-white">{allRows.length}</div>
-          <div>{isKo ? '상위 프로젝트' : 'Top Projects'}</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-white">
-            {allRows.filter((r) => r.reportTypes.length > 0).length}
-          </div>
-          <div>{isKo ? '분석 보고서' : 'Reports'}</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-white">{totalPages}</div>
-          <div>{isKo ? '페이지' : 'Pages'}</div>
-        </div>
-      </div>
     </div>
   )
 }

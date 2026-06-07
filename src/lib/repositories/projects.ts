@@ -48,7 +48,7 @@ export class ProjectsRepository {
     return data || []
   }
 
-  async getLatestScoreboardMarketSnapshot(limit = 200): Promise<ScoreboardMarketSnapshotRow[]> {
+  async getLatestScoreboardMarketSnapshot(limit = 500): Promise<ScoreboardMarketSnapshotRow[]> {
     const { data: latestSnapshot, error: latestError } = await this.supabase
       .from('market_data_daily')
       .select('recorded_at')
@@ -69,7 +69,7 @@ export class ProjectsRepository {
       .select(selectColumns)
       .eq('recorded_at', latestSnapshot.recorded_at)
       .gte('cmc_rank', 1)
-      .lte('cmc_rank', 200)
+      .lte('cmc_rank', limit)
       .order('cmc_rank', { ascending: true, nullsFirst: false })
       .limit(limit)
 

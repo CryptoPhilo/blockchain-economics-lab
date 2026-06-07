@@ -7,6 +7,9 @@ import { getLocalizedCardSummary } from '@/lib/report-summary'
 import { buildReportVersionHref, getReportVersionLabel } from '@/lib/report-versioning'
 import { prepareRapidChangeReports } from './reports-page-utils'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 interface Props {
   params: Promise<{ locale: string }>
   searchParams: Promise<{ page?: string; q?: string }>
@@ -248,10 +251,13 @@ export default async function ReportsPage({ params, searchParams }: Props) {
                     </div>
                   </div>
 
-                  {report.status === 'coming_soon' ? (
-                    <span className="px-4 py-2 bg-amber-500/10 text-amber-400 text-sm font-medium rounded-lg border border-amber-500/20 cursor-default shrink-0">
+                  {report.status === 'coming_soon' && project ? (
+                    <Link
+                      href={`/${locale}/reports/forensic/${project.slug}`}
+                      className="px-4 py-2 bg-amber-500/10 hover:bg-amber-500/15 text-amber-400 hover:text-amber-300 text-sm font-medium rounded-lg border border-amber-500/20 transition-colors shrink-0"
+                    >
                       🔜 {locale === 'ko' ? '준비 중' : 'Coming Soon'}
-                    </span>
+                    </Link>
                   ) : project ? (
                     <Link
                       href={`/${locale}/reports/forensic/${project.slug}`}

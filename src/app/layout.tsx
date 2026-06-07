@@ -1,12 +1,13 @@
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
+import { getLocale } from "next-intl/server"
+import { buildLocalizedSiteMetadata, normalizeSiteMetadataLocale } from "@/lib/site-metadata"
 import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "BCE Lab — Blockchain Economics Research",
-  description: "Institutional-grade blockchain economic research powered by AI agents",
+  ...buildLocalizedSiteMetadata("en"),
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://bcelab.xyz"),
   icons: {
     icon: [
@@ -16,27 +17,17 @@ export const metadata: Metadata = {
     ],
     apple: "/apple-touch-icon.png",
   },
-  openGraph: {
-    title: "BCE Lab — Blockchain Economics Research",
-    description: "Institutional-grade blockchain economic research powered by AI agents",
-    url: "https://bcelab.xyz",
-    siteName: "BCE Lab",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "BCE Lab — Blockchain Economics Research",
-    description: "Institutional-grade blockchain economic research powered by AI agents",
-  },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const locale = normalizeSiteMetadataLocale(await getLocale())
+
   return (
-    <html lang="en" className={inter.className}>
+    <html lang={locale} className={inter.className}>
       <body className="bg-gray-950 text-gray-100 min-h-screen">{children}</body>
     </html>
   )

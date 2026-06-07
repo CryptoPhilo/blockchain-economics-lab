@@ -1,5 +1,4 @@
 import type { ProjectReport } from '@/lib/types'
-import { reportSupportsLocale } from '@/lib/report-locale'
 import { compareReportVersions, sortReportsLatestFirst } from '@/lib/report-versioning'
 
 function getEffectiveTimestamp(report: Pick<ProjectReport, 'published_at' | 'created_at' | 'updated_at'>): number {
@@ -21,6 +20,11 @@ function getStatusRank(report: Pick<ProjectReport, 'status'>): number {
 
 function isRapidChangeCandidate(report: ProjectReport): boolean {
   return (report.status === 'coming_soon' || report.status === 'in_review') && report.report_type === 'forensic'
+}
+
+function isRapidChangeListReport(report: ProjectReport): boolean {
+  return report.report_type === 'forensic'
+    && (report.status === 'published' || report.status === 'coming_soon' || report.status === 'in_review')
 }
 
 function compareRapidChangeReports(a: ProjectReport, b: ProjectReport): number {
@@ -75,18 +79,45 @@ function getSearchableText(report: ProjectReport): string {
     .toLowerCase()
 }
 
+function getRapidChangeAssetKey(report: ProjectReport): string {
+  const project = report.project
+  const symbol = project?.symbol?.trim().toUpperCase()
+  if (symbol) return `symbol:${symbol}`
+
+  const coingeckoId = project?.coingecko_id?.trim().toLowerCase()
+  if (coingeckoId) return `coingecko:${coingeckoId}`
+
+  return `project:${report.project_id}`
+}
+
+function getPublishedForensicAssetKeys(reports: ProjectReport[]): Set<string> {
+  return new Set(
+    reports
+      .filter((report) => report.status === 'published' && report.report_type === 'forensic')
+      .map(getRapidChangeAssetKey)
+  )
+}
+
+function suppressPlaceholderCoveredByPublishedReport(
+  report: ProjectReport,
+  publishedAssetKeys: Set<string>
+): boolean {
+  return isRapidChangeCandidate(report) && publishedAssetKeys.has(getRapidChangeAssetKey(report))
+}
+
 export function dedupeLatestReportsByProject(reports: ProjectReport[]): ProjectReport[] {
-  const latestByProject = new Map<string, ProjectReport>()
+  const latestByAsset = new Map<string, ProjectReport>()
 
   for (const report of reports) {
-    const current = latestByProject.get(report.project_id)
+    const assetKey = getRapidChangeAssetKey(report)
+    const current = latestByAsset.get(assetKey)
 
     if (!current || compareRapidChangeReports(report, current) > 0) {
-      latestByProject.set(report.project_id, report)
+      latestByAsset.set(assetKey, report)
     }
   }
 
-  return Array.from(latestByProject.values()).sort((a, b) => compareRapidChangeReports(b, a))
+  return Array.from(latestByAsset.values()).sort((a, b) => compareRapidChangeReports(b, a))
 }
 
 export function buildReportHistoryByProject(reports: ProjectReport[], latestReports: ProjectReport[]) {
@@ -119,12 +150,14 @@ export function prepareRapidChangeReports(args: {
     ? args.reports.filter((report) => getSearchableText(report).includes(normalizedQuery))
     : args.reports
 
-  const latestReports = dedupeLatestReportsByProject(filteredReports)
-    .filter((report) => isRapidChangeCandidate(report) || reportSupportsLocale(report, args.locale))
-  const localizedHistoryReports = filteredReports.filter((report) => (
-    isRapidChangeCandidate(report) || reportSupportsLocale(report, args.locale)
+  const rapidChangeReports = filteredReports.filter(isRapidChangeListReport)
+  const publishedAssetKeys = getPublishedForensicAssetKeys(rapidChangeReports)
+  const reportsForDedupe = rapidChangeReports.filter((report) => (
+    !suppressPlaceholderCoveredByPublishedReport(report, publishedAssetKeys)
   ))
-  const historyByProject = buildReportHistoryByProject(localizedHistoryReports, latestReports)
+
+  const latestReports = dedupeLatestReportsByProject(reportsForDedupe)
+  const historyByProject = buildReportHistoryByProject(reportsForDedupe, latestReports)
   const totalCount = latestReports.length
   const totalPages = totalCount > 0 ? Math.ceil(totalCount / args.pageSize) : 0
   const currentPage = totalCount > 0
