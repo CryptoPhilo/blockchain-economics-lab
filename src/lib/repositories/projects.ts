@@ -114,8 +114,6 @@ export class ProjectsRepository {
       .order('cmc_rank', { ascending: true, nullsFirst: false })
       .limit(limit)
 
-    let latestRows: ScoreboardMarketSnapshotRow[] = []
-
     for (const recordedAt of snapshotDates) {
       let { data, error } = await runSnapshotQuery(recordedAt, MARKET_SNAPSHOT_SELECT_COLUMNS)
 
@@ -128,11 +126,10 @@ export class ProjectsRepository {
       }
 
       const rows = (data || []) as unknown as ScoreboardMarketSnapshotRow[]
-      if (latestRows.length === 0) latestRows = rows
       if (isCompleteCanonicalRankSnapshot(rows, limit)) return rows
     }
 
-    return latestRows
+    return []
   }
 
   /**

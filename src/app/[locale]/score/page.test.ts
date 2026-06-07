@@ -8,7 +8,6 @@ import {
   mergeScoreboardProjects,
   MIN_CMC_CANONICAL_TOP_500_SNAPSHOT_ROWS,
   snapshotRowsToScoreRows,
-  trackedProjectsToScoreRows,
 } from './page'
 
 function makeSnapshotRow(rank: number, slug = `cmc-project-${rank}`) {
@@ -99,7 +98,7 @@ describe('score page CMC canonical Top 500 snapshot guard', () => {
     expect(canonicalSnapshotRowsToScoreRows(partialSnapshotRows, trackedProjects)).toEqual([])
   })
 
-  it('can fall back to tracked project ordering when no canonical CMC snapshot is renderable', () => {
+  it('does not fall back to tracked project ordering when no canonical CMC snapshot is renderable', () => {
     const trackedProjects = [
       {
         id: 'bitcoin-project',
@@ -133,24 +132,7 @@ describe('score page CMC canonical Top 500 snapshot guard', () => {
       },
     ]
 
-    const rows = trackedProjectsToScoreRows(trackedProjects)
-
-    expect(rows).toHaveLength(2)
-    expect(rows[0]).toMatchObject({
-      rank: 1,
-      name: 'Bitcoin',
-      symbol: 'BTC',
-      slug: 'bitcoin',
-      marketCap: 1_200_000_000_000,
-      change24h: null,
-      reportTypes: ['econ', 'maturity', 'forensic'],
-    })
-    expect(rows[1]).toMatchObject({
-      rank: 2,
-      name: 'Ethereum',
-      symbol: 'ETH',
-      reportTypes: ['econ'],
-    })
+    expect(canonicalSnapshotRowsToScoreRows([], trackedProjects)).toEqual([])
   })
 
   it('uses CoinMarketCap identity for ranked row name and ticker display', () => {
