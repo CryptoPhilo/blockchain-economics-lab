@@ -7,7 +7,7 @@ describe('ProjectsRepository.getLatestScoreboardMarketSnapshot', () => {
       gte: jest.fn().mockReturnThis(),
       lte: jest.fn().mockReturnThis(),
       order: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockResolvedValue({
+      range: jest.fn().mockResolvedValue({
         data: recordedAtRows,
         error: null,
       }),
@@ -59,7 +59,7 @@ describe('ProjectsRepository.getLatestScoreboardMarketSnapshot', () => {
     expect(latestSnapshotQuery.gte).toHaveBeenCalledWith('cmc_rank', 1)
     expect(latestSnapshotQuery.lte).toHaveBeenCalledWith('cmc_rank', 500)
     expect(latestSnapshotQuery.order).toHaveBeenCalledWith('recorded_at', { ascending: false })
-    expect(latestSnapshotQuery.limit).toHaveBeenCalledWith(5000)
+    expect(latestSnapshotQuery.range).toHaveBeenCalledWith(0, 999)
     expect(marketSnapshotQuery.select).toHaveBeenCalledWith(
       'slug, price_usd, market_cap, change_24h, recorded_at, cmc_rank, cmc_symbol, cmc_name',
     )
@@ -100,6 +100,37 @@ describe('ProjectsRepository.getLatestScoreboardMarketSnapshot', () => {
     expect(rows).toHaveLength(500)
     expect(rows[0]).toMatchObject({ cmc_rank: 1, recorded_at: '2026-06-07T06:00:00.000Z' })
     expect(rows[499]).toMatchObject({ cmc_rank: 500, recorded_at: '2026-06-07T06:00:00.000Z' })
+  })
+
+  it('paginates snapshot date candidates when recent partial snapshots fill the first response page', async () => {
+    const firstDatePageQuery = makeSnapshotDateQuery(
+      Array.from({ length: 1000 }, () => ({ recorded_at: '2026-06-07T07:00:00.000Z' })),
+    )
+    const secondDatePageQuery = makeSnapshotDateQuery([
+      { recorded_at: '2026-06-07T06:00:00.000Z' },
+    ])
+    const partialMarketSnapshotQuery = makeMarketSnapshotQuery(
+      Array.from({ length: 12 }, (_, index) => makeMarketSnapshotRow(index + 1, '2026-06-07T07:00:00.000Z')),
+    )
+    const completeMarketSnapshotQuery = makeMarketSnapshotQuery(
+      Array.from({ length: 500 }, (_, index) => makeMarketSnapshotRow(index + 1, '2026-06-07T06:00:00.000Z')),
+    )
+    const supabase = {
+      from: jest.fn()
+        .mockReturnValueOnce(firstDatePageQuery)
+        .mockReturnValueOnce(secondDatePageQuery)
+        .mockReturnValueOnce(partialMarketSnapshotQuery)
+        .mockReturnValueOnce(completeMarketSnapshotQuery),
+    }
+    const repository = new ProjectsRepository(supabase as never)
+
+    const rows = await repository.getLatestScoreboardMarketSnapshot()
+
+    expect(firstDatePageQuery.range).toHaveBeenCalledWith(0, 999)
+    expect(secondDatePageQuery.range).toHaveBeenCalledWith(1000, 1999)
+    expect(partialMarketSnapshotQuery.eq).toHaveBeenCalledWith('recorded_at', '2026-06-07T07:00:00.000Z')
+    expect(completeMarketSnapshotQuery.eq).toHaveBeenCalledWith('recorded_at', '2026-06-07T06:00:00.000Z')
+    expect(rows).toHaveLength(500)
   })
 
   it('falls back to the legacy snapshot select while the CMC identity migration is pending', async () => {

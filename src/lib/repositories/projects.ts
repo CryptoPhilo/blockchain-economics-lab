@@ -5,7 +5,8 @@ const MARKET_SNAPSHOT_SELECT_COLUMNS =
   'slug, price_usd, market_cap, change_24h, recorded_at, cmc_rank, cmc_symbol, cmc_name'
 const LEGACY_MARKET_SNAPSHOT_SELECT_COLUMNS =
   'slug, price_usd, market_cap, change_24h, recorded_at, cmc_rank'
-const SCOREBOARD_SNAPSHOT_CANDIDATE_COUNT = 10
+const SCOREBOARD_SNAPSHOT_CANDIDATE_COUNT = 30
+const SCOREBOARD_SNAPSHOT_DATE_PAGE_SIZE = 1000
 
 export type ScoreboardMarketSnapshotRow = {
   slug: string
@@ -68,21 +69,37 @@ export class ProjectsRepository {
   }
 
   async getLatestScoreboardMarketSnapshot(limit = 500): Promise<ScoreboardMarketSnapshotRow[]> {
-    const { data: snapshotCandidates, error: latestError } = await this.supabase
-      .from('market_data_daily')
-      .select('recorded_at')
-      .gte('cmc_rank', 1)
-      .lte('cmc_rank', limit)
-      .order('recorded_at', { ascending: false })
-      .limit(limit * SCOREBOARD_SNAPSHOT_CANDIDATE_COUNT)
+    const snapshotDates: string[] = []
+    const seenSnapshotDates = new Set<string>()
+    const maxCandidateRows = limit * SCOREBOARD_SNAPSHOT_CANDIDATE_COUNT
 
-    if (latestError) {
-      throw new Error(`Failed to fetch scoreboard snapshot dates: ${latestError.message}`)
+    for (
+      let offset = 0;
+      offset < maxCandidateRows && snapshotDates.length < SCOREBOARD_SNAPSHOT_CANDIDATE_COUNT;
+      offset += SCOREBOARD_SNAPSHOT_DATE_PAGE_SIZE
+    ) {
+      const end = Math.min(offset + SCOREBOARD_SNAPSHOT_DATE_PAGE_SIZE - 1, maxCandidateRows - 1)
+      const { data: snapshotCandidates, error: latestError } = await this.supabase
+        .from('market_data_daily')
+        .select('recorded_at')
+        .gte('cmc_rank', 1)
+        .lte('cmc_rank', limit)
+        .order('recorded_at', { ascending: false })
+        .range(offset, end)
+
+      if (latestError) {
+        throw new Error(`Failed to fetch scoreboard snapshot dates: ${latestError.message}`)
+      }
+
+      for (const row of snapshotCandidates || []) {
+        if (!row.recorded_at || seenSnapshotDates.has(row.recorded_at)) continue
+        seenSnapshotDates.add(row.recorded_at)
+        snapshotDates.push(row.recorded_at)
+        if (snapshotDates.length >= SCOREBOARD_SNAPSHOT_CANDIDATE_COUNT) break
+      }
+
+      if (!snapshotCandidates || snapshotCandidates.length < SCOREBOARD_SNAPSHOT_DATE_PAGE_SIZE) break
     }
-
-    const snapshotDates = Array.from(
-      new Set((snapshotCandidates || []).map((row) => row.recorded_at).filter(Boolean)),
-    ).slice(0, SCOREBOARD_SNAPSHOT_CANDIDATE_COUNT)
 
     if (snapshotDates.length === 0) {
       return []
