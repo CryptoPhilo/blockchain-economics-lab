@@ -19,6 +19,7 @@ describe('ProjectsRepository.getLatestScoreboardMarketSnapshot', () => {
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
       gte: jest.fn().mockReturnThis(),
+      lt: jest.fn().mockReturnThis(),
       lte: jest.fn().mockReturnThis(),
       order: jest.fn().mockReturnThis(),
       limit: jest.fn().mockResolvedValue({
@@ -144,11 +145,15 @@ describe('ProjectsRepository.getLatestScoreboardMarketSnapshot', () => {
     const secondPartialMarketSnapshotQuery = makeMarketSnapshotQuery(
       Array.from({ length: 250 }, (_, index) => makeMarketSnapshotRow(index + 1, '2026-06-07T06:00:00.000Z')),
     )
+    const partialDailySnapshotQuery = makeMarketSnapshotQuery(
+      Array.from({ length: 250 }, (_, index) => makeMarketSnapshotRow(index + 1, '2026-06-07')),
+    )
     const supabase = {
       from: jest.fn()
         .mockReturnValueOnce(latestSnapshotQuery)
         .mockReturnValueOnce(firstPartialMarketSnapshotQuery)
-        .mockReturnValueOnce(secondPartialMarketSnapshotQuery),
+        .mockReturnValueOnce(secondPartialMarketSnapshotQuery)
+        .mockReturnValueOnce(partialDailySnapshotQuery),
     }
     const repository = new ProjectsRepository(supabase as never)
 
@@ -156,7 +161,39 @@ describe('ProjectsRepository.getLatestScoreboardMarketSnapshot', () => {
 
     expect(firstPartialMarketSnapshotQuery.eq).toHaveBeenCalledWith('recorded_at', '2026-06-07T07:00:00.000Z')
     expect(secondPartialMarketSnapshotQuery.eq).toHaveBeenCalledWith('recorded_at', '2026-06-07T06:00:00.000Z')
+    expect(partialDailySnapshotQuery.gte).toHaveBeenCalledWith('recorded_at', '2026-06-07')
+    expect(partialDailySnapshotQuery.lt).toHaveBeenCalledWith('recorded_at', '2026-06-08')
     expect(rows).toEqual([])
+  })
+
+  it('recovers a complete daily CMC Top 500 snapshot when newer exact timestamp candidates are partial', async () => {
+    const latestSnapshotQuery = makeSnapshotDateQuery([
+      ...Array.from({ length: 100 }, () => ({ recorded_at: '2026-06-07T07:00:00.000Z' })),
+      { recorded_at: '2026-06-07' },
+    ])
+    const partialMarketSnapshotQuery = makeMarketSnapshotQuery(
+      Array.from({ length: 100 }, (_, index) => makeMarketSnapshotRow(index + 1, '2026-06-07T07:00:00.000Z')),
+    )
+    const completeDailySnapshotQuery = makeMarketSnapshotQuery([
+      ...Array.from({ length: 100 }, (_, index) => makeMarketSnapshotRow(index + 1, '2026-06-07T07:00:00.000Z')),
+      ...Array.from({ length: 500 }, (_, index) => makeMarketSnapshotRow(index + 1, '2026-06-07')),
+    ])
+    const supabase = {
+      from: jest.fn()
+        .mockReturnValueOnce(latestSnapshotQuery)
+        .mockReturnValueOnce(partialMarketSnapshotQuery)
+        .mockReturnValueOnce(makeMarketSnapshotQuery([]))
+        .mockReturnValueOnce(completeDailySnapshotQuery),
+    }
+    const repository = new ProjectsRepository(supabase as never)
+
+    const rows = await repository.getLatestScoreboardMarketSnapshot()
+
+    expect(completeDailySnapshotQuery.gte).toHaveBeenCalledWith('recorded_at', '2026-06-07')
+    expect(completeDailySnapshotQuery.lt).toHaveBeenCalledWith('recorded_at', '2026-06-08')
+    expect(rows).toHaveLength(500)
+    expect(rows[0]).toMatchObject({ cmc_rank: 1, recorded_at: '2026-06-07T07:00:00.000Z' })
+    expect(rows[499]).toMatchObject({ cmc_rank: 500, recorded_at: '2026-06-07' })
   })
 
   it('falls back to the legacy snapshot select while the CMC identity migration is pending', async () => {
