@@ -26,6 +26,8 @@ export const MIN_CMC_CANONICAL_TOP_500_SNAPSHOT_ROWS = 500
 const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'ethena-usde', slug: 'ethena' },
   { alias: 'usde', slug: 'ethena' },
+  { alias: 'ether-fi-ethfi', slug: 'ether-fi' },
+  { alias: 'optimism-ethereum', slug: 'optimism' },
   { alias: 'sei-network', slug: 'sei' },
   { alias: 'pancakeswap-token', slug: 'pancakeswap' },
   { alias: 'injective-protocol', slug: 'injective' },

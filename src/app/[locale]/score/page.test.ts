@@ -646,6 +646,36 @@ describe('score page tracked project aliases', () => {
   it('maps CMC market slugs to report-bearing canonical projects for ECON badges', () => {
     const trackedProjects = [
       {
+        id: 'ether-fi-project',
+        name: 'Ether.fi',
+        slug: 'ether-fi',
+        symbol: 'ETHFI',
+        category: 'DeFi',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: [],
+        maturity_score: 67,
+        last_econ_report_at: '2026-06-06T00:00:00.000Z',
+        last_maturity_report_at: '2026-06-06T00:00:00.000Z',
+        last_forensic_report_at: '2026-06-06T00:00:00.000Z',
+      },
+      {
+        id: 'optimism-project',
+        name: 'Optimism',
+        slug: 'optimism',
+        symbol: 'OP',
+        category: 'Layer 2',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: [],
+        maturity_score: 78,
+        last_econ_report_at: '2026-06-06T00:00:00.000Z',
+        last_maturity_report_at: '2026-06-06T00:00:00.000Z',
+        last_forensic_report_at: '2026-06-06T00:00:00.000Z',
+      },
+      {
         id: 'sei-project',
         name: 'Sei',
         slug: 'sei',
@@ -752,6 +782,8 @@ describe('score page tracked project aliases', () => {
       },
     ]
     const snapshotRows = [
+      makeSnapshotRow(73, 'ether-fi-ethfi'),
+      makeSnapshotRow(74, 'optimism-ethereum'),
       makeSnapshotRow(89, 'sei-network'),
       makeSnapshotRow(90, 'pancakeswap-token'),
       makeSnapshotRow(95, 'injective-protocol'),
@@ -768,6 +800,8 @@ describe('score page tracked project aliases', () => {
       slug: row.slug,
       reportTypes: row.reportTypes,
     }))).toEqual([
+      { name: 'Ether.fi', slug: 'ether-fi', reportTypes: ['econ', 'maturity', 'forensic'] },
+      { name: 'Optimism', slug: 'optimism', reportTypes: ['econ', 'maturity', 'forensic'] },
       { name: 'Sei', slug: 'sei', reportTypes: ['econ'] },
       { name: 'PancakeSwap', slug: 'pancakeswap', reportTypes: ['econ'] },
       { name: 'Injective', slug: 'injective', reportTypes: ['econ'] },
