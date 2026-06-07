@@ -6,6 +6,7 @@ import { pickLatestReport } from '@/lib/report-versioning'
 import type { ProjectReport } from '@/lib/types'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import ScoreTableGate from '@/components/ScoreTableGate'
+import { fetchCMCTopListings } from '@/lib/coinmarketcap'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -678,6 +679,18 @@ export default async function ScorePage({
     projectsRepository.getLatestScoreboardMarketSnapshot(MAX_RANK),
     fetchScoreboardCanonicalAliasTargetProjects(),
   ])
+  const scoreSnapshotRows = cmcSnapshotRows.length > 0
+    ? cmcSnapshotRows
+    : await fetchCMCTopListings(MAX_RANK).then((listings) => listings.map((listing) => ({
+        slug: listing.slug,
+        price_usd: listing.price_usd,
+        market_cap: listing.market_cap,
+        change_24h: listing.change_24h,
+        recorded_at: listing.recorded_at,
+        cmc_rank: listing.cmc_rank,
+        cmc_symbol: listing.symbol,
+        cmc_name: listing.name,
+      })))
   const trackedProjects = mergeScoreboardProjects(baseTrackedProjects, canonicalAliasTargetProjects)
   const trackedProjectIds = trackedProjects.map((project) => project.id).filter(Boolean)
   let visibleReportResult: Awaited<ReturnType<typeof fetchVisibleReportsForScoreboard>>
@@ -702,7 +715,7 @@ export default async function ScorePage({
     : undefined
 
   const canonicalRows = canonicalSnapshotRowsToScoreRows(
-    cmcSnapshotRows,
+    scoreSnapshotRows,
     trackedProjects,
     reportAvailabilityByProjectId,
     reportAvailabilityByProjectSlug,
