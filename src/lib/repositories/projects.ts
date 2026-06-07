@@ -5,6 +5,7 @@ const MARKET_SNAPSHOT_SELECT_COLUMNS =
   'slug, price_usd, market_cap, change_24h, recorded_at, cmc_rank, cmc_symbol, cmc_name'
 const LEGACY_MARKET_SNAPSHOT_SELECT_COLUMNS =
   'slug, price_usd, market_cap, change_24h, recorded_at, cmc_rank'
+const SCOREBOARD_SNAPSHOT_CANDIDATE_COUNT = 10
 
 export type ScoreboardMarketSnapshotRow = {
   slug: string
@@ -21,6 +22,24 @@ function isMissingCmcIdentityColumnError(error: { message?: string; code?: strin
   if (!error) return false
   if (error.code === '42703') return true
   return /cmc_(symbol|name)/i.test(error.message || '')
+}
+
+function toCanonicalRank(value: unknown, limit: number) {
+  const rank = typeof value === 'number' ? value : Number(value)
+  return Number.isInteger(rank) && rank >= 1 && rank <= limit ? rank : null
+}
+
+function isCompleteCanonicalRankSnapshot(rows: ScoreboardMarketSnapshotRow[], limit: number) {
+  if (rows.length !== limit) return false
+
+  const ranks = new Set(rows.map((row) => toCanonicalRank(row.cmc_rank, limit)))
+  if (ranks.has(null) || ranks.size !== limit) return false
+
+  for (let rank = 1; rank <= limit; rank += 1) {
+    if (!ranks.has(rank)) return false
+  }
+
+  return true
 }
 
 /**
@@ -49,41 +68,54 @@ export class ProjectsRepository {
   }
 
   async getLatestScoreboardMarketSnapshot(limit = 500): Promise<ScoreboardMarketSnapshotRow[]> {
-    const { data: latestSnapshot, error: latestError } = await this.supabase
+    const { data: snapshotCandidates, error: latestError } = await this.supabase
       .from('market_data_daily')
       .select('recorded_at')
+      .gte('cmc_rank', 1)
+      .lte('cmc_rank', limit)
       .order('recorded_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+      .limit(limit * SCOREBOARD_SNAPSHOT_CANDIDATE_COUNT)
 
     if (latestError) {
-      throw new Error(`Failed to fetch latest scoreboard snapshot date: ${latestError.message}`)
+      throw new Error(`Failed to fetch scoreboard snapshot dates: ${latestError.message}`)
     }
 
-    if (!latestSnapshot?.recorded_at) {
+    const snapshotDates = Array.from(
+      new Set((snapshotCandidates || []).map((row) => row.recorded_at).filter(Boolean)),
+    ).slice(0, SCOREBOARD_SNAPSHOT_CANDIDATE_COUNT)
+
+    if (snapshotDates.length === 0) {
       return []
     }
 
-    const runSnapshotQuery = (selectColumns: string) => this.supabase
+    const runSnapshotQuery = (recordedAt: string, selectColumns: string) => this.supabase
       .from('market_data_daily')
       .select(selectColumns)
-      .eq('recorded_at', latestSnapshot.recorded_at)
+      .eq('recorded_at', recordedAt)
       .gte('cmc_rank', 1)
       .lte('cmc_rank', limit)
       .order('cmc_rank', { ascending: true, nullsFirst: false })
       .limit(limit)
 
-    let { data, error } = await runSnapshotQuery(MARKET_SNAPSHOT_SELECT_COLUMNS)
+    let latestRows: ScoreboardMarketSnapshotRow[] = []
 
-    if (isMissingCmcIdentityColumnError(error)) {
-      ;({ data, error } = await runSnapshotQuery(LEGACY_MARKET_SNAPSHOT_SELECT_COLUMNS))
+    for (const recordedAt of snapshotDates) {
+      let { data, error } = await runSnapshotQuery(recordedAt, MARKET_SNAPSHOT_SELECT_COLUMNS)
+
+      if (isMissingCmcIdentityColumnError(error)) {
+        ;({ data, error } = await runSnapshotQuery(recordedAt, LEGACY_MARKET_SNAPSHOT_SELECT_COLUMNS))
+      }
+
+      if (error) {
+        throw new Error(`Failed to fetch scoreboard market snapshot: ${error.message}`)
+      }
+
+      const rows = (data || []) as unknown as ScoreboardMarketSnapshotRow[]
+      if (latestRows.length === 0) latestRows = rows
+      if (isCompleteCanonicalRankSnapshot(rows, limit)) return rows
     }
 
-    if (error) {
-      throw new Error(`Failed to fetch scoreboard market snapshot: ${error.message}`)
-    }
-
-    return (data || []) as unknown as ScoreboardMarketSnapshotRow[]
+    return latestRows
   }
 
   /**
