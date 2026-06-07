@@ -1,4 +1,3 @@
-import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 import { createProjectsRepository } from '@/lib/repositories/projects'
 import { reportSupportsLocale } from '@/lib/report-locale'
@@ -669,7 +668,7 @@ export default async function ScorePage({
 }) {
   const { locale } = await params
   const { page: pageStr } = await searchParams
-  const supabase = await createServerSupabaseClient()
+  const supabase = createSupabaseAdminClient()
   const projectsRepository = createProjectsRepository(supabase)
 
   const currentPage = Math.max(1, Math.min(5, parseInt(pageStr || '1', 10)))
