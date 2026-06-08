@@ -603,7 +603,15 @@ def _drive_pdf_name_search_terms(filter_slug: Optional[str], projects: List[Dict
                 terms.add(raw.replace('-', ' '))
                 terms.add(raw.replace('-', '_'))
     terms.update(_slug_hint_tokens(filter_slug, projects))
-    return {term for term in terms if len(term.strip()) >= 2}
+    expanded: Set[str] = set()
+    for term in terms:
+        raw = str(term).strip()
+        if len(raw) < 2:
+            continue
+        expanded.add(raw)
+        expanded.add(raw.upper())
+        expanded.add(raw.title())
+    return expanded
 
 
 def _search_pdfs_by_name(
