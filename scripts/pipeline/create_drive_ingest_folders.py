@@ -3,13 +3,13 @@
 
 The watcher scans these active folders by default:
 
-  BCE Slide Pipeline Ingest/
-    Slide/econ
-    Slide/mat
-    Slide/for
-    analysis/econ
-    analysis/mat
-    analysis/for
+  BCE Lab Reports/
+    Slide2/ECON
+    Slide2/MAT
+    Slide2/FOR
+    analysis2/ECON
+    analysis2/MAT
+    analysis2/FOR
 
 The historical Drive folders remain available through explicit legacy/backfill
 pipeline runs.
@@ -76,8 +76,16 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--root-name",
-        default="BCE Slide Pipeline Ingest",
+        default=os.environ.get("BCE_ACTIVE_INGEST_PARENT_FOLDER_NAME", "BCE Lab Reports"),
         help="Top-level ingest folder name to create or reuse.",
+    )
+    parser.add_argument(
+        "--slide-root-name",
+        default=os.environ.get("BCE_ACTIVE_SLIDE_ROOT_FOLDER_NAME", "Slide2"),
+    )
+    parser.add_argument(
+        "--analysis-root-name",
+        default=os.environ.get("BCE_ACTIVE_ANALYSIS_ROOT_FOLDER_NAME", "analysis2"),
     )
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()
@@ -95,21 +103,21 @@ def main() -> int:
         args.root_name,
         dry_run=args.dry_run,
     )
-    slide = _ensure_child_folder(service, root["id"], "Slide", dry_run=args.dry_run)
-    analysis = _ensure_child_folder(service, root["id"], "analysis", dry_run=args.dry_run)
+    slide = _ensure_child_folder(service, root["id"], args.slide_root_name, dry_run=args.dry_run)
+    analysis = _ensure_child_folder(service, root["id"], args.analysis_root_name, dry_run=args.dry_run)
 
     created: Dict[str, Dict] = {"root": root, "slide": slide, "analysis": analysis}
     for report_type in ("econ", "mat", "for"):
         created[f"slide_{report_type}"] = _ensure_child_folder(
             service,
             slide["id"],
-            report_type,
+            report_type.upper(),
             dry_run=args.dry_run,
         )
         created[f"analysis_{report_type}"] = _ensure_child_folder(
             service,
             analysis["id"],
-            report_type,
+            report_type.upper(),
             dry_run=args.dry_run,
         )
 

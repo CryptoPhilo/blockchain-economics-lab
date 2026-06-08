@@ -297,6 +297,10 @@ ACTIVE_TYPE_FOLDER_IDS: Dict[str, str] = {
 TYPE_FOLDER_IDS: Dict[str, str] = ACTIVE_TYPE_FOLDER_IDS
 
 DRIVE_ROOT_SCOPES = {'active', 'legacy', 'all'}
+ACTIVE_INGEST_PARENT_FOLDER_NAME = _env_folder_id('BCE_ACTIVE_INGEST_PARENT_FOLDER_NAME', 'BCE Lab Reports')
+ACTIVE_INGEST_PARENT_FOLDER_ENV = 'BCE_ACTIVE_INGEST_PARENT_FOLDER_ID'
+ACTIVE_SLIDE_ROOT_FOLDER_NAME = _env_folder_id('BCE_ACTIVE_SLIDE_ROOT_FOLDER_NAME', 'Slide2')
+_RESOLVED_ACTIVE_TYPE_FOLDER_IDS: Optional[Dict[str, str]] = None
 
 
 def _normalize_drive_root_scope(scope: Optional[str]) -> str:
@@ -306,13 +310,18 @@ def _normalize_drive_root_scope(scope: Optional[str]) -> str:
     return normalized
 
 
-def _slide_type_folder_sets_for_scope(scope: Optional[str]) -> List[Tuple[str, Dict[str, str]]]:
+def _slide_type_folder_sets_for_scope(
+    scope: Optional[str],
+    *,
+    service: Optional[Any] = None,
+) -> List[Tuple[str, Dict[str, str]]]:
     normalized = _normalize_drive_root_scope(scope)
+    active_folder_ids = _active_slide_type_folder_ids(service) if service is not None else TYPE_FOLDER_IDS
     if normalized == 'active':
-        return [('active', TYPE_FOLDER_IDS)]
+        return [('active', active_folder_ids)]
     if normalized == 'legacy':
         return [('legacy', LEGACY_TYPE_FOLDER_IDS)]
-    return [('active', TYPE_FOLDER_IDS), ('legacy', LEGACY_TYPE_FOLDER_IDS)]
+    return [('active', active_folder_ids), ('legacy', LEGACY_TYPE_FOLDER_IDS)]
 
 
 def _slide_source_path_prefix(root_scope: str) -> str:
@@ -456,6 +465,78 @@ def _list_child_folders(service, parent_id: str) -> List[Dict]:
         if not page_token:
             break
     return out
+
+
+def _folder_name_key(value: str) -> str:
+    return re.sub(r'\s+', ' ', (value or '').strip()).casefold()
+
+
+def _find_child_folder_casefold(service, parent_id: str, name: str) -> Optional[Dict[str, Any]]:
+    expected = _folder_name_key(name)
+    for folder in _list_child_folders(service, parent_id):
+        if _folder_name_key(folder.get('name') or '') == expected:
+            return folder
+    return None
+
+
+def _configured_drive_folders(env_name: str, default_name: str) -> List[Dict[str, Any]]:
+    configured = [
+        folder_id.strip()
+        for folder_id in (os.environ.get(env_name) or '').split(',')
+        if folder_id.strip()
+    ]
+    return [{'id': folder_id, 'name': default_name} for folder_id in configured]
+
+
+def _active_ingest_parent_folders(service) -> List[Dict[str, Any]]:
+    configured = _configured_drive_folders(ACTIVE_INGEST_PARENT_FOLDER_ENV, ACTIVE_INGEST_PARENT_FOLDER_NAME)
+    if configured:
+        return configured
+    try:
+        return _find_folders_by_name(service, ACTIVE_INGEST_PARENT_FOLDER_NAME)
+    except Exception as e:
+        print(f"  [WARN] active ingest parent lookup failed: {e}")
+        return []
+
+
+def _active_slide_type_folder_ids(service) -> Dict[str, str]:
+    """Return active Slide2/{TYPE} folder IDs, using env vars first."""
+    global _RESOLVED_ACTIVE_TYPE_FOLDER_IDS
+    resolved = {rtype: folder_id for rtype, folder_id in TYPE_FOLDER_IDS.items() if folder_id}
+    missing_types = [rtype for rtype in ('econ', 'mat', 'for') if not resolved.get(rtype)]
+    if not missing_types:
+        return resolved
+    if _RESOLVED_ACTIVE_TYPE_FOLDER_IDS is not None:
+        resolved = {**_RESOLVED_ACTIVE_TYPE_FOLDER_IDS, **resolved}
+        missing_types = [rtype for rtype in ('econ', 'mat', 'for') if not resolved.get(rtype)]
+        if not missing_types:
+            return resolved
+
+    for parent in _active_ingest_parent_folders(service):
+        parent_id = parent.get('id')
+        if not parent_id:
+            continue
+        slide_root = _find_child_folder_casefold(service, parent_id, ACTIVE_SLIDE_ROOT_FOLDER_NAME)
+        if not slide_root or not slide_root.get('id'):
+            continue
+        for rtype in missing_types:
+            if resolved.get(rtype):
+                continue
+            folder = _find_child_folder_casefold(service, slide_root['id'], rtype.upper())
+            if folder and folder.get('id'):
+                resolved[rtype] = folder['id']
+        if all(resolved.get(rtype) for rtype in missing_types):
+            break
+
+    still_missing = [rtype for rtype in ('econ', 'mat', 'for') if not resolved.get(rtype)]
+    if still_missing:
+        print(
+            "  [WARN] active Slide ingest folders missing for "
+            f"{', '.join(still_missing)}; set BCE_SLIDE_ACTIVE_*_FOLDER_ID "
+            f"or create {ACTIVE_INGEST_PARENT_FOLDER_NAME}/{ACTIVE_SLIDE_ROOT_FOLDER_NAME}/{{ECON,MAT,FOR}}"
+        )
+    _RESOLVED_ACTIVE_TYPE_FOLDER_IDS = resolved
+    return resolved
 
 
 def _list_non_folder_files_direct(service, parent_id: str) -> List[Dict]:
@@ -2728,7 +2809,7 @@ def _iter_active_slide_targets(
     requested_types = set(types)
     hint_tokens = _slug_hint_tokens(filter_slug, projects or [])
     seen_file_ids: Set[str] = set()
-    for root_scope, folder_ids in _slide_type_folder_sets_for_scope(drive_root_scope):
+    for root_scope, folder_ids in _slide_type_folder_sets_for_scope(drive_root_scope, service=service):
         root_count = len([folder_id for folder_id in folder_ids.values() if folder_id])
         source_prefix = _slide_source_path_prefix(root_scope)
         search_prefix = 'Drive/search' if root_scope == 'active' else f"Drive/search/{root_scope}"

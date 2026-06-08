@@ -59,6 +59,7 @@ def _env_folder_id(name: str, default: str = "") -> str:
 
 
 DRIVE_SOURCE_SCOPES = {"active", "legacy", "all"}
+GDRIVE_FOLDER_MIME = "application/vnd.google-apps.folder"
 DEFAULT_SOURCE_FOLDER_ID = "1E87EcasPlrGuet0t6e1CA9kLFO0sTdFq"
 SOURCE_FOLDER_ID = _env_folder_id("BCE_MARKETING_SOURCE_FOLDER_ID", DEFAULT_SOURCE_FOLDER_ID)
 DEFAULT_ECON_SOURCE_FOLDER_ID = "1vcSHC1Z2cbOKJvWTpw535JsGJPrffOtd"
@@ -84,6 +85,10 @@ LEGACY_FOR_SOURCE_FOLDER_ID = _env_folder_id(
     os.environ.get("BCE_MARKETING_FOR_SOURCE_FOLDER_ID") or DEFAULT_FOR_SOURCE_FOLDER_ID,
 )
 ARCHIVE_FOLDER_ID = os.environ.get("BCE_MARKETING_ARCHIVE_FOLDER_ID", "")
+ACTIVE_INGEST_PARENT_FOLDER_NAME = _env_folder_id("BCE_ACTIVE_INGEST_PARENT_FOLDER_NAME", "BCE Lab Reports")
+ACTIVE_INGEST_PARENT_FOLDER_ENV = "BCE_ACTIVE_INGEST_PARENT_FOLDER_ID"
+ACTIVE_ANALYSIS_ROOT_FOLDER_NAME = _env_folder_id("BCE_ACTIVE_ANALYSIS_ROOT_FOLDER_NAME", "analysis2")
+_RESOLVED_ACTIVE_ANALYSIS_SOURCE_FOLDER_IDS: Optional[Dict[str, str]] = None
 
 MAX_WORDS = int(os.environ.get("BCE_MARKETING_MAX_WORDS", "100"))
 CARD_SUMMARY_MAX_WORDS = int(os.environ.get("BCE_CARD_SUMMARY_MAX_WORDS", "48"))
@@ -340,19 +345,29 @@ def _source_folder_id_for_report_type(report_type: str, *, source_scope: str = "
     raise ValueError(f"Unsupported report_type: {report_type}")
 
 
-def _source_folder_ids_for_report_type(report_type: str, *, source_scope: str = "active") -> List[str]:
+def _source_folder_ids_for_report_type(
+    report_type: str,
+    *,
+    source_scope: str = "active",
+    service: Any = None,
+) -> List[str]:
     scope = _normalize_source_scope(source_scope)
+    active_ids = _active_analysis_source_folder_ids(service) if service is not None else {
+        "econ": ECON_SOURCE_FOLDER_ID,
+        "mat": MAT_SOURCE_FOLDER_ID,
+        "for": FOR_SOURCE_FOLDER_ID,
+    }
     by_type = {
         "econ": {
-            "active": ECON_SOURCE_FOLDER_ID,
+            "active": active_ids.get("econ", ""),
             "legacy": LEGACY_ECON_SOURCE_FOLDER_ID,
         },
         "mat": {
-            "active": MAT_SOURCE_FOLDER_ID,
+            "active": active_ids.get("mat", ""),
             "legacy": LEGACY_MAT_SOURCE_FOLDER_ID,
         },
         "for": {
-            "active": FOR_SOURCE_FOLDER_ID,
+            "active": active_ids.get("for", ""),
             "legacy": LEGACY_FOR_SOURCE_FOLDER_ID,
         },
     }
@@ -1005,6 +1020,138 @@ def _download_drive_text(service, file_id: str) -> str:
     return out.getvalue().decode("utf-8")
 
 
+def _drive_literal(value: str) -> str:
+    return (value or "").replace("\\", "\\\\").replace("'", "\\'")
+
+
+def _folder_name_key(value: str) -> str:
+    return re.sub(r"\s+", " ", (value or "").strip()).casefold()
+
+
+def _list_child_folders(service, parent_id: str) -> List[Dict[str, Any]]:
+    query = (
+        f"'{parent_id}' in parents "
+        f"and mimeType = '{GDRIVE_FOLDER_MIME}' "
+        "and trashed = false"
+    )
+    rows: List[Dict[str, Any]] = []
+    page_token = None
+    while True:
+        resp = service.files().list(
+            q=query,
+            fields="nextPageToken, files(id, name)",
+            pageToken=page_token,
+            pageSize=1000,
+            corpora="allDrives",
+            supportsAllDrives=True,
+            includeItemsFromAllDrives=True,
+        ).execute()
+        rows.extend(resp.get("files", []))
+        page_token = resp.get("nextPageToken")
+        if not page_token:
+            break
+    return rows
+
+
+def _find_folders_by_name(service, name: str) -> List[Dict[str, Any]]:
+    query = (
+        f"name = '{_drive_literal(name)}' "
+        f"and mimeType = '{GDRIVE_FOLDER_MIME}' "
+        "and trashed = false"
+    )
+    rows: List[Dict[str, Any]] = []
+    page_token = None
+    while True:
+        resp = service.files().list(
+            q=query,
+            fields="nextPageToken, files(id, name)",
+            pageToken=page_token,
+            pageSize=100,
+            corpora="allDrives",
+            supportsAllDrives=True,
+            includeItemsFromAllDrives=True,
+        ).execute()
+        rows.extend(resp.get("files", []))
+        page_token = resp.get("nextPageToken")
+        if not page_token:
+            break
+    return rows
+
+
+def _find_child_folder_casefold(service, parent_id: str, name: str) -> Optional[Dict[str, Any]]:
+    expected = _folder_name_key(name)
+    for folder in _list_child_folders(service, parent_id):
+        if _folder_name_key(folder.get("name") or "") == expected:
+            return folder
+    return None
+
+
+def _configured_drive_folders(env_name: str, default_name: str) -> List[Dict[str, Any]]:
+    return [
+        {"id": folder_id.strip(), "name": default_name}
+        for folder_id in (os.environ.get(env_name) or "").split(",")
+        if folder_id.strip()
+    ]
+
+
+def _active_ingest_parent_folders(service) -> List[Dict[str, Any]]:
+    configured = _configured_drive_folders(ACTIVE_INGEST_PARENT_FOLDER_ENV, ACTIVE_INGEST_PARENT_FOLDER_NAME)
+    if configured:
+        return configured
+    try:
+        return _find_folders_by_name(service, ACTIVE_INGEST_PARENT_FOLDER_NAME)
+    except Exception as e:
+        print(f"[WARN] active ingest parent lookup failed: {e}")
+        return []
+
+
+def _active_analysis_source_folder_ids(service) -> Dict[str, str]:
+    global _RESOLVED_ACTIVE_ANALYSIS_SOURCE_FOLDER_IDS
+    resolved = {
+        report_type: folder_id
+        for report_type, folder_id in {
+            "econ": ECON_SOURCE_FOLDER_ID,
+            "mat": MAT_SOURCE_FOLDER_ID,
+            "for": FOR_SOURCE_FOLDER_ID,
+        }.items()
+        if folder_id
+    }
+    missing_types = [report_type for report_type in ("econ", "mat", "for") if not resolved.get(report_type)]
+    if not missing_types:
+        return resolved
+    if _RESOLVED_ACTIVE_ANALYSIS_SOURCE_FOLDER_IDS is not None:
+        resolved = {**_RESOLVED_ACTIVE_ANALYSIS_SOURCE_FOLDER_IDS, **resolved}
+        missing_types = [report_type for report_type in ("econ", "mat", "for") if not resolved.get(report_type)]
+        if not missing_types:
+            return resolved
+
+    for parent in _active_ingest_parent_folders(service):
+        parent_id = parent.get("id")
+        if not parent_id:
+            continue
+        analysis_root = _find_child_folder_casefold(service, parent_id, ACTIVE_ANALYSIS_ROOT_FOLDER_NAME)
+        if not analysis_root or not analysis_root.get("id"):
+            continue
+        for report_type in missing_types:
+            if resolved.get(report_type):
+                continue
+            folder = _find_child_folder_casefold(service, analysis_root["id"], report_type.upper())
+            if folder and folder.get("id"):
+                resolved[report_type] = folder["id"]
+        if all(resolved.get(report_type) for report_type in missing_types):
+            break
+
+    still_missing = [report_type for report_type in ("econ", "mat", "for") if not resolved.get(report_type)]
+    if still_missing:
+        print(
+            "[WARN] active analysis ingest folders missing for "
+            f"{', '.join(still_missing)}; set BCE_MARKETING_ACTIVE_*_SOURCE_FOLDER_ID "
+            f"or create {ACTIVE_INGEST_PARENT_FOLDER_NAME}/{ACTIVE_ANALYSIS_ROOT_FOLDER_NAME}/{{ECON,MAT,FOR}}"
+        )
+    _RESOLVED_ACTIVE_ANALYSIS_SOURCE_FOLDER_IDS = resolved
+    return resolved
+
+
 def _copy_drive_file(service, file_id: str, name: str, archive_folder_id: str) -> Optional[Dict[str, Any]]:
     if not archive_folder_id:
         return None
@@ -1055,6 +1202,7 @@ def find_drive_source_for_project(
     source_folder_ids = [folder_id] if folder_id else _source_folder_ids_for_report_type(
         report_type,
         source_scope=source_scope,
+        service=drive_service,
     )
     candidates: List[Dict[str, Any]] = []
     for source_folder_id in source_folder_ids:
@@ -1486,9 +1634,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             sources = load_drive_sources(args.source_folder_id)
         else:
             sources = []
+            drive_service = _get_drive_service()
             for source_folder_id in _source_folder_ids_for_report_type(
                 args.report_type,
                 source_scope=args.source_scope,
+                service=drive_service,
             ):
                 sources.extend(load_drive_sources(source_folder_id))
     else:
