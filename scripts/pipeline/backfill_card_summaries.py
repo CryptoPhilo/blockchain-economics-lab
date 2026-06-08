@@ -32,6 +32,12 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Dry-run or apply card summary backfills.")
     parser.add_argument("--source", choices=["drive", "local"], default="drive")
     parser.add_argument("--source-folder-id", help="Google Drive source folder id override.")
+    parser.add_argument(
+        "--source-scope",
+        choices=["active", "legacy", "all"],
+        default="legacy",
+        help="Drive Markdown source roots to search when --source-folder-id is not provided.",
+    )
     parser.add_argument("--local-path", action="append", default=[])
     parser.add_argument("--slug", action="append", default=[], help="Project slug to process. Defaults to BCE-1933 samples.")
     parser.add_argument("--report-type", choices=["econ", "mat", "for"], help="Only process one report type.")
@@ -96,7 +102,14 @@ def _latest_report_rows_for_project(sb, project_id: str, *, report_type: Optiona
     return list(latest_by_type_version.values())
 
 
-def load_drive_sources_for_slugs(slugs, *, report_type: Optional[str], version: Optional[int], limit: Optional[int]):
+def load_drive_sources_for_slugs(
+    slugs,
+    *,
+    report_type: Optional[str],
+    version: Optional[int],
+    limit: Optional[int],
+    source_scope: str = "legacy",
+):
     sb = _get_supabase_client()
     if sb is None:
         raise RuntimeError("Supabase warehouse client is not available")
@@ -124,6 +137,7 @@ def load_drive_sources_for_slugs(slugs, *, report_type: Optional[str], version: 
                 project,
                 report_type=short_type,
                 version=int(row.get("version") or 1),
+                source_scope=source_scope,
             )
             if source is None:
                 print(f"[SKIP] Drive source not found for slug={slug} type={short_type} version={row.get('version')}")
@@ -146,6 +160,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 report_type=args.report_type,
                 version=args.version,
                 limit=args.limit,
+                source_scope=args.source_scope,
             )
     else:
         sources = load_local_sources(args.local_path)

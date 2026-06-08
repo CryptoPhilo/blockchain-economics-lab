@@ -274,12 +274,59 @@ def _ocr_first_page_text(pdf_path: str, max_pages: int = _inspection_helpers.PDF
 # Configuration
 # ═══════════════════════════════════════════
 
-# GDrive root folder per type (provided in BCE-1085 spec)
-TYPE_FOLDER_IDS: Dict[str, str] = {
-    'econ': '19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn',
-    'mat':  '18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6',
-    'for':  '1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex',
+def _env_folder_id(name: str, default: str = '') -> str:
+    return (os.environ.get(name) or default or '').strip()
+
+
+# Legacy Slide roots are kept for explicit backfills only. The active ingest
+# roots are intentionally environment-driven so operators can move new uploads
+# into a small, fast Drive tree without rescanning the historical archive.
+LEGACY_TYPE_FOLDER_IDS: Dict[str, str] = {
+    'econ': _env_folder_id('BCE_SLIDE_LEGACY_ECON_FOLDER_ID', '19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn'),
+    'mat':  _env_folder_id('BCE_SLIDE_LEGACY_MAT_FOLDER_ID', '18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6'),
+    'for':  _env_folder_id('BCE_SLIDE_LEGACY_FOR_FOLDER_ID', '1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex'),
 }
+
+ACTIVE_TYPE_FOLDER_IDS: Dict[str, str] = {
+    'econ': _env_folder_id('BCE_SLIDE_ACTIVE_ECON_FOLDER_ID'),
+    'mat': _env_folder_id('BCE_SLIDE_ACTIVE_MAT_FOLDER_ID'),
+    'for': _env_folder_id('BCE_SLIDE_ACTIVE_FOR_FOLDER_ID'),
+}
+
+# Backward-compatible test/patch point used as the active root set.
+TYPE_FOLDER_IDS: Dict[str, str] = ACTIVE_TYPE_FOLDER_IDS
+
+DRIVE_ROOT_SCOPES = {'active', 'legacy', 'all'}
+ACTIVE_INGEST_PARENT_FOLDER_NAME = _env_folder_id('BCE_ACTIVE_INGEST_PARENT_FOLDER_NAME', 'BCE Lab Reports')
+ACTIVE_INGEST_PARENT_FOLDER_ENV = 'BCE_ACTIVE_INGEST_PARENT_FOLDER_ID'
+ACTIVE_SLIDE_ROOT_FOLDER_NAME = _env_folder_id('BCE_ACTIVE_SLIDE_ROOT_FOLDER_NAME', 'Slide2')
+_RESOLVED_ACTIVE_TYPE_FOLDER_IDS: Optional[Dict[str, str]] = None
+
+
+def _normalize_drive_root_scope(scope: Optional[str]) -> str:
+    normalized = (scope or 'active').strip().lower()
+    if normalized not in DRIVE_ROOT_SCOPES:
+        raise ValueError(f"drive root scope must be one of {sorted(DRIVE_ROOT_SCOPES)}")
+    return normalized
+
+
+def _slide_type_folder_sets_for_scope(
+    scope: Optional[str],
+    *,
+    service: Optional[Any] = None,
+) -> List[Tuple[str, Dict[str, str]]]:
+    normalized = _normalize_drive_root_scope(scope)
+    active_folder_ids = _active_slide_type_folder_ids(service) if service is not None else TYPE_FOLDER_IDS
+    if normalized == 'active':
+        return [('active', active_folder_ids)]
+    if normalized == 'legacy':
+        return [('legacy', LEGACY_TYPE_FOLDER_IDS)]
+    return [('active', active_folder_ids), ('legacy', LEGACY_TYPE_FOLDER_IDS)]
+
+
+def _slide_source_path_prefix(root_scope: str) -> str:
+    return 'Slide' if root_scope == 'active' else 'Legacy/Slide'
+
 
 # Legacy report PDFs sometimes live outside the active Slide/{TYPE} roots.
 # They are still scanned so the watcher can either publish a landscape deck or
@@ -418,6 +465,78 @@ def _list_child_folders(service, parent_id: str) -> List[Dict]:
         if not page_token:
             break
     return out
+
+
+def _folder_name_key(value: str) -> str:
+    return re.sub(r'\s+', ' ', (value or '').strip()).casefold()
+
+
+def _find_child_folder_casefold(service, parent_id: str, name: str) -> Optional[Dict[str, Any]]:
+    expected = _folder_name_key(name)
+    for folder in _list_child_folders(service, parent_id):
+        if _folder_name_key(folder.get('name') or '') == expected:
+            return folder
+    return None
+
+
+def _configured_drive_folders(env_name: str, default_name: str) -> List[Dict[str, Any]]:
+    configured = [
+        folder_id.strip()
+        for folder_id in (os.environ.get(env_name) or '').split(',')
+        if folder_id.strip()
+    ]
+    return [{'id': folder_id, 'name': default_name} for folder_id in configured]
+
+
+def _active_ingest_parent_folders(service) -> List[Dict[str, Any]]:
+    configured = _configured_drive_folders(ACTIVE_INGEST_PARENT_FOLDER_ENV, ACTIVE_INGEST_PARENT_FOLDER_NAME)
+    if configured:
+        return configured
+    try:
+        return _find_folders_by_name(service, ACTIVE_INGEST_PARENT_FOLDER_NAME)
+    except Exception as e:
+        print(f"  [WARN] active ingest parent lookup failed: {e}")
+        return []
+
+
+def _active_slide_type_folder_ids(service) -> Dict[str, str]:
+    """Return active Slide2/{TYPE} folder IDs, using env vars first."""
+    global _RESOLVED_ACTIVE_TYPE_FOLDER_IDS
+    resolved = {rtype: folder_id for rtype, folder_id in TYPE_FOLDER_IDS.items() if folder_id}
+    missing_types = [rtype for rtype in ('econ', 'mat', 'for') if not resolved.get(rtype)]
+    if not missing_types:
+        return resolved
+    if _RESOLVED_ACTIVE_TYPE_FOLDER_IDS is not None:
+        resolved = {**_RESOLVED_ACTIVE_TYPE_FOLDER_IDS, **resolved}
+        missing_types = [rtype for rtype in ('econ', 'mat', 'for') if not resolved.get(rtype)]
+        if not missing_types:
+            return resolved
+
+    for parent in _active_ingest_parent_folders(service):
+        parent_id = parent.get('id')
+        if not parent_id:
+            continue
+        slide_root = _find_child_folder_casefold(service, parent_id, ACTIVE_SLIDE_ROOT_FOLDER_NAME)
+        if not slide_root or not slide_root.get('id'):
+            continue
+        for rtype in missing_types:
+            if resolved.get(rtype):
+                continue
+            folder = _find_child_folder_casefold(service, slide_root['id'], rtype.upper())
+            if folder and folder.get('id'):
+                resolved[rtype] = folder['id']
+        if all(resolved.get(rtype) for rtype in missing_types):
+            break
+
+    still_missing = [rtype for rtype in ('econ', 'mat', 'for') if not resolved.get(rtype)]
+    if still_missing:
+        print(
+            "  [WARN] active Slide ingest folders missing for "
+            f"{', '.join(still_missing)}; set BCE_SLIDE_ACTIVE_*_FOLDER_ID "
+            f"or create {ACTIVE_INGEST_PARENT_FOLDER_NAME}/{ACTIVE_SLIDE_ROOT_FOLDER_NAME}/{{ECON,MAT,FOR}}"
+        )
+    _RESOLVED_ACTIVE_TYPE_FOLDER_IDS = resolved
+    return resolved
 
 
 def _list_non_folder_files_direct(service, parent_id: str) -> List[Dict]:
@@ -1281,6 +1400,7 @@ def _generate_summary_after_slide_publish(
     report_id: Optional[str],
     version: Optional[int],
     source: Optional[Any] = None,
+    drive_root_scope: str = 'active',
 ) -> bool:
     """Generate website card copy after a slide deck is published."""
     if rtype not in {'econ', 'mat', 'for'} or not report_id:
@@ -1296,6 +1416,7 @@ def _generate_summary_after_slide_publish(
                 project=project,
                 rtype=rtype,
                 version=version,
+                drive_root_scope=drive_root_scope,
             )
         if not source:
             print(
@@ -1449,6 +1570,7 @@ def _find_analysis_source_for_slide(
     project: Dict[str, Any],
     rtype: str,
     version: Optional[int],
+    drive_root_scope: str = 'active',
 ) -> Optional[Any]:
     """Find the required analysis/{TYPE} Markdown source for a slide publication."""
     if rtype not in {'econ', 'mat', 'for'}:
@@ -1461,6 +1583,7 @@ def _find_analysis_source_for_slide(
             report_type=rtype,
             version=version or 1,
             service=drive_service,
+            source_scope=drive_root_scope,
         )
     except Exception as e:
         print(f"    [WARN] {rtype.upper()} analysis source lookup failed: {e}")
@@ -1748,13 +1871,19 @@ def _active_drive_report_inventory(
     types: Iterable[str],
     projects: List[Dict[str, Any]],
     blocked_file_ids: Optional[Set[str]] = None,
+    drive_root_scope: str = 'active',
 ) -> Tuple[Set[Tuple[str, str, str]], List[Dict[str, Any]], List[Dict[str, Any]]]:
     """Return active Slide/{TYPE} report keys plus resolved Drive PDF metadata."""
     pairs: Set[Tuple[str, str, str]] = set()
     resolved_rows: List[Dict[str, Any]] = []
     unresolved: List[Dict[str, Any]] = []
     blocked_file_ids = blocked_file_ids or set()
-    for rtype, pdf in _iter_active_slide_targets(service, types, projects=projects):
+    for rtype, pdf in _iter_active_slide_targets(
+        service,
+        types,
+        projects=projects,
+        drive_root_scope=drive_root_scope,
+    ):
         if pdf.get('id') in blocked_file_ids:
             unresolved.append({
                 'rtype': rtype,
@@ -1797,9 +1926,15 @@ def _active_drive_report_pairs(
     service,
     types: Iterable[str],
     projects: List[Dict[str, Any]],
+    drive_root_scope: str = 'active',
 ) -> Tuple[Set[Tuple[str, str, str]], List[Dict[str, Any]]]:
     """Return active Slide/{TYPE} report keys as (db_type, slug, lang)."""
-    pairs, _resolved_rows, unresolved = _active_drive_report_inventory(service, types, projects)
+    pairs, _resolved_rows, unresolved = _active_drive_report_inventory(
+        service,
+        types,
+        projects,
+        drive_root_scope=drive_root_scope,
+    )
     return pairs, unresolved
 
 
@@ -1921,6 +2056,7 @@ def _reconcile_visible_reports_with_drive(
     projects: List[Dict[str, Any]],
     dry_run: bool,
     blocked_file_ids: Optional[Set[str]] = None,
+    drive_root_scope: str = 'active',
 ) -> List[Dict[str, Any]]:
     """Keep website-visible report rows aligned with current active Slide folders."""
     if sb is None:
@@ -1938,6 +2074,7 @@ def _reconcile_visible_reports_with_drive(
         types,
         projects,
         blocked_file_ids=blocked_file_ids,
+        drive_root_scope=drive_root_scope,
     )
     results.extend(unresolved)
     db_types = {DB_REPORT_TYPE[rtype] for rtype in types if rtype in DB_REPORT_TYPE}
@@ -2145,7 +2282,12 @@ def _reconcile_visible_reports_with_drive(
     return results
 
 
-def run_db_reconcile_only(types: Iterable[str], *, dry_run: bool) -> List[Dict[str, Any]]:
+def run_db_reconcile_only(
+    types: Iterable[str],
+    *,
+    dry_run: bool,
+    drive_root_scope: str = 'active',
+) -> List[Dict[str, Any]]:
     """Run the Drive-vs-DB availability reconciliation without slide conversion.
 
     This is an operational repair path for cases where the manifest/processed
@@ -2164,6 +2306,7 @@ def run_db_reconcile_only(types: Iterable[str], *, dry_run: bool) -> List[Dict[s
         types=types,
         projects=projects,
         dry_run=dry_run,
+        drive_root_scope=drive_root_scope,
     )
 
 
@@ -2631,7 +2774,13 @@ def _folder_matches_slug_hint(
     )
 
 
-def _root_scan_mode(root_rtype: str, requested_types: Set[str], hint_tokens: Set[str]) -> str:
+def _root_scan_mode(
+    root_rtype: str,
+    requested_types: Set[str],
+    hint_tokens: Set[str],
+    *,
+    root_count: int,
+) -> str:
     """Return scan mode for a Slide root.
 
     Requested roots are fully scanned. Sibling roots are checked only at the
@@ -2640,7 +2789,7 @@ def _root_scan_mode(root_rtype: str, requested_types: Set[str], hint_tokens: Set
     """
     if root_rtype in requested_types:
         return 'full'
-    if len(requested_types) == len(TYPE_FOLDER_IDS):
+    if len(requested_types) == root_count:
         return 'full'
     if hint_tokens:
         return 'skip'
@@ -2654,107 +2803,30 @@ def _iter_active_slide_targets(
     filter_slug: Optional[str] = None,
     projects: Optional[List[Dict[str, Any]]] = None,
     modified_since: Optional[datetime] = None,
+    drive_root_scope: str = 'active',
 ):
-    """Yield (rtype, pdf_info) for active Slide roots only."""
+    """Yield (rtype, pdf_info) for configured Slide ingest roots."""
     requested_types = set(types)
     hint_tokens = _slug_hint_tokens(filter_slug, projects or [])
     seen_file_ids: Set[str] = set()
-    for root_rtype, type_folder in TYPE_FOLDER_IDS.items():
-        if not type_folder:
-            continue
-        scan_mode = _root_scan_mode(root_rtype, requested_types, hint_tokens)
-        if scan_mode == 'skip':
-            continue
-        root_folder = {'id': type_folder, 'name': root_rtype}
-        root_matched = False
-        for pdf in _list_pdfs_direct_for_scope(service, type_folder, modified_since):
-            if not _name_matches_slug_hint(
-                pdf.get('name') or '',
+    for root_scope, folder_ids in _slide_type_folder_sets_for_scope(drive_root_scope, service=service):
+        root_count = len([folder_id for folder_id in folder_ids.values() if folder_id])
+        source_prefix = _slide_source_path_prefix(root_scope)
+        search_prefix = 'Drive/search' if root_scope == 'active' else f"Drive/search/{root_scope}"
+        for root_rtype, type_folder in folder_ids.items():
+            if not type_folder:
+                continue
+            scan_mode = _root_scan_mode(
+                root_rtype,
+                requested_types,
                 hint_tokens,
-                filter_slug=filter_slug,
-                projects=projects,
-            ):
-                continue
-            target_rtype = (
-                _infer_rtype_from_file_name(
-                    pdf.get('name') or '',
-                    requested_types,
-                    default_single_type=False,
-                )
-                or root_rtype
+                root_count=root_count,
             )
-            if target_rtype not in requested_types:
+            if scan_mode == 'skip':
                 continue
-            file_id = pdf.get('id')
-            if file_id:
-                seen_file_ids.add(file_id)
-            root_matched = True
-            yield target_rtype, _with_source_metadata(
-                pdf,
-                parent_folder=root_folder,
-                source_path=f"Slide/{root_rtype}",
-                depth=0,
-            )
-        if filter_slug and not root_matched and scan_mode != 'full':
-            search_terms = _drive_pdf_name_search_terms(filter_slug, projects or [])
-            search_folder = {'id': 'drive-name-search', 'name': 'Drive filename search'}
-            for pdf in _search_pdfs_by_name(service, search_terms, modified_since):
-                if not _name_matches_slug_hint(
-                    pdf.get('name') or '',
-                    hint_tokens,
-                    filter_slug=filter_slug,
-                    projects=projects,
-                ):
-                    continue
-                target_rtype = (
-                    _infer_rtype_from_file_name(
-                        pdf.get('name') or '',
-                        requested_types,
-                        default_single_type=False,
-                    )
-                    or root_rtype
-                )
-                if target_rtype != root_rtype or target_rtype not in requested_types:
-                    continue
-                file_id = pdf.get('id')
-                if file_id and file_id in seen_file_ids:
-                    continue
-                if file_id:
-                    seen_file_ids.add(file_id)
-                root_matched = True
-                pdf = {
-                    **pdf,
-                    'drive_search_fallback': True,
-                    'expected_slide_parent_id': type_folder,
-                }
-                yield target_rtype, _with_source_metadata(
-                    pdf,
-                    parent_folder=search_folder,
-                    source_path=f"Drive/search/{root_rtype}",
-                    depth=0,
-                )
-        if scan_mode != 'full':
-            continue
-        scan_requested_root = root_rtype in requested_types or len(requested_types) == len(TYPE_FOLDER_IDS)
-        stack: List[Tuple[Dict, str, int]] = [
-            (folder, f"Slide/{root_rtype}/{folder.get('name', '')}", 1)
-            for folder in _list_child_folders(service, type_folder)
-            if scan_requested_root or _folder_matches_slug_hint(
-                folder.get('name') or '',
-                hint_tokens,
-                filter_slug=filter_slug,
-                projects=projects,
-            )
-        ]
-        seen: set[str] = set()
-        while stack:
-            folder, source_path, depth = stack.pop(0)
-            folder_id = folder.get('id')
-            if not folder_id or folder_id in seen:
-                continue
-            seen.add(folder_id)
-
-            for pdf in _list_pdfs_direct_for_scope(service, folder_id, modified_since):
+            root_folder = {'id': type_folder, 'name': root_rtype}
+            root_matched = False
+            for pdf in _list_pdfs_direct_for_scope(service, type_folder, modified_since):
                 if not _name_matches_slug_hint(
                     pdf.get('name') or '',
                     hint_tokens,
@@ -2780,65 +2852,154 @@ def _iter_active_slide_targets(
                 root_matched = True
                 yield target_rtype, _with_source_metadata(
                     pdf,
-                    parent_folder=folder,
-                    source_path=source_path,
-                    depth=depth,
+                    parent_folder=root_folder,
+                    source_path=f"{source_prefix}/{root_rtype}",
+                    depth=0,
                 )
-
-            for child in _list_child_folders(service, folder_id):
-                if not scan_requested_root and hint_tokens and not (
-                    _folder_matches_slug_hint(
-                        child.get('name') or '',
+            if filter_slug and not root_matched and scan_mode != 'full':
+                search_terms = _drive_pdf_name_search_terms(filter_slug, projects or [])
+                search_folder = {'id': 'drive-name-search', 'name': 'Drive filename search'}
+                for pdf in _search_pdfs_by_name(service, search_terms, modified_since):
+                    if not _name_matches_slug_hint(
+                        pdf.get('name') or '',
                         hint_tokens,
                         filter_slug=filter_slug,
                         projects=projects,
+                    ):
+                        continue
+                    target_rtype = (
+                        _infer_rtype_from_file_name(
+                            pdf.get('name') or '',
+                            requested_types,
+                            default_single_type=False,
+                        )
+                        or root_rtype
                     )
-                    or _folder_matches_slug_hint(
-                        source_path,
-                        hint_tokens,
-                        filter_slug=filter_slug,
-                        projects=projects,
+                    if target_rtype != root_rtype or target_rtype not in requested_types:
+                        continue
+                    file_id = pdf.get('id')
+                    if file_id and file_id in seen_file_ids:
+                        continue
+                    if file_id:
+                        seen_file_ids.add(file_id)
+                    root_matched = True
+                    pdf = {
+                        **pdf,
+                        'drive_search_fallback': True,
+                        'expected_slide_parent_id': type_folder,
+                    }
+                    yield target_rtype, _with_source_metadata(
+                        pdf,
+                        parent_folder=search_folder,
+                        source_path=f"{search_prefix}/{root_rtype}",
+                        depth=0,
                     )
-                ):
-                    continue
-                stack.append((child, f"{source_path}/{child.get('name', '')}", depth + 1))
-        if filter_slug and not root_matched:
-            search_terms = _drive_pdf_name_search_terms(filter_slug, projects or [])
-            search_folder = {'id': 'drive-name-search', 'name': 'Drive filename search'}
-            for pdf in _search_pdfs_by_name(service, search_terms, modified_since):
-                if not _name_matches_slug_hint(
-                    pdf.get('name') or '',
+            if scan_mode != 'full':
+                continue
+            scan_requested_root = root_rtype in requested_types or len(requested_types) == root_count
+            stack: List[Tuple[Dict, str, int]] = [
+                (folder, f"{source_prefix}/{root_rtype}/{folder.get('name', '')}", 1)
+                for folder in _list_child_folders(service, type_folder)
+                if scan_requested_root or _folder_matches_slug_hint(
+                    folder.get('name') or '',
                     hint_tokens,
                     filter_slug=filter_slug,
                     projects=projects,
-                ):
+                )
+            ]
+            seen: set[str] = set()
+            while stack:
+                folder, source_path, depth = stack.pop(0)
+                folder_id = folder.get('id')
+                if not folder_id or folder_id in seen:
                     continue
-                target_rtype = (
-                    _infer_rtype_from_file_name(
+                seen.add(folder_id)
+
+                for pdf in _list_pdfs_direct_for_scope(service, folder_id, modified_since):
+                    if not _name_matches_slug_hint(
                         pdf.get('name') or '',
-                        requested_types,
-                        default_single_type=False,
+                        hint_tokens,
+                        filter_slug=filter_slug,
+                        projects=projects,
+                    ):
+                        continue
+                    target_rtype = (
+                        _infer_rtype_from_file_name(
+                            pdf.get('name') or '',
+                            requested_types,
+                            default_single_type=False,
+                        )
+                        or root_rtype
                     )
-                    or root_rtype
-                )
-                if target_rtype != root_rtype or target_rtype not in requested_types:
-                    continue
-                file_id = pdf.get('id')
-                if file_id and file_id in seen_file_ids:
-                    continue
-                if file_id:
-                    seen_file_ids.add(file_id)
-                pdf = {
-                    **pdf,
-                    'drive_search_fallback': True,
-                    'expected_slide_parent_id': type_folder,
-                }
-                yield target_rtype, _with_source_metadata(
-                    pdf,
-                    parent_folder=search_folder,
-                    source_path=f"Drive/search/{root_rtype}",
-                    depth=0,
-                )
+                    if target_rtype not in requested_types:
+                        continue
+                    file_id = pdf.get('id')
+                    if file_id and file_id in seen_file_ids:
+                        continue
+                    if file_id:
+                        seen_file_ids.add(file_id)
+                    root_matched = True
+                    yield target_rtype, _with_source_metadata(
+                        pdf,
+                        parent_folder=folder,
+                        source_path=source_path,
+                        depth=depth,
+                    )
+
+                for child in _list_child_folders(service, folder_id):
+                    if not scan_requested_root and hint_tokens and not (
+                        _folder_matches_slug_hint(
+                            child.get('name') or '',
+                            hint_tokens,
+                            filter_slug=filter_slug,
+                            projects=projects,
+                        )
+                        or _folder_matches_slug_hint(
+                            source_path,
+                            hint_tokens,
+                            filter_slug=filter_slug,
+                            projects=projects,
+                        )
+                    ):
+                        continue
+                    stack.append((child, f"{source_path}/{child.get('name', '')}", depth + 1))
+            if filter_slug and not root_matched:
+                search_terms = _drive_pdf_name_search_terms(filter_slug, projects or [])
+                search_folder = {'id': 'drive-name-search', 'name': 'Drive filename search'}
+                for pdf in _search_pdfs_by_name(service, search_terms, modified_since):
+                    if not _name_matches_slug_hint(
+                        pdf.get('name') or '',
+                        hint_tokens,
+                        filter_slug=filter_slug,
+                        projects=projects,
+                    ):
+                        continue
+                    target_rtype = (
+                        _infer_rtype_from_file_name(
+                            pdf.get('name') or '',
+                            requested_types,
+                            default_single_type=False,
+                        )
+                        or root_rtype
+                    )
+                    if target_rtype != root_rtype or target_rtype not in requested_types:
+                        continue
+                    file_id = pdf.get('id')
+                    if file_id and file_id in seen_file_ids:
+                        continue
+                    if file_id:
+                        seen_file_ids.add(file_id)
+                    pdf = {
+                        **pdf,
+                        'drive_search_fallback': True,
+                        'expected_slide_parent_id': type_folder,
+                    }
+                    yield target_rtype, _with_source_metadata(
+                        pdf,
+                        parent_folder=search_folder,
+                        source_path=f"{search_prefix}/{root_rtype}",
+                        depth=0,
+                    )
 
 
 def _iter_targets(
@@ -2848,14 +3009,16 @@ def _iter_targets(
     filter_slug: Optional[str] = None,
     projects: Optional[List[Dict[str, Any]]] = None,
     modified_since: Optional[datetime] = None,
+    drive_root_scope: str = 'active',
 ):
-    """Yield (rtype, pdf_info) for active Slide roots only."""
+    """Yield (rtype, pdf_info) for configured Slide ingest roots."""
     for rtype, pdf in _iter_active_slide_targets(
         service,
         types,
         filter_slug=filter_slug,
         projects=projects,
         modified_since=modified_since,
+        drive_root_scope=drive_root_scope,
     ):
         yield rtype, pdf
 
@@ -2894,6 +3057,7 @@ def process(
     modified_since: Optional[datetime] = None,
     max_targets: Optional[int] = None,
     deadline_at: Optional[datetime] = None,
+    drive_root_scope: str = 'active',
 ) -> Tuple[List[Dict], List[Dict]]:
     if filter_file_ids:
         raise ValueError('--file-id targets are disabled; place PDFs under Slide/{TYPE} and use --slug/--type filters')
@@ -2945,6 +3109,7 @@ def process(
         filter_slug=filter_slug,
         projects=projects,
         modified_since=modified_since,
+        drive_root_scope=drive_root_scope,
     )
 
     targets_seen = 0
@@ -3245,6 +3410,7 @@ def process(
                                     project=project,
                                     rtype=rtype,
                                     version=version,
+                                    drive_root_scope=drive_root_scope,
                                 )
                                 _persist_maturity_score_from_source(
                                     sb,
@@ -3569,6 +3735,7 @@ def process(
                 project=project,
                 rtype=rtype,
                 version=version,
+                drive_root_scope=drive_root_scope,
             )
             if not analysis_source:
                 print(
@@ -3648,6 +3815,7 @@ def process(
                     report_id=report_id,
                     version=version,
                     source=analysis_source,
+                    drive_root_scope=drive_root_scope,
                 )
                 if rtype == 'mat':
                     _persist_maturity_score_from_source(
@@ -3777,6 +3945,7 @@ def process(
                     projects=projects,
                     dry_run=dry_run,
                     blocked_file_ids=blocked_reconcile_file_ids,
+                    drive_root_scope=drive_root_scope,
                 )
                 processed.extend(reconcile_results)
             except Exception as e:
@@ -4112,6 +4281,12 @@ def main() -> int:
         help='Only reconcile active Drive Slide PDFs with website-visible DB report rows; skip conversion/upload.',
     )
     parser.add_argument(
+        '--drive-root-scope',
+        choices=sorted(DRIVE_ROOT_SCOPES),
+        default='active',
+        help='Drive ingest roots to scan: active for new uploads, legacy for backfill, all for manual audit.',
+    )
+    parser.add_argument(
         '--max-targets',
         type=int,
         default=None,
@@ -4131,6 +4306,11 @@ def main() -> int:
     args = parser.parse_args()
 
     types = ['econ', 'mat', 'for'] if args.type == 'all' else [args.type]
+    try:
+        drive_root_scope = _normalize_drive_root_scope(args.drive_root_scope)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 2
     if args.reconcile_only and args.slug:
         print('Error: --reconcile-only cannot be combined with --slug; run it per type or full tree.', file=sys.stderr)
         return 2
@@ -4163,6 +4343,7 @@ def main() -> int:
           f'Dry-run: {args.dry_run}  Force: {args.force}  '
           f'Language overrides: {len(language_overrides)}  '
           f'Modified since: {modified_since.isoformat() if modified_since else "(none)"}  '
+          f'Drive root scope: {drive_root_scope}  '
           f'Max targets: {args.max_targets or "(none)"}  '
           f'Deadline: {deadline_at.isoformat() if deadline_at else "(none)"}  '
           f'Skip diagnostics: {args.skip_diagnostics}')
@@ -4181,7 +4362,11 @@ def main() -> int:
         print('\n[RECONCILE] DB availability repair only; skipping PDF conversion/upload')
         scanned = []
         try:
-            processed = run_db_reconcile_only(types, dry_run=args.dry_run)
+            processed = run_db_reconcile_only(
+                types,
+                dry_run=args.dry_run,
+                drive_root_scope=drive_root_scope,
+            )
         except Exception as e:
             print(f"  [WARN] DB availability reconcile-only failed: {e}")
             processed = [{
@@ -4203,6 +4388,7 @@ def main() -> int:
             modified_since=modified_since,
             max_targets=args.max_targets,
             deadline_at=deadline_at,
+            drive_root_scope=drive_root_scope,
         )
 
     if args.skip_diagnostics:

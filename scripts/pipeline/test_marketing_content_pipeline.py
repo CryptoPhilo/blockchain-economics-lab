@@ -45,6 +45,7 @@ def test_score_drive_source_for_project_prefers_exact_natural_mat_name(mcp):
 def test_find_drive_source_for_project_supports_natural_mat_filename(monkeypatch, mcp):
     project = {"slug": "tether", "name": "Tether", "symbol": "USDT", "aliases": []}
 
+    monkeypatch.setattr(mcp, "MAT_SOURCE_FOLDER_ID", "drive-active-mat")
     monkeypatch.setattr(
         mcp,
         "_list_drive_markdown_sources",
@@ -72,6 +73,7 @@ def test_find_drive_source_for_project_supports_natural_mat_filename(monkeypatch
 def test_find_drive_source_for_project_uses_econ_folder(monkeypatch, mcp):
     project = {"slug": "pax-gold", "name": "PAX Gold", "symbol": "PAXG", "aliases": []}
     captured = []
+    monkeypatch.setattr(mcp, "ECON_SOURCE_FOLDER_ID", "drive-active-econ")
 
     def fake_list_sources(_service, folder_id):
         captured.append(folder_id)
@@ -102,7 +104,7 @@ def test_find_drive_source_for_project_uses_econ_folder(monkeypatch, mcp):
 def test_find_drive_source_for_project_uses_for_folder(monkeypatch, mcp):
     project = {"slug": "bitcoin", "name": "Bitcoin", "symbol": "BTC", "aliases": []}
     captured = []
-    monkeypatch.setattr(mcp, "FOR_SOURCE_FOLDER_ID", "drive-for-folder")
+    monkeypatch.setattr(mcp, "FOR_SOURCE_FOLDER_ID", "drive-active-for")
 
     def fake_list_sources(_service, folder_id):
         captured.append(folder_id)
@@ -127,6 +129,80 @@ def test_find_drive_source_for_project_uses_for_folder(monkeypatch, mcp):
     assert mcp.FOR_SOURCE_FOLDER_ID in captured
     assert source is not None
     assert source.report_type == "for"
+    assert source.drive_file_id == "drive-for-1"
+
+
+def test_find_drive_source_for_project_can_use_legacy_scope(monkeypatch, mcp):
+    project = {"slug": "pax-gold", "name": "PAX Gold", "symbol": "PAXG", "aliases": []}
+    captured = []
+    monkeypatch.setattr(mcp, "ECON_SOURCE_FOLDER_ID", "drive-active-econ")
+    monkeypatch.setattr(mcp, "LEGACY_ECON_SOURCE_FOLDER_ID", "drive-legacy-econ")
+
+    def fake_list_sources(_service, folder_id):
+        captured.append(folder_id)
+        if folder_id != "drive-legacy-econ":
+            return []
+        return [{
+            "id": "drive-legacy-1",
+            "name": "PAXG 크립토이코노미 분석 보고서.md",
+            "modifiedTime": "2026-05-07T08:30:56.000Z",
+        }]
+
+    monkeypatch.setattr(mcp, "_list_drive_markdown_sources", fake_list_sources)
+    monkeypatch.setattr(mcp, "_download_drive_text", lambda _service, _file_id: "# PAXG\n\n본문")
+
+    source = mcp.find_drive_source_for_project(
+        project,
+        report_type="econ",
+        version=1,
+        service=object(),
+        source_scope="legacy",
+    )
+
+    assert captured == ["drive-legacy-econ"]
+    assert source is not None
+    assert source.drive_file_id == "drive-legacy-1"
+
+
+def test_find_drive_source_for_project_resolves_analysis2_when_active_id_missing(monkeypatch, mcp):
+    project = {"slug": "bitcoin", "name": "Bitcoin", "symbol": "BTC", "aliases": []}
+    monkeypatch.setattr(mcp, "FOR_SOURCE_FOLDER_ID", "")
+    monkeypatch.setattr(mcp, "_RESOLVED_ACTIVE_ANALYSIS_SOURCE_FOLDER_IDS", None)
+    folders_by_parent = {
+        "bce-root": [{"id": "analysis2", "name": "analysis2"}],
+        "analysis2": [
+            {"id": "active-econ", "name": "ECON"},
+            {"id": "active-mat", "name": "MAT"},
+            {"id": "active-for", "name": "FOR"},
+        ],
+    }
+    captured = []
+
+    monkeypatch.setattr(mcp, "_find_folders_by_name", lambda _service, name: [{"id": "bce-root", "name": name}])
+    monkeypatch.setattr(mcp, "_list_child_folders", lambda _service, parent_id: folders_by_parent.get(parent_id, []))
+
+    def fake_list_sources(_service, folder_id):
+        captured.append(folder_id)
+        if folder_id != "active-for":
+            return []
+        return [{
+            "id": "drive-for-1",
+            "name": "bitcoin_for_v1_ko.md",
+            "modifiedTime": "2026-05-07T08:30:56.000Z",
+        }]
+
+    monkeypatch.setattr(mcp, "_list_drive_markdown_sources", fake_list_sources)
+    monkeypatch.setattr(mcp, "_download_drive_text", lambda _service, _file_id: "# Bitcoin FOR\n\n본문")
+
+    source = mcp.find_drive_source_for_project(
+        project,
+        report_type="for",
+        version=1,
+        service=object(),
+    )
+
+    assert captured == ["active-for"]
+    assert source is not None
     assert source.drive_file_id == "drive-for-1"
 
 
@@ -1128,8 +1204,8 @@ def test_backfill_drive_source_selection_includes_in_review_and_keeps_slug_scope
     })
     calls = []
 
-    def fake_find_drive_source_for_project(project, *, report_type, version):
-        calls.append((project["slug"], report_type, version))
+    def fake_find_drive_source_for_project(project, *, report_type, version, source_scope="legacy"):
+        calls.append((project["slug"], report_type, version, source_scope))
         return SimpleNamespace(slug=project["slug"], report_type=report_type, version=version)
 
     monkeypatch.setattr(backfill, "_get_supabase_client", lambda: sb)
@@ -1143,7 +1219,7 @@ def test_backfill_drive_source_selection_includes_in_review_and_keeps_slug_scope
     )
 
     assert [source.slug for source in sources] == ["awe-network"]
-    assert calls == [("awe-network", "econ", 1)]
+    assert calls == [("awe-network", "econ", 1, "legacy")]
 
 
 def test_load_local_sources_refuses_generated_output_directory(tmp_path, monkeypatch, capsys, mcp):
