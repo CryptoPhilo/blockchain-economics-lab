@@ -1253,6 +1253,21 @@ def test_iter_targets_uses_drive_name_search_for_slug_when_root_listing_misses(w
     assert 'GWEI' in searched_terms
 
 
+def test_drive_name_search_terms_include_case_variants_for_dotted_alias(ws):
+    projects = [{
+        'slug': 'usdai',
+        'name': 'USDai',
+        'symbol': 'USDAI',
+        'aliases': ['usd.ai', 'usd_ai', 'usd ai'],
+    }]
+
+    terms = ws._drive_pdf_name_search_terms('usdai', projects)
+
+    assert 'usd.ai' in terms
+    assert 'USD.AI' in terms
+    assert 'USD_AI' in terms
+
+
 def test_iter_targets_recurses_nested_folders(ws, monkeypatch):
     monkeypatch.setattr(ws, 'TYPE_FOLDER_IDS', {'econ': 'root-econ'})
     pdfs_by_parent = {
