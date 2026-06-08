@@ -183,6 +183,32 @@ def _match_project_by_text(text: str, projects: List[Dict[str, str]]) -> Optiona
     return best[1] if best else None
 
 
+def _match_project_by_explicit_prefix(prefix: str, projects: List[Dict[str, str]]) -> Optional[Dict[str, str]]:
+    """Match an explicit filename prefix before considering the full filename.
+
+    Operators often name reports as `Context_Asset_MAT_ko.pdf`, for example
+    `Aave_GHO_MAT_ko.pdf`. In that shape the trailing token is the asset being
+    reported on, while the leading token is context. Prefer suffix matches so
+    parent projects do not capture child assets.
+    """
+    if not prefix:
+        return None
+    prefix_tokens = _tokenize(prefix)
+    best_suffix: Optional[Tuple[int, Dict[str, str]]] = None
+    for proj in projects:
+        for sig in _project_signal(proj):
+            sig_tokens = _tokenize(sig)
+            if not sig_tokens or len(sig_tokens) > len(prefix_tokens):
+                continue
+            if prefix_tokens[-len(sig_tokens):] == sig_tokens:
+                score = 1000 + len(sig) * 2
+                if best_suffix is None or score > best_suffix[0]:
+                    best_suffix = (score, proj)
+    if best_suffix:
+        return best_suffix[1]
+    return _match_project_by_text(prefix, projects)
+
+
 def _explicit_report_project_prefix(pdf_name: str) -> Optional[str]:
     """Return the explicit project prefix from names like `bitcoin_MAT_ko.pdf`.
 
@@ -206,11 +232,16 @@ def _resolve_slug(
     projects: List[Dict[str, str]],
 ) -> Tuple[Optional[Dict[str, str]], str]:
     """Return (project, source) where source is filename, pdf_text, ocr, or none."""
+    explicit_prefix = _explicit_report_project_prefix(pdf_name)
+    if explicit_prefix:
+        proj = _match_project_by_explicit_prefix(explicit_prefix, projects)
+        if proj:
+            return proj, 'filename'
+        return None, 'filename_unresolved'
+
     proj = _match_project_by_text(pdf_name, projects)
     if proj:
         return proj, 'filename'
-    if _explicit_report_project_prefix(pdf_name):
-        return None, 'filename_unresolved'
     proj = _match_project_by_text(pdf_text, projects)
     if proj:
         return proj, 'pdf_text'

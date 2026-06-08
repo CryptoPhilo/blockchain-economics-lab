@@ -496,6 +496,7 @@ def test_immutable_short_filename_resolves_to_immutable_x(ws):
         ('gas', 'Gas', 'GAS', 'Neo_GAS_MAT_en.pdf'),
         ('wemix', 'WEMIX', 'WEMIX', 'WEMIX_ECON_cn.pdf'),
         ('usd-ai', 'USD.AI', 'CHIP', 'USD_AI_ECON_ko.pdf'),
+        ('usd-ai', 'USD.AI', 'CHIP', 'USD.AI_MAT_ko.pdf'),
         ('usd-ai', 'USD.AI', 'CHIP', 'CHIP_MAT_en.pdf'),
         ('ab-chain', 'AB Chain', 'AB', 'AB_Chain_ECON_ko.pdf'),
         ('ab-chain', 'AB Chain', 'AB', 'AB_MAT_en.pdf'),
@@ -1525,6 +1526,42 @@ def test_ensure_runtime_project_seed_for_filename_prevents_jupiter_perps_collisi
     assert source == 'filename'
     assert sb.tables['tracked_projects'][0]['slug'] == 'jupiter-perps-lp'
     assert sb.tables['tracked_projects'][0]['symbol'] == 'JLP'
+
+
+def test_explicit_report_prefix_prefers_trailing_asset_symbol(ws):
+    projects = [
+        {'id': 'p-aave', 'slug': 'aave', 'name': 'Aave', 'symbol': 'AAVE'},
+        {'id': 'p-gho', 'slug': 'gho', 'name': 'GHO', 'symbol': 'GHO'},
+    ]
+
+    project, source = ws._resolve_slug('Aave_GHO_MAT_ko.pdf', '', '', projects)
+
+    assert project['slug'] == 'gho'
+    assert source == 'filename'
+
+
+def test_ensure_runtime_project_seed_for_filename_prevents_usd_ai_paypal_collision(ws):
+    sb = MutableFakeSupabase({'tracked_projects': []})
+    projects = [{
+        'id': 'p-paypal-usd',
+        'slug': 'paypal-usd',
+        'name': 'PayPal USD',
+        'symbol': 'PYUSD',
+        'aliases': ['usd'],
+    }]
+
+    updated = ws._ensure_runtime_project_seed_for_filename(
+        sb,
+        projects,
+        'USD.AI_MAT_ko.pdf',
+        dry_run=False,
+    )
+    project, source = ws._resolve_slug('USD.AI_MAT_ko.pdf', '', '', updated)
+
+    assert project['slug'] == 'usd-ai'
+    assert source == 'filename'
+    assert sb.tables['tracked_projects'][0]['slug'] == 'usd-ai'
+    assert sb.tables['tracked_projects'][0]['symbol'] == 'CHIP'
 
 
 def test_ensure_runtime_project_seed_upserts_top500_market_snapshot_slug_for_publish(ws):
