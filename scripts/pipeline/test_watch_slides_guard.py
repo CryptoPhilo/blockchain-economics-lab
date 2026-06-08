@@ -695,6 +695,14 @@ class FakeQuery:
         self.rows = [row for row in self.rows if row.get(field) == value]
         return self
 
+    def gte(self, field, value):
+        self.rows = [row for row in self.rows if row.get(field) is not None and row.get(field) >= value]
+        return self
+
+    def lte(self, field, value):
+        self.rows = [row for row in self.rows if row.get(field) is not None and row.get(field) <= value]
+        return self
+
     def in_(self, field, values):
         self.rows = [row for row in self.rows if row.get(field) in values]
         return self
@@ -1238,6 +1246,14 @@ class MutableFakeQuery:
         self.rows = [row for row in self.rows if row.get(field) == value]
         return self
 
+    def gte(self, field, value):
+        self.rows = [row for row in self.rows if row.get(field) is not None and row.get(field) >= value]
+        return self
+
+    def lte(self, field, value):
+        self.rows = [row for row in self.rows if row.get(field) is not None and row.get(field) <= value]
+        return self
+
     def in_(self, field, values):
         self.rows = [row for row in self.rows if row.get(field) in values]
         return self
@@ -1355,6 +1371,73 @@ def test_ensure_runtime_project_seed_upserts_known_slug_for_publish(ws):
     assert updated[0]['symbol'] == '1INCH'
     assert '1inch network' in updated[0]['aliases']
     assert sb.tables['tracked_projects'][0]['discovery_source'] == 'slide-runtime-report-gap-repair'
+
+
+def test_ensure_runtime_project_seed_upserts_top500_market_snapshot_slug_for_publish(ws):
+    sb = MutableFakeSupabase({
+        'tracked_projects': [],
+        'market_data_daily': [
+            {
+                'slug': 'cow-protocol',
+                'cmc_name': 'CoW Protocol',
+                'cmc_symbol': 'COW',
+                'cmc_rank': 234,
+                'recorded_at': '2026-06-07T00:00:00Z',
+            },
+        ],
+    })
+
+    updated = ws._ensure_runtime_project_seed(
+        sb,
+        [],
+        'cow-protocol',
+        dry_run=False,
+    )
+
+    assert len(updated) == 1
+    assert updated[0]['slug'] == 'cow-protocol'
+    assert updated[0]['name'] == 'CoW Protocol'
+    assert updated[0]['symbol'] == 'COW'
+    assert sb.tables['tracked_projects'][0]['discovery_source'] == 'slide-runtime-top500-market-snapshot'
+
+
+def test_ensure_runtime_project_seed_ignores_market_snapshot_outside_top500(ws):
+    sb = MutableFakeSupabase({
+        'tracked_projects': [],
+        'market_data_daily': [
+            {
+                'slug': 'outside-top500',
+                'cmc_name': 'Outside Top 500',
+                'cmc_symbol': 'OUT',
+                'cmc_rank': 501,
+                'recorded_at': '2026-06-07T00:00:00Z',
+            },
+        ],
+    })
+
+    updated = ws._ensure_runtime_project_seed(
+        sb,
+        [],
+        'outside-top500',
+        dry_run=False,
+    )
+
+    assert updated == []
+    assert sb.tables['tracked_projects'] == []
+
+
+def test_top500_market_snapshot_seed_resolves_short_symbol_filename(ws):
+    projects = [{
+        'slug': 'cow-protocol',
+        'name': 'CoW Protocol',
+        'symbol': 'COW',
+        'aliases': [],
+    }]
+
+    project, source = ws._resolve_slug('COW_ECON_ko.pdf', '', '', projects)
+
+    assert project['slug'] == 'cow-protocol'
+    assert source == 'filename'
 
 
 def test_report_source_identity_reuses_existing_drive_source(ws):
