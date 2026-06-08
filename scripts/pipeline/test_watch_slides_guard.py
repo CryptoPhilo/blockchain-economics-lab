@@ -93,6 +93,38 @@ def test_passes_matching_content(ws, projects, bitcoin_body):
     assert ws._detect_slug_content_mismatch(proj_bitcoin, bitcoin_body, '', projects) is None
 
 
+def test_passes_short_slug_report_with_long_peer_comparison(ws):
+    projects = [
+        {'slug': 'rain', 'name': 'Rain', 'symbol': 'RAIN'},
+        {'slug': 'ethereum-name-service', 'name': 'Ethereum Name Service', 'symbol': 'ENS'},
+    ]
+    rain_project = projects[0]
+    rain_body = (
+        'Rain Protocol is an on-chain automation and composable strategy layer. '
+        'RAIN token incentives coordinate developers, liquidity providers, and users. '
+        'Peer references may include ENS 이더리움 네임 서비스 as a comparator, but the subject remains Rain. '
+    ) * 3
+
+    assert ws._detect_slug_content_mismatch(rain_project, rain_body, '', projects) is None
+
+
+def test_still_flags_short_slug_filename_with_unrelated_ens_body(ws):
+    projects = [
+        {'slug': 'rain', 'name': 'Rain', 'symbol': 'RAIN'},
+        {'slug': 'ethereum-name-service', 'name': 'Ethereum Name Service', 'symbol': 'ENS'},
+    ]
+    rain_project = projects[0]
+    ens_body = (
+        'ENS 이더리움 네임 서비스는 Ethereum Name Service protocol for naming infrastructure. '
+        'ENS token governance controls registry parameters and treasury decisions. '
+    ) * 4
+
+    mismatch = ws._detect_slug_content_mismatch(rain_project, ens_body, '', projects)
+    assert mismatch is not None
+    assert mismatch['expected_slug'] == 'rain'
+    assert mismatch['detected_slug'] == 'ethereum-name-service'
+
+
 def test_skips_empty_body_raster_pdf(ws, projects):
     proj_bitcoin = projects[0]
     assert ws._detect_slug_content_mismatch(proj_bitcoin, '', '', projects) is None

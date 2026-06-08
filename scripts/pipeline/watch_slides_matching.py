@@ -228,8 +228,13 @@ def _detect_slug_content_mismatch(
         return None
     has_interpretable_text_layer = len((pdf_text or '').strip()) >= 200
     min_other_score = 12 if has_interpretable_text_layer else 24
-    min_score_margin = 1 if has_interpretable_text_layer else 12
     expected_score = _score_project_in_text(body, resolved_project)
+    # When the filename-resolved project is present in the body, treat a longer
+    # competing alias as corroborating evidence only if it is overwhelmingly
+    # stronger. Otherwise localized reports that compare against named peers can
+    # be falsely blocked because a single long peer alias out-scores a short
+    # project slug such as "rain".
+    min_score_margin = 32 if expected_score > 0 else (1 if has_interpretable_text_layer else 12)
     expected_slug = (resolved_project.get('slug') or '').lower()
     best_other: Optional[Tuple[int, Dict[str, str]]] = None
     for proj in projects:
