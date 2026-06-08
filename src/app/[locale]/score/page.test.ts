@@ -1541,6 +1541,61 @@ describe('score page report availability policy', () => {
     })
   })
 
+  it('uses card_data slug availability when the report project relation is detached', () => {
+    const trackedProjects = [
+      {
+        id: 'project-gho-score',
+        name: 'GHO',
+        slug: 'gho',
+        symbol: 'GHO',
+        category: 'Stablecoin',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: 'gho',
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const availabilityByProjectSlug = buildReportAvailabilityByProjectSlug([
+      {
+        project_id: 'project-detached-report',
+        report_type: 'maturity',
+        language: 'ko',
+        published_at: '2026-06-08T14:21:48.781133+00:00',
+        card_data: {
+          slug: 'gho',
+          maturity_score: 75.5,
+        },
+        slide_html_urls_by_lang: {
+          ko: 'https://example.supabase.co/storage/v1/object/public/slides/mat/gho/latest/ko.html',
+        },
+        tracked_projects: null,
+      },
+    ], 'ko')
+
+    const [row] = snapshotRowsToScoreRows(
+      [
+        {
+          ...makeSnapshotRow(209, 'gho'),
+          cmc_name: 'GHO',
+          cmc_symbol: 'GHO',
+        },
+      ],
+      buildTrackedProjectLookup(trackedProjects),
+      new Map(),
+      availabilityByProjectSlug,
+    )
+
+    expect(row).toMatchObject({
+      slug: 'gho',
+      score: 75.5,
+      reportTypes: ['maturity'],
+    })
+  })
+
   it('renders OKX ECON and MAT badges when localized assets exist', () => {
     const trackedProjects = [
       {

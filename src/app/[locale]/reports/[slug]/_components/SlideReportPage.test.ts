@@ -66,6 +66,24 @@ function mockReportQueries(project: unknown, reports: unknown[]) {
   })
 }
 
+function mockReportQueriesWithProjectReportResults(project: unknown, reportResults: unknown[][]) {
+  const projectRows = Array.isArray(project) ? project : project ? [project] : []
+  const projectQuery = createQuery(projectRows, 'limit')
+  let reportQueryIndex = 0
+
+  mockCreateServerSupabaseClient.mockResolvedValue({
+    from: jest.fn((table: string) => {
+      if (table === 'tracked_projects') return projectQuery
+      if (table === 'project_reports') {
+        const result = reportResults[Math.min(reportQueryIndex, reportResults.length - 1)] || []
+        reportQueryIndex += 1
+        return createQuery(result, 'order')
+      }
+      throw new Error(`Unexpected table: ${table}`)
+    }),
+  })
+}
+
 describe('SlideReportPage locale availability', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -107,6 +125,44 @@ describe('SlideReportPage locale availability', () => {
       'https://example.supabase.co/storage/v1/object/public/slides/mat/gho/latest/ko.html',
     )
     expect(screen.getByText((_content, element) => element?.textContent === 'scoreLabel 75.5')).toBeTruthy()
+  })
+
+  it('falls back to report card slug when project id linkage does not match the route slug', async () => {
+    mockReportQueriesWithProjectReportResults(
+      { id: 'project-gho-score', slug: 'gho', name: 'GHO', symbol: 'GHO' },
+      [
+        [],
+        [
+          {
+            id: 'report-ko',
+            project_id: 'project-detached-report',
+            language: 'ko',
+            report_type: 'maturity',
+            status: 'published',
+            version: 1,
+            card_data: {
+              slug: 'gho',
+              summary_ko: 'GHO maturity report.',
+              maturity_score: 75.5,
+            },
+            slide_html_urls_by_lang: {
+              ko: 'https://example.supabase.co/storage/v1/object/public/slides/mat/gho/latest/ko.html',
+            },
+            gdrive_urls_by_lang: {
+              ko: 'https://drive.google.com/file/d/gho-ko/view?usp=drivesdk',
+            },
+          },
+        ],
+      ],
+    )
+
+    const page = await SlideReportPage({ locale: 'ko', slug: 'gho', reportType: 'maturity' })
+    render(page)
+
+    expect(mockNotFound).not.toHaveBeenCalled()
+    expect(screen.getByTestId('slide-viewer').getAttribute('data-url')).toBe(
+      'https://example.supabase.co/storage/v1/object/public/slides/mat/gho/latest/ko.html',
+    )
   })
 
   it.each(['de', 'es', 'fr'])(
