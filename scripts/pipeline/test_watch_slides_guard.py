@@ -2514,6 +2514,102 @@ def test_unchanged_published_missing_public_url_reprocesses_slide(ws, monkeypatc
     assert pruned[0]['current_langs'] == {'en'}
 
 
+def test_slug_filtered_run_reprocesses_published_manifest_with_stale_slug(ws, monkeypatch):
+    manifest = {
+        'usdai-mat-ko': {
+            'status': 'published',
+            'modifiedTime': 't0',
+            'slug': 'usd-ai',
+            'lang': 'ko',
+            'lang_source': 'filename',
+            'report_id': 'stale-report',
+            'public_url': 'https://storage/mat/usd-ai/latest/ko.html',
+            'page_profile': {
+                'page_count': 12,
+                'width': 1376,
+                'height': 768,
+                'aspect_ratio': 1.791,
+                'is_landscape_slide': True,
+            },
+        },
+    }
+    saved = []
+    downloaded = []
+    merged = []
+    pruned = []
+
+    monkeypatch.setitem(
+        sys.modules,
+        'supabase_storage',
+        SimpleNamespace(
+            ensure_bucket=lambda *_args, **_kwargs: None,
+            get_supabase_storage_client=lambda: object(),
+        ),
+    )
+    monkeypatch.setattr(ws, '_get_drive_service', lambda: object())
+    monkeypatch.setattr(ws, '_load_manifest', lambda: manifest)
+    monkeypatch.setattr(ws, '_save_manifest', lambda data: saved.append({k: dict(v) for k, v in data.items()}))
+    monkeypatch.setattr(ws, '_load_tracked_projects', lambda _sb: [
+        {'id': 'p-paypal-usd', 'slug': 'paypal-usd', 'name': 'PayPal USD', 'symbol': 'PYUSD'},
+        {
+            'id': 'p-usdai',
+            'slug': 'usdai',
+            'name': 'USDai',
+            'symbol': 'USDAI',
+            'aliases': ['usd.ai', 'usd_ai', 'usd ai', 'chip'],
+        },
+    ])
+    monkeypatch.setattr(ws, '_iter_targets', lambda _service, _types, **_kwargs: [
+        ('mat', {'id': 'usdai-mat-ko', 'name': 'USD.AI_MAT_ko.pdf', 'modifiedTime': 't0'}),
+    ])
+    monkeypatch.setattr(ws, '_download_file', lambda *_args: downloaded.append(True))
+    monkeypatch.setattr(ws, '_pdf_page_profile', lambda _path: {
+        'page_count': 12,
+        'width': 1376,
+        'height': 768,
+        'aspect_ratio': 1.791,
+        'is_landscape_slide': True,
+    })
+    monkeypatch.setattr(ws, '_extract_pdf_meta_and_text', lambda _path: ({}, 'USD.ai USDAI stablecoin protocol ' * 20))
+    monkeypatch.setattr(ws, '_resolve_lang', lambda *_args: ('ko', 'filename'))
+    monkeypatch.setattr(
+        ws,
+        '_find_report_for_lang',
+        lambda *_args: ('report-usdai', 1, ws.PUBLICATION_APPROVED_STATUS),
+    )
+    monkeypatch.setattr(ws, '_find_analysis_source_for_slide', lambda *_args, **_kwargs: object())
+    monkeypatch.setattr(ws, '_generate_summary_after_slide_publish', lambda *_args, **_kwargs: True)
+    monkeypatch.setattr(ws, '_persist_maturity_score_from_source', lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(ws, '_convert_and_upload', lambda *_args, **_kwargs: {
+        'latest_url': 'https://storage/mat/usdai/latest/ko.html',
+        'versioned_url': 'https://storage/mat/usdai/1/ko.html',
+    })
+    monkeypatch.setattr(
+        ws,
+        '_merge_slide_url',
+        lambda _sb, report_id, lang, public_url, **kwargs: merged.append(
+            (report_id, lang, public_url, kwargs.get('status'))
+        ),
+    )
+    monkeypatch.setattr(ws, '_prune_stale_languages_for_pair', lambda *_args, **kwargs: pruned.append(kwargs) or [])
+
+    scanned, processed = ws.process(
+        ['mat'],
+        filter_slug='usdai',
+        dry_run=False,
+        force=False,
+    )
+
+    assert downloaded == [True]
+    assert scanned[-1]['slug'] == 'usdai'
+    assert processed[-1]['status'] == 'published'
+    assert processed[-1]['slug'] == 'usdai'
+    assert processed[-1]['public_url'] == 'https://storage/mat/usdai/latest/ko.html'
+    assert merged == [('report-usdai', 'ko', 'https://storage/mat/usdai/latest/ko.html', ws.PUBLICATION_PUBLISHED_STATUS)]
+    assert saved[-1]['usdai-mat-ko']['slug'] == 'usdai'
+    assert pruned[0]['current_langs'] == {'ko'}
+
+
 def test_unchanged_manifest_repair_creates_missing_report_shell(ws, monkeypatch):
     calls = []
     monkeypatch.setattr(ws, '_find_report_for_lang', lambda *_args: (None, None, None))

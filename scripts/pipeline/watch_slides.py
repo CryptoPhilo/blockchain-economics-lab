@@ -3343,6 +3343,17 @@ def process(
             prev.get('status') == 'published'
             and prev.get('modifiedTime') == modified
         )
+        stale_manifest_slug_for_filter = (
+            bool(filter_slug)
+            and unchanged_manifest_published
+            and bool(prev.get('slug'))
+            and prev.get('slug') != filter_slug
+        )
+        if stale_manifest_slug_for_filter:
+            print(
+                f"  [REPROCESS] {rtype}/{pdf['name']}: manifest slug='{prev.get('slug')}' "
+                f"does not match filter '{filter_slug}'"
+            )
         unchanged_missing_publication_url = unchanged_manifest_published and not prev.get('public_url')
         if unchanged_missing_publication_url and not dry_run and not force:
             print(
@@ -3352,6 +3363,7 @@ def process(
         if (
             not force
             and not override_changes_manifest_lang
+            and not stale_manifest_slug_for_filter
             and unchanged_manifest_published
             and (dry_run or not unchanged_missing_publication_url)
         ):
