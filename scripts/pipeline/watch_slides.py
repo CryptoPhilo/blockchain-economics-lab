@@ -215,6 +215,12 @@ REPORT_GAP_PROJECT_SEEDS: Dict[str, Dict[str, Any]] = {
         'category': 'RWA',
         'coingecko_id': 'ondo-us-dollar-yield',
     },
+    'jupiter-perps-lp': {
+        'name': 'Jupiter Perps LP',
+        'symbol': 'JLP',
+        'category': 'DeFi',
+        'coingecko_id': None,
+    },
     'dai': {
         'name': 'Dai',
         'symbol': 'DAI',

@@ -488,6 +488,8 @@ def test_immutable_short_filename_resolves_to_immutable_x(ws):
         ('usd1', 'World Liberty Financial USD', 'USD1', 'World_Liberty_Financial_USD_MAT_en.pdf'),
         ('ondo-us-dollar-yield', 'Ondo US Dollar Yield', 'USDY', 'Ondo_USDY_ECON_ko.pdf'),
         ('ondo-us-dollar-yield', 'Ondo US Dollar Yield', 'USDY', 'USDY_MAT_en.pdf'),
+        ('jupiter-perps-lp', 'Jupiter Perps LP', 'JLP', 'Jupiter_Perps_JLP_ECON_ko.pdf'),
+        ('jupiter-perps-lp', 'Jupiter Perps LP', 'JLP', 'JLP_MAT_en.pdf'),
         ('dai', 'Dai', 'DAI', 'DAI_ECON_ko.pdf'),
         ('dai', 'Dai', 'DAI', 'Dai_MAT_en.pdf'),
         ('gas', 'Gas', 'GAS', 'GAS_ECON_ko.pdf'),
@@ -1499,6 +1501,30 @@ def test_ensure_runtime_project_seed_for_filename_prevents_ondo_usdy_finance_col
     assert source == 'filename'
     assert sb.tables['tracked_projects'][0]['slug'] == 'ondo-us-dollar-yield'
     assert sb.tables['tracked_projects'][0]['symbol'] == 'USDY'
+
+
+def test_ensure_runtime_project_seed_for_filename_prevents_jupiter_perps_collision(ws):
+    sb = MutableFakeSupabase({'tracked_projects': []})
+    projects = [{
+        'id': 'p-jupiter',
+        'slug': 'jupiter-ag',
+        'name': 'Jupiter',
+        'symbol': 'JUP',
+        'aliases': ['jupiter'],
+    }]
+
+    updated = ws._ensure_runtime_project_seed_for_filename(
+        sb,
+        projects,
+        'Jupiter_Perps_JLP_ECON_ko.pdf',
+        dry_run=False,
+    )
+    project, source = ws._resolve_slug('Jupiter_Perps_JLP_ECON_ko.pdf', '', '', updated)
+
+    assert project['slug'] == 'jupiter-perps-lp'
+    assert source == 'filename'
+    assert sb.tables['tracked_projects'][0]['slug'] == 'jupiter-perps-lp'
+    assert sb.tables['tracked_projects'][0]['symbol'] == 'JLP'
 
 
 def test_ensure_runtime_project_seed_upserts_top500_market_snapshot_slug_for_publish(ws):
