@@ -1269,6 +1269,37 @@ def test_drive_name_search_terms_include_case_variants_for_dotted_alias(ws):
     assert 'USD' in terms
 
 
+def test_name_slug_hint_prefers_explicit_prefix_alias_for_usdai(ws):
+    projects = [
+        {
+            'slug': 'paypal-usd',
+            'name': 'PayPal USD',
+            'symbol': 'PYUSD',
+            'aliases': ['usd'],
+        },
+        {
+            'slug': 'usd-ai',
+            'name': 'USD.AI',
+            'symbol': 'USD',
+            'aliases': ['usd.ai', 'usd ai'],
+        },
+    ]
+    hint_tokens = ws._slug_hint_tokens('usdai', projects)
+
+    assert ws._name_matches_slug_hint(
+        'USD.AI_MAT_ko.pdf',
+        hint_tokens,
+        filter_slug='usdai',
+        projects=projects,
+    )
+    assert not ws._name_matches_slug_hint(
+        'USD.AI_MAT_ko.pdf',
+        hint_tokens,
+        filter_slug='paypal-usd',
+        projects=projects,
+    )
+
+
 def test_iter_targets_recurses_nested_folders(ws, monkeypatch):
     monkeypatch.setattr(ws, 'TYPE_FOLDER_IDS', {'econ': 'root-econ'})
     pdfs_by_parent = {

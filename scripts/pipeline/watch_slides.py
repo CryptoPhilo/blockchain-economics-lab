@@ -2832,6 +2832,17 @@ def _name_matches_slug_hint(
         return True
 
     if filter_slug and projects:
+        explicit_prefix = _explicit_report_project_prefix(name or '')
+        if explicit_prefix:
+            prefix_slug = RECONCILE_FILENAME_PREFIX_ALIASES.get(_compact_project_signal(explicit_prefix))
+            if prefix_slug:
+                return prefix_slug == filter_slug.lower()
+
+            prefix_candidates = [*projects, *_known_runtime_project_seed_candidates()]
+            matched_project = _match_project_by_explicit_prefix(explicit_prefix, prefix_candidates)
+            if matched_project:
+                return (matched_project.get('slug') or '').lower() == filter_slug.lower()
+
         matched_project = _match_project_by_text(name or '', projects)
         if matched_project:
             return (matched_project.get('slug') or '').lower() == filter_slug.lower()
