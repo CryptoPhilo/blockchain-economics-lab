@@ -2007,6 +2007,28 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/litecoin/1/ja.html"
   },
+  "12amdeZUkYvO4kMGSObEIcZdAyiplvpfM": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "en",
+    "modifiedTime": "2026-04-28T05:25:31.373Z",
+    "name": "chip-시장-포렌식-분석-보고서_for_v1_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 21,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/legacy/mat/chip-시장-포렌식-분석-보고서_for_v1_en.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-08T16:16:27.310921+00:00"
+  },
   "12asXFR3R4FUtzE5iuP6FfQ2zWZ03jYyR": {
     "error": null,
     "finished_at": "2026-05-17T08:55:41.555879+00:00",
@@ -7477,6 +7499,28 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/binaryx-new/1/ko.html"
   },
+  "1CpmniTRMsdzC81V69rqOeW2X610SfeLS": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "ko",
+    "modifiedTime": "2026-04-28T05:25:24.195Z",
+    "name": "chip-시장-포렌식-분석-보고서_for_v1_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 18,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/legacy/mat/chip-시장-포렌식-분석-보고서_for_v1_ko.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-08T16:16:29.545129+00:00"
+  },
   "1CtnepL8Qib0882dku7trbxu4v-sjkPYl": {
     "error": null,
     "finished_at": "2026-05-14T12:17:45.812565+00:00",
@@ -9394,6 +9438,28 @@
     "updated_at": "2026-06-01T07:59:52.165427+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gas/1/zh.html"
+  },
+  "1FEX2Hl5sNF-t_enNvByJVrym1xA3X9hu": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "de",
+    "modifiedTime": "2026-04-28T05:25:37.917Z",
+    "name": "chip-시장-포렌식-분석-보고서_for_v1_de.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 21,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/legacy/mat/chip-시장-포렌식-분석-보고서_for_v1_de.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-08T16:16:25.082934+00:00"
   },
   "1FEp3qavITmS7NFcOmstHeUa3y5YJCJDY": {
     "error": "Storage upload failed for slides/econ/stellar/2/ko_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
@@ -18139,6 +18205,28 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/immutable-x/1/ja.html"
   },
+  "1UQtyMsGn6prouGrsdbsszVv_RfTv4rCG": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "zh",
+    "modifiedTime": "2026-04-28T05:25:26.278Z",
+    "name": "chip-시장-포렌식-분석-보고서_for_v1_zh.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 18,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/legacy/mat/chip-시장-포렌식-분석-보고서_for_v1_zh.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-08T16:16:28.776790+00:00"
+  },
   "1UTg8MORcPQmYqjXGgDAADF-9uer-MxeN": {
     "error": null,
     "finished_at": "2026-05-17T09:25:58.645335+00:00",
@@ -21461,6 +21549,28 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/decred/1/ko.html"
   },
+  "1_MnM7XVTYlKYcUoKV07RqTaHU1cfow0d": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "fr",
+    "modifiedTime": "2026-04-28T05:25:33.668Z",
+    "name": "chip-시장-포렌식-분석-보고서_for_v1_fr.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 21,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/legacy/mat/chip-시장-포렌식-분석-보고서_for_v1_fr.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-08T16:16:26.717463+00:00"
+  },
   "1_NqE3K45X6YBS2XQQn_tyqA7WUUJAqXR": {
     "error": null,
     "finished_at": "2026-05-17T13:50:19.848178+00:00",
@@ -22516,6 +22626,28 @@
     "updated_at": "2026-05-17T17:58:54.783835+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/chainlink/2/ko.html"
+  },
+  "1b39M8Z1P8yAf80DPib_Gxjj7o7PSapNy": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "es",
+    "modifiedTime": "2026-04-28T05:25:35.900Z",
+    "name": "chip-시장-포렌식-분석-보고서_for_v1_es.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 21,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/legacy/mat/chip-시장-포렌식-분석-보고서_for_v1_es.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-08T16:16:25.701334+00:00"
   },
   "1b5GcR5WlLsjRHiNU0uFmfc6Er2zbs7oP": {
     "error": null,
@@ -25049,6 +25181,28 @@
     "updated_at": "2026-05-13T00:18:14.879376+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/matic-network/1/zh.html"
+  },
+  "1fWL0uRNY8XwjuY3A32ucsXpZMPcMKoxe": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "ja",
+    "modifiedTime": "2026-04-28T05:25:28.201Z",
+    "name": "chip-시장-포렌식-분석-보고서_for_v1_ja.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 19,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/legacy/mat/chip-시장-포렌식-분석-보고서_for_v1_ja.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-08T16:16:27.855928+00:00"
   },
   "1fX20-_gLWZKRElX22XE-Naab3sWqDI7x": {
     "error": null,
