@@ -1,0 +1,52 @@
+name: Slide Storage Cleanup
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Run mode'
+        required: true
+        type: choice
+        default: dry-run
+        options:
+          - dry-run
+          - apply
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    name: Audit and clean slide storage
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run storage cleanup
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          args=(--mode "${{ inputs.mode }}" --output scripts/pipeline/output/slide-storage-cleanup-report.json)
+          if [ "${{ inputs.mode }}" = "apply" ]; then
+            args+=(--confirm-delete)
+          fi
+          npx ts-node scripts/cleanup-slide-storage.ts "${args[@]}"
+
+      - name: Upload cleanup report
+        uses: actions/upload-artifact@v4
+        with:
+          name: slide-storage-cleanup-report-${{ inputs.mode }}
+          path: scripts/pipeline/output/slide-storage-cleanup-report.json
