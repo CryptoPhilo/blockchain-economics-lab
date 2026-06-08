@@ -425,7 +425,8 @@ export function buildReportAvailabilityByProjectSlug(
   const latestByProjectType = new Map<string, ScoreboardVisibleReportRowWithProjectSlug>()
 
   for (const report of reports) {
-    const slug = normalizeKey(report.tracked_projects?.slug)
+    const cardData = report.card_data as Record<string, unknown> | null | undefined
+    const slug = normalizeKey(report.tracked_projects?.slug) ?? normalizeKey(cardData?.slug)
     if (!slug) continue
     if (!reportSupportsLocale(report as ProjectReport, locale)) continue
     const key = `${slug}:${report.report_type}`
@@ -436,7 +437,8 @@ export function buildReportAvailabilityByProjectSlug(
   }
 
   for (const report of latestByProjectType.values()) {
-    const slug = normalizeKey(report.tracked_projects?.slug)
+    const cardData = report.card_data as Record<string, unknown> | null | undefined
+    const slug = normalizeKey(report.tracked_projects?.slug) ?? normalizeKey(cardData?.slug)
     if (!slug) continue
     const existing = map.get(slug) ?? {
       reportTypes: [],
@@ -525,6 +527,17 @@ export async function fetchVisibleReportsForScoreboardByProjectSlugs(
 
   const supabase = reportSupabase ?? createSupabaseAdminClient()
   const reports: ScoreboardVisibleReportRowWithProjectSlug[] = []
+  const seenReportIds = new Set<string>()
+  const pushReports = (rows: ScoreboardVisibleReportRowWithProjectSlug[]) => {
+    for (const row of rows) {
+      const id = typeof row.id === 'string' ? row.id : ''
+      if (id) {
+        if (seenReportIds.has(id)) continue
+        seenReportIds.add(id)
+      }
+      reports.push(row)
+    }
+  }
 
   for (let index = 0; index < normalizedSlugs.length; index += REPORT_AVAILABILITY_QUERY_CHUNK_SIZE) {
     const chunk = normalizedSlugs.slice(index, index + REPORT_AVAILABILITY_QUERY_CHUNK_SIZE)
@@ -559,7 +572,40 @@ export async function fetchVisibleReportsForScoreboardByProjectSlugs(
       return { reports: [], loaded: false }
     }
 
-    reports.push(...((data || []) as unknown as ScoreboardVisibleReportRowWithProjectSlug[]))
+    pushReports((data || []) as unknown as ScoreboardVisibleReportRowWithProjectSlug[])
+
+    const { data: cardSlugData, error: cardSlugError } = await supabase
+      .from('project_reports')
+      .select([
+        'project_id',
+        'id',
+        'report_type',
+        'version',
+        'is_latest',
+        'language',
+        'published_at',
+        'updated_at',
+        'created_at',
+        'gdrive_urls_by_lang',
+        'file_urls_by_lang',
+        'slide_html_urls_by_lang',
+        'card_data',
+        'tracked_projects(slug)',
+      ].join(', '))
+      .in('card_data->>slug', chunk)
+      .in('report_type', ['econ', 'maturity', 'forensic'])
+      .in('status', ['published', 'coming_soon', 'in_review'])
+
+    if (cardSlugError) {
+      console.error('Failed to fetch scoreboard card slug report availability', {
+        message: cardSlugError.message,
+        chunkStart: index,
+        chunkSize: chunk.length,
+      })
+      return { reports: [], loaded: false }
+    }
+
+    pushReports((cardSlugData || []) as unknown as ScoreboardVisibleReportRowWithProjectSlug[])
   }
 
   return { reports, loaded: true }

@@ -162,7 +162,19 @@ export async function SlideReportPage({
     .in('status', ['published', 'coming_soon', 'in_review'])
     .order('updated_at', { ascending: false })
 
-  const sortedRows = sortReportsLatestFirst((allRows || []) as ReportRecord[])
+  let reportRows = (allRows || []) as ReportRecord[]
+  if (reportRows.length === 0) {
+    const { data: cardSlugRows } = await supabase
+      .from('project_reports')
+      .select('*')
+      .eq('card_data->>slug', slug)
+      .eq('report_type', reportType)
+      .in('status', ['published', 'coming_soon', 'in_review'])
+      .order('updated_at', { ascending: false })
+    reportRows = (cardSlugRows || []) as ReportRecord[]
+  }
+
+  const sortedRows = sortReportsLatestFirst(reportRows)
   const requestedOrLatest = requestedVersion || requestedLanguage
     ? pickRequestedOrLatestReport(sortedRows, {
         version: requestedVersion,

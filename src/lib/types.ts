@@ -160,7 +160,8 @@ export interface GDriveUrlEntry {
 }
 
 export interface ReportCardData {
-  report_type?: 'for' | 'econ' | 'mat'
+  slug?: string
+  report_type?: 'for' | 'econ' | 'mat' | 'maturity' | 'forensic'
   risk_level?: string
   risk_score?: number
   rating?: string
