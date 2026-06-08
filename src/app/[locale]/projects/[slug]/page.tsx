@@ -19,6 +19,29 @@ interface Props {
   params: Promise<{ locale: string; slug: string }>
 }
 
+type MarketSnapshotProjectRow = {
+  slug: string | null
+  price_usd: number | string | null
+  market_cap: number | string | null
+  change_24h: number | string | null
+  recorded_at: string | null
+  cmc_rank: number | string | null
+  cmc_symbol?: string | null
+  cmc_name?: string | null
+}
+
+type ProjectLandingData = Pick<
+  TrackedProject,
+  'name' | 'slug' | 'symbol' | 'chain' | 'category' | 'website_url' | 'market_cap_usd' | 'maturity_score' | 'maturity_stage'
+> & {
+  id: string | null
+  price_usd: number | null
+  change_24h: number | null
+  cmc_rank: number | null
+  market_recorded_at: string | null
+  isSnapshotOnly: boolean
+}
+
 const localeDateMap: Record<string, string> = {
   en: 'en-US', ko: 'ko-KR', ja: 'ja-JP', zh: 'zh-CN',
   fr: 'fr-FR', es: 'es-ES', de: 'de-DE',
@@ -86,6 +109,76 @@ function formatMarketCap(value: number | null | undefined): string | null {
   if (value >= 1e6) return `$${(value / 1e6).toFixed(2)}M`
   if (value >= 1e3) return `$${(value / 1e3).toFixed(0)}K`
   return `$${value.toFixed(0)}`
+}
+
+function formatPrice(value: number | null | undefined): string | null {
+  if (value == null || value <= 0) return null
+  if (value >= 1000) return `$${value.toLocaleString('en-US', { maximumFractionDigits: 2 })}`
+  if (value >= 1) return `$${value.toFixed(2)}`
+  if (value >= 0.01) return `$${value.toFixed(4)}`
+  return `$${value.toPrecision(4)}`
+}
+
+function formatChange(value: number | null | undefined): string | null {
+  if (value == null || !Number.isFinite(value)) return null
+  const sign = value > 0 ? '+' : ''
+  return `${sign}${value.toFixed(2)}%`
+}
+
+function toNullableNumber(value: unknown): number | null {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : null
+  }
+  return null
+}
+
+function titleFromSlug(slug: string): string {
+  return slug
+    .split('-')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+export function buildSnapshotOnlyProject(row: MarketSnapshotProjectRow, requestedSlug: string): ProjectLandingData {
+  const slug = row.slug || requestedSlug
+  const symbol = row.cmc_symbol?.trim() || requestedSlug.replace(/-/g, '').toUpperCase()
+
+  return {
+    id: null,
+    name: row.cmc_name?.trim() || titleFromSlug(slug),
+    slug,
+    symbol,
+    chain: undefined,
+    category: undefined,
+    website_url: undefined,
+    market_cap_usd: toNullableNumber(row.market_cap) ?? undefined,
+    maturity_score: undefined,
+    maturity_stage: undefined,
+    price_usd: toNullableNumber(row.price_usd),
+    change_24h: toNullableNumber(row.change_24h),
+    cmc_rank: toNullableNumber(row.cmc_rank),
+    market_recorded_at: row.recorded_at,
+    isSnapshotOnly: true,
+  }
+}
+
+function buildTrackedProjectLandingData(
+  project: TrackedProject,
+  marketSnapshot: MarketSnapshotProjectRow | null,
+): ProjectLandingData {
+  return {
+    ...project,
+    id: project.id,
+    market_cap_usd: project.market_cap_usd ?? toNullableNumber(marketSnapshot?.market_cap) ?? undefined,
+    price_usd: toNullableNumber(marketSnapshot?.price_usd),
+    change_24h: toNullableNumber(marketSnapshot?.change_24h),
+    cmc_rank: toNullableNumber(marketSnapshot?.cmc_rank),
+    market_recorded_at: marketSnapshot?.recorded_at ?? null,
+    isSnapshotOnly: false,
+  }
 }
 
 export function pickLocalizedTitle(_report: ProjectReport, _locale: string, projectName: string): string {
@@ -220,23 +313,44 @@ export default async function ProjectDetailPage({ params }: Props) {
   const supabase = await createServerSupabaseClient()
   const isKo = locale === 'ko'
 
-  const { data: project } = await supabase
+  const { data: projectRaw } = await supabase
     .from('tracked_projects')
     .select('*')
     .eq('slug', slug)
     .single<TrackedProject>()
 
-  if (!project || (project.status !== 'active' && project.status !== 'monitoring_only')) {
+  if (projectRaw && projectRaw.status !== 'active' && projectRaw.status !== 'monitoring_only') {
     notFound()
   }
 
-  const { data: reportsRaw } = await supabase
-    .from('project_reports')
-    .select('*')
-    .eq('project_id', project.id)
-    .in('status', ['published', 'in_review'])
-    .order('is_latest', { ascending: false })
-    .order('updated_at', { ascending: false })
+  const { data: marketSnapshotRaw } = await supabase
+    .from('market_data_daily')
+    .select('slug, price_usd, market_cap, change_24h, recorded_at, cmc_rank, cmc_symbol, cmc_name')
+    .eq('slug', slug)
+    .order('recorded_at', { ascending: false })
+    .limit(1)
+    .maybeSingle<MarketSnapshotProjectRow>()
+
+  const marketSnapshot = marketSnapshotRaw ?? null
+  const project = projectRaw
+    ? buildTrackedProjectLandingData(projectRaw, marketSnapshot)
+    : marketSnapshot
+      ? buildSnapshotOnlyProject(marketSnapshot, slug)
+      : null
+
+  if (!project) {
+    notFound()
+  }
+
+  const { data: reportsRaw } = project.id
+    ? await supabase
+      .from('project_reports')
+      .select('*')
+      .eq('project_id', project.id)
+      .in('status', ['published', 'in_review'])
+      .order('is_latest', { ascending: false })
+      .order('updated_at', { ascending: false })
+    : { data: [] }
 
   const reports = (reportsRaw || []) as ProjectReport[]
   const reportsByType = selectReportsByType(reports, locale)
@@ -247,6 +361,8 @@ export default async function ProjectDetailPage({ params }: Props) {
   const backgroundCoverUrl = pickProjectBackgroundCoverUrl(reports, locale)
 
   const marketCap = formatMarketCap(project.market_cap_usd)
+  const currentPrice = formatPrice(project.price_usd)
+  const priceChange = formatChange(project.change_24h)
   const dateLocale = localeDateMap[locale] || 'en-US'
 
   return (
@@ -282,6 +398,16 @@ export default async function ProjectDetailPage({ params }: Props) {
                 {project.category}
               </span>
             )}
+            {project.cmc_rank && (
+              <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                #{project.cmc_rank}
+              </span>
+            )}
+            {project.isSnapshotOnly && (
+              <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-white/5 text-gray-400 border border-white/10">
+                {isKo ? '기본 정보' : 'Market snapshot'}
+              </span>
+            )}
             {project.chain && (
               <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-white/5 text-gray-400 border border-white/10">
                 {project.chain}
@@ -295,12 +421,32 @@ export default async function ProjectDetailPage({ params }: Props) {
           </div>
 
           <div className="flex flex-wrap gap-4">
+            {currentPrice && (
+              <div className="px-5 py-3 rounded-xl bg-black/30 border border-white/10 backdrop-blur-sm">
+                <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">
+                  {isKo ? '현재가' : 'Price'}
+                </div>
+                <div className="text-lg font-semibold text-white font-mono">{currentPrice}</div>
+              </div>
+            )}
             {marketCap && (
               <div className="px-5 py-3 rounded-xl bg-black/30 border border-white/10 backdrop-blur-sm">
                 <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">
                   {isKo ? '시가총액' : 'Market Cap'}
                 </div>
                 <div className="text-lg font-semibold text-white font-mono">{marketCap}</div>
+              </div>
+            )}
+            {priceChange && (
+              <div className="px-5 py-3 rounded-xl bg-black/30 border border-white/10 backdrop-blur-sm">
+                <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">
+                  24H
+                </div>
+                <div className={`text-lg font-semibold font-mono ${
+                  (project.change_24h ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {priceChange}
+                </div>
               </div>
             )}
             {project.maturity_score != null && (
@@ -440,14 +586,20 @@ export default async function ProjectDetailPage({ params }: Props) {
             <div className="text-5xl mb-4">📭</div>
             <p className="text-gray-400 text-base">
               {isKo
-                ? '아직 발행된 보고서가 없습니다'
-                : 'No reports have been published yet'}
+                ? '아직 보여줄 보고서가 없습니다'
+                : 'No reports are available yet'}
             </p>
             <p className="text-gray-600 text-sm mt-2">
               {isKo
-                ? '새 보고서가 발행되면 이곳에 표시됩니다.'
-                : 'New reports will appear here once published.'}
+                ? '새 보고서가 발행되면 이곳에 표시됩니다. 현재는 시장 기본 정보만 제공합니다.'
+                : 'New reports will appear here once published. For now, this page shows the market snapshot we have.'}
             </p>
+            <Link
+              href={`/${locale}/score`}
+              className="mt-6 inline-flex rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:border-indigo-500/30 hover:text-white"
+            >
+              {isKo ? '500위 목록으로 돌아가기' : 'Back to Top 500'}
+            </Link>
           </div>
         )}
       </section>

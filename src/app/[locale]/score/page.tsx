@@ -759,7 +759,7 @@ export default async function ScorePage({
           locale={locale}
           currentPage={currentPage}
           totalPages={totalPages}
-          className="h-[clamp(720px,78dvh,880px)] overflow-auto overscroll-contain pr-1"
+          className="h-[clamp(720px,78dvh,880px)] overflow-auto pr-1"
         />
       ) : (
         <div className="text-center py-20">

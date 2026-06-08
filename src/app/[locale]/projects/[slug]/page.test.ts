@@ -1,4 +1,5 @@
 import {
+  buildSnapshotOnlyProject,
   buildReportHistoryByType,
   buildReportHref,
   getReportCoverImageUrls,
@@ -23,6 +24,30 @@ function createReport(overrides: Partial<ProjectReport> = {}): ProjectReport {
 }
 
 describe('project detail report selection', () => {
+  it('builds a basic project landing model from a market snapshot row', () => {
+    expect(buildSnapshotOnlyProject({
+      slug: 'cow-protocol',
+      cmc_name: 'CoW Protocol',
+      cmc_symbol: 'COW',
+      price_usd: '0.2431',
+      market_cap: '123456789',
+      change_24h: '-4.21',
+      cmc_rank: '233',
+      recorded_at: '2026-06-08T00:00:00.000Z',
+    }, 'cow-protocol')).toMatchObject({
+      id: null,
+      name: 'CoW Protocol',
+      slug: 'cow-protocol',
+      symbol: 'COW',
+      market_cap_usd: 123456789,
+      price_usd: 0.2431,
+      change_24h: -4.21,
+      cmc_rank: 233,
+      market_recorded_at: '2026-06-08T00:00:00.000Z',
+      isSnapshotOnly: true,
+    })
+  })
+
   it('derives card titles from the current project instead of stale report row titles', () => {
     const report = createReport({
       id: 'ethereum-mat-contaminated-title',
