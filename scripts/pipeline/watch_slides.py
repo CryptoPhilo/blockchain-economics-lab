@@ -682,6 +682,39 @@ def _runtime_project_seed_for_slug(slug: Optional[str]) -> Optional[Dict[str, An
     }
 
 
+def _runtime_market_snapshot_seed_for_slug(sb, slug: Optional[str]) -> Optional[Dict[str, Any]]:
+    slug_lc = (slug or '').strip().lower()
+    if not slug_lc:
+        return None
+
+    result = sb.table('market_data_daily') \
+        .select('slug, cmc_name, cmc_symbol, cmc_rank') \
+        .eq('slug', slug_lc) \
+        .gte('cmc_rank', 1) \
+        .lte('cmc_rank', 500) \
+        .order('recorded_at', desc=True) \
+        .limit(1) \
+        .execute()
+    rows = result.data or []
+    if not rows:
+        return None
+
+    row = rows[0]
+    name = (row.get('cmc_name') or slug_lc.replace('-', ' ')).strip()
+    symbol = (row.get('cmc_symbol') or slug_lc.split('-')[0]).strip().upper()
+    aliases = PROJECT_ALIAS_REGISTRY.get(slug_lc, [])
+    return {
+        'slug': slug_lc,
+        'name': name,
+        'symbol': symbol,
+        'category': 'Market Snapshot',
+        'status': 'active',
+        'discovery_source': 'slide-runtime-top500-market-snapshot',
+        'coingecko_id': None,
+        'aliases': aliases,
+    }
+
+
 def _ensure_runtime_project_seed(
     sb,
     projects: List[Dict[str, Any]],
@@ -689,18 +722,20 @@ def _ensure_runtime_project_seed(
     *,
     dry_run: bool,
 ) -> List[Dict[str, Any]]:
-    """Ensure targeted repair runs can materialize known Top 200 report gaps.
+    """Ensure targeted repair runs can materialize Top 500 report gaps.
 
-    Some CMC rows exist only as score-table snapshot slugs until the first
-    Drive report is published. If the explicit report filename is unresolved,
-    the watcher refuses OCR fallback by design. For known safe aliases, create
-    the missing tracked_project row at runtime so the normal publish path can
-    attach reports to a canonical project.
+    Some CMC rows exist only as score-table snapshot slugs until the first Drive
+    report is published. If the explicit report filename is unresolved, the
+    watcher refuses OCR fallback by design. For known safe aliases or current
+    CMC Top 500 snapshot rows, create the missing tracked_project row at runtime
+    so the normal publish path can attach reports to a canonical project.
     """
     if not filter_slug or _project_by_slug(projects, filter_slug):
         return projects
 
     seed = _runtime_project_seed_for_slug(filter_slug)
+    if not seed:
+        seed = _runtime_market_snapshot_seed_for_slug(sb, filter_slug)
     if not seed:
         return projects
 
