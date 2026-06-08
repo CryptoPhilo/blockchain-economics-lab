@@ -40,11 +40,12 @@ jest.mock('@/components/SlideViewer', () => ({
   },
 }))
 
-function createQuery(result: unknown, terminal: 'single' | 'order') {
+function createQuery(result: unknown, terminal: 'limit' | 'single' | 'order') {
   const query: Record<string, jest.Mock> = {}
   query.select = jest.fn(() => query)
   query.eq = jest.fn(() => query)
   query.in = jest.fn(() => query)
+  query.limit = jest.fn(async () => ({ data: terminal === 'limit' ? result : null }))
   query.single = jest.fn(async () => ({ data: terminal === 'single' ? result : null }))
   query.order = jest.fn(async () => ({ data: terminal === 'order' ? result : null }))
 
@@ -52,7 +53,8 @@ function createQuery(result: unknown, terminal: 'single' | 'order') {
 }
 
 function mockReportQueries(project: unknown, reports: unknown[]) {
-  const projectQuery = createQuery(project, 'single')
+  const projectRows = Array.isArray(project) ? project : project ? [project] : []
+  const projectQuery = createQuery(projectRows, 'limit')
   const reportsQuery = createQuery(reports, 'order')
 
   mockCreateServerSupabaseClient.mockResolvedValue({
@@ -67,6 +69,44 @@ function mockReportQueries(project: unknown, reports: unknown[]) {
 describe('SlideReportPage locale availability', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+  })
+
+  it('uses the duplicate slug candidate that owns the requested report rows', async () => {
+    mockReportQueries(
+      [
+        { id: 'project-gho-score', slug: 'gho', name: 'GHO', symbol: 'GHO' },
+        { id: 'project-gho-report', slug: 'gho', name: 'GHO', symbol: 'GHO', maturity_score: 75.5 },
+      ],
+      [
+        {
+          id: 'report-ko',
+          project_id: 'project-gho-report',
+          language: 'ko',
+          report_type: 'maturity',
+          status: 'published',
+          version: 1,
+          card_data: {
+            summary_ko: 'GHO maturity report.',
+            maturity_score: 75.5,
+          },
+          slide_html_urls_by_lang: {
+            ko: 'https://example.supabase.co/storage/v1/object/public/slides/mat/gho/latest/ko.html',
+          },
+          gdrive_urls_by_lang: {
+            ko: 'https://drive.google.com/file/d/gho-ko/view?usp=drivesdk',
+          },
+        },
+      ],
+    )
+
+    const page = await SlideReportPage({ locale: 'ko', slug: 'gho', reportType: 'maturity' })
+    render(page)
+
+    expect(mockNotFound).not.toHaveBeenCalled()
+    expect(screen.getByTestId('slide-viewer').getAttribute('data-url')).toBe(
+      'https://example.supabase.co/storage/v1/object/public/slides/mat/gho/latest/ko.html',
+    )
+    expect(screen.getByText((_content, element) => element?.textContent === 'scoreLabel 75.5')).toBeTruthy()
   })
 
   it.each(['de', 'es', 'fr'])(

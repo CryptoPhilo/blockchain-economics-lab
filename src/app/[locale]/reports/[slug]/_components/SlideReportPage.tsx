@@ -144,18 +144,20 @@ export async function SlideReportPage({
   const t = await getTranslations('slideReportDetail')
   const supabase = await createServerSupabaseClient()
 
-  const { data: project } = await supabase
+  const { data: projectRows } = await supabase
     .from('tracked_projects')
     .select('*')
     .eq('slug', slug)
-    .single()
+    .limit(20)
 
-  if (!project) notFound()
+  const projectCandidates = Array.isArray(projectRows) ? projectRows : []
+  if (projectCandidates.length === 0) notFound()
+  const projectIds = projectCandidates.map((row) => row.id).filter(Boolean)
 
   const { data: allRows } = await supabase
     .from('project_reports')
     .select('*')
-    .eq('project_id', project.id)
+    .in('project_id', projectIds)
     .eq('report_type', reportType)
     .in('status', ['published', 'coming_soon', 'in_review'])
     .order('updated_at', { ascending: false })
@@ -173,6 +175,7 @@ export async function SlideReportPage({
   const reportState = getLocaleReportState(versionRows, locale)
   if (reportState.status === 'not_found') notFound()
 
+  const project = projectCandidates.find((row) => row.id === requestedOrLatest?.project_id) || projectCandidates[0]
   const report = reportState.status === 'available' ? reportState.report : null
   const isLocalePending = reportState.status === 'locale_pending'
 

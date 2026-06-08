@@ -607,10 +607,12 @@ export function snapshotRowsToScoreRows(
         snapshot.cmc_symbol,
       )
       const project = findTrackedProjectForSnapshot(snapshot, trackedLookup, identityLookup)
-      const canonicalAvailability = canonicalTargetSlug
+      const projectSlug = normalizeKey(project?.slug)
+      const slugAvailability = canonicalTargetSlug
         ? availabilityByProjectSlug?.get(canonicalTargetSlug)
-        : undefined
-      const reportAvailability = getReportAvailability(project, availabilityByProjectId, canonicalAvailability)
+        : (projectSlug ? availabilityByProjectSlug?.get(projectSlug) : undefined)
+          ?? availabilityByProjectSlug?.get(snapshotSlug)
+      const reportAvailability = getReportAvailability(project, availabilityByProjectId, slugAvailability)
 
       return {
         rank: toCmcCanonicalRank(snapshot.cmc_rank) ?? index + 1,
@@ -693,12 +695,16 @@ export default async function ScorePage({
       })))
   const trackedProjects = mergeScoreboardProjects(baseTrackedProjects, canonicalAliasTargetProjects)
   const trackedProjectIds = trackedProjects.map((project) => project.id).filter(Boolean)
+  const trackedProjectSlugs = trackedProjects.map((project) => project.slug).filter(Boolean)
   let visibleReportResult: Awaited<ReturnType<typeof fetchVisibleReportsForScoreboard>>
   let canonicalAliasReportResult: Awaited<ReturnType<typeof fetchVisibleReportsForScoreboardByProjectSlugs>>
   try {
     ;[visibleReportResult, canonicalAliasReportResult] = await Promise.all([
       fetchVisibleReportsForScoreboard(trackedProjectIds),
-      fetchVisibleReportsForScoreboardByProjectSlugs(SCOREBOARD_CANONICAL_ALIAS_TARGET_SLUGS),
+      fetchVisibleReportsForScoreboardByProjectSlugs([
+        ...SCOREBOARD_CANONICAL_ALIAS_TARGET_SLUGS,
+        ...trackedProjectSlugs,
+      ]),
     ])
   } catch (error) {
     console.error('Failed to initialize scoreboard report availability boundary', {
