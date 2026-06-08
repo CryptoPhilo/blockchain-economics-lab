@@ -71,6 +71,8 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
         'maple story universe',
         'msu',
     ],
+    'soon-network': ['soon', 'soon network', 'soon-network'],
+    'yzy': ['yzy money', 'yzy-money'],
     'ethereum-name-service': [
         'ens',
         'ens 이더리움 네임 서비스',

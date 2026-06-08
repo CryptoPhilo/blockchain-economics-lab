@@ -471,6 +471,10 @@ def test_immutable_short_filename_resolves_to_immutable_x(ws):
         ('river', 'River', 'RIVER', 'River_ECON_ko.pdf'),
         ('river', 'River', 'RIVER', 'River_Protocol_ECON_jp.pdf'),
         ('river-protocol', 'River Protocol', 'RVR', 'RVR_MAT_cn.pdf'),
+        ('soon-network', 'SOON', 'SOON', 'SOON_ECON_ko.pdf'),
+        ('soon-network', 'SOON', 'SOON', 'SOON_Network_MAT_en.pdf'),
+        ('yzy', 'YZY MONEY', 'YZY', 'YZY_Money_ECON_ko.pdf'),
+        ('yzy', 'YZY MONEY', 'YZY', 'YZY_MAT_en.pdf'),
     ],
 )
 def test_operational_short_filename_aliases_resolve_to_canonical_projects(ws, slug, name, symbol, filename):

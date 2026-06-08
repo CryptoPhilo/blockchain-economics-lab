@@ -1031,6 +1031,21 @@ describe('score page tracked project aliases', () => {
         last_maturity_report_at: '2026-05-30T00:00:00.000Z',
         last_forensic_report_at: null,
       },
+      {
+        id: 'soon-project',
+        name: 'SOON',
+        slug: 'soon-network',
+        symbol: 'SOON',
+        category: 'Infrastructure',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: ['SOON Network'],
+        maturity_score: null,
+        last_econ_report_at: '2026-06-05T00:00:00.000Z',
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
     ]
     const snapshotRows = [
       makeSnapshotRow(4, 'bnb'),
@@ -1045,6 +1060,7 @@ describe('score page tracked project aliases', () => {
       makeSnapshotRow(184, 'nexpace'),
       makeSnapshotRow(196, 'awe-network'),
       makeSnapshotRow(199, 'gas'),
+      makeSnapshotRow(191, 'soon'),
     ]
 
     const rows = snapshotRowsToScoreRows(snapshotRows, buildTrackedProjectLookup(trackedProjects))
@@ -1066,6 +1082,7 @@ describe('score page tracked project aliases', () => {
       { slug: 'maplestory-universe', reportTypes: ['econ', 'maturity'], score: 64 },
       { slug: 'awe-network', reportTypes: ['econ'], score: null },
       { slug: 'gas', reportTypes: ['econ', 'maturity'], score: 61 },
+      { slug: 'soon-network', reportTypes: ['econ'], score: null },
     ])
   })
 

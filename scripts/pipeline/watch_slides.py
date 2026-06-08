@@ -245,6 +245,18 @@ REPORT_GAP_PROJECT_SEEDS: Dict[str, Dict[str, Any]] = {
         'category': 'Infrastructure',
         'coingecko_id': None,
     },
+    'soon-network': {
+        'name': 'SOON',
+        'symbol': 'SOON',
+        'category': 'Infrastructure',
+        'coingecko_id': None,
+    },
+    'yzy': {
+        'name': 'YZY MONEY',
+        'symbol': 'YZY',
+        'category': 'Meme',
+        'coingecko_id': None,
+    },
 }
 
 
