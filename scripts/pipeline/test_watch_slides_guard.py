@@ -495,9 +495,12 @@ def test_immutable_short_filename_resolves_to_immutable_x(ws):
         ('gas', 'Gas', 'GAS', 'GAS_ECON_ko.pdf'),
         ('gas', 'Gas', 'GAS', 'Neo_GAS_MAT_en.pdf'),
         ('wemix', 'WEMIX', 'WEMIX', 'WEMIX_ECON_cn.pdf'),
-        ('usd-ai', 'USD.AI', 'CHIP', 'USD_AI_ECON_ko.pdf'),
-        ('usd-ai', 'USD.AI', 'CHIP', 'USD.AI_MAT_ko.pdf'),
-        ('usd-ai', 'USD.AI', 'CHIP', 'CHIP_MAT_en.pdf'),
+        ('usdai', 'USDai', 'USDAI', 'USD_AI_ECON_ko.pdf'),
+        ('usdai', 'USDai', 'USDAI', 'USD.AI_MAT_ko.pdf'),
+        ('usdai', 'USDai', 'USDAI', 'CHIP_MAT_en.pdf'),
+        ('usual-usd', 'Usual USD', 'USD0', 'Usual_Money_MAT_ko.pdf'),
+        ('usual-usd', 'Usual USD', 'USD0', 'usual_protocol_ECON_en.pdf'),
+        ('falcon-finance', 'Falcon USD', 'USDF', 'Falcon_USD_MAT_ko.pdf'),
         ('ab-chain', 'AB Chain', 'AB', 'AB_Chain_ECON_ko.pdf'),
         ('ab-chain', 'AB Chain', 'AB', 'AB_MAT_en.pdf'),
         ('awe-network', 'AWE', 'AWE', 'AWE_Network_ECON_ko.pdf'),
@@ -1540,7 +1543,7 @@ def test_explicit_report_prefix_prefers_trailing_asset_symbol(ws):
     assert source == 'filename'
 
 
-def test_ensure_runtime_project_seed_for_filename_prevents_usd_ai_paypal_collision(ws):
+def test_ensure_runtime_project_seed_for_filename_prevents_usdai_paypal_collision(ws):
     sb = MutableFakeSupabase({'tracked_projects': []})
     projects = [{
         'id': 'p-paypal-usd',
@@ -1558,10 +1561,46 @@ def test_ensure_runtime_project_seed_for_filename_prevents_usd_ai_paypal_collisi
     )
     project, source = ws._resolve_slug('USD.AI_MAT_ko.pdf', '', '', updated)
 
-    assert project['slug'] == 'usd-ai'
+    assert project['slug'] == 'usdai'
     assert source == 'filename'
-    assert sb.tables['tracked_projects'][0]['slug'] == 'usd-ai'
-    assert sb.tables['tracked_projects'][0]['symbol'] == 'CHIP'
+    assert sb.tables['tracked_projects'][0]['slug'] == 'usdai'
+    assert sb.tables['tracked_projects'][0]['symbol'] == 'USDAI'
+
+
+def test_ensure_runtime_project_seed_for_filename_resolves_usual_money(ws):
+    sb = MutableFakeSupabase({'tracked_projects': []})
+    projects = []
+
+    updated = ws._ensure_runtime_project_seed_for_filename(
+        sb,
+        projects,
+        'Usual_Money_MAT_ko.pdf',
+        dry_run=False,
+    )
+    project, source = ws._resolve_slug('Usual_Money_MAT_ko.pdf', '', '', updated)
+
+    assert project['slug'] == 'usual-usd'
+    assert source == 'filename'
+    assert sb.tables['tracked_projects'][0]['slug'] == 'usual-usd'
+    assert sb.tables['tracked_projects'][0]['symbol'] == 'USD0'
+
+
+def test_ensure_runtime_project_seed_for_filename_resolves_falcon_usd(ws):
+    sb = MutableFakeSupabase({'tracked_projects': []})
+    projects = []
+
+    updated = ws._ensure_runtime_project_seed_for_filename(
+        sb,
+        projects,
+        'Falcon_USD_MAT_ko.pdf',
+        dry_run=False,
+    )
+    project, source = ws._resolve_slug('Falcon_USD_MAT_ko.pdf', '', '', updated)
+
+    assert project['slug'] == 'falcon-finance'
+    assert source == 'filename'
+    assert sb.tables['tracked_projects'][0]['slug'] == 'falcon-finance'
+    assert sb.tables['tracked_projects'][0]['symbol'] == 'USDF'
 
 
 def test_ensure_runtime_project_seed_upserts_top500_market_snapshot_slug_for_publish(ws):
