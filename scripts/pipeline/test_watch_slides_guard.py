@@ -1114,6 +1114,51 @@ def test_iter_targets_yields_root_and_subfolder_pdfs(ws, monkeypatch):
     assert targets[1][1]['source_depth'] == 1
 
 
+def test_iter_targets_defaults_to_active_roots_only(ws, monkeypatch):
+    monkeypatch.setattr(ws, 'TYPE_FOLDER_IDS', {'econ': 'active-econ'})
+    monkeypatch.setattr(ws, 'LEGACY_TYPE_FOLDER_IDS', {'econ': 'legacy-econ'})
+    pdfs_by_parent = {
+        'active-econ': [{'id': 'active-slide', 'name': 'bitcoin-active.pdf', 'modifiedTime': 't0'}],
+        'legacy-econ': [{'id': 'legacy-slide', 'name': 'bitcoin-legacy.pdf', 'modifiedTime': 't0'}],
+    }
+    visited = []
+
+    def fake_list_pdfs(_service, parent_id):
+        visited.append(parent_id)
+        return pdfs_by_parent.get(parent_id, [])
+
+    monkeypatch.setattr(ws, '_list_pdfs_direct', fake_list_pdfs)
+    monkeypatch.setattr(ws, '_list_child_folders', lambda _service, parent_id: [])
+
+    targets = list(ws._iter_targets(object(), ['econ']))
+
+    assert [(rtype, pdf['id']) for rtype, pdf in targets] == [('econ', 'active-slide')]
+    assert visited == ['active-econ']
+
+
+def test_iter_targets_can_scan_legacy_roots_for_backfill(ws, monkeypatch):
+    monkeypatch.setattr(ws, 'TYPE_FOLDER_IDS', {'econ': 'active-econ'})
+    monkeypatch.setattr(ws, 'LEGACY_TYPE_FOLDER_IDS', {'econ': 'legacy-econ'})
+    pdfs_by_parent = {
+        'active-econ': [{'id': 'active-slide', 'name': 'bitcoin-active.pdf', 'modifiedTime': 't0'}],
+        'legacy-econ': [{'id': 'legacy-slide', 'name': 'bitcoin-legacy.pdf', 'modifiedTime': 't0'}],
+    }
+    visited = []
+
+    def fake_list_pdfs(_service, parent_id):
+        visited.append(parent_id)
+        return pdfs_by_parent.get(parent_id, [])
+
+    monkeypatch.setattr(ws, '_list_pdfs_direct', fake_list_pdfs)
+    monkeypatch.setattr(ws, '_list_child_folders', lambda _service, parent_id: [])
+
+    targets = list(ws._iter_targets(object(), ['econ'], drive_root_scope='legacy'))
+
+    assert [(rtype, pdf['id']) for rtype, pdf in targets] == [('econ', 'legacy-slide')]
+    assert targets[0][1]['source_path'] == 'Legacy/Slide/econ/bitcoin-legacy.pdf'
+    assert visited == ['legacy-econ']
+
+
 def test_iter_targets_uses_drive_name_search_for_slug_when_root_listing_misses(ws, monkeypatch):
     monkeypatch.setattr(ws, 'TYPE_FOLDER_IDS', {'econ': 'root-econ'})
     projects = [{'slug': 'ethgas', 'name': 'ETHGas', 'symbol': 'GWEI'}]

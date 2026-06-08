@@ -26,8 +26,14 @@ The active publishing watcher is `scripts/pipeline/watch_slides.py`.
 
 - Source drafts for report creation live in GDrive `BCE Research Source Drafts`.
   SHIB example: `BCE Research Source Drafts / shiba-inu_econ_v1_en.md`.
-- Published slide PDFs are watched from the configured `Slide/{TYPE}/` folders
-  in `scripts/pipeline/watch_slides.py`.
+- Published slide PDFs are watched from the active Drive ingest folders set by
+  `BCE_SLIDE_ACTIVE_{ECON,MAT,FOR}_FOLDER_ID`.
+- Korean analysis Markdown sources are read from
+  `BCE_MARKETING_ACTIVE_{ECON,MAT,FOR}_SOURCE_FOLDER_ID` during active
+  publishing.
+- Historical Slide PDF and analysis Markdown folders are preserved as legacy
+  backfill inputs. Use `--drive-root-scope legacy` for old-folder repair runs,
+  or `--drive-root-scope all` for manual audits that must compare both trees.
 - Do not use legacy GDrive `drafts/{ECON,MAT,FOR}` folders for current
   operations. Those folders are only for archived reproduction under
   `_legacy/pipeline/`.
@@ -36,6 +42,31 @@ The active publishing watcher is `scripts/pipeline/watch_slides.py`.
 ```bash
 python scripts/pipeline/watch_slides.py --type econ --slug shiba-inu --dry-run
 ```
+
+Create the active Drive ingest tree under `GDRIVE_ROOT_FOLDER_ID`:
+
+```bash
+python scripts/pipeline/create_drive_ingest_folders.py
+```
+
+For production, run the `Slide Pipeline - Automated Processing` workflow with
+`create_ingest_folders=true`; it uses the repository's configured Drive service
+account and prints the same secret values in the workflow log.
+
+The script creates or reuses:
+
+```text
+BCE Slide Pipeline Ingest/
+  Slide/econ
+  Slide/mat
+  Slide/for
+  analysis/econ
+  analysis/mat
+  analysis/for
+```
+
+Copy the printed folder IDs into GitHub secrets / `.env.local` as
+`BCE_SLIDE_ACTIVE_*_FOLDER_ID` and `BCE_MARKETING_ACTIVE_*_SOURCE_FOLDER_ID`.
 
 When `--slug` is provided, the watcher uses filename/project/folder hints to
 avoid traversing unrelated Slide folders before full PDF content resolution.

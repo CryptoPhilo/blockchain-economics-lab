@@ -54,19 +54,35 @@ REPORT_TYPE_TO_DB = {
 DB_TYPE_TO_SHORT = {value: key for key, value in REPORT_TYPE_TO_DB.items()}
 WEBSITE_VISIBLE_REPORT_STATUSES = ("published", "coming_soon", "in_review")
 
+def _env_folder_id(name: str, default: str = "") -> str:
+    return (os.environ.get(name) or default or "").strip()
+
+
+DRIVE_SOURCE_SCOPES = {"active", "legacy", "all"}
 DEFAULT_SOURCE_FOLDER_ID = "1E87EcasPlrGuet0t6e1CA9kLFO0sTdFq"
-SOURCE_FOLDER_ID = os.environ.get("BCE_MARKETING_SOURCE_FOLDER_ID", DEFAULT_SOURCE_FOLDER_ID)
+SOURCE_FOLDER_ID = _env_folder_id("BCE_MARKETING_SOURCE_FOLDER_ID", DEFAULT_SOURCE_FOLDER_ID)
 DEFAULT_ECON_SOURCE_FOLDER_ID = "1vcSHC1Z2cbOKJvWTpw535JsGJPrffOtd"
-ECON_SOURCE_FOLDER_ID = os.environ.get("BCE_MARKETING_ECON_SOURCE_FOLDER_ID", DEFAULT_ECON_SOURCE_FOLDER_ID)
+ACTIVE_ECON_SOURCE_FOLDER_ID = _env_folder_id("BCE_MARKETING_ACTIVE_ECON_SOURCE_FOLDER_ID")
+ECON_SOURCE_FOLDER_ID = ACTIVE_ECON_SOURCE_FOLDER_ID
 DEFAULT_LEGACY_ECON_SOURCE_FOLDER_ID = "1iWkUkurWZtJ5pwGiuR3sQiiyANBJ9ZIc"
-LEGACY_ECON_SOURCE_FOLDER_ID = os.environ.get(
+LEGACY_ECON_SOURCE_FOLDER_ID = _env_folder_id(
     "BCE_MARKETING_LEGACY_ECON_SOURCE_FOLDER_ID",
     DEFAULT_LEGACY_ECON_SOURCE_FOLDER_ID,
 )
 DEFAULT_MAT_SOURCE_FOLDER_ID = "1-K4nMQcG3U-L1ro6YqBguCk2JUExlNcc"
-MAT_SOURCE_FOLDER_ID = os.environ.get("BCE_MARKETING_MAT_SOURCE_FOLDER_ID", DEFAULT_MAT_SOURCE_FOLDER_ID)
+ACTIVE_MAT_SOURCE_FOLDER_ID = _env_folder_id("BCE_MARKETING_ACTIVE_MAT_SOURCE_FOLDER_ID")
+MAT_SOURCE_FOLDER_ID = ACTIVE_MAT_SOURCE_FOLDER_ID
+LEGACY_MAT_SOURCE_FOLDER_ID = _env_folder_id(
+    "BCE_MARKETING_LEGACY_MAT_SOURCE_FOLDER_ID",
+    DEFAULT_MAT_SOURCE_FOLDER_ID,
+)
 DEFAULT_FOR_SOURCE_FOLDER_ID = "1eLyL9VSkwMM9TShea4Yd4WiveQuJfwKS"
-FOR_SOURCE_FOLDER_ID = os.environ.get("BCE_MARKETING_FOR_SOURCE_FOLDER_ID") or DEFAULT_FOR_SOURCE_FOLDER_ID
+ACTIVE_FOR_SOURCE_FOLDER_ID = _env_folder_id("BCE_MARKETING_ACTIVE_FOR_SOURCE_FOLDER_ID")
+FOR_SOURCE_FOLDER_ID = ACTIVE_FOR_SOURCE_FOLDER_ID
+LEGACY_FOR_SOURCE_FOLDER_ID = _env_folder_id(
+    "BCE_MARKETING_LEGACY_FOR_SOURCE_FOLDER_ID",
+    os.environ.get("BCE_MARKETING_FOR_SOURCE_FOLDER_ID") or DEFAULT_FOR_SOURCE_FOLDER_ID,
+)
 ARCHIVE_FOLDER_ID = os.environ.get("BCE_MARKETING_ARCHIVE_FOLDER_ID", "")
 
 MAX_WORDS = int(os.environ.get("BCE_MARKETING_MAX_WORDS", "100"))
@@ -310,26 +326,46 @@ def _slug_parts(slug: str) -> List[str]:
     return [part for part in re.split(r"[-_\s]+", _normalize_text(slug).lower()) if part]
 
 
-def _source_folder_id_for_report_type(report_type: str) -> str:
-    if report_type == "econ":
-        return ECON_SOURCE_FOLDER_ID
-    if report_type == "mat":
-        return MAT_SOURCE_FOLDER_ID
-    if report_type == "for":
-        if not FOR_SOURCE_FOLDER_ID:
-            raise RuntimeError("BCE_MARKETING_FOR_SOURCE_FOLDER_ID must point to Google Drive analysis/FOR")
-        return FOR_SOURCE_FOLDER_ID
+def _normalize_source_scope(source_scope: Optional[str]) -> str:
+    normalized = (source_scope or "active").strip().lower()
+    if normalized not in DRIVE_SOURCE_SCOPES:
+        raise ValueError(f"source_scope must be one of {sorted(DRIVE_SOURCE_SCOPES)}")
+    return normalized
+
+
+def _source_folder_id_for_report_type(report_type: str, *, source_scope: str = "active") -> str:
+    folder_ids = _source_folder_ids_for_report_type(report_type, source_scope=source_scope)
+    if folder_ids:
+        return folder_ids[0]
     raise ValueError(f"Unsupported report_type: {report_type}")
 
 
-def _source_folder_ids_for_report_type(report_type: str) -> List[str]:
-    if report_type == "econ":
-        return [
-            folder_id
-            for folder_id in (ECON_SOURCE_FOLDER_ID, LEGACY_ECON_SOURCE_FOLDER_ID)
-            if folder_id
-        ]
-    return [_source_folder_id_for_report_type(report_type)]
+def _source_folder_ids_for_report_type(report_type: str, *, source_scope: str = "active") -> List[str]:
+    scope = _normalize_source_scope(source_scope)
+    by_type = {
+        "econ": {
+            "active": ECON_SOURCE_FOLDER_ID,
+            "legacy": LEGACY_ECON_SOURCE_FOLDER_ID,
+        },
+        "mat": {
+            "active": MAT_SOURCE_FOLDER_ID,
+            "legacy": LEGACY_MAT_SOURCE_FOLDER_ID,
+        },
+        "for": {
+            "active": FOR_SOURCE_FOLDER_ID,
+            "legacy": LEGACY_FOR_SOURCE_FOLDER_ID,
+        },
+    }
+    if report_type not in by_type:
+        raise ValueError(f"Unsupported report_type: {report_type}")
+    candidates = (
+        [by_type[report_type]["active"]]
+        if scope == "active"
+        else [by_type[report_type]["legacy"]]
+        if scope == "legacy"
+        else [by_type[report_type]["active"], by_type[report_type]["legacy"]]
+    )
+    return [folder_id for folder_id in candidates if folder_id]
 
 
 def score_drive_source_for_project(file_name: str, project: Dict[str, Any]) -> int:
@@ -1012,10 +1048,14 @@ def find_drive_source_for_project(
     folder_id: Optional[str] = None,
     service: Any = None,
     min_score: int = 60,
+    source_scope: str = "active",
 ) -> Optional[MarkdownSource]:
     """Find a Drive Markdown source for a project, including natural MAT filenames."""
     drive_service = service or _get_drive_service()
-    source_folder_ids = [folder_id] if folder_id else _source_folder_ids_for_report_type(report_type)
+    source_folder_ids = [folder_id] if folder_id else _source_folder_ids_for_report_type(
+        report_type,
+        source_scope=source_scope,
+    )
     candidates: List[Dict[str, Any]] = []
     for source_folder_id in source_folder_ids:
         candidates.extend(_list_drive_markdown_sources(drive_service, source_folder_id))
@@ -1430,6 +1470,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Generate website summary and marketing copy from Korean report Markdown.")
     parser.add_argument("--source", choices=["drive", "local"], default="drive")
     parser.add_argument("--source-folder-id", default=SOURCE_FOLDER_ID)
+    parser.add_argument("--source-scope", choices=sorted(DRIVE_SOURCE_SCOPES), default="active")
     parser.add_argument("--local-path", action="append", default=[])
     parser.add_argument("--slug", action="append", default=[], help="Only process this project/report slug. Repeatable.")
     parser.add_argument("--report-type", choices=["econ", "mat", "for"], help="Only process one report type.")
@@ -1441,7 +1482,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parser.parse_args(argv)
 
     if args.source == "drive":
-        sources = load_drive_sources(args.source_folder_id)
+        if args.source_folder_id != SOURCE_FOLDER_ID or not args.report_type:
+            sources = load_drive_sources(args.source_folder_id)
+        else:
+            sources = []
+            for source_folder_id in _source_folder_ids_for_report_type(
+                args.report_type,
+                source_scope=args.source_scope,
+            ):
+                sources.extend(load_drive_sources(source_folder_id))
     else:
         sources = load_local_sources(args.local_path)
     sources = _filter_sources(
