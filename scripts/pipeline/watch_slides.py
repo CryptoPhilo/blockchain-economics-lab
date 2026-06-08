@@ -209,6 +209,12 @@ REPORT_GAP_PROJECT_SEEDS: Dict[str, Dict[str, Any]] = {
         'category': 'Stablecoin',
         'coingecko_id': None,
     },
+    'ondo-us-dollar-yield': {
+        'name': 'Ondo US Dollar Yield',
+        'symbol': 'USDY',
+        'category': 'RWA',
+        'coingecko_id': 'ondo-us-dollar-yield',
+    },
     'dai': {
         'name': 'Dai',
         'symbol': 'DAI',
@@ -799,6 +805,47 @@ def _runtime_project_seed_for_slug(slug: Optional[str]) -> Optional[Dict[str, An
         'coingecko_id': seed.get('coingecko_id'),
         'aliases': aliases,
     }
+
+
+def _known_runtime_project_seed_candidates() -> List[Dict[str, Any]]:
+    candidates: List[Dict[str, Any]] = []
+    for slug, seed in REPORT_GAP_PROJECT_SEEDS.items():
+        candidates.append({
+            'slug': slug,
+            'name': seed['name'],
+            'symbol': seed['symbol'],
+            'aliases': PROJECT_ALIAS_REGISTRY.get(slug, []),
+        })
+    return candidates
+
+
+def _ensure_runtime_project_seed_for_filename(
+    sb,
+    projects: List[Dict[str, Any]],
+    pdf_name: str,
+    *,
+    dry_run: bool,
+) -> List[Dict[str, Any]]:
+    """Materialize known report-gap projects from explicit Drive filenames.
+
+    Scheduled runs may see a new top-500 report before its tracked_projects row
+    exists. If a filename explicitly names a known seed (for example
+    `Ondo_USDY_ECON_ko.pdf`), seed that project before normal matching so a
+    broader existing project such as Ondo Finance cannot capture the report.
+    """
+    prefix = _explicit_report_project_prefix(pdf_name)
+    if not prefix:
+        return projects
+
+    seed_project = _match_project_by_text(prefix, _known_runtime_project_seed_candidates())
+    if not seed_project:
+        return projects
+
+    seed_slug = (seed_project.get('slug') or '').lower()
+    if not seed_slug or _project_by_slug(projects, seed_slug):
+        return projects
+
+    return _ensure_runtime_project_seed(sb, projects, seed_slug, dry_run=dry_run)
 
 
 def _runtime_market_snapshot_seed_for_slug(sb, slug: Optional[str]) -> Optional[Dict[str, Any]]:
@@ -3530,6 +3577,12 @@ def process(
 
             # Filename match alone often resolves the slug; only invoke OCR
             # (slow) when text-layer extraction can't determine slug or lang.
+            projects = _ensure_runtime_project_seed_for_filename(
+                sb,
+                projects,
+                pdf['name'],
+                dry_run=dry_run,
+            )
             filename_match = _match_project_by_text(pdf['name'], projects)
             text_lang = _lang_from_filename(pdf['name']) or _lang_from_metadata(meta) or _lang_from_text(pdf_text)
             ocr_text = ''

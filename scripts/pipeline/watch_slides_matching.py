@@ -82,6 +82,15 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
         'ens 以太坊名称服务',
         '以太坊名称服务',
     ],
+    'ondo-us-dollar-yield': [
+        'usdy',
+        'ondo usdy',
+        'ondo-usdy',
+        'ondo_usdy',
+        'ondo usd yield',
+        'ondo us dollar yield',
+        'ondo u.s. dollar yield',
+    ],
 }
 
 _TOKEN_RE = re.compile(r'[A-Za-z0-9]+')
