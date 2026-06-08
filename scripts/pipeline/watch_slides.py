@@ -77,6 +77,7 @@ from watch_slides_matching import (
     PROJECT_ALIAS_REGISTRY,
     _detect_slug_content_mismatch,
     _explicit_report_project_prefix,
+    _match_project_by_explicit_prefix,
     _match_project_by_text,
     _normalize_signal_text,
     _project_signal,
@@ -843,7 +844,7 @@ def _ensure_runtime_project_seed_for_filename(
     if not prefix:
         return projects
 
-    seed_project = _match_project_by_text(prefix, _known_runtime_project_seed_candidates())
+    seed_project = _match_project_by_explicit_prefix(prefix, _known_runtime_project_seed_candidates())
     if not seed_project:
         return projects
 
