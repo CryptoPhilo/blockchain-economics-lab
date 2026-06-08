@@ -8812,7 +8812,8 @@
     "updated_at": "2026-05-17T17:42:19.401528+00:00"
   },
   "1FNa95JQ8_3uxXL3_hhL_zB8BgCUU2mfN": {
-    "error": "slug/content mismatch — filename resolved 'rain' (body score 8) but body strongly matches 'ethereum-name-service' (score 34)",
+    "error": null,
+    "finished_at": "2026-06-08T08:43:29.138577+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "mismatch": {
@@ -8823,19 +8824,28 @@
     },
     "modifiedTime": "2026-06-08T05:46:17.000Z",
     "name": "Rain_Protocol_ECON_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 540.0,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 960.0
+    },
     "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
     "parent_folder_name": "econ",
-    "public_url": null,
-    "report_id": null,
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/rain/latest/ko.html",
+    "report_id": "bd8a63e4-69d7-4283-abe6-24665a36ffdb",
+    "retry_count": 0,
     "rtype": "econ",
     "slug": "rain",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/Rain_Protocol_ECON_ko.pdf",
-    "status": "mismatch",
-    "updated_at": "2026-06-08T06:59:55.818572+00:00",
-    "version": null,
-    "versioned_url": null
+    "started_at": "2026-06-08T08:43:02.274313+00:00",
+    "status": "published",
+    "updated_at": "2026-06-08T08:43:29.138595+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/rain/1/ko.html"
   },
   "1FVpQJB0wRpZtNuGLagI8L9zDhZth4Yt8": {
     "error": null,
@@ -13245,7 +13255,7 @@
   },
   "1Nhbxg6Xb0hWt1zLa7zux397OV2MX5L60": {
     "error": null,
-    "finished_at": "2026-06-08T07:02:19.082045+00:00",
+    "finished_at": "2026-06-08T08:45:23.018933+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "modifiedTime": "2026-06-08T05:45:35.000Z",
@@ -13267,9 +13277,9 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/Rain_Protocol_ECON_cn.pdf",
-    "started_at": "2026-06-08T07:01:52.225844+00:00",
+    "started_at": "2026-06-08T08:45:03.505708+00:00",
     "status": "published",
-    "updated_at": "2026-06-08T07:02:19.082053+00:00",
+    "updated_at": "2026-06-08T08:45:23.018950+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/rain/1/zh.html"
   },
@@ -14529,7 +14539,7 @@
   },
   "1PcaXvLuq9OyZoriJskcoaYwM3Cahzeus": {
     "error": null,
-    "finished_at": "2026-06-08T07:02:54.268812+00:00",
+    "finished_at": "2026-06-08T08:45:46.629704+00:00",
     "lang": "en",
     "lang_source": "filename",
     "modifiedTime": "2026-06-08T05:45:11.000Z",
@@ -14551,9 +14561,9 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/Rain_Protocol_ECON_en.pdf",
-    "started_at": "2026-06-08T07:02:27.281024+00:00",
+    "started_at": "2026-06-08T08:45:28.790715+00:00",
     "status": "published",
-    "updated_at": "2026-06-08T07:02:54.268820+00:00",
+    "updated_at": "2026-06-08T08:45:46.629722+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/rain/1/en.html"
   },
@@ -15168,7 +15178,7 @@
   },
   "1QyBnGCC840uF5HfaQBRWfJyuXH213-UJ": {
     "error": null,
-    "finished_at": "2026-06-08T07:01:16.597772+00:00",
+    "finished_at": "2026-06-08T08:44:28.178424+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-06-08T05:45:50.000Z",
@@ -15190,9 +15200,9 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/Rain_Protocol_ECON_jp.pdf",
-    "started_at": "2026-06-08T07:00:22.951569+00:00",
+    "started_at": "2026-06-08T08:43:56.425195+00:00",
     "status": "published",
-    "updated_at": "2026-06-08T07:01:16.597783+00:00",
+    "updated_at": "2026-06-08T08:44:28.178442+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/rain/1/ja.html"
   },
