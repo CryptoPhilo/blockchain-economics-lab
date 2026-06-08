@@ -2027,7 +2027,7 @@
     "source_path": "Drive/search/for/chip-시장-포렌식-분석-보고서_for_v1_en.pdf",
     "stale_url_removed": false,
     "status": "skipped_legacy_portrait_pdf",
-    "updated_at": "2026-06-08T17:00:58.219608+00:00"
+    "updated_at": "2026-06-08T17:18:06.193773+00:00"
   },
   "12asXFR3R4FUtzE5iuP6FfQ2zWZ03jYyR": {
     "error": null,
@@ -3279,7 +3279,7 @@
   },
   "14oMAcyI4lPRIiMOg9tMRzw7gZDV9-AWT": {
     "error": null,
-    "finished_at": "2026-06-08T11:55:19.350180+00:00",
+    "finished_at": "2026-06-08T17:13:57.356389+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-06-08T10:39:26.000Z",
@@ -3293,19 +3293,19 @@
     },
     "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
     "parent_folder_name": "econ",
-    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/paypal-usd/latest/ja.html",
-    "report_id": "aa2d1701-b29c-42d6-b23a-bbb25e4d0067",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usdai/latest/ja.html",
+    "report_id": "c7920ead-b96b-4aaa-88eb-aa6763a6a769",
     "retry_count": 0,
     "rtype": "econ",
-    "slug": "paypal-usd",
+    "slug": "usdai",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/USD.AI_ECON_jp.pdf",
-    "started_at": "2026-06-08T11:54:57.992107+00:00",
+    "started_at": "2026-06-08T17:13:37.527245+00:00",
     "status": "published",
-    "updated_at": "2026-06-08T15:23:58.560249+00:00",
-    "version": 2,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/paypal-usd/2/ja.html"
+    "updated_at": "2026-06-08T17:13:57.356407+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usdai/1/ja.html"
   },
   "14qm57jUs8W9gniUcnQueIQbwESljNQGJ": {
     "error": null,
@@ -5728,6 +5728,28 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/pyth-network/1/en.html"
   },
+  "19wkGz6cSdxgyDAf-9xnZ67GiUZKJjOoh": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "en",
+    "modifiedTime": "2026-04-27T11:33:34.735Z",
+    "name": "usd-ai_for_v1_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 21,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "for",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/for/usd-ai_for_v1_en.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-08T17:18:08.287736+00:00"
+  },
   "19yNOomA3hYjDt1TKNb7pbEjONGNP-VG6": {
     "error": null,
     "finished_at": "2026-05-17T09:44:22.421195+00:00",
@@ -7334,7 +7356,7 @@
   },
   "1CVfQj3yotR08HiVlEt8AosR0kcI-4YM8": {
     "error": null,
-    "finished_at": "2026-06-08T11:56:29.305468+00:00",
+    "finished_at": "2026-06-08T17:15:06.225282+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "modifiedTime": "2026-06-08T10:38:44.000Z",
@@ -7348,19 +7370,19 @@
     },
     "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
     "parent_folder_name": "econ",
-    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/paypal-usd/latest/ko.html",
-    "report_id": "e129fa63-a8f2-4d76-804e-6767b44e0da6",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usdai/latest/ko.html",
+    "report_id": "5be6cb87-068a-4b1f-9079-151636ab3016",
     "retry_count": 0,
     "rtype": "econ",
-    "slug": "paypal-usd",
+    "slug": "usdai",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/USD.AI_ECON_ko.pdf",
-    "started_at": "2026-06-08T11:56:10.044675+00:00",
+    "started_at": "2026-06-08T17:14:48.725424+00:00",
     "status": "published",
-    "updated_at": "2026-06-08T15:24:00.402080+00:00",
-    "version": 4,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/paypal-usd/4/ko.html"
+    "updated_at": "2026-06-08T17:15:06.225302+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usdai/1/ko.html"
   },
   "1CViPcBaLb9CBIpKpw57jY6tvSxN7WeE1": {
     "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ja'",
@@ -7519,7 +7541,7 @@
     "source_path": "Drive/search/for/chip-시장-포렌식-분석-보고서_for_v1_ko.pdf",
     "stale_url_removed": false,
     "status": "skipped_legacy_portrait_pdf",
-    "updated_at": "2026-06-08T17:01:02.002934+00:00"
+    "updated_at": "2026-06-08T17:18:07.782206+00:00"
   },
   "1CtnepL8Qib0882dku7trbxu4v-sjkPYl": {
     "error": null,
@@ -8118,7 +8140,7 @@
   },
   "1DjhHNlGfyWUxppx2L7eeh0OvhT4bb2R0": {
     "error": null,
-    "finished_at": "2026-06-08T11:55:46.654901+00:00",
+    "finished_at": "2026-06-08T17:14:25.279826+00:00",
     "lang": "en",
     "lang_source": "filename",
     "modifiedTime": "2026-06-08T10:39:04.000Z",
@@ -8132,19 +8154,19 @@
     },
     "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
     "parent_folder_name": "econ",
-    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/paypal-usd/latest/en.html",
-    "report_id": "974b52fd-40ce-444d-bc30-74e4a96bf07e",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usdai/latest/en.html",
+    "report_id": "60bc9153-3608-4ca3-9296-a227f2ae7731",
     "retry_count": 0,
     "rtype": "econ",
-    "slug": "paypal-usd",
+    "slug": "usdai",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/USD.AI_ECON_en.pdf",
-    "started_at": "2026-06-08T11:55:26.536478+00:00",
+    "started_at": "2026-06-08T17:14:05.712016+00:00",
     "status": "published",
-    "updated_at": "2026-06-08T15:23:59.490865+00:00",
-    "version": 2,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/paypal-usd/2/en.html"
+    "updated_at": "2026-06-08T17:14:25.279846+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usdai/1/en.html"
   },
   "1DmLASKIWYt7iFfGhBMjiRBz01L4A62Re": {
     "error": null,
@@ -9459,7 +9481,7 @@
     "source_path": "Drive/search/for/chip-시장-포렌식-분석-보고서_for_v1_de.pdf",
     "stale_url_removed": false,
     "status": "skipped_legacy_portrait_pdf",
-    "updated_at": "2026-06-08T17:00:55.771061+00:00"
+    "updated_at": "2026-06-08T17:18:04.361283+00:00"
   },
   "1FEp3qavITmS7NFcOmstHeUa3y5YJCJDY": {
     "error": "Storage upload failed for slides/econ/stellar/2/ko_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
@@ -11102,7 +11124,7 @@
   },
   "1IF_IUMfK5BTWBuREYHhc-AIgZkObuooz": {
     "error": null,
-    "finished_at": "2026-06-08T11:54:24.670096+00:00",
+    "finished_at": "2026-06-08T17:13:04.945893+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "modifiedTime": "2026-06-08T10:39:44.000Z",
@@ -11116,19 +11138,19 @@
     },
     "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
     "parent_folder_name": "econ",
-    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/paypal-usd/latest/zh.html",
-    "report_id": "444fc03b-38fd-4f98-b514-9c71c6130b20",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usdai/latest/zh.html",
+    "report_id": "bdc73fdd-64b5-4542-b437-77f738b723fd",
     "retry_count": 0,
     "rtype": "econ",
-    "slug": "paypal-usd",
+    "slug": "usdai",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/econ/USD.AI_ECON_cn.pdf",
-    "started_at": "2026-06-08T11:53:58.874113+00:00",
+    "started_at": "2026-06-08T17:12:42.439768+00:00",
     "status": "published",
-    "updated_at": "2026-06-08T15:23:57.597814+00:00",
-    "version": 2,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/paypal-usd/2/zh.html"
+    "updated_at": "2026-06-08T17:13:04.945912+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usdai/1/zh.html"
   },
   "1IGtp-6zubGy-0VXvZwKUkqYSs1bkJf_9": {
     "error": null,
@@ -16364,7 +16386,7 @@
   },
   "1QpIDlxgJD6p3AkbLt7T99ogPEyPrP9-I": {
     "error": null,
-    "finished_at": "2026-06-08T14:09:45.500684+00:00",
+    "finished_at": "2026-06-08T17:17:53.212216+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "modifiedTime": "2026-06-08T10:42:28.000Z",
@@ -16378,19 +16400,19 @@
     },
     "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
     "parent_folder_name": "mat",
-    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usd-ai/latest/ko.html",
-    "report_id": "e969ebe8-c381-4904-a6d7-3c3bc6ca9246",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usdai/latest/ko.html",
+    "report_id": "e39b7659-7334-4821-ae2c-28d4c66b411b",
     "retry_count": 0,
     "rtype": "mat",
-    "slug": "usd-ai",
+    "slug": "usdai",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/mat/USD.AI_MAT_ko.pdf",
-    "started_at": "2026-06-08T14:09:22.529717+00:00",
+    "started_at": "2026-06-08T17:17:32.488092+00:00",
     "status": "published",
-    "updated_at": "2026-06-08T15:24:36.517761+00:00",
+    "updated_at": "2026-06-08T17:17:53.212236+00:00",
     "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usd-ai/1/ko.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usdai/1/ko.html"
   },
   "1Qv2LCZPs1AHYroOUtHgj3zTXHIEq7_ed": {
     "error": null,
@@ -18225,7 +18247,7 @@
     "source_path": "Drive/search/for/chip-시장-포렌식-분석-보고서_for_v1_zh.pdf",
     "stale_url_removed": false,
     "status": "skipped_legacy_portrait_pdf",
-    "updated_at": "2026-06-08T17:01:00.764501+00:00"
+    "updated_at": "2026-06-08T17:18:07.217067+00:00"
   },
   "1UTg8MORcPQmYqjXGgDAADF-9uer-MxeN": {
     "error": null,
@@ -21569,7 +21591,7 @@
     "source_path": "Drive/search/for/chip-시장-포렌식-분석-보고서_for_v1_fr.pdf",
     "stale_url_removed": false,
     "status": "skipped_legacy_portrait_pdf",
-    "updated_at": "2026-06-08T17:00:57.404027+00:00"
+    "updated_at": "2026-06-08T17:18:05.542061+00:00"
   },
   "1_NqE3K45X6YBS2XQQn_tyqA7WUUJAqXR": {
     "error": null,
@@ -22311,6 +22333,28 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/artificial-superintelligence-alliance/1/en.html"
   },
+  "1acBaTBrrOnIob4mOy6VrT073FwDSTf4k": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "ko",
+    "modifiedTime": "2026-04-27T11:33:32.683Z",
+    "name": "usd-ai_for_v1_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 18,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "for",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/for/usd-ai_for_v1_ko.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-08T17:18:08.836923+00:00"
+  },
   "1ad-vz1zvVSMIBFG3YSkV5e_cnLupgGyu": {
     "error": null,
     "finished_at": "2026-05-17T13:57:34.625638+00:00",
@@ -22647,7 +22691,7 @@
     "source_path": "Drive/search/for/chip-시장-포렌식-분석-보고서_for_v1_es.pdf",
     "stale_url_removed": false,
     "status": "skipped_legacy_portrait_pdf",
-    "updated_at": "2026-06-08T17:00:56.420214+00:00"
+    "updated_at": "2026-06-08T17:18:04.956717+00:00"
   },
   "1b5GcR5WlLsjRHiNU0uFmfc6Er2zbs7oP": {
     "error": null,
@@ -25202,7 +25246,7 @@
     "source_path": "Drive/search/for/chip-시장-포렌식-분석-보고서_for_v1_ja.pdf",
     "stale_url_removed": false,
     "status": "skipped_legacy_portrait_pdf",
-    "updated_at": "2026-06-08T17:00:59.866312+00:00"
+    "updated_at": "2026-06-08T17:18:06.705838+00:00"
   },
   "1fX20-_gLWZKRElX22XE-Naab3sWqDI7x": {
     "error": null,
@@ -28880,7 +28924,7 @@
   },
   "1mAbcR5VX0-c9fMf--efI1exNVTl8cRV2": {
     "error": null,
-    "finished_at": "2026-06-08T14:08:28.570443+00:00",
+    "finished_at": "2026-06-08T17:16:33.238695+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-06-08T10:43:09.000Z",
@@ -28894,19 +28938,19 @@
     },
     "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
     "parent_folder_name": "mat",
-    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usd-ai/latest/ja.html",
-    "report_id": "36b1d415-38bc-48f3-9717-dd7bbc94bf04",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usdai/latest/ja.html",
+    "report_id": "84456085-06f1-4644-8888-ca1db9683915",
     "retry_count": 0,
     "rtype": "mat",
-    "slug": "usd-ai",
+    "slug": "usdai",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/mat/USD.AI_MAT_jp.pdf",
-    "started_at": "2026-06-08T14:08:12.331679+00:00",
+    "started_at": "2026-06-08T17:16:21.287493+00:00",
     "status": "published",
-    "updated_at": "2026-06-08T15:24:33.143526+00:00",
+    "updated_at": "2026-06-08T17:16:33.238714+00:00",
     "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usd-ai/1/ja.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usdai/1/ja.html"
   },
   "1mD4nIC6YTZjvXhsgNEUVSWIz6gsJXAOa": {
     "error": null,
@@ -35038,7 +35082,7 @@
   },
   "1wIZy6p4XpUohhEdxKJuCnP8Pi05wyCVH": {
     "error": null,
-    "finished_at": "2026-06-08T14:08:54.847310+00:00",
+    "finished_at": "2026-06-08T17:17:01.828377+00:00",
     "lang": "en",
     "lang_source": "filename",
     "modifiedTime": "2026-06-08T10:42:50.000Z",
@@ -35052,19 +35096,19 @@
     },
     "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
     "parent_folder_name": "mat",
-    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usd-ai/latest/en.html",
-    "report_id": "2a6c978c-6b43-4f10-b153-01b07c14ad60",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usdai/latest/en.html",
+    "report_id": "37c9faa4-4ff1-4b50-9a6e-525df60e9225",
     "retry_count": 0,
     "rtype": "mat",
-    "slug": "usd-ai",
+    "slug": "usdai",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/mat/USD.AI_MAT_en.pdf",
-    "started_at": "2026-06-08T14:08:34.138642+00:00",
+    "started_at": "2026-06-08T17:16:41.798945+00:00",
     "status": "published",
-    "updated_at": "2026-06-08T15:24:34.908535+00:00",
+    "updated_at": "2026-06-08T17:17:01.828397+00:00",
     "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usd-ai/1/en.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usdai/1/en.html"
   },
   "1wIbe5iI-tuPnyOoaHQi8m8h67IZ-59Lf": {
     "error": null,
@@ -36252,7 +36296,7 @@
   },
   "1yk4PWHB-B6GyHWHWRnFnftKJIJJWi7Rw": {
     "error": null,
-    "finished_at": "2026-06-08T14:07:53.817182+00:00",
+    "finished_at": "2026-06-08T17:15:57.161358+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "modifiedTime": "2026-06-08T10:43:32.000Z",
@@ -36266,19 +36310,19 @@
     },
     "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
     "parent_folder_name": "mat",
-    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usd-ai/latest/zh.html",
-    "report_id": "f4eac645-58c1-4b0a-a6a0-39a77ebdfcc7",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usdai/latest/zh.html",
+    "report_id": "0b1950ae-2fc4-41bc-809d-2014bae245a6",
     "retry_count": 0,
     "rtype": "mat",
-    "slug": "usd-ai",
+    "slug": "usdai",
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide/mat/USD.AI_MAT_cn.pdf",
-    "started_at": "2026-06-08T14:07:17.713148+00:00",
+    "started_at": "2026-06-08T17:15:37.594258+00:00",
     "status": "published",
-    "updated_at": "2026-06-08T15:24:31.605085+00:00",
+    "updated_at": "2026-06-08T17:15:57.161381+00:00",
     "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usd-ai/1/zh.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usdai/1/zh.html"
   },
   "1ymMJCKO3mn_Bqnrxp3Rd49h6QclAecA5": {
     "error": null,
