@@ -91,6 +91,16 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
         'ondo us dollar yield',
         'ondo u.s. dollar yield',
     ],
+    'jupiter-perps-lp': [
+        'jlp',
+        'jupiter perps',
+        'jupiter-perps',
+        'jupiter_perps',
+        'jupiter perps lp',
+        'jupiter-perps-lp',
+        'jupiter_perps_lp',
+        'jupiter perpetuals liquidity provider token',
+    ],
 }
 
 _TOKEN_RE = re.compile(r'[A-Za-z0-9]+')
