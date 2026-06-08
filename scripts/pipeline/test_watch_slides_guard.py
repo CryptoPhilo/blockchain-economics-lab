@@ -1266,6 +1266,7 @@ def test_drive_name_search_terms_include_case_variants_for_dotted_alias(ws):
     assert 'usd.ai' in terms
     assert 'USD.AI' in terms
     assert 'USD_AI' in terms
+    assert 'USD' in terms
 
 
 def test_iter_targets_recurses_nested_folders(ws, monkeypatch):

@@ -611,6 +611,12 @@ def _drive_pdf_name_search_terms(filter_slug: Optional[str], projects: List[Dict
         expanded.add(raw)
         expanded.add(raw.upper())
         expanded.add(raw.title())
+        for part in re.split(r'[\s._-]+', raw):
+            part = part.strip()
+            if len(part) >= 3:
+                expanded.add(part)
+                expanded.add(part.upper())
+                expanded.add(part.title())
     return expanded
 
 
