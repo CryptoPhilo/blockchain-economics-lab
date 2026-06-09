@@ -1,0 +1,207 @@
+name: Slide Pipeline - Temporary Parallel Slugs
+
+on:
+  workflow_dispatch:
+    inputs:
+      type:
+        description: 'Report type to process'
+        required: true
+        type: choice
+        default: mat
+        options:
+          - econ
+          - mat
+          - for
+      slugs:
+        description: 'Project slugs to process, separated by commas, spaces, or new lines'
+        required: true
+        type: string
+      dry_run:
+        description: 'Dry run mode'
+        required: false
+        type: boolean
+        default: false
+      force:
+        description: 'Force re-process even if manifest is up-to-date'
+        required: false
+        type: boolean
+        default: true
+      drive_root_scope:
+        description: 'Drive roots to scan'
+        required: false
+        type: choice
+        default: all
+        options:
+          - active
+          - legacy
+          - all
+      max_parallel:
+        description: 'Maximum concurrent slug jobs'
+        required: false
+        type: choice
+        default: '6'
+        options:
+          - '2'
+          - '4'
+          - '6'
+          - '8'
+          - '12'
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    name: Prepare slug matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.parse.outputs.matrix }}
+      count: ${{ steps.parse.outputs.count }}
+    steps:
+      - name: Parse slugs
+        id: parse
+        env:
+          RAW_SLUGS: ${{ inputs.slugs }}
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          import os
+          import re
+          import sys
+
+          raw = os.environ.get('RAW_SLUGS', '')
+          slugs = []
+          seen = set()
+          for part in re.split(r'[\s,]+', raw.strip()):
+            slug = part.strip().lower()
+            if not slug:
+              continue
+            if not re.fullmatch(r'[a-z0-9][a-z0-9-]*', slug):
+              print(f"invalid slug: {slug}", file=sys.stderr)
+              sys.exit(2)
+            if slug not in seen:
+              seen.add(slug)
+              slugs.append(slug)
+
+          if not slugs:
+            print('at least one slug is required', file=sys.stderr)
+            sys.exit(2)
+
+          print(f"matrix={json.dumps({'slug': slugs}, separators=(',', ':'))}")
+          print(f"count={len(slugs)}")
+          PY
+
+  process:
+    name: Process ${{ inputs.type }} / ${{ matrix.slug }}
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      max-parallel: ${{ fromJSON(inputs.max_parallel) }}
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install tesseract OCR
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            tesseract-ocr \
+            tesseract-ocr-kor \
+            tesseract-ocr-eng \
+            tesseract-ocr-fra \
+            tesseract-ocr-spa \
+            tesseract-ocr-deu \
+            tesseract-ocr-jpn \
+            tesseract-ocr-chi-sim
+
+      - name: Install Python dependencies
+        run: |
+          cd scripts/pipeline
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
+            pip install supabase requests python-dotenv pymupdf pillow
+          fi
+
+      - name: Create .env.local from secrets
+        run: |
+          cat > .env.local << EOF
+          # Supabase
+          NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
+
+          # Google Drive
+          GDRIVE_ROOT_FOLDER_ID=${{ secrets.GDRIVE_ROOT_FOLDER_ID }}
+          GDRIVE_DELEGATE_EMAIL=${{ secrets.GDRIVE_DELEGATE_EMAIL }}
+          BCE_ACTIVE_INGEST_PARENT_FOLDER_ID=${{ secrets.BCE_ACTIVE_INGEST_PARENT_FOLDER_ID }}
+          BCE_ACTIVE_INGEST_PARENT_FOLDER_NAME=${{ secrets.BCE_ACTIVE_INGEST_PARENT_FOLDER_NAME }}
+          BCE_ACTIVE_SLIDE_ROOT_FOLDER_NAME=${{ secrets.BCE_ACTIVE_SLIDE_ROOT_FOLDER_NAME }}
+          BCE_ACTIVE_ANALYSIS_ROOT_FOLDER_NAME=${{ secrets.BCE_ACTIVE_ANALYSIS_ROOT_FOLDER_NAME }}
+          BCE_SLIDE_ACTIVE_ECON_FOLDER_ID=${{ secrets.BCE_SLIDE_ACTIVE_ECON_FOLDER_ID }}
+          BCE_SLIDE_ACTIVE_MAT_FOLDER_ID=${{ secrets.BCE_SLIDE_ACTIVE_MAT_FOLDER_ID }}
+          BCE_SLIDE_ACTIVE_FOR_FOLDER_ID=${{ secrets.BCE_SLIDE_ACTIVE_FOR_FOLDER_ID }}
+          BCE_SLIDE_LEGACY_ECON_FOLDER_ID=${{ secrets.BCE_SLIDE_LEGACY_ECON_FOLDER_ID }}
+          BCE_SLIDE_LEGACY_MAT_FOLDER_ID=${{ secrets.BCE_SLIDE_LEGACY_MAT_FOLDER_ID }}
+          BCE_SLIDE_LEGACY_FOR_FOLDER_ID=${{ secrets.BCE_SLIDE_LEGACY_FOR_FOLDER_ID }}
+          BCE_MARKETING_ACTIVE_ECON_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_ACTIVE_ECON_SOURCE_FOLDER_ID }}
+          BCE_MARKETING_ACTIVE_MAT_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_ACTIVE_MAT_SOURCE_FOLDER_ID }}
+          BCE_MARKETING_ACTIVE_FOR_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_ACTIVE_FOR_SOURCE_FOLDER_ID }}
+          BCE_MARKETING_LEGACY_ECON_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_LEGACY_ECON_SOURCE_FOLDER_ID }}
+          BCE_MARKETING_LEGACY_MAT_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_LEGACY_MAT_SOURCE_FOLDER_ID }}
+          BCE_MARKETING_LEGACY_FOR_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_LEGACY_FOR_SOURCE_FOLDER_ID }}
+          BCE_MARKETING_FOR_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_FOR_SOURCE_FOLDER_ID }}
+
+          # App
+          NEXT_PUBLIC_APP_URL=https://bcelab.xyz
+          EOF
+
+      - name: Create Google Drive service account credentials
+        run: |
+          echo '${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}' > scripts/pipeline/.gdrive_service_account.json
+
+      - name: Run slug slide pipeline
+        working-directory: scripts/pipeline
+        env:
+          GDRIVE_SERVICE_ACCOUNT_FILE: ${{ github.workspace }}/scripts/pipeline/.gdrive_service_account.json
+        run: |
+          ARGS=(
+            --type "${{ inputs.type }}"
+            --drive-root-scope "${{ inputs.drive_root_scope }}"
+            --slug "${{ matrix.slug }}"
+            --skip-db-reconcile
+            --skip-diagnostics
+          )
+
+          if [ "${{ inputs.force }}" = "true" ]; then
+            ARGS+=(--force)
+          fi
+
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            ARGS+=(--dry-run)
+          fi
+
+          echo "Invoking: python3 watch_slides.py ${ARGS[*]}"
+          python3 watch_slides.py "${ARGS[@]}"
+
+      - name: Upload slug pipeline logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parallel-slide-${{ inputs.type }}-${{ matrix.slug }}-${{ github.run_number }}
+          path: |
+            scripts/pipeline/output/_slide_processed.json
+            logs/slide_pipeline/*.md
+          retention-days: 14
