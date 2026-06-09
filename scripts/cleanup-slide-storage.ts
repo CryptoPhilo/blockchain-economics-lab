@@ -23,6 +23,28 @@ type ReportRow = {
   cover_image_urls_by_lang?: Record<string, unknown> | null
 }
 
+type SupabaseResponse<T> = {
+  data: T | null
+  error: { message: string } | null
+}
+
+type SupabaseClientLike = {
+  from: (table: string) => {
+    select: (columns: string) => {
+      range: (from: number, to: number) => PromiseLike<SupabaseResponse<unknown[]>>
+    }
+  }
+  storage: {
+    from: (bucket: string) => {
+      list: (
+        prefix: string,
+        options: { limit: number; offset: number; sortBy: { column: string; order: string } },
+      ) => Promise<SupabaseResponse<unknown[]>>
+      remove: (paths: string[]) => Promise<SupabaseResponse<unknown[]>>
+    }
+  }
+}
+
 const BUCKET = 'slides'
 const DEFAULT_OUTPUT = 'scripts/pipeline/output/slide-storage-cleanup-report.json'
 const VERSIONED_REPORT_RE = /^(econ|mat|for)\/[^/]+\/\d+\/[^/]+\.html$/i
@@ -100,7 +122,7 @@ function summarize(objects: ListedObject[]): Record<string, { count: number; byt
   return summary
 }
 
-async function loadReportRows(supabase: ReturnType<typeof createClient>): Promise<ReportRow[]> {
+async function loadReportRows(supabase: SupabaseClientLike): Promise<ReportRow[]> {
   const rows: ReportRow[] = []
   const pageSize = 1000
   for (let from = 0; ; from += pageSize) {
@@ -117,7 +139,7 @@ async function loadReportRows(supabase: ReturnType<typeof createClient>): Promis
 }
 
 async function listStorageObjects(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClientLike,
   prefix = '',
 ): Promise<ListedObject[]> {
   const out: ListedObject[] = []
@@ -156,7 +178,7 @@ function batch<T>(items: T[], size: number): T[][] {
 }
 
 async function removeObjects(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClientLike,
   candidates: ListedObject[],
 ): Promise<{ deleted: number; failed: Array<{ path: string; message: string }> }> {
   let deleted = 0
