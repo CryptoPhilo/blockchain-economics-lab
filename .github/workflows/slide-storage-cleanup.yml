@@ -43,7 +43,14 @@ jobs:
           if [ "${{ inputs.mode }}" = "apply" ]; then
             args+=(--confirm-delete)
           fi
-          npx ts-node-esm scripts/cleanup-slide-storage.ts "${args[@]}"
+          npx tsc scripts/cleanup-slide-storage.ts \
+            --target ES2022 \
+            --module NodeNext \
+            --moduleResolution NodeNext \
+            --outDir scripts/pipeline/output/slide-cleanup-build \
+            --skipLibCheck \
+            --esModuleInterop
+          node scripts/pipeline/output/slide-cleanup-build/cleanup-slide-storage.js "${args[@]}"
 
       - name: Upload cleanup report
         uses: actions/upload-artifact@v4
