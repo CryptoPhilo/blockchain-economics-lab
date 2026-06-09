@@ -2800,13 +2800,46 @@ def _infer_rtype_from_file_name(
     default_single_type: bool = True,
 ) -> Optional[str]:
     requested_types = list(types)
+    normalized = _normalize_signal_text(Path(name or '').stem)
+    explicit_types: Set[str] = set()
+    for rtype, tokens in LEGACY_REPORTS_TYPE_FOLDER_NAMES.items():
+        if any(f" {token} " in normalized for token in tokens):
+            explicit_types.add(rtype)
+
+    if explicit_types:
+        for rtype in requested_types:
+            if rtype in explicit_types:
+                return rtype
+        return None
+
     if default_single_type and len(requested_types) == 1:
         return requested_types[0]
+    return None
+
+
+def _target_rtype_from_file_name(
+    name: str,
+    types: Iterable[str],
+    root_rtype: str,
+) -> Optional[str]:
+    requested_types = list(types)
     normalized = _normalize_signal_text(Path(name or '').stem)
-    for rtype in requested_types:
-        tokens = LEGACY_REPORTS_TYPE_FOLDER_NAMES.get(rtype, {rtype})
-        if any(f" {token} " in normalized for token in tokens):
-            return rtype
+    has_explicit_type = any(
+        any(f" {token} " in normalized for token in tokens)
+        for tokens in LEGACY_REPORTS_TYPE_FOLDER_NAMES.values()
+    )
+
+    inferred = _infer_rtype_from_file_name(
+        name,
+        requested_types,
+        default_single_type=False,
+    )
+    if inferred:
+        return inferred
+    if has_explicit_type:
+        return None
+    if root_rtype in requested_types:
+        return root_rtype
     return None
 
 
@@ -2932,13 +2965,10 @@ def _iter_active_slide_targets(
                     projects=projects,
                 ):
                     continue
-                target_rtype = (
-                    _infer_rtype_from_file_name(
-                        pdf.get('name') or '',
-                        requested_types,
-                        default_single_type=False,
-                    )
-                    or root_rtype
+                target_rtype = _target_rtype_from_file_name(
+                    pdf.get('name') or '',
+                    requested_types,
+                    root_rtype,
                 )
                 if target_rtype not in requested_types:
                     continue
@@ -2965,13 +2995,10 @@ def _iter_active_slide_targets(
                         projects=projects,
                     ):
                         continue
-                    target_rtype = (
-                        _infer_rtype_from_file_name(
-                            pdf.get('name') or '',
-                            requested_types,
-                            default_single_type=False,
-                        )
-                        or root_rtype
+                    target_rtype = _target_rtype_from_file_name(
+                        pdf.get('name') or '',
+                        requested_types,
+                        root_rtype,
                     )
                     if target_rtype != root_rtype or target_rtype not in requested_types:
                         continue
@@ -3021,13 +3048,10 @@ def _iter_active_slide_targets(
                         projects=projects,
                     ):
                         continue
-                    target_rtype = (
-                        _infer_rtype_from_file_name(
-                            pdf.get('name') or '',
-                            requested_types,
-                            default_single_type=False,
-                        )
-                        or root_rtype
+                    target_rtype = _target_rtype_from_file_name(
+                        pdf.get('name') or '',
+                        requested_types,
+                        root_rtype,
                     )
                     if target_rtype not in requested_types:
                         continue
@@ -3072,13 +3096,10 @@ def _iter_active_slide_targets(
                         projects=projects,
                     ):
                         continue
-                    target_rtype = (
-                        _infer_rtype_from_file_name(
-                            pdf.get('name') or '',
-                            requested_types,
-                            default_single_type=False,
-                        )
-                        or root_rtype
+                    target_rtype = _target_rtype_from_file_name(
+                        pdf.get('name') or '',
+                        requested_types,
+                        root_rtype,
                     )
                     if target_rtype != root_rtype or target_rtype not in requested_types:
                         continue

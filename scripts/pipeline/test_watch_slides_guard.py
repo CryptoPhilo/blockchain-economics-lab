@@ -2041,6 +2041,32 @@ def test_iter_targets_keeps_root_type_when_filename_has_no_type_token(ws, monkey
     ]
 
 
+def test_iter_targets_skips_explicit_other_type_token_in_requested_root(ws, monkeypatch):
+    monkeypatch.setattr(ws, 'TYPE_FOLDER_IDS', {'mat': 'root-mat'})
+    pdfs_by_parent = {
+        'root-mat': [
+            {'id': 'eth-econ', 'name': 'Ethereum_ECON_ko.pdf', 'modifiedTime': 't-econ'},
+            {'id': 'eth-mat', 'name': 'Ethereum_MAT_ko.pdf', 'modifiedTime': 't-mat'},
+            {'id': 'eth-generic', 'name': 'Ethereum_Report_ko.pdf', 'modifiedTime': 't-generic'},
+        ],
+    }
+    folders_by_parent = {'root-mat': []}
+    monkeypatch.setattr(ws, '_list_pdfs_direct', lambda _service, parent_id: pdfs_by_parent.get(parent_id, []))
+    monkeypatch.setattr(ws, '_list_child_folders', lambda _service, parent_id: folders_by_parent.get(parent_id, []))
+
+    targets = list(ws._iter_targets(
+        object(),
+        ['mat'],
+        filter_slug='ethereum',
+        projects=[{'slug': 'ethereum', 'name': 'Ethereum', 'symbol': 'ETH'}],
+    ))
+
+    assert [(rtype, pdf['id']) for rtype, pdf in targets] == [
+        ('mat', 'eth-mat'),
+        ('mat', 'eth-generic'),
+    ]
+
+
 def test_iter_targets_excludes_legacy_report_pdfs_by_default(ws, monkeypatch):
     monkeypatch.setattr(ws, 'TYPE_FOLDER_IDS', {'econ': 'slide-econ'})
     monkeypatch.setattr(ws, '_legacy_reports_root_folders', lambda _service: [
