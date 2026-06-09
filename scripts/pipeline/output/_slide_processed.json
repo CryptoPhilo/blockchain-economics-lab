@@ -2173,7 +2173,7 @@
   },
   "12lQVNpZW10WKR5R_eXDVRJDiwt7YHvVF": {
     "error": null,
-    "finished_at": "2026-05-25T22:53:28.749085+00:00",
+    "finished_at": "2026-06-09T04:36:21.710181+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T04:20:40.955Z",
@@ -2185,8 +2185,8 @@
       "page_count": 14,
       "width": 1376.0
     },
-    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
-    "parent_folder_name": "mat",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/latest/ja.html",
     "report_id": "1f2dbd03-bbd8-4b3c-94a7-2a0ef6e4cf51",
     "retry_count": 0,
@@ -2194,10 +2194,10 @@
     "slug": "bitcoin",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/mat/Bitcoin_MAT_jp.pdf",
-    "started_at": "2026-05-25T22:52:54.061568+00:00",
+    "source_path": "Drive/search/mat/Bitcoin_MAT_jp.pdf",
+    "started_at": "2026-06-09T04:36:10.971637+00:00",
     "status": "published",
-    "updated_at": "2026-05-25T22:53:28.749098+00:00",
+    "updated_at": "2026-06-09T04:36:21.710196+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/1/ja.html"
   },
@@ -3130,6 +3130,28 @@
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/filecoin/latest/ja.html"
   },
+  "14QskQj2BjqZqjvQx8MKTbs5tjdoOPg3E": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "ja",
+    "modifiedTime": "2026-04-14T04:00:04.166Z",
+    "name": "bitcoin_mat_v1_ja.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 20,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/bitcoin_mat_v1_ja.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:36:47.452764+00:00"
+  },
   "14SlFBxUi6pm7MnoM8Gyz-EewHXGrii2c": {
     "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
     "lang": "ja",
@@ -3725,6 +3747,28 @@
     "updated_at": "2026-05-17T17:02:38.280946+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin-sv/1/zh.html"
+  },
+  "15PN5sPv3z7tDU9gDXFh-qql8-EIuwNy6": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "zh",
+    "modifiedTime": "2026-04-13T23:36:36.534Z",
+    "name": "bitcoin_mat_v1_zh.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 17,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/bitcoin_mat_v1_zh.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:36:50.579424+00:00"
   },
   "15_qBmAQqZaQ0LXWeN9hJNawA1MZ6z9CL": {
     "error": null,
@@ -6224,6 +6268,28 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usd-coin/1/ja.html"
   },
+  "1AKEL15t6KZJ7otXyL0JeZSWSuB5zb6Ka": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "fr",
+    "modifiedTime": "2026-04-13T23:36:42.719Z",
+    "name": "bitcoin_mat_v1_fr.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 19,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/bitcoin_mat_v1_fr.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:36:49.655820+00:00"
+  },
   "1AKf2RzOcmnNkM8mnYzwjp4Bjn6kiynz7": {
     "error": null,
     "finished_at": "2026-05-17T13:50:56.212359+00:00",
@@ -7026,7 +7092,7 @@
   },
   "1Br5iVsl98VbFi37w3eZaZi9KCmxMb5J5": {
     "error": null,
-    "finished_at": "2026-05-25T22:48:58.176723+00:00",
+    "finished_at": "2026-06-09T04:31:24.863674+00:00",
     "lang": "en",
     "lang_source": "filename",
     "modifiedTime": "2026-05-25T20:56:03.000Z",
@@ -7038,8 +7104,8 @@
       "page_count": 10,
       "width": 1672.0
     },
-    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
-    "parent_folder_name": "mat",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/latest/en.html",
     "report_id": "19e018e9-8dcd-453b-9da8-6646b27de1a2",
     "retry_count": 0,
@@ -7047,10 +7113,10 @@
     "slug": "bitcoin",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/mat/Bitcoin_MAT_en (1).pdf",
-    "started_at": "2026-05-25T22:47:51.786854+00:00",
+    "source_path": "Drive/search/mat/Bitcoin_MAT_en (1).pdf",
+    "started_at": "2026-06-09T04:31:12.026396+00:00",
     "status": "published",
-    "updated_at": "2026-05-25T22:48:58.176735+00:00",
+    "updated_at": "2026-06-09T04:31:24.863690+00:00",
     "version": 3,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/3/en.html"
   },
@@ -8468,6 +8534,28 @@
     "updated_at": "2026-06-09T03:44:51.620311+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/beldex/1/en.html"
+  },
+  "1DsVvhaWcoa7Q2VyU0O14SG0GejhUiED4": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "de",
+    "modifiedTime": "2026-04-13T23:36:55.446Z",
+    "name": "bitcoin_mat_v1_de.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 18,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/bitcoin_mat_v1_de.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:36:47.920301+00:00"
   },
   "1DseHwl_Tq1TxGGW4G5s_aKknDSdonMq3": {
     "error": null,
@@ -10067,7 +10155,7 @@
   },
   "1FwVoLQ1KNxrQdm6NwrGOC2USQzmuzUdm": {
     "error": null,
-    "finished_at": "2026-05-25T22:50:44.123598+00:00",
+    "finished_at": "2026-06-09T04:32:20.299845+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "modifiedTime": "2026-05-25T20:45:45.000Z",
@@ -10079,8 +10167,8 @@
       "page_count": 10,
       "width": 1672.0
     },
-    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
-    "parent_folder_name": "mat",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/latest/ko.html",
     "report_id": "e189e4b9-7387-4a4e-a4c8-03f85e70796a",
     "retry_count": 0,
@@ -10088,10 +10176,10 @@
     "slug": "bitcoin",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/mat/Bitcoin_MAT_ko (1).pdf",
-    "started_at": "2026-05-25T22:49:29.704039+00:00",
+    "source_path": "Drive/search/mat/Bitcoin_MAT_ko (1).pdf",
+    "started_at": "2026-06-09T04:32:07.173923+00:00",
     "status": "published",
-    "updated_at": "2026-05-25T22:50:44.123610+00:00",
+    "updated_at": "2026-06-09T04:32:20.299860+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/2/ko.html"
   },
@@ -11057,7 +11145,7 @@
   },
   "1HjkDOfzK3A-SQuLEtqe-guosKQJLjDuL": {
     "error": null,
-    "finished_at": "2026-05-17T09:31:13.733870+00:00",
+    "finished_at": "2026-06-09T04:34:45.639021+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "language_mismatch": {
@@ -11069,26 +11157,26 @@
     "name": "Bitcoin_ECON_cn.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 12,
-      "width": 1376
+      "width": 1376.0
     },
-    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
-    "parent_folder_name": "econ",
-    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/zh.html",
-    "report_id": "a384b9bf-e568-4e12-94b0-b41428615c52",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/latest/zh.html",
+    "report_id": "cebdb0df-d64a-44ad-ad5b-48d00291456f",
     "retry_count": 0,
-    "rtype": "econ",
+    "rtype": "mat",
     "slug": "bitcoin",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/econ/Bitcoin_ECON_cn.pdf",
-    "started_at": "2026-05-17T09:30:54.298545+00:00",
+    "source_path": "Drive/search/mat/Bitcoin_ECON_cn.pdf",
+    "started_at": "2026-06-09T04:34:32.921662+00:00",
     "status": "published",
-    "updated_at": "2026-05-25T21:52:52.583953+00:00",
-    "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/1/zh.html"
+    "updated_at": "2026-06-09T04:34:45.639036+00:00",
+    "version": 3,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/3/zh.html"
   },
   "1Hk0BR4K7N5tyGgicMFDlW_9DXlE4SQWx": {
     "error": null,
@@ -14305,7 +14393,7 @@
   },
   "1MtyXQPEaJ5Gh76qYKOusIAGkoy2j2Z4F": {
     "error": null,
-    "finished_at": "2026-05-25T22:52:33.060504+00:00",
+    "finished_at": "2026-06-09T04:35:48.684103+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "language_mismatch": {
@@ -14322,8 +14410,8 @@
       "page_count": 15,
       "width": 1376.0
     },
-    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
-    "parent_folder_name": "mat",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/latest/zh.html",
     "report_id": "aa582c9b-686f-4eb4-b11a-afe08f8c45a0",
     "retry_count": 0,
@@ -14331,10 +14419,10 @@
     "slug": "bitcoin",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/mat/Bitcoin_MAT_cn.pdf",
-    "started_at": "2026-05-25T22:51:55.947241+00:00",
+    "source_path": "Drive/search/mat/Bitcoin_MAT_cn.pdf",
+    "started_at": "2026-06-09T04:35:37.974451+00:00",
     "status": "published",
-    "updated_at": "2026-05-25T22:52:33.060520+00:00",
+    "updated_at": "2026-06-09T04:35:48.684119+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/1/zh.html"
   },
@@ -14788,7 +14876,7 @@
   },
   "1NoW8Xj1xkzsP7goQuwV9CCALxeIqeb--": {
     "error": null,
-    "finished_at": "2026-05-17T09:30:38.007821+00:00",
+    "finished_at": "2026-06-09T04:34:14.564012+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "language_mismatch": {
@@ -14800,26 +14888,26 @@
     "name": "Bitcoin_ECON_ko.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 12,
-      "width": 1376
+      "width": 1376.0
     },
-    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
-    "parent_folder_name": "econ",
-    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ko.html",
-    "report_id": "2ec833e5-9ad9-488a-9c6b-2553ffa61f61",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/latest/ko.html",
+    "report_id": "e20f3b0a-4d04-45cf-ba41-a209cf95c271",
     "retry_count": 0,
-    "rtype": "econ",
+    "rtype": "mat",
     "slug": "bitcoin",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/econ/Bitcoin_ECON_ko.pdf",
-    "started_at": "2026-05-17T09:30:10.655300+00:00",
+    "source_path": "Drive/search/mat/Bitcoin_ECON_ko.pdf",
+    "started_at": "2026-06-09T04:34:01.726505+00:00",
     "status": "published",
-    "updated_at": "2026-05-25T21:52:51.532474+00:00",
-    "version": 2,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/2/ko.html"
+    "updated_at": "2026-06-09T04:34:14.564028+00:00",
+    "version": 4,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/4/ko.html"
   },
   "1NpbbMtWWtJSVhtb-tsujDX_P4MCl8O9G": {
     "error": null,
@@ -15665,6 +15753,50 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gho/1/en.html"
   },
+  "1P73r7CO9DIQkPB8D6fT7f_M3amFusWSp": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "es",
+    "modifiedTime": "2026-04-16T13:03:18.050Z",
+    "name": "bitcoin_econ_v1_es.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 23,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/bitcoin_econ_v1_es.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:36:41.869819+00:00"
+  },
+  "1P8B20TH8LX09VCcd2P1evaptheOxc8f4": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "ko",
+    "modifiedTime": "2026-04-27T01:28:04.676Z",
+    "name": "bitcoin_mat_v1_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 22,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/bitcoin_mat_v1_ko.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:36:39.709379+00:00"
+  },
   "1P8uDHbYWEWtXHhcXJNlP-zkMqGbm6cWg": {
     "error": null,
     "finished_at": "2026-05-29T06:21:01.625021+00:00",
@@ -16209,7 +16341,7 @@
   },
   "1Q48E-FMYNRvsLLfMxxQaEc64z7K-9kR4": {
     "error": null,
-    "finished_at": "2026-05-25T22:47:43.774369+00:00",
+    "finished_at": "2026-06-09T04:31:07.021936+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-25T21:05:44.000Z",
@@ -16221,8 +16353,8 @@
       "page_count": 10,
       "width": 601.9199829101562
     },
-    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
-    "parent_folder_name": "mat",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/latest/ja.html",
     "report_id": "2b934b4d-433c-486c-9639-5a2e040db5ad",
     "retry_count": 0,
@@ -16230,10 +16362,10 @@
     "slug": "bitcoin",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/mat/Bitcoin_MAT_jp (1).pdf",
-    "started_at": "2026-05-25T22:46:49.931078+00:00",
+    "source_path": "Drive/search/mat/Bitcoin_MAT_jp (1).pdf",
+    "started_at": "2026-06-09T04:31:00.645003+00:00",
     "status": "published",
-    "updated_at": "2026-05-25T22:47:43.774382+00:00",
+    "updated_at": "2026-06-09T04:31:07.021953+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/2/ja.html"
   },
@@ -16801,7 +16933,7 @@
   },
   "1R4Gdat9iyGgragMCWD0ppwi6bqUiNtXI": {
     "error": null,
-    "finished_at": "2026-05-25T22:46:32.009023+00:00",
+    "finished_at": "2026-06-09T04:30:17.129223+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "modifiedTime": "2026-05-25T21:23:07.000Z",
@@ -16813,8 +16945,8 @@
       "page_count": 10,
       "width": 802.5599975585938
     },
-    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
-    "parent_folder_name": "mat",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/latest/zh.html",
     "report_id": "9740c3ba-c730-4e55-ad45-e2f925cc45ff",
     "retry_count": 0,
@@ -16822,10 +16954,10 @@
     "slug": "bitcoin",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/mat/Bitcoin_MAT_cn (1).pdf",
-    "started_at": "2026-05-25T22:43:23.314325+00:00",
+    "source_path": "Drive/search/mat/Bitcoin_MAT_cn (1).pdf",
+    "started_at": "2026-06-09T04:29:59.142622+00:00",
     "status": "published",
-    "updated_at": "2026-05-25T22:46:32.009037+00:00",
+    "updated_at": "2026-06-09T04:30:17.129239+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/2/zh.html"
   },
@@ -17834,7 +17966,7 @@
   },
   "1TClH7GSQP3TqnOTUr6GvniTRWn28_Pg9": {
     "error": null,
-    "finished_at": "2026-05-25T22:51:33.092105+00:00",
+    "finished_at": "2026-06-09T04:35:15.986242+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T04:21:20.000Z",
@@ -17846,8 +17978,8 @@
       "page_count": 12,
       "width": 1376.0
     },
-    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
-    "parent_folder_name": "mat",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/latest/ko.html",
     "report_id": "5abf6c6e-896f-4a08-bc1b-a3023af481c0",
     "retry_count": 0,
@@ -17855,10 +17987,10 @@
     "slug": "bitcoin",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/mat/Bitcoin_MAT_ko.pdf",
-    "started_at": "2026-05-25T22:51:03.646605+00:00",
+    "source_path": "Drive/search/mat/Bitcoin_MAT_ko.pdf",
+    "started_at": "2026-06-09T04:35:03.671990+00:00",
     "status": "published",
-    "updated_at": "2026-05-25T22:51:33.092121+00:00",
+    "updated_at": "2026-06-09T04:35:15.986257+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/1/ko.html"
   },
@@ -17956,6 +18088,28 @@
     "updated_at": "2026-06-05T13:34:34.746290+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/ore-new/1/en.html"
+  },
+  "1TQgiY294Duhm3SrPpGEfJLtbi_0wmxpn": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "ko",
+    "modifiedTime": "2026-04-16T13:02:59.491Z",
+    "name": "bitcoin_econ_v1_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 18,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/bitcoin_econ_v1_ko.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:36:46.217738+00:00"
   },
   "1TU0WXhDBs7vAhw8fccCwbjFq9DQdRPz-": {
     "error": null,
@@ -20172,6 +20326,28 @@
     "version": null,
     "versioned_url": null
   },
+  "1XgalqHQbeQbIATkdDIIlWtJZzoDiIzOm": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "de",
+    "modifiedTime": "2026-04-16T13:03:21.658Z",
+    "name": "bitcoin_econ_v1_de.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 21,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/bitcoin_econ_v1_de.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:36:40.220033+00:00"
+  },
   "1Xgtq1fZ54hh1x0EDZVMFTYAGP_AGeKH8": {
     "error": null,
     "finished_at": "2026-06-08T02:10:18.221131+00:00",
@@ -20449,7 +20625,7 @@
   },
   "1XtC9bulDlhXAsJv_pwDDvpk10IqamuIM": {
     "error": null,
-    "finished_at": "2026-05-25T21:50:26.982230+00:00",
+    "finished_at": "2026-06-09T04:31:34.722978+00:00",
     "lang": "en",
     "lang_source": "filename",
     "modifiedTime": "2026-05-25T20:54:42.000Z",
@@ -20461,21 +20637,21 @@
       "page_count": 8,
       "width": 802.5599975585938
     },
-    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
-    "parent_folder_name": "econ",
-    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/en.html",
-    "report_id": "a98a77eb-912a-46fb-868f-a574656e6ee1",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/latest/en.html",
+    "report_id": "40bebca1-e1b7-4c15-90b7-ab8a6acdcf3a",
     "retry_count": 0,
-    "rtype": "econ",
+    "rtype": "mat",
     "slug": "bitcoin",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/econ/bitcoin_ECON_en.pdf",
-    "started_at": "2026-05-25T21:49:52.033821+00:00",
+    "source_path": "Drive/search/mat/bitcoin_ECON_en.pdf",
+    "started_at": "2026-06-09T04:31:26.189716+00:00",
     "status": "published",
-    "updated_at": "2026-05-25T21:50:26.982246+00:00",
-    "version": 2,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/2/en.html"
+    "updated_at": "2026-06-09T04:31:34.722993+00:00",
+    "version": 4,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/4/en.html"
   },
   "1XtpyVLSHrNLDZbRMQFHIR8rcTVcMrjDR": {
     "error": null,
@@ -24583,7 +24759,7 @@
   },
   "1dt08nnsqkIwK_eFY-ineFYr1Sib-iYYW": {
     "error": null,
-    "finished_at": "2026-05-25T21:51:24.795602+00:00",
+    "finished_at": "2026-06-09T04:32:46.224755+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "modifiedTime": "2026-05-25T20:44:48.000Z",
@@ -24595,21 +24771,21 @@
       "page_count": 8,
       "width": 802.5599975585938
     },
-    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
-    "parent_folder_name": "econ",
-    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ko.html",
-    "report_id": "a5938fa4-a83b-4e7f-a6f1-f3b956fa0a76",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/latest/ko.html",
+    "report_id": "30fb0f15-b76d-4d03-9a1d-ff4a87b34680",
     "retry_count": 0,
-    "rtype": "econ",
+    "rtype": "mat",
     "slug": "bitcoin",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/econ/bitcoin_ECON_ko.pdf",
-    "started_at": "2026-05-25T21:50:42.806389+00:00",
+    "source_path": "Drive/search/mat/bitcoin_ECON_ko.pdf",
+    "started_at": "2026-06-09T04:32:35.968949+00:00",
     "status": "published",
-    "updated_at": "2026-05-25T21:51:24.795620+00:00",
+    "updated_at": "2026-06-09T04:32:46.224771+00:00",
     "version": 3,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/3/ko.html"
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/3/ko.html"
   },
   "1e1KuM4wVzbtkeUyOj2iowTAd2ogIqjlu": {
     "error": "Storage upload failed for slides/econ/aerodrome-finance/1/ja_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
@@ -25348,6 +25524,28 @@
     "updated_at": "2026-05-14T10:42:29.723618+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/injective/latest/ja.html"
+  },
+  "1fHUOOROyNfKAjZAaBY1pdXagJ-Pqfw-u": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "en",
+    "modifiedTime": "2026-04-27T01:28:08.949Z",
+    "name": "bitcoin_mat_v1_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 25,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/bitcoin_mat_v1_en.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:36:39.122395+00:00"
   },
   "1fN4y668Q8GxWbckVEY5Oj95wNFP2qS2E": {
     "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
@@ -26453,7 +26651,7 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sky/2/en.html"
   },
   "1hFEaXBvoTGK07uOkcS2w-svxTk_MbC7Q": {
-    "error": null,
+    "error": "{'message': 'duplicate key value violates unique constraint \"idx_project_reports_one_latest_per_locale\"', 'code': '23505', 'hint': None, 'details': 'Key (project_id, report_type, language)=(e677d5e2-e03f-4fbc-a848-9123cb808898, maturity, zh) already exists.'}",
     "finished_at": "2026-05-25T21:49:05.341868+00:00",
     "lang": "zh",
     "lang_source": "filename",
@@ -26466,19 +26664,19 @@
       "page_count": 8,
       "width": 802.5599975585938
     },
-    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
-    "parent_folder_name": "econ",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/zh.html",
     "report_id": "7f8894fb-9c07-481e-bdc6-7a15ccf969f6",
     "retry_count": 0,
-    "rtype": "econ",
+    "rtype": "mat",
     "slug": "bitcoin",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/econ/bitcoin_ECON_cn.pdf",
-    "started_at": "2026-05-25T21:48:19.431767+00:00",
-    "status": "published",
-    "updated_at": "2026-05-25T21:49:05.341886+00:00",
+    "source_path": "Drive/search/mat/bitcoin_ECON_cn.pdf",
+    "started_at": "2026-06-09T04:29:28.320325+00:00",
+    "status": "failed",
+    "updated_at": "2026-06-09T04:29:36.937861+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/2/zh.html"
   },
@@ -28343,33 +28541,33 @@
   },
   "1kXnOOcO6TiHyvXl2NgPl4u678YFSlJ3y": {
     "error": null,
-    "finished_at": "2026-05-17T09:29:52.382593+00:00",
+    "finished_at": "2026-06-09T04:33:42.418896+00:00",
     "lang": "en",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T04:26:54.484Z",
     "name": "Bitcoin_ECON_en.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 12,
-      "width": 1376
+      "width": 1376.0
     },
-    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
-    "parent_folder_name": "econ",
-    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/en.html",
-    "report_id": "a5bffa85-8336-41c0-8880-1e7d9e651950",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/latest/en.html",
+    "report_id": "7ae401e4-29bc-4364-a838-841a35925dce",
     "retry_count": 0,
-    "rtype": "econ",
+    "rtype": "mat",
     "slug": "bitcoin",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/econ/Bitcoin_ECON_en.pdf",
-    "started_at": "2026-05-17T09:29:30.948925+00:00",
+    "source_path": "Drive/search/mat/Bitcoin_ECON_en.pdf",
+    "started_at": "2026-06-09T04:33:29.897929+00:00",
     "status": "published",
-    "updated_at": "2026-05-25T21:52:50.687065+00:00",
-    "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/1/en.html"
+    "updated_at": "2026-06-09T04:33:42.418911+00:00",
+    "version": 5,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/5/en.html"
   },
   "1kZwq8Ti_GOgJpjfAWNpcnWFLzQ4Ri6uk": {
     "error": null,
@@ -28854,7 +29052,7 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/decred/1/zh.html"
   },
   "1lJWd1VTa667bE8eRwR8q0kBXwKkd1bzt": {
-    "error": null,
+    "error": "{'message': 'duplicate key value violates unique constraint \"idx_project_reports_one_latest_per_locale\"', 'code': '23505', 'hint': None, 'details': 'Key (project_id, report_type, language)=(e677d5e2-e03f-4fbc-a848-9123cb808898, maturity, ja) already exists.'}",
     "finished_at": "2026-05-25T21:49:50.676692+00:00",
     "lang": "ja",
     "lang_source": "filename",
@@ -28867,19 +29065,19 @@
       "page_count": 8,
       "width": 802.5599975585938
     },
-    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
-    "parent_folder_name": "econ",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ja.html",
     "report_id": "491d4e7b-79ed-45e3-98e5-df742db517ef",
     "retry_count": 0,
-    "rtype": "econ",
+    "rtype": "mat",
     "slug": "bitcoin",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/econ/bitcoin_ECON_jp.pdf",
-    "started_at": "2026-05-25T21:49:22.969151+00:00",
-    "status": "published",
-    "updated_at": "2026-05-25T21:49:50.676709+00:00",
+    "source_path": "Drive/search/mat/bitcoin_ECON_jp.pdf",
+    "started_at": "2026-06-09T04:30:34.985767+00:00",
+    "status": "failed",
+    "updated_at": "2026-06-09T04:30:42.899959+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/2/ja.html"
   },
@@ -29031,6 +29229,28 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/gnosis/1/zh.html"
   },
+  "1lqw17_suFU0V0B4_LJBp-PBuvO-PUpYm": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "zh",
+    "modifiedTime": "2026-04-16T13:03:11.033Z",
+    "name": "bitcoin_econ_v1_zh.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 18,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/bitcoin_econ_v1_zh.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:36:43.379991+00:00"
+  },
   "1lsbpXIfbHu_cBPDUcOLgB88_dRA2H1dh": {
     "error": null,
     "finished_at": "2026-05-31T21:26:24.621109+00:00",
@@ -29150,6 +29370,28 @@
     "updated_at": "2026-05-19T21:55:49.419994+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zebec-network/1/en.html"
+  },
+  "1lyb6MOIL7bAESSUBMM0Dwpds886V9DLj": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "es",
+    "modifiedTime": "2026-04-13T23:36:49.077Z",
+    "name": "bitcoin_mat_v1_es.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 18,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/bitcoin_mat_v1_es.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:36:48.455258+00:00"
   },
   "1lzdYH36YZmANWM3-aqU3wq-iktvvi2UB": {
     "error": null,
@@ -29757,7 +29999,7 @@
   },
   "1mgyZ1agcI21z_v8sobUoxgZoBBLNv3jF": {
     "error": null,
-    "finished_at": "2026-05-25T22:54:12.427096+00:00",
+    "finished_at": "2026-06-09T04:36:38.573344+00:00",
     "lang": "en",
     "lang_source": "filename",
     "language_mismatch": {
@@ -29774,8 +30016,8 @@
       "page_count": 13,
       "width": 1376.0
     },
-    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
-    "parent_folder_name": "mat",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/latest/en.html",
     "report_id": "a16c753c-0aab-4ac7-ba10-5274a135f34b",
     "retry_count": 0,
@@ -29783,10 +30025,10 @@
     "slug": "bitcoin",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/mat/Bitcoin_MAT_en.pdf",
-    "started_at": "2026-05-25T22:53:34.559271+00:00",
+    "source_path": "Drive/search/mat/Bitcoin_MAT_en.pdf",
+    "started_at": "2026-06-09T04:36:25.991462+00:00",
     "status": "published",
-    "updated_at": "2026-05-25T22:54:12.427110+00:00",
+    "updated_at": "2026-06-09T04:36:38.573360+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/2/en.html"
   },
@@ -31744,6 +31986,28 @@
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/the-open-network/2/ko.html"
   },
+  "1psf5kmhtRJr4AJlYpS66OsoTTxtBtxtk": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "fr",
+    "modifiedTime": "2026-04-16T13:03:14.528Z",
+    "name": "bitcoin_econ_v1_fr.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 21,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/bitcoin_econ_v1_fr.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:36:42.332832+00:00"
+  },
   "1pzbvzWgWJPFkYR8Z95JatAyW_4MWVQZz": {
     "error": null,
     "finished_at": "2026-05-11T17:15:11.726810+00:00",
@@ -33392,6 +33656,28 @@
     "updated_at": "2026-05-12T18:13:04.793704+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/sky/latest/zh.html"
+  },
+  "1sitQiN05sl_yqtFPT4z6gtrJGrjxrF7n": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "en",
+    "modifiedTime": "2026-04-16T13:03:02.995Z",
+    "name": "bitcoin_econ_v1_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 20,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/bitcoin_econ_v1_en.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:36:45.176344+00:00"
   },
   "1sjOoBLwL6kdKvtjS_LM-mPTGqmTdaTVC": {
     "error": null,
@@ -35470,7 +35756,7 @@
   },
   "1w3f6xqctUtdW9TYK_2WEobjPlqS8J7nC": {
     "error": null,
-    "finished_at": "2026-05-25T21:52:49.285710+00:00",
+    "finished_at": "2026-06-09T04:33:25.695229+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T05:03:06.250Z",
@@ -35482,21 +35768,21 @@
       "page_count": 15,
       "width": 1376.0
     },
-    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
-    "parent_folder_name": "econ",
-    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/latest/ja.html",
-    "report_id": "da3eefb8-98a7-4f48-9d38-646ed8e0322a",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/latest/ja.html",
+    "report_id": "0b5ff7ac-fe77-4cbf-bdf5-e80bb6107534",
     "retry_count": 0,
-    "rtype": "econ",
+    "rtype": "mat",
     "slug": "bitcoin",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/econ/Bitcoin_ECON_jp.pdf",
-    "started_at": "2026-05-25T21:51:49.990300+00:00",
+    "source_path": "Drive/search/mat/Bitcoin_ECON_jp.pdf",
+    "started_at": "2026-06-09T04:33:10.296601+00:00",
     "status": "published",
-    "updated_at": "2026-05-25T21:52:49.285727+00:00",
-    "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin/1/ja.html"
+    "updated_at": "2026-06-09T04:33:25.695244+00:00",
+    "version": 3,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bitcoin/3/ja.html"
   },
   "1w4vm0PTQS38y3F-y6HSV-KZOsgSfiSI7": {
     "error": null,
@@ -37372,6 +37658,28 @@
     "updated_at": "2026-05-17T17:55:04.552392+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pax-gold/1/en.html"
+  },
+  "1znIQlkALE3kFJXSe-ZqgfFve8qhk2g5R": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "ja",
+    "modifiedTime": "2026-04-16T13:03:06.584Z",
+    "name": "bitcoin_econ_v1_ja.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 18,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/bitcoin_econ_v1_ja.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:36:44.489283+00:00"
   },
   "1zod_59FuuqJRLVaihEuaQwkTgkTvhfdC": {
     "error": null,
