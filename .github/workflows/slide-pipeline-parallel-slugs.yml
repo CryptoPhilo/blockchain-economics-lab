@@ -26,6 +26,11 @@ on:
         required: false
         type: boolean
         default: true
+      all_versions:
+        description: 'Process every matching Drive PDF as version history'
+        required: false
+        type: boolean
+        default: true
       drive_root_scope:
         description: 'Drive roots to scan'
         required: false
@@ -187,6 +192,10 @@ jobs:
 
           if [ "${{ inputs.force }}" = "true" ]; then
             ARGS+=(--force)
+          fi
+
+          if [ "${{ inputs.all_versions }}" = "true" ]; then
+            ARGS+=(--all-versions)
           fi
 
           if [ "${{ inputs.dry_run }}" = "true" ]; then
