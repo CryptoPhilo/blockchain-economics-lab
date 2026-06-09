@@ -4422,6 +4422,42 @@ def test_process_stops_at_target_budget(ws, monkeypatch):
     assert all(row.get('file_id') != 'file-3' for row in scanned + processed)
 
 
+def test_process_all_versions_sorts_targets_oldest_first(ws, monkeypatch):
+    targets = [
+        {'id': 'new-file', 'name': 'Bitcoin_MAT_en_v2.pdf', 'modifiedTime': '2026-05-29T00:00:00Z'},
+        {'id': 'old-file', 'name': 'Bitcoin_MAT_en_v1.pdf', 'modifiedTime': '2026-05-28T00:00:00Z'},
+    ]
+    manifest = {
+        target['id']: {
+            'status': 'published',
+            'modifiedTime': target['modifiedTime'],
+            'slug': 'bitcoin',
+            'lang': 'en',
+            'lang_source': 'filename',
+            'page_profile': {'is_landscape_slide': True},
+        }
+        for target in targets
+    }
+
+    monkeypatch.setattr(ws, '_get_drive_service', lambda: object())
+    monkeypatch.setattr(ws, '_load_manifest', lambda: manifest)
+    monkeypatch.setattr(ws, '_iter_targets', lambda *args, **kwargs: iter(('mat', target) for target in targets))
+    monkeypatch.setattr(ws, '_save_manifest', lambda _manifest: None)
+
+    scanned, processed = ws.process(
+        ['mat'],
+        filter_slug=None,
+        dry_run=True,
+        force=False,
+        max_targets=1,
+        all_versions=True,
+    )
+
+    assert scanned[0]['file_id'] == 'old-file'
+    assert scanned[0]['status'] == 'unchanged'
+    assert scanned[-1]['status'] == 'target_budget_exhausted'
+
+
 def test_process_stops_at_runtime_budget(ws, monkeypatch):
     targets = [
         {'id': 'file-1', 'name': 'Bitcoin_ECON_en.pdf', 'modifiedTime': '2026-05-28T00:00:00Z'},

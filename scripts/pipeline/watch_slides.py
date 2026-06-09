@@ -25,6 +25,7 @@ Usage:
     python watch_slides.py --slug bitcoin       # targeted filename/folder hint filter
     python watch_slides.py --dry-run            # scan-only, no uploads
     python watch_slides.py --force              # ignore manifest, reprocess all
+    python watch_slides.py --all-versions       # process every matching Drive PDF as version history
     python watch_slides.py --skip-db-reconcile  # do not cancel stale DB rows after full scan
 """
 from __future__ import annotations
@@ -3142,6 +3143,17 @@ def _iter_targets(
         yield rtype, pdf
 
 
+def _version_backfill_target_sort_key(target: Tuple[str, Dict[str, Any]]) -> Tuple[str, str, str, str]:
+    """Deterministic oldest-first ordering for explicit version backfills."""
+    rtype, pdf = target
+    return (
+        str(pdf.get('modifiedTime') or ''),
+        rtype,
+        str(pdf.get('name') or ''),
+        str(pdf.get('id') or ''),
+    )
+
+
 def _parse_language_overrides(values: Iterable[str]) -> Dict[str, str]:
     """Parse FILE_ID=lang overrides for human-confirmed raster PDFs."""
     overrides: Dict[str, str] = {}
@@ -3177,6 +3189,7 @@ def process(
     max_targets: Optional[int] = None,
     deadline_at: Optional[datetime] = None,
     drive_root_scope: str = 'active',
+    all_versions: bool = False,
 ) -> Tuple[List[Dict], List[Dict]]:
     if filter_file_ids:
         raise ValueError('--file-id targets are disabled; place PDFs under Slide/{TYPE} and use --slug/--type filters')
@@ -3230,9 +3243,16 @@ def process(
         modified_since=modified_since,
         drive_root_scope=drive_root_scope,
     )
+    target_iterable: Iterable[Tuple[str, Dict[str, Any]]] = target_iter
+    if all_versions:
+        target_iterable = sorted(list(target_iter), key=_version_backfill_target_sort_key)
+        print(
+            "  [VERSION] all-version backfill enabled: "
+            f"processing {len(target_iterable)} Drive candidates oldest-first"
+        )
 
     targets_seen = 0
-    for rtype, pdf in target_iter:
+    for rtype, pdf in target_iterable:
         if deadline_at is not None and datetime.now(timezone.utc) >= deadline_at:
             msg = f"runtime budget exhausted at {deadline_at.isoformat()}"
             print(f"  [BUDGET] stopping scan: {msg}")
@@ -4395,6 +4415,11 @@ def main() -> int:
     parser.add_argument('--dry-run', action='store_true', help='Scan only — no download/upload/DB')
     parser.add_argument('--force', action='store_true', help='Reprocess even if manifest is up-to-date')
     parser.add_argument(
+        '--all-versions',
+        action='store_true',
+        help='Process every matching Drive PDF oldest-first so distinct sources become report versions.',
+    )
+    parser.add_argument(
         '--skip-db-reconcile',
         action='store_true',
         help='Skip final Drive-vs-DB availability reconciliation for full type scans',
@@ -4483,6 +4508,7 @@ def main() -> int:
           f'Drive root scope: {drive_root_scope}  '
           f'Max targets: {args.max_targets or "(none)"}  '
           f'Deadline: {deadline_at.isoformat() if deadline_at else "(none)"}  '
+          f'All versions: {args.all_versions}  '
           f'Skip diagnostics: {args.skip_diagnostics}')
     print('=' * 60)
 
@@ -4526,6 +4552,7 @@ def main() -> int:
             max_targets=args.max_targets,
             deadline_at=deadline_at,
             drive_root_scope=drive_root_scope,
+            all_versions=args.all_versions,
         )
 
     if args.skip_diagnostics:
