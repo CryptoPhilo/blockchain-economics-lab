@@ -3,7 +3,7 @@
 pdf_to_html_slides.py — Convert slide PDFs into
 a self-contained HTML viewer with fixed-size page-flip navigation.
 
-Each PDF page is rendered at high DPI, base64-encoded, and embedded in a
+Each PDF page is rendered at bounded DPI, base64-encoded, and embedded in a
 single HTML file with keyboard/click/touch navigation.
 
 Usage:
@@ -12,7 +12,7 @@ Usage:
         --output /path/to/output.html \
         --title "Humanity Protocol" \
         --lang ko \
-        --dpi 300
+        --dpi 144
 """
 from __future__ import annotations
 
@@ -32,9 +32,11 @@ try:
 except ImportError:
     HAS_PIL = False
 
-DEFAULT_RENDER_DPI = int(os.environ.get("SLIDE_HTML_RENDER_DPI", "300"))
-DEFAULT_IMAGE_FORMAT = (os.environ.get("SLIDE_HTML_IMAGE_FORMAT", "png").strip().lower() or "png")
-DEFAULT_JPEG_QUALITY = int(os.environ.get("SLIDE_HTML_JPEG_QUALITY", "100"))
+# Production defaults are storage-safe. PNG/300-DPI self-contained HTML can
+# exceed tens of MB per locale; override with SLIDE_HTML_* for high-fidelity reruns.
+DEFAULT_RENDER_DPI = int(os.environ.get("SLIDE_HTML_RENDER_DPI", "144"))
+DEFAULT_IMAGE_FORMAT = (os.environ.get("SLIDE_HTML_IMAGE_FORMAT", "jpeg").strip().lower() or "jpeg")
+DEFAULT_JPEG_QUALITY = int(os.environ.get("SLIDE_HTML_JPEG_QUALITY", "80"))
 SUPPORTED_IMAGE_FORMATS = {"png", "jpeg"}
 FULLSCREEN_CHROME_VISIBLE_MS = 2400
 SLIDE_VIEWER_INTERACTION_MESSAGE = "bcelab-slide-viewer-interaction"
