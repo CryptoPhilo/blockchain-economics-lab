@@ -340,6 +340,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/vechain/1/zh.html"
   },
+  "1-IaWdug6KtkUKtRXOL1GJdIwQ27dhhHY": {
+    "error": null,
+    "finished_at": "2026-06-09T04:08:50.941598+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-26T01:38:00.000Z",
+    "name": "Tether_USDT_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/latest/ja.html",
+    "report_id": "1de07ea7-5557-44f6-a970-cbdea763ac94",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "tether",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/Tether_USDT_MAT_jp.pdf",
+    "started_at": "2026-06-09T04:08:36.331848+00:00",
+    "status": "published",
+    "updated_at": "2026-06-09T04:08:50.941608+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/1/ja.html"
+  },
   "1-LjxMFxUcRDsHFgDTA9ZlmAqbwrKKT79": {
     "error": "Storage upload failed for slides/econ/floki/1/ja_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
     "lang": "ja",
@@ -1944,6 +1974,28 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usdd/1/en.html"
   },
+  "12U1gJP-q8wE6pcZEQS6gQKdBnylRppNl": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "fr",
+    "modifiedTime": "2026-04-16T14:22:11.019Z",
+    "name": "tether_econ_v1_fr.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 23,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/tether_econ_v1_fr.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:15:14.056694+00:00"
+  },
   "12UePCXdgpkhkT1msBlFMfjcs0bj6J5XD": {
     "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
     "lang": "zh",
@@ -2344,6 +2396,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/worldcoin/1/zh.html"
   },
+  "13PIN7GLlM1OVa8u_OtILcf6h84Q7DqXE": {
+    "error": null,
+    "finished_at": "2026-06-09T04:09:42.708736+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-26T01:29:24.000Z",
+    "name": "Tether_USDT_ECON_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/latest/en.html",
+    "report_id": "561effbc-c830-4fe0-8e71-01c89595ccfe",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "tether",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/Tether_USDT_ECON_en.pdf",
+    "started_at": "2026-06-09T04:09:31.345525+00:00",
+    "status": "published",
+    "updated_at": "2026-06-09T04:09:42.708745+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/2/en.html"
+  },
   "13QXRDtiViGkIlg--hQLiXfwS8GGxU_X5": {
     "error": null,
     "finished_at": "2026-05-17T08:45:15.510428+00:00",
@@ -2673,6 +2755,28 @@
     "updated_at": "2026-05-29T08:02:30.084252+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/instadapp/1/ko.html"
+  },
+  "13qi7pd4k8hrV7RWOmBHKSK21TcNjIBsk": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "zh",
+    "modifiedTime": "2026-04-16T14:22:07.388Z",
+    "name": "tether_econ_v1_zh.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 20,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/tether_econ_v1_zh.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:15:15.775609+00:00"
   },
   "13vpSdTqBWfOXG9tE8kvgTKzxrHaKGnxe": {
     "error": null,
@@ -3025,6 +3129,28 @@
     "updated_at": "2026-05-12T18:20:48.507028+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/filecoin/latest/ja.html"
+  },
+  "14SlFBxUi6pm7MnoM8Gyz-EewHXGrii2c": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "ja",
+    "modifiedTime": "2026-04-14T04:02:19.254Z",
+    "name": "tether_mat_v1_ja.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 23,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/tether_mat_v1_ja.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:15:18.722743+00:00"
   },
   "14WC4vHgvkctR7uUQB2JiWT2-CN2kcoGN": {
     "error": "Storage upload failed for slides/econ/stellar/1/zh_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
@@ -4691,6 +4817,36 @@
     "updated_at": "2026-06-01T16:26:20.962149+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usd1/1/ja.html"
+  },
+  "17ESlXcQd8dXkRTJwkQx9us0eKFxqRnXZ": {
+    "error": null,
+    "finished_at": "2026-06-09T04:07:17.753492+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-26T02:00:34.000Z",
+    "name": "Tether_USDT_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/latest/zh.html",
+    "report_id": "563fba20-21c3-4c4a-89d8-b768445061dd",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "tether",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/Tether_USDT_MAT_cn.pdf",
+    "started_at": "2026-06-09T04:06:50.749845+00:00",
+    "status": "published",
+    "updated_at": "2026-06-09T04:07:17.753500+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/1/zh.html"
   },
   "17ET37O9G9X1xstghu3YZpD5pF7VoydqC": {
     "error": null,
@@ -6980,7 +7136,7 @@
   },
   "1C5Qi-yVtajfzFCFzY3VQ0YffmdGEqsEj": {
     "error": null,
-    "finished_at": "2026-05-17T08:12:59.006868+00:00",
+    "finished_at": "2026-06-09T04:11:21.113932+00:00",
     "lang": "en",
     "lang_source": "filename",
     "language_mismatch": {
@@ -6992,26 +7148,26 @@
     "name": "Tether_ECON_en.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 11,
-      "width": 1376
+      "width": 1376.0
     },
-    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
-    "parent_folder_name": "econ",
-    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/tether/latest/en.html",
-    "report_id": "dc23da42-409d-43f3-ad5d-b584140e8085",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/latest/en.html",
+    "report_id": "b79b31b4-f7e3-4aac-95bf-72679b763831",
     "retry_count": 0,
-    "rtype": "econ",
+    "rtype": "mat",
     "slug": "tether",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/econ/Tether_ECON_en.pdf",
-    "started_at": "2026-05-17T08:12:42.676064+00:00",
+    "source_path": "Drive/search/mat/Tether_ECON_en.pdf",
+    "started_at": "2026-06-09T04:11:04.991330+00:00",
     "status": "published",
-    "updated_at": "2026-05-17T17:52:14.650485+00:00",
-    "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/tether/1/en.html"
+    "updated_at": "2026-06-09T04:11:21.113941+00:00",
+    "version": 3,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/3/en.html"
   },
   "1CBWDrXipr4BDyI3_CloFrHy0756E89l8": {
     "error": null,
@@ -7140,7 +7296,7 @@
   },
   "1CKmLTasSL5dCu_neAiXixAUYV8g9TzD_": {
     "error": null,
-    "finished_at": "2026-05-17T08:14:43.867666+00:00",
+    "finished_at": "2026-06-09T04:12:40.128861+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "mismatch": {
@@ -7153,26 +7309,26 @@
     "name": "Tether_ECON_jp.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 12,
-      "width": 1376
+      "width": 1376.0
     },
-    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
-    "parent_folder_name": "econ",
-    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/tether/latest/ja.html",
-    "report_id": "f24dc70f-6036-457d-ab4c-fa4e6e94bbd0",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/latest/ja.html",
+    "report_id": "0f33bd69-5db2-49be-b75c-999a262d515b",
     "retry_count": 0,
-    "rtype": "econ",
+    "rtype": "mat",
     "slug": "tether",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/econ/Tether_ECON_jp.pdf",
-    "started_at": "2026-05-17T08:14:26.053675+00:00",
+    "source_path": "Drive/search/mat/Tether_ECON_jp.pdf",
+    "started_at": "2026-06-09T04:12:21.706681+00:00",
     "status": "published",
-    "updated_at": "2026-05-17T17:52:18.813660+00:00",
-    "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/tether/1/ja.html"
+    "updated_at": "2026-06-09T04:12:40.128872+00:00",
+    "version": 3,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/3/ja.html"
   },
   "1CMUxajhY-3pX7slmFltQToCa31LywnUO": {
     "error": null,
@@ -7605,7 +7761,7 @@
   },
   "1Cxb8tWY_jl_w3fmeoAJINgGgULZJdwVC": {
     "error": null,
-    "finished_at": "2026-05-14T06:46:50.295166+00:00",
+    "finished_at": "2026-06-09T04:14:36.120301+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "language_mismatch": {
@@ -7617,26 +7773,26 @@
     "name": "Tether_MAT_cn.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 12,
-      "width": 1376
+      "width": 1376.0
     },
-    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
-    "parent_folder_name": "mat",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/latest/zh.html",
-    "report_id": "563fba20-21c3-4c4a-89d8-b768445061dd",
+    "report_id": "c33397b2-ff3b-421b-be46-9c9a78335dec",
     "retry_count": 0,
     "rtype": "mat",
     "slug": "tether",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/mat/Tether_MAT_cn.pdf",
-    "started_at": "2026-05-14T06:46:36.564446+00:00",
-    "status": "review_ready",
-    "updated_at": "2026-05-14T06:46:50.295180+00:00",
-    "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/1/zh.html"
+    "source_path": "Drive/search/mat/Tether_MAT_cn.pdf",
+    "started_at": "2026-06-09T04:14:21.366961+00:00",
+    "status": "published",
+    "updated_at": "2026-06-09T04:14:36.120309+00:00",
+    "version": 4,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/4/zh.html"
   },
   "1CyH5_jY2HhVdvVkP4pf8F0fd15IOBLtX": {
     "error": null,
@@ -7675,7 +7831,7 @@
   },
   "1CzpFPakmXBdh5iyxo015XEFA5BYm3vY6": {
     "error": null,
-    "finished_at": "2026-05-14T06:46:13.559407+00:00",
+    "finished_at": "2026-06-09T04:14:00.326545+00:00",
     "lang": "ko",
     "lang_source": "filename",
     "language_mismatch": {
@@ -7687,26 +7843,26 @@
     "name": "Tether_MAT_ko.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 12,
-      "width": 1376
+      "width": 1376.0
     },
-    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
-    "parent_folder_name": "mat",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/latest/ko.html",
-    "report_id": "0e17a153-4e7f-48b7-9b46-ec70553d6093",
+    "report_id": "cb134751-7514-4018-9bb8-caaa0e0b6a7b",
     "retry_count": 0,
     "rtype": "mat",
     "slug": "tether",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/mat/Tether_MAT_ko.pdf",
-    "started_at": "2026-05-14T06:46:00.793080+00:00",
-    "status": "review_ready",
-    "updated_at": "2026-05-14T06:46:13.559422+00:00",
-    "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/1/ko.html"
+    "source_path": "Drive/search/mat/Tether_MAT_ko.pdf",
+    "started_at": "2026-06-09T04:13:47.840304+00:00",
+    "status": "published",
+    "updated_at": "2026-06-09T04:14:00.326554+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/2/ko.html"
   },
   "1D35aCOg_m5MCj1lRv70sqkvwo_wmur0r": {
     "error": null,
@@ -9143,6 +9299,28 @@
     "updated_at": "2026-05-30T16:50:36.696450+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/synthetix/1/ko.html"
+  },
+  "1EsE68eLi_rR2Tud1XiJIcbWsr2QzMC0o": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "ko",
+    "modifiedTime": "2026-04-16T14:21:55.336Z",
+    "name": "tether_econ_v1_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 21,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/tether_econ_v1_ko.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:15:17.736602+00:00"
   },
   "1EsXKAW-fDc4AfuMH_j3DhMubtR3FfsrH": {
     "error": null,
@@ -12160,6 +12338,28 @@
     "slug_source": "filename",
     "status": "language_mismatch",
     "updated_at": "2026-05-12T18:25:05.719754+00:00"
+  },
+  "1JHyNlhOMJ2MWhcwinOvKadOTidHC8nYd": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "ja",
+    "modifiedTime": "2026-04-16T14:22:03.440Z",
+    "name": "tether_econ_v1_ja.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 18,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/tether_econ_v1_ja.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:15:16.359011+00:00"
   },
   "1JMROtSTl210bREcKcPHv9cnYHAxLokAx": {
     "error": null,
@@ -16779,6 +16979,28 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/awe-network/1/en.html"
   },
+  "1ROcYyGeBcaviDS39JIDFnPonFMOGDm5r": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "fr",
+    "modifiedTime": "2026-04-14T00:07:28.097Z",
+    "name": "tether_mat_v1_fr.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 23,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/tether_mat_v1_fr.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:15:21.000016+00:00"
+  },
   "1RQg7Z0lMqQypiyPE7XxRvgjbPtOt_lbI": {
     "error": null,
     "finished_at": "2026-05-29T08:07:20.686277+00:00",
@@ -16963,6 +17185,28 @@
     "updated_at": "2026-06-05T13:35:19.997107+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/unibase/1/ko.html"
+  },
+  "1RfKtsaAtxb5RUtc9VlRtSAylugQf5HMs": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "zh",
+    "modifiedTime": "2026-04-14T00:07:18.768Z",
+    "name": "tether_mat_v1_zh.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 21,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/tether_mat_v1_zh.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:15:21.648051+00:00"
   },
   "1RhrlTRnGuUUAnAk_IF1dGnnPACW2DSEo": {
     "error": null,
@@ -17922,6 +18166,31 @@
     "updated_at": "2026-06-06T15:05:52.308224+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/virtuals-protocol/1/ja.html"
+  },
+  "1Tgopfia5uMmI3-vD5vBS6Pel_FGU4eJj": {
+    "error": "{'message': 'duplicate key value violates unique constraint \"idx_project_reports_one_latest_per_locale\"', 'code': '23505', 'hint': None, 'details': 'Key (project_id, report_type, language)=(71cd7ab2-4873-4005-8817-e8064d3746ce, maturity, ko) already exists.'}",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-26T01:21:55.000Z",
+    "name": "Tether_USDT_ECON_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 1672.0
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "tether",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/Tether_USDT_ECON_ko.pdf",
+    "started_at": "2026-06-09T04:10:07.260748+00:00",
+    "status": "failed",
+    "updated_at": "2026-06-09T04:10:17.432532+00:00"
   },
   "1TiKLT1PHpRdUEXhyJyXPPYVzgQLF2kjG": {
     "error": null,
@@ -19550,33 +19819,33 @@
   },
   "1X40I_HzVFQVQpv6uR9lT1PEai-QXrFIi": {
     "error": null,
-    "finished_at": "2026-05-17T08:15:22.883437+00:00",
+    "finished_at": "2026-06-09T04:13:11.427667+00:00",
     "lang": "zh",
     "lang_source": "filename",
     "modifiedTime": "2026-05-14T04:59:56.797Z",
     "name": "Tether_ECON_cn.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 15,
-      "width": 1376
+      "width": 1376.0
     },
-    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
-    "parent_folder_name": "econ",
-    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/tether/latest/zh.html",
-    "report_id": "c342ac8f-1e20-46fd-8deb-a19035e3958e",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/latest/zh.html",
+    "report_id": "6d3d7b33-e58a-4de9-bf54-a9cd186c6b53",
     "retry_count": 0,
-    "rtype": "econ",
+    "rtype": "mat",
     "slug": "tether",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/econ/Tether_ECON_cn.pdf",
-    "started_at": "2026-05-17T08:14:57.285117+00:00",
+    "source_path": "Drive/search/mat/Tether_ECON_cn.pdf",
+    "started_at": "2026-06-09T04:12:55.441879+00:00",
     "status": "published",
-    "updated_at": "2026-05-17T17:52:20.235016+00:00",
-    "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/tether/1/zh.html"
+    "updated_at": "2026-06-09T04:13:11.427675+00:00",
+    "version": 3,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/3/zh.html"
   },
   "1X8R6SePNPqd_M5eTZmluTYLcHgTTSNs5": {
     "error": null,
@@ -19965,7 +20234,7 @@
   },
   "1XklCFO_krqrILLH_nyJ8Cgp28Yjw07GZ": {
     "error": null,
-    "finished_at": "2026-05-14T06:45:42.165270+00:00",
+    "finished_at": "2026-06-09T04:13:30.219570+00:00",
     "lang": "en",
     "lang_source": "filename",
     "language_mismatch": {
@@ -19977,26 +20246,26 @@
     "name": "Tether_MAT_en.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 14,
-      "width": 1376
+      "width": 1376.0
     },
-    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
-    "parent_folder_name": "mat",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/latest/en.html",
-    "report_id": "2050f4eb-cef5-4a1b-80a4-3b3f53efe85e",
+    "report_id": "0d848af5-efd8-41ef-934d-1f8e3aa586eb",
     "retry_count": 0,
     "rtype": "mat",
     "slug": "tether",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/mat/Tether_MAT_en.pdf",
-    "started_at": "2026-05-14T06:45:30.421922+00:00",
-    "status": "review_ready",
-    "updated_at": "2026-05-14T06:45:42.165286+00:00",
-    "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/1/en.html"
+    "source_path": "Drive/search/mat/Tether_MAT_en.pdf",
+    "started_at": "2026-06-09T04:13:16.452709+00:00",
+    "status": "published",
+    "updated_at": "2026-06-09T04:13:30.219579+00:00",
+    "version": 4,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/4/en.html"
   },
   "1XlscPpPnTKuy0FiqzQZKGgknE3LHI91p": {
     "error": null,
@@ -20418,6 +20687,28 @@
     "updated_at": "2026-05-29T23:57:02.271316+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/reserve-rights/1/en.html"
+  },
+  "1YNKvttZItYgGU_lRVY3uuVUBW0j7tD9G": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "ko",
+    "modifiedTime": "2026-04-16T01:26:37.805Z",
+    "name": "tether_mat_v1_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 21,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/tether_mat_v1_ko.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:15:18.214679+00:00"
   },
   "1YPSGYundGYVYAeWckdEF3j6hQgtxSHv1": {
     "error": null,
@@ -21675,6 +21966,36 @@
     "slug_source": "filename",
     "status": "language_mismatch",
     "updated_at": "2026-05-12T18:05:00.358642+00:00"
+  },
+  "1_QbENVbHRCtGHIiKHB7SujvrZF1kuNvG": {
+    "error": null,
+    "finished_at": "2026-06-09T04:09:19.887123+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-26T01:36:47.000Z",
+    "name": "Tether_USDT_ECON_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/latest/ja.html",
+    "report_id": "9b2a43c7-8ac6-4c8a-b4d1-30095dd109c4",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "tether",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/Tether_USDT_ECON_jp.pdf",
+    "started_at": "2026-06-09T04:09:10.004544+00:00",
+    "status": "published",
+    "updated_at": "2026-06-09T04:09:19.887132+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/2/ja.html"
   },
   "1_SzahqHoosch73FJrWZC5SWvyoficgdR": {
     "error": null,
@@ -23347,6 +23668,28 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/flare-networks/1/zh.html"
   },
+  "1bs049upp8kVokkUsqacLfg5Ktl6dUsQY": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "es",
+    "modifiedTime": "2026-04-16T14:22:14.725Z",
+    "name": "tether_econ_v1_es.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 23,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/tether_econ_v1_es.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:15:13.487480+00:00"
+  },
   "1bsAK6eHN5XGTXGg1OdRvxqfZBLtkZK0F": {
     "error": null,
     "finished_at": "2026-05-31T11:29:05.823507+00:00",
@@ -25005,6 +25348,28 @@
     "updated_at": "2026-05-14T10:42:29.723618+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/injective/latest/ja.html"
+  },
+  "1fN4y668Q8GxWbckVEY5Oj95wNFP2qS2E": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "en",
+    "modifiedTime": "2026-04-16T14:21:59.281Z",
+    "name": "tether_econ_v1_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 23,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/tether_econ_v1_en.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:15:16.988823+00:00"
   },
   "1fNS450aHoQtWjFsrnIyJ7V6o84evMEKr": {
     "error": null,
@@ -27185,6 +27550,28 @@
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zcash/2/ko.html"
   },
+  "1jQeYSp705s85s5DsFfZIuG7wl8gnBlEB": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "de",
+    "modifiedTime": "2026-04-16T14:22:18.387Z",
+    "name": "tether_econ_v1_de.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 23,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/tether_econ_v1_de.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:15:13.000304+00:00"
+  },
   "1jQzONAlEhItatWqDzWVhMxpha33ItSyx": {
     "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
     "lang": "zh",
@@ -27885,6 +28272,28 @@
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gate/latest/ja.html"
   },
+  "1kGwB-us5vAx6PLvkJzoB-eVeanPiJGKm": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "en",
+    "modifiedTime": "2026-04-14T00:07:08.428Z",
+    "name": "tether_mat_v1_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 22,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/tether_mat_v1_en.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:15:22.789423+00:00"
+  },
   "1kOKQUgaEm6Qrf4nI48ISXrVwX_l8bqsV": {
     "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
     "lang": "zh",
@@ -28503,6 +28912,28 @@
     "updated_at": "2026-05-17T17:58:28.407900+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/hyperliquid/1/zh.html"
+  },
+  "1lhNGvkVTS4wAcC9H28iwRzsBXVHEXUSs": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "es",
+    "modifiedTime": "2026-04-14T00:07:36.517Z",
+    "name": "tether_mat_v1_es.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 23,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/tether_mat_v1_es.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:15:19.776367+00:00"
   },
   "1lk0KhlbRsAKFGzI7o3gi9X800IlOSPQ0": {
     "error": null,
@@ -29509,6 +29940,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sentient/1/ja.html"
   },
+  "1msoopZnfopufKd63oz2_qjFmYmYBg0jb": {
+    "error": null,
+    "finished_at": "2026-06-09T04:09:30.218424+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-26T01:29:55.000Z",
+    "name": "Tether_USDT_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/latest/en.html",
+    "report_id": "2050f4eb-cef5-4a1b-80a4-3b3f53efe85e",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "tether",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/Tether_USDT_MAT_en.pdf",
+    "started_at": "2026-06-09T04:09:21.130200+00:00",
+    "status": "published",
+    "updated_at": "2026-06-09T04:09:30.218432+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/1/en.html"
+  },
   "1mvIi8TFMFDgsvDCojJaOCdLN4RRNtlIC": {
     "error": null,
     "finished_at": "2026-05-31T11:59:17.776781+00:00",
@@ -30074,7 +30535,7 @@
   },
   "1nz2D4eEaCRMPvP7zUEiCbU6latezAKdG": {
     "error": null,
-    "finished_at": "2026-05-14T06:47:23.797494+00:00",
+    "finished_at": "2026-06-09T04:15:12.030740+00:00",
     "lang": "ja",
     "lang_source": "filename",
     "mismatch": {
@@ -30087,26 +30548,26 @@
     "name": "Tether_MAT_jp.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 14,
-      "width": 1376
+      "width": 1376.0
     },
-    "parent_folder_id": "18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6",
-    "parent_folder_name": "mat",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/latest/ja.html",
-    "report_id": "1de07ea7-5557-44f6-a970-cbdea763ac94",
+    "report_id": "fe288acc-c1cc-4eb6-a0f9-183ab849550a",
     "retry_count": 0,
     "rtype": "mat",
     "slug": "tether",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/mat/Tether_MAT_jp.pdf",
-    "started_at": "2026-05-14T06:47:11.987231+00:00",
-    "status": "review_ready",
-    "updated_at": "2026-05-14T06:47:23.797509+00:00",
-    "version": 1,
-    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/1/ja.html"
+    "source_path": "Drive/search/mat/Tether_MAT_jp.pdf",
+    "started_at": "2026-06-09T04:14:59.094675+00:00",
+    "status": "published",
+    "updated_at": "2026-06-09T04:15:12.030749+00:00",
+    "version": 4,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/4/ja.html"
   },
   "1oBfWbAbOp1orsPornRa6d8qVvgep1ZNd": {
     "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
@@ -31817,6 +32278,28 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/1inch/1/zh.html"
   },
+  "1r9VG7h7hN8lN6J1BgOtAIPk1KqXeFot3": {
+    "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
+    "lang": "de",
+    "modifiedTime": "2026-04-14T00:07:45.052Z",
+    "name": "tether_mat_v1_de.pdf",
+    "page_profile": {
+      "aspect_ratio": 0.7070706814401717,
+      "height": 841.8897705078125,
+      "is_landscape_slide": false,
+      "page_count": 24,
+      "width": 595.2755737304688
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "rtype": "mat",
+    "slug": null,
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/tether_mat_v1_de.pdf",
+    "stale_url_removed": false,
+    "status": "skipped_legacy_portrait_pdf",
+    "updated_at": "2026-06-09T04:15:19.237039+00:00"
+  },
   "1rA_H-0kJkrxXv4cvgGz9X70IXnEBUtOH": {
     "error": null,
     "finished_at": "2026-05-31T04:56:53.524274+00:00",
@@ -32138,6 +32621,31 @@
     "updated_at": "2026-05-17T17:04:13.304994+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin-sv/1/en.html"
+  },
+  "1rfkkJN71lUcdMXxeft7S20T8M85TdC7o": {
+    "error": "{'message': 'duplicate key value violates unique constraint \"idx_project_reports_one_latest_per_locale\"', 'code': '23505', 'hint': None, 'details': 'Key (project_id, report_type, language)=(71cd7ab2-4873-4005-8817-e8064d3746ce, maturity, ko) already exists.'}",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-26T01:21:28.000Z",
+    "name": "Tether_USDT_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 540.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 960.0
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "tether",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/Tether_USDT_MAT_ko.pdf",
+    "started_at": "2026-06-09T04:10:51.441544+00:00",
+    "status": "failed",
+    "updated_at": "2026-06-09T04:11:01.355442+00:00"
   },
   "1rj9_w7fFXPC9QAnhKkRe_4r3bPFjO9mp": {
     "error": null,
@@ -32939,6 +33447,36 @@
     "started_at": "2026-05-17T17:23:33.358485+00:00",
     "status": "failed",
     "updated_at": "2026-05-17T17:23:54.091277+00:00"
+  },
+  "1sqI05Rd_IrHlzII5t_3mzlgf1lYcGIMk": {
+    "error": null,
+    "finished_at": "2026-06-09T04:07:47.487042+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-05-26T01:46:56.000Z",
+    "name": "Tether_USDT_ECON_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/latest/zh.html",
+    "report_id": "2320f85c-b93c-438f-8f45-0935ff20635f",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "tether",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Drive/search/mat/Tether_USDT_ECON_cn.pdf",
+    "started_at": "2026-06-09T04:07:35.543948+00:00",
+    "status": "published",
+    "updated_at": "2026-06-09T04:07:47.487051+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/2/zh.html"
   },
   "1srAgSMNeoguGsPlwQwpZsgFOaKliJ3qG": {
     "error": null,
@@ -36153,7 +36691,7 @@
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ethereum-name-service/1/ja.html"
   },
   "1yYj03c03BqcKfip-PNMewzd0qD_U6Sd5": {
-    "error": null,
+    "error": "{'message': 'duplicate key value violates unique constraint \"idx_project_reports_one_latest_per_locale\"', 'code': '23505', 'hint': None, 'details': 'Key (project_id, report_type, language)=(71cd7ab2-4873-4005-8817-e8064d3746ce, maturity, ko) already exists.'}",
     "finished_at": "2026-05-17T08:14:05.647982+00:00",
     "lang": "ko",
     "lang_source": "filename",
@@ -36166,24 +36704,24 @@
     "name": "Tether_ECON_ko.pdf",
     "page_profile": {
       "aspect_ratio": 1.7916666666666667,
-      "height": 768,
+      "height": 768.0,
       "is_landscape_slide": true,
       "page_count": 12,
-      "width": 1376
+      "width": 1376.0
     },
-    "parent_folder_id": "19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn",
-    "parent_folder_name": "econ",
+    "parent_folder_id": "drive-name-search",
+    "parent_folder_name": "Drive filename search",
     "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/tether/latest/ko.html",
     "report_id": "c62f6b06-1391-4477-b0ad-eab32b516535",
     "retry_count": 0,
-    "rtype": "econ",
+    "rtype": "mat",
     "slug": "tether",
     "slug_source": "filename",
     "source_depth": 0,
-    "source_path": "Slide/econ/Tether_ECON_ko.pdf",
-    "started_at": "2026-05-17T08:13:47.096098+00:00",
-    "status": "published",
-    "updated_at": "2026-05-17T17:52:17.433562+00:00",
+    "source_path": "Drive/search/mat/Tether_ECON_ko.pdf",
+    "started_at": "2026-06-09T04:11:45.781279+00:00",
+    "status": "failed",
+    "updated_at": "2026-06-09T04:11:58.661183+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/tether/2/ko.html"
   },
