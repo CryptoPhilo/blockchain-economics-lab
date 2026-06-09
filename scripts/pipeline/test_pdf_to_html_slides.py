@@ -13,6 +13,7 @@ from PIL import Image
 from pdf_to_html_slides import (
     COPYRIGHT_OVERLAY_COLOR,
     DEFAULT_IMAGE_FORMAT,
+    DEFAULT_JPEG_QUALITY,
     DEFAULT_RENDER_DPI,
     NOTEBOOKLM_LOGO_BBOX,
     _median_color,
@@ -203,9 +204,10 @@ class OverlayCopyrightNoticeTests(TestCase):
 
 
 class SlideHtmlRenderingTests(TestCase):
-    def test_default_rendering_uses_high_resolution_png(self):
-        self.assertEqual(DEFAULT_RENDER_DPI, 300)
-        self.assertEqual(DEFAULT_IMAGE_FORMAT, "png")
+    def test_default_rendering_uses_storage_safe_jpeg(self):
+        self.assertEqual(DEFAULT_RENDER_DPI, 144)
+        self.assertEqual(DEFAULT_IMAGE_FORMAT, "jpeg")
+        self.assertEqual(DEFAULT_JPEG_QUALITY, 80)
 
     def test_png_render_preserves_requested_dpi_dimensions(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -297,7 +299,7 @@ class SlideHtmlRenderingTests(TestCase):
         image = Image.open(io.BytesIO(raw)).convert("RGB")
         self.assertEqual(image.getpixel((1240, 700)), (255, 0, 0))
 
-    def test_html_converter_embeds_png_by_default(self):
+    def test_html_converter_embeds_jpeg_by_default(self):
         with tempfile.TemporaryDirectory() as tmp:
             pdf_path = Path(tmp) / "sample.pdf"
             html_path = Path(tmp) / "sample.html"
@@ -316,7 +318,7 @@ class SlideHtmlRenderingTests(TestCase):
             )
 
             html = html_path.read_text(encoding="utf-8")
-            self.assertIn("data:image/png;base64,", html)
+            self.assertIn("data:image/jpeg;base64,", html)
 
     def test_html_builder_can_reference_external_slide_assets(self):
         html = build_viewer_html_from_sources(
