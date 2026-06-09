@@ -539,6 +539,52 @@ describe('score page CMC canonical Top 500 snapshot guard', () => {
       reportTypes: ['econ', 'maturity'],
     })
   })
+
+  it('preserves tracked maturity badges when live report availability is partial', () => {
+    const trackedProjects = [
+      {
+        id: 'bitcoin-project',
+        name: 'Bitcoin',
+        slug: 'bitcoin',
+        symbol: 'BTC',
+        category: 'Layer 1',
+        market_cap_usd: 100,
+        coingecko_id: 'bitcoin',
+        cmc_id: 'bitcoin',
+        aliases: [],
+        maturity_score: 83,
+        last_econ_report_at: '2026-05-01T00:00:00.000Z',
+        last_maturity_report_at: '2026-05-02T00:00:00.000Z',
+        last_forensic_report_at: null,
+      },
+    ]
+    const availabilityByProjectId = new Map([
+      ['bitcoin-project', {
+        reportTypes: ['econ'],
+        reportDates: {
+          econ: '2026-06-01T00:00:00.000Z',
+          maturity: null,
+          forensic: null,
+        },
+        maturityScore: null,
+      }],
+    ])
+
+    const [row] = snapshotRowsToScoreRows(
+      [makeSnapshotRow(1, 'bitcoin')],
+      buildTrackedProjectLookup(trackedProjects),
+      availabilityByProjectId,
+    )
+
+    expect(row).toMatchObject({
+      slug: 'bitcoin',
+      reportTypes: ['econ', 'maturity'],
+      reportDates: {
+        econ: '2026-06-01T00:00:00.000Z',
+        maturity: '2026-05-02T00:00:00.000Z',
+      },
+    })
+  })
 })
 
 describe('score page tracked project aliases', () => {

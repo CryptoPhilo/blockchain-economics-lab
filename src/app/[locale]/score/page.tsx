@@ -79,6 +79,8 @@ type ReportAvailability = {
   maturityScore: number | null
 }
 
+const REPORT_TYPE_KEYS: ReportTypeKey[] = ['econ', 'maturity', 'forensic']
+
 type ScoreboardVisibleReportRow = {
   project_id: string
   report_type: ReportTypeKey
@@ -296,13 +298,48 @@ function createFallbackReportAvailability(project: TrackedScoreboardProject | un
   }
 }
 
+function mergeReportAvailability(
+  fallback: ReportAvailability,
+  ...sources: (ReportAvailability | undefined)[]
+): ReportAvailability {
+  const merged: ReportAvailability = {
+    reportTypes: [...fallback.reportTypes],
+    reportDates: { ...fallback.reportDates },
+    maturityScore: fallback.maturityScore,
+  }
+
+  for (const source of sources) {
+    if (!source) continue
+
+    for (const reportType of source.reportTypes) {
+      if (!merged.reportTypes.includes(reportType)) {
+        merged.reportTypes.push(reportType)
+      }
+    }
+
+    for (const reportType of REPORT_TYPE_KEYS) {
+      const sourceDate = source.reportDates[reportType]
+      const currentDate = merged.reportDates[reportType]
+      if (sourceDate && (!currentDate || new Date(sourceDate).getTime() > new Date(currentDate).getTime())) {
+        merged.reportDates[reportType] = sourceDate
+      }
+    }
+
+    if (source.maturityScore != null) {
+      merged.maturityScore = source.maturityScore
+    }
+  }
+
+  return merged
+}
+
 function getReportAvailability(
   project: TrackedScoreboardProject | undefined,
   availabilityByProjectId?: Map<string, ReportAvailability>,
   canonicalAvailability?: ReportAvailability,
 ): ReportAvailability {
   const fallback = createFallbackReportAvailability(project)
-  if (canonicalAvailability) return canonicalAvailability
+  if (canonicalAvailability) return mergeReportAvailability(fallback, canonicalAvailability)
   const live = project?.id ? availabilityByProjectId?.get(project.id) : undefined
   if (!availabilityByProjectId) return fallback
   if (!live) {
@@ -313,16 +350,7 @@ function getReportAvailability(
     }
   }
 
-  const reportTypes = live.reportTypes
-  return {
-    reportTypes,
-    reportDates: {
-      econ: live.reportDates.econ,
-      maturity: live.reportDates.maturity,
-      forensic: live.reportDates.forensic,
-    },
-    maturityScore: live.maturityScore,
-  }
+  return mergeReportAvailability(fallback, live)
 }
 
 function extractReportMaturityScore(report: ScoreboardVisibleReportRow): number | null {
