@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 import { createProjectsRepository } from '@/lib/repositories/projects'
 import { reportSupportsLocale } from '@/lib/report-locale'
+import { pickLatestReport } from '@/lib/report-versioning'
 import type { ProjectReport } from '@/lib/types'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import ScoreTableGate from '@/components/ScoreTableGate'
@@ -12,18 +13,40 @@ export const revalidate = 0
 /**
  * CMC-Style Market Cap Ranking Page + Report Badges (BCE-379)
  *
- * Shows top 200 projects by market cap across 2 pages (100 per page).
+ * Shows top 500 projects by market cap across 5 pages (100 per page).
  * Each row includes price, 24h change, market cap, BCE Score, and report badges.
  * Data: latest CMC market_data_daily snapshot, enriched by tracked_projects.
  */
 
 const ITEMS_PER_PAGE = 100
-const MAX_RANK = 200
+const MAX_RANK = 500
 const REPORT_AVAILABILITY_QUERY_CHUNK_SIZE = 80
-export const MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS = 200
+const REPORT_AVAILABILITY_QUERY_PAGE_SIZE = 1000
+const SCORE_HEADER_BACKGROUND_IMAGE = '/images/score-header-bg.png'
+export const MIN_CMC_CANONICAL_TOP_500_SNAPSHOT_ROWS = 500
 const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'ethena-usde', slug: 'ethena' },
   { alias: 'usde', slug: 'ethena' },
+  { alias: 'global-dollar', slug: 'usdg' },
+  { alias: 'agora-finance', slug: 'ausd' },
+  { alias: 'sei-network', slug: 'sei' },
+  { alias: 'pancakeswap-token', slug: 'pancakeswap' },
+  { alias: 'injective-protocol', slug: 'injective' },
+  { alias: 'curve-dao-token', slug: 'curve-dao' },
+  { alias: 'blockstack', slug: 'stacks' },
+  { alias: 'fetch-ai', slug: 'artificial-superintelligence-alliance' },
+  { alias: 'euro-coin', slug: 'eurc' },
+  { alias: 'eur-coinvertible', slug: 'eurc' },
+  { alias: 'siren-bsc', slug: 'siren' },
+  { alias: 'river-protocol', slug: 'river' },
+  { alias: 'flare', slug: 'flare-networks' },
+  { alias: 'htx', slug: 'htx-dao' },
+  { alias: 'htx-token', slug: 'htx-dao' },
+  { alias: 'world-liberty-financial', slug: 'usd1' },
+  { alias: 'polygon-ecosystem-token', slug: 'matic-network' },
+  { alias: 'pol-ex-matic', slug: 'matic-network' },
+  { alias: 'humanity', slug: 'humanity-protocol' },
+  { alias: 'world-liberty-financial-wlfi', slug: 'world-liberty-financial' },
 ] as const
 
 type TrackedScoreboardProject = Awaited<
@@ -40,9 +63,57 @@ type ReportAvailability = {
   reportDates: Record<ReportTypeKey, string | null>
 }
 
+const SCOREBOARD_REPORT_AVAILABILITY_ALIASES = [
+  { targetSlug: 'falcon-usd', sourceSlug: 'falcon-finance-ff' },
+  { targetSlug: 'falcon-usd', sourceSlug: 'falcon-finance' },
+] as const
+
+function applyScoreboardReportAvailabilityAliases(
+  availabilityByProjectId: Map<string, ReportAvailability>,
+  projects: TrackedScoreboardProject[],
+): void {
+  const projectsBySlug = new Map(projects.map((project) => [project.slug, project]))
+
+  for (const alias of SCOREBOARD_REPORT_AVAILABILITY_ALIASES) {
+    const targetProject = projectsBySlug.get(alias.targetSlug)
+    const sourceProject = projectsBySlug.get(alias.sourceSlug)
+
+    if (!targetProject || !sourceProject) {
+      continue
+    }
+
+    const sourceAvailability = availabilityByProjectId.get(sourceProject.id)
+
+    if (!sourceAvailability) {
+      continue
+    }
+
+    const targetAvailability = availabilityByProjectId.get(targetProject.id)
+
+    availabilityByProjectId.set(targetProject.id, {
+      reportTypes: Array.from(
+        new Set([
+          ...(targetAvailability?.reportTypes ?? []),
+          ...sourceAvailability.reportTypes,
+        ]),
+      ),
+      reportDates: {
+        econ: targetAvailability?.reportDates.econ ?? sourceAvailability.reportDates.econ,
+        maturity:
+          targetAvailability?.reportDates.maturity ?? sourceAvailability.reportDates.maturity,
+        forensic:
+          targetAvailability?.reportDates.forensic ?? sourceAvailability.reportDates.forensic,
+      },
+    })
+  }
+}
+
 type ScoreboardVisibleReportRow = {
   project_id: string
   report_type: ReportTypeKey
+  id?: string
+  version?: number
+  is_latest?: boolean | null
   language?: ProjectReport['language'] | null
   published_at?: string | null
   updated_at?: string | null
@@ -179,9 +250,26 @@ export function buildReportAvailabilityByProjectId(
   locale: string,
 ) {
   const map = new Map<string, ReportAvailability>()
+  const reportsByProjectType = new Map<string, ScoreboardVisibleReportRow[]>()
 
   for (const report of reports) {
-    if (!report.project_id || !reportSupportsLocale(report as ProjectReport, locale)) continue
+    if (!report.project_id) continue
+    const key = `${report.project_id}:${report.report_type}`
+    reportsByProjectType.set(key, [...(reportsByProjectType.get(key) ?? []), report])
+  }
+
+  for (const projectTypeReports of reportsByProjectType.values()) {
+    const latest = pickLatestReport(projectTypeReports)
+    if (!latest) continue
+
+    const latestVersion = latest.version ?? null
+    const localizedLatestVersionReports = projectTypeReports.filter((report) => (
+      (report.version ?? null) === latestVersion
+        && reportSupportsLocale(report as ProjectReport, locale)
+    ))
+    const report = pickLatestReport(localizedLatestVersionReports)
+    if (!report) continue
+
     const existing = map.get(report.project_id) ?? {
       reportTypes: [],
       reportDates: { econ: null, maturity: null, forensic: null },
@@ -206,46 +294,69 @@ export function buildReportAvailabilityByProjectId(
 export async function fetchVisibleReportsForScoreboard(
   projectIds: string[],
   reportSupabase?: SupabaseClient,
+  fallbackSupabase?: SupabaseClient,
 ): Promise<{ reports: ScoreboardVisibleReportRow[]; loaded: boolean }> {
   if (projectIds.length === 0) {
     return { reports: [], loaded: true }
   }
 
-  const supabase = reportSupabase ?? createSupabaseAdminClient()
-  const reports: ScoreboardVisibleReportRow[] = []
+  const clients = [reportSupabase, fallbackSupabase].filter(Boolean) as SupabaseClient[]
+  if (clients.length === 0) return { reports: [], loaded: false }
 
-  for (let index = 0; index < projectIds.length; index += REPORT_AVAILABILITY_QUERY_CHUNK_SIZE) {
-    const chunk = projectIds.slice(index, index + REPORT_AVAILABILITY_QUERY_CHUNK_SIZE)
-    const { data, error } = await supabase
-      .from('project_reports')
-      .select([
-        'project_id',
-        'report_type',
-        'language',
-        'published_at',
-        'updated_at',
-        'created_at',
-        'gdrive_urls_by_lang',
-        'file_urls_by_lang',
-        'slide_html_urls_by_lang',
-      ].join(', '))
-      .in('project_id', chunk)
-      .in('report_type', ['econ', 'maturity', 'forensic'])
-      .in('status', ['published', 'coming_soon', 'in_review'])
+  const loadFromClient = async (client: SupabaseClient) => {
+    const reports: ScoreboardVisibleReportRow[] = []
 
-    if (error) {
-      console.error('Failed to fetch scoreboard report availability', {
-        message: error.message,
-        chunkStart: index,
-        chunkSize: chunk.length,
-      })
-      return { reports: [], loaded: false }
+    for (let index = 0; index < projectIds.length; index += REPORT_AVAILABILITY_QUERY_CHUNK_SIZE) {
+      const chunk = projectIds.slice(index, index + REPORT_AVAILABILITY_QUERY_CHUNK_SIZE)
+
+      for (let offset = 0; ; offset += REPORT_AVAILABILITY_QUERY_PAGE_SIZE) {
+        const { data, error } = await client
+          .from('project_reports')
+          .select([
+            'project_id',
+            'id',
+            'report_type',
+            'version',
+            'is_latest',
+            'language',
+            'published_at',
+            'updated_at',
+            'created_at',
+            'gdrive_urls_by_lang',
+            'file_urls_by_lang',
+            'slide_html_urls_by_lang',
+          ].join(', '))
+          .in('project_id', chunk)
+          .in('report_type', ['econ', 'maturity', 'forensic'])
+          .in('status', ['published', 'coming_soon', 'in_review'])
+          .range(offset, offset + REPORT_AVAILABILITY_QUERY_PAGE_SIZE - 1)
+
+        if (error) {
+          return { reports: [], error: error.message }
+        }
+
+        const batch = (data || []) as unknown as ScoreboardVisibleReportRow[]
+        reports.push(...batch)
+        if (batch.length < REPORT_AVAILABILITY_QUERY_PAGE_SIZE) break
+      }
     }
 
-    reports.push(...((data || []) as unknown as ScoreboardVisibleReportRow[]))
+    return { reports, error: null as string | null }
   }
 
-  return { reports, loaded: true }
+  for (const client of clients) {
+    const result = await loadFromClient(client)
+
+    if (!result.error) {
+      return { reports: result.reports, loaded: true }
+    }
+
+    console.error('Failed to fetch scoreboard report availability', {
+      message: result.error,
+    })
+  }
+
+  return { reports: [], loaded: false }
 }
 
 export function snapshotRowsToScoreRows(
@@ -283,7 +394,7 @@ export function canonicalSnapshotRowsToScoreRows(
     .filter((row) => toCmcCanonicalRank(row.cmc_rank) !== null)
     .sort((a, b) => (toCmcCanonicalRank(a.cmc_rank) ?? 0) - (toCmcCanonicalRank(b.cmc_rank) ?? 0))
 
-  if (!hasCompleteCmcCanonicalTop200Snapshot(canonicalRows)) return []
+  if (!hasCompleteCmcCanonicalTop500Snapshot(canonicalRows)) return []
   return snapshotRowsToScoreRows(
     canonicalRows,
     buildTrackedProjectLookup(trackedProjects),
@@ -291,11 +402,11 @@ export function canonicalSnapshotRowsToScoreRows(
   )
 }
 
-export function hasCompleteCmcCanonicalTop200Snapshot(snapshotRows: ScoreboardSnapshotRow[]) {
-  if (snapshotRows.length !== MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS) return false
+export function hasCompleteCmcCanonicalTop500Snapshot(snapshotRows: ScoreboardSnapshotRow[]) {
+  if (snapshotRows.length !== MIN_CMC_CANONICAL_TOP_500_SNAPSHOT_ROWS) return false
 
   const ranks = new Set(snapshotRows.map((row) => toCmcCanonicalRank(row.cmc_rank)))
-  if (ranks.has(null) || ranks.size !== MIN_CMC_CANONICAL_TOP_200_SNAPSHOT_ROWS) return false
+  if (ranks.has(null) || ranks.size !== MIN_CMC_CANONICAL_TOP_500_SNAPSHOT_ROWS) return false
 
   for (let rank = 1; rank <= MAX_RANK; rank += 1) {
     if (!ranks.has(rank)) return false
@@ -316,16 +427,24 @@ export default async function ScorePage({
   const supabase = await createServerSupabaseClient()
   const projectsRepository = createProjectsRepository(supabase)
 
-  const currentPage = Math.max(1, Math.min(2, parseInt(pageStr || '1', 10)))
+  const currentPage = Math.max(1, Math.min(5, parseInt(pageStr || '1', 10)))
 
   const [trackedProjects, cmcSnapshotRows] = await Promise.all([
     projectsRepository.getProjectsForScoreboard(),
     projectsRepository.getLatestScoreboardMarketSnapshot(MAX_RANK),
   ])
   const trackedProjectIds = trackedProjects.map((project) => project.id).filter(Boolean)
+  let reportClient: SupabaseClient | undefined
+  try {
+    reportClient = createSupabaseAdminClient()
+  } catch (error) {
+    console.error('Using anonymous Supabase client for report availability (admin key unavailable)', {
+      message: error instanceof Error ? error.message : String(error),
+    })
+  }
   let visibleReportResult: Awaited<ReturnType<typeof fetchVisibleReportsForScoreboard>>
   try {
-    visibleReportResult = await fetchVisibleReportsForScoreboard(trackedProjectIds)
+    visibleReportResult = await fetchVisibleReportsForScoreboard(trackedProjectIds, reportClient, supabase)
   } catch (error) {
     console.error('Failed to initialize scoreboard report availability boundary', {
       message: error instanceof Error ? error.message : String(error),
@@ -335,6 +454,10 @@ export default async function ScorePage({
   const reportAvailabilityByProjectId = visibleReportResult.loaded
     ? buildReportAvailabilityByProjectId(visibleReportResult.reports, locale)
     : undefined
+
+  if (reportAvailabilityByProjectId) {
+    applyScoreboardReportAvailabilityAliases(reportAvailabilityByProjectId, trackedProjects)
+  }
 
   const allRows = canonicalSnapshotRowsToScoreRows(
     cmcSnapshotRows,
@@ -353,16 +476,24 @@ export default async function ScorePage({
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
       {/* Header */}
-      <div className="mb-6 text-center">
-        <h1 className="text-4xl font-bold mb-3">
-          {isKo ? '리포트' : 'Report'}
-        </h1>
-        <p className="text-gray-400 max-w-xl mx-auto">
-          {isKo
-            ? '시가총액 200위 종목들의 BCE 보고서를 확인하세요'
-            : 'Crypto project rankings by market cap with BCE analysis reports'}
-        </p>
-      </div>
+      <section
+        className="relative mb-6 overflow-hidden rounded-2xl border border-white/10 bg-slate-950 bg-cover bg-center px-6 py-16 text-center shadow-2xl shadow-black/30 sm:px-10 sm:py-20"
+        style={{
+          backgroundImage: `linear-gradient(180deg, rgba(3, 7, 18, 0.46), rgba(3, 7, 18, 0.78)), url(${SCORE_HEADER_BACKGROUND_IMAGE})`,
+        }}
+      >
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08),transparent_38%)]" />
+        <div className="relative mx-auto max-w-2xl">
+          <h1 className="mb-4 text-4xl font-bold text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.85)] sm:text-5xl">
+            {isKo ? '리포트' : 'Report'}
+          </h1>
+          <p className="mx-auto max-w-xl text-base font-medium leading-7 text-slate-200 drop-shadow-[0_2px_14px_rgba(0,0,0,0.8)] sm:text-lg">
+            {isKo
+              ? '시가총액 500위 종목들의 BCE 보고서를 확인하세요'
+              : 'Crypto project rankings by market cap with BCE analysis reports'}
+          </p>
+        </div>
+      </section>
 
       {/* Page indicator */}
       {totalPages > 1 && (
@@ -383,7 +514,8 @@ export default async function ScorePage({
           locale={locale}
           currentPage={currentPage}
           totalPages={totalPages}
-          className="max-h-[clamp(460px,calc(100dvh-12rem),860px)] overflow-auto overscroll-contain pr-1"
+          rowsPerPage={ITEMS_PER_PAGE}
+          className="max-h-[clamp(460px,calc(100dvh-12rem),860px)] overflow-auto overscroll-y-auto pr-1"
         />
       ) : (
         <div className="text-center py-20">

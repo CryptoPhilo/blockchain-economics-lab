@@ -26,13 +26,13 @@ export class ProjectsRepository {
     return data || []
   }
 
-  async getLatestScoreboardMarketSnapshot(limit = 200) {
+  async getLatestScoreboardMarketSnapshot(limit = 500) {
     const { data: latestSnapshot, error: latestError } = await this.supabase
       .from('market_data_daily')
       .select('recorded_at')
       .eq('source', 'coinmarketcap')
       .gte('cmc_rank', 1)
-      .lte('cmc_rank', 200)
+      .lte('cmc_rank', 500)
       .order('recorded_at', { ascending: false })
       .limit(1)
       .maybeSingle()
@@ -51,7 +51,7 @@ export class ProjectsRepository {
       .eq('recorded_at', latestSnapshot.recorded_at)
       .eq('source', 'coinmarketcap')
       .gte('cmc_rank', 1)
-      .lte('cmc_rank', 200)
+      .lte('cmc_rank', 500)
       .order('cmc_rank', { ascending: true, nullsFirst: false })
       .limit(limit)
 

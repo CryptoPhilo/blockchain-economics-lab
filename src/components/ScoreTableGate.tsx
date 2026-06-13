@@ -38,6 +38,7 @@ interface ScoreTableGateProps {
   className?: string
   currentPage?: number
   totalPages?: number
+  rowsPerPage?: number
 }
 
 type GateStatus = 'locked' | 'submitting' | 'unlocked' | 'error'
@@ -79,6 +80,7 @@ export default function ScoreTableGate({
   className,
   currentPage = 1,
   totalPages = 1,
+  rowsPerPage = 100,
 }: ScoreTableGateProps) {
   const isKo = locale === 'ko'
   const router = useRouter()
@@ -280,6 +282,12 @@ export default function ScoreTableGate({
     )
   }
 
+  function formatPageRange(page: number) {
+    const start = (page - 1) * rowsPerPage + 1
+    const end = page * rowsPerPage
+    return isKo ? `${start}-${end}위` : `${start}-${end}`
+  }
+
   return (
     <div className={className}>
       {/* Table */}
@@ -386,10 +394,10 @@ export default function ScoreTableGate({
               href={`/${locale}/score?page=${currentPage - 1}`}
               className="px-4 sm:px-6 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white text-sm font-medium transition-colors whitespace-nowrap"
             >
-              ← {isKo ? '이전 (1-100위)' : 'Previous (1-100)'}
+              ← {isKo ? `이전 (${formatPageRange(currentPage - 1)})` : `Previous (${formatPageRange(currentPage - 1)})`}
             </Link>
           )}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap justify-center gap-2">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
               <Link
                 key={page}
@@ -400,7 +408,7 @@ export default function ScoreTableGate({
                     : 'bg-white/5 hover:bg-white/10 text-gray-400'
                 }`}
               >
-                {page}
+                {formatPageRange(page)}
               </Link>
             ))}
           </div>
@@ -409,7 +417,7 @@ export default function ScoreTableGate({
               href={`/${locale}/score?page=${currentPage + 1}`}
               className="px-4 sm:px-6 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white text-sm font-medium transition-colors whitespace-nowrap"
             >
-              {isKo ? '다음 (101-200위)' : 'Next (101-200)'} →
+              {isKo ? `다음 (${formatPageRange(currentPage + 1)})` : `Next (${formatPageRange(currentPage + 1)})`} →
             </Link>
           )}
         </nav>
