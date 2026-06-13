@@ -1,4 +1,5 @@
 import { cleanCardSummary } from './report-summary'
+import { pickLocaleReport } from './report-locale'
 import type { Product, ProjectReport, ReportType, TrackedProject } from './types'
 
 export type ReportWithCover = ProjectReport & {
@@ -51,6 +52,26 @@ export const reportTypeLabels: Record<ReportType, { en: string; ko: string; tone
 }
 
 const REPORT_COVER_TYPES = new Set<ReportType>(['econ', 'maturity', 'forensic'])
+const ENGLISH_PREVIEW_FALLBACK_LOCALES = new Set(['de', 'es', 'fr'])
+
+function getReportPublishedTime(report: ReportWithCover) {
+  const product = getProduct(report)
+  const dateValue = report.published_at ?? product?.published_at ?? report.updated_at ?? report.created_at
+
+  if (!dateValue) return 0
+
+  const timestamp = Date.parse(dateValue)
+  return Number.isNaN(timestamp) ? 0 : timestamp
+}
+
+function sortReportsByPublishedDate(reports: ReportWithCover[]) {
+  return [...reports].sort((a, b) => {
+    const publishedDelta = getReportPublishedTime(b) - getReportPublishedTime(a)
+    if (publishedDelta !== 0) return publishedDelta
+
+    return (b.version ?? 0) - (a.version ?? 0)
+  })
+}
 
 export function getProduct(report: ReportWithCover) {
   return Array.isArray(report.product) ? report.product[0] : report.product
@@ -60,10 +81,109 @@ export function hasReportCover(report: ReportWithCover) {
   return Boolean(getProduct(report)?.cover_image_url?.trim())
 }
 
-export function isPublishedReportCoverCandidate(report: ReportWithCover, _locale?: string) {
+function getSlidePreviewUrl(report: ReportWithCover, locale: string) {
+  const slideUrls = report.slide_html_urls_by_lang as Record<string, unknown> | undefined
+  const localized = slideUrls?.[locale]
+  const languageMatched = report.language ? slideUrls?.[report.language] : undefined
+  const englishFallback = ENGLISH_PREVIEW_FALLBACK_LOCALES.has(locale) ? slideUrls?.en : undefined
+  const value = localized ?? englishFallback ?? languageMatched
+
+  return typeof value === 'string' && value.trim() ? value : ''
+}
+
+function getSlideThumbnailUrl(report: ReportWithCover, locale: string) {
+  const slidePreviewUrl = getSlidePreviewUrl(report, locale)
+  if (!slidePreviewUrl) return ''
+
+  try {
+    const parsed = new URL(slidePreviewUrl)
+    const marker = '/storage/v1/object/public/slides/'
+    const index = parsed.pathname.indexOf(marker)
+    if (index === -1) return ''
+
+    const objectPath = parsed.pathname.slice(index + marker.length)
+    const thumbnailPath = `showcase-thumbnails-v2/${objectPath.replace(/\.html$/i, '.jpg')}`
+    return `${parsed.origin}${marker}${thumbnailPath}`
+  } catch {
+    return ''
+  }
+}
+
+export function getShowcasePreview(report: ReportWithCover, locale: string): { url: string; kind: 'image' | 'html' } {
+  const slideThumbnailUrl = getSlideThumbnailUrl(report, locale)
+  if (slideThumbnailUrl) {
+    return { url: slideThumbnailUrl, kind: 'image' }
+  }
+
+  const coverImageUrl = getProduct(report)?.cover_image_url?.trim()
+  if (coverImageUrl) {
+    return { url: coverImageUrl, kind: 'image' }
+  }
+
+  return { url: '', kind: 'html' }
+}
+
+function hasShowcasePreview(report: ReportWithCover, locale: string) {
+  return Boolean(getShowcasePreview(report, locale).url)
+}
+
+export function dedupeLatestReportCoverCandidates(reports: ReportWithCover[]): ReportWithCover[] {
+  const latestByProjectType = new Map<string, ReportWithCover>()
+
+  for (const report of sortReportsByPublishedDate(reports)) {
+    const key = `${report.project_id}:${report.report_type}`
+    if (!latestByProjectType.has(key)) {
+      latestByProjectType.set(key, report)
+    }
+  }
+
+  return Array.from(latestByProjectType.values())
+}
+
+export function isPublishedReportCoverCandidate(report: ReportWithCover, locale?: string) {
   return REPORT_COVER_TYPES.has(report.report_type)
     && report.status === 'published'
-    && hasReportCover(report)
+    && (locale ? hasShowcasePreview(report, locale) : hasReportCover(report))
+}
+
+export function selectLatestReportShowcaseCandidates(
+  reports: ReportWithCover[],
+  locale: string,
+  limit = 6,
+): ReportWithCover[] {
+  const reportsByProjectTypeVersion = new Map<string, ReportWithCover[]>()
+
+  for (const report of reports) {
+    if (!REPORT_COVER_TYPES.has(report.report_type) || report.status !== 'published') continue
+    const key = `${report.project_id}:${report.report_type}:${report.version}`
+    const siblings = reportsByProjectTypeVersion.get(key) ?? []
+    siblings.push(report)
+    reportsByProjectTypeVersion.set(key, siblings)
+  }
+
+  const selected: ReportWithCover[] = []
+  const seenProjectTypes = new Set<string>()
+
+  for (const report of sortReportsByPublishedDate(reports)) {
+    if (!REPORT_COVER_TYPES.has(report.report_type) || report.status !== 'published') continue
+
+    const projectTypeKey = `${report.project_id}:${report.report_type}`
+    if (seenProjectTypes.has(projectTypeKey)) continue
+
+    const siblingKey = `${report.project_id}:${report.report_type}:${report.version}`
+    const siblings = reportsByProjectTypeVersion.get(siblingKey) ?? [report]
+    const localizedReport = pickLocaleReport(siblings, locale) ?? siblings[0] ?? report
+
+    seenProjectTypes.add(projectTypeKey)
+
+    if (hasShowcasePreview(localizedReport, locale)) {
+      selected.push(localizedReport)
+    }
+
+    if (selected.length >= limit) break
+  }
+
+  return selected
 }
 
 export function getReportHref(report: ReportWithCover, locale: string) {
