@@ -81,79 +81,80 @@ export default function LatestReportShowcaseCarousel({
   }
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-8 px-6 lg:grid-cols-[minmax(300px,0.82fr)_minmax(0,1fr)] lg:items-center">
-      <div className="relative mx-auto w-full max-w-[360px] lg:max-w-[430px]">
-        <Link
-          href={activeItem.href}
-          className="group block rounded-lg border border-white/10 bg-white/[0.035] p-3 shadow-2xl shadow-black/30 transition-colors hover:border-white/20"
-        >
-          <div className="relative aspect-[4/5] overflow-hidden rounded-md bg-gray-900">
-            <Image
-              src={activeItem.coverImageUrl}
-              alt={activeItem.title}
-              fill
-              sizes="(min-width: 1024px) 430px, (min-width: 768px) 360px, 88vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-[1.025]"
-              priority={normalizedActiveIndex === 0}
-            />
-          </div>
-        </Link>
-      </div>
+    <div className="mx-auto max-w-[1600px] px-4 sm:px-6">
+      <section className="relative min-h-[600px] overflow-hidden rounded-xl border border-white/10 bg-slate-950 shadow-2xl shadow-black/40 md:min-h-[700px] xl:min-h-[760px]">
+        <Image
+          key={activeItem.id}
+          src={activeItem.coverImageUrl}
+          alt={activeItem.title}
+          fill
+          sizes="(min-width: 1600px) 1530px, 94vw"
+          className="object-cover object-center"
+          priority={normalizedActiveIndex === 0}
+        />
+        <div className="absolute inset-0 bg-black/25" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/65 to-black/5" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/25 to-black/15" />
 
-      <div className="min-w-0 text-center lg:text-left">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-          {isKo ? '최신 리포트' : 'Latest reports'}
-        </p>
-        <h2 className="mt-3 text-3xl font-bold leading-tight text-white md:text-5xl">
-          {isKo ? '최신 ECON, MAT, FOR 리포트' : 'Latest ECON, MAT, and FOR reports'}
-        </h2>
-
-        <div className="mt-8 rounded-lg border border-white/10 bg-white/[0.03] p-5 text-left md:p-6">
-          <div className={`mb-4 inline-flex w-fit items-center rounded-full border px-3 py-1 text-xs font-semibold ${activeLabel.tone}`}>
-            {isKo ? activeLabel.ko : activeLabel.en}
+        <div className="absolute inset-0 px-8 py-10 sm:px-14 md:px-20 md:py-20">
+          <div className="max-w-4xl">
+            <p className="text-sm font-bold tracking-normal text-white/90 md:text-base">
+              {isKo ? '새로 발행된 보고서' : 'Newly published report'}
+            </p>
+            <h2 className="mt-7 max-w-4xl break-keep text-5xl font-black leading-[1.04] tracking-normal text-white md:text-7xl xl:text-8xl">
+              {isKo ? '최신 ECON, MAT, FOR 리포트' : 'Latest ECON, MAT, FOR reports'}
+            </h2>
           </div>
-          <Link href={activeItem.href} className="group block">
-            <h3 className="text-2xl font-bold leading-tight text-white transition-colors group-hover:text-indigo-200 md:text-3xl">
-              {activeItem.title}
-            </h3>
-          </Link>
-          {activeItem.projectName && (
-            <p className="mt-4 text-sm font-medium text-gray-400">
-              {activeItem.projectName} {activeItem.projectSymbol ? `(${activeItem.projectSymbol})` : ''}
-            </p>
-          )}
-          {activeItem.summary && (
-            <p className="mt-4 line-clamp-3 text-sm leading-6 text-gray-300 md:text-base">
-              {activeItem.summary}
-            </p>
-          )}
-          <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-gray-500">
-            {activeItem.publishedDate && <span>{activeItem.publishedDate}</span>}
-            {activeItem.publishedDate && <span className="text-gray-700">/</span>}
-            <Link href={activeItem.href} className="font-medium text-gray-300 transition-colors hover:text-white">
-              {isKo ? '리포트 보기' : 'Open report'} →
-            </Link>
+
+          <div className="absolute bottom-10 left-8 w-[calc(100%-4rem)] max-w-[620px] sm:left-14 sm:w-[620px] md:bottom-16 md:left-20">
+            <div className="rounded-xl border border-white/10 bg-black/45 p-5 text-left shadow-2xl shadow-black/40 backdrop-blur-[2px] md:p-6">
+              <div className={`mb-5 inline-flex w-fit items-center rounded-full border px-4 py-1.5 text-sm font-bold ${activeLabel.tone}`}>
+                {isKo ? activeLabel.ko : activeLabel.en}
+              </div>
+              <Link href={activeItem.href} className="group block">
+                <h3 className="text-3xl font-black leading-tight text-white transition-colors group-hover:text-indigo-200 md:text-4xl">
+                  {activeItem.title}
+                </h3>
+              </Link>
+              {activeItem.projectName && (
+                <p className="mt-4 text-base font-bold text-gray-300">
+                  {activeItem.projectName} {activeItem.projectSymbol ? `(${activeItem.projectSymbol})` : ''}
+                </p>
+              )}
+              {activeItem.summary && (
+                <p className="mt-4 line-clamp-3 text-sm leading-6 text-gray-300 md:text-base">
+                  {activeItem.summary}
+                </p>
+              )}
+              <div className="mt-6 flex flex-wrap items-center gap-3 text-base font-medium text-gray-400">
+                {activeItem.publishedDate && <span>{activeItem.publishedDate}</span>}
+                {activeItem.publishedDate && <span className="text-gray-700">/</span>}
+                <Link href={activeItem.href} className="text-gray-200 transition-colors hover:text-white">
+                  {isKo ? '리포트 보기' : 'Open report'} →
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
 
         {canNavigate && (
-          <div className="mt-6 flex items-center justify-center gap-4 lg:justify-start">
+          <>
             <button
               type="button"
               onClick={goToPrevious}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-gray-300 transition-colors hover:border-white/25 hover:text-white"
+              className="absolute left-5 top-[62%] z-10 inline-flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/45 text-white shadow-lg shadow-black/40 transition-colors hover:border-white/70 hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-blue-400 md:left-6"
               aria-label={isKo ? '이전 리포트' : 'Previous report'}
             >
-              <ChevronLeft aria-hidden="true" size={18} />
+              <ChevronLeft aria-hidden="true" size={26} />
             </button>
-            <div className="flex items-center gap-2" aria-label={isKo ? '리포트 선택' : 'Select report'}>
+            <div className="absolute bottom-5 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2" aria-label={isKo ? '리포트 선택' : 'Select report'}>
               {visibleItems.map((item, index) => (
                 <button
                   key={item.id}
                   type="button"
                   onClick={() => setActiveIndex(index)}
                   className={`h-2.5 rounded-full transition-all ${
-                    index === normalizedActiveIndex ? 'w-7 bg-white' : 'w-2.5 bg-white/30 hover:bg-white/60'
+                    index === normalizedActiveIndex ? 'w-8 bg-white' : 'w-2.5 bg-white/35 hover:bg-white/65'
                   }`}
                   aria-label={isKo ? `${index + 1}번째 리포트 보기` : `Show report ${index + 1}`}
                   aria-current={index === normalizedActiveIndex ? 'true' : undefined}
@@ -163,14 +164,14 @@ export default function LatestReportShowcaseCarousel({
             <button
               type="button"
               onClick={goToNext}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-gray-300 transition-colors hover:border-white/25 hover:text-white"
+              className="absolute right-5 top-[62%] z-10 inline-flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/45 text-white shadow-lg shadow-black/40 transition-colors hover:border-white/70 hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-blue-400 md:right-6"
               aria-label={isKo ? '다음 리포트' : 'Next report'}
             >
-              <ChevronRight aria-hidden="true" size={18} />
+              <ChevronRight aria-hidden="true" size={26} />
             </button>
-          </div>
+          </>
         )}
-      </div>
+      </section>
     </div>
   )
 }
