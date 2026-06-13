@@ -1,50 +1,37 @@
-import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { getLocalizedField, type Locale } from '@/lib/types'
-import { reportSupportsLocale } from '@/lib/report-locale'
-import ProductCard from '@/components/ProductCard'
 import DisclaimerBanner from '@/components/DisclaimerBanner'
-import SubscribeForm from '@/components/SubscribeForm'
-import ForensicSlideCards from '@/components/ForensicSlideCards'
 import LatestReportShowcase from '@/components/LatestReportShowcase'
-import { isPublishedReportCoverCandidate } from '@/lib/latest-report-showcase'
+import {
+  getShowcasePreview,
+  selectLatestReportShowcaseCandidates,
+  type ReportWithCover,
+} from '@/lib/latest-report-showcase'
+
+async function hasReachableShowcaseImage(report: ReportWithCover, locale: string) {
+  const preview = getShowcasePreview(report, locale)
+  if (!preview.url || preview.kind !== 'image') return false
+
+  try {
+    const response = await fetch(preview.url, {
+      method: 'HEAD',
+      next: { revalidate: 300 },
+    })
+    return response.ok && response.headers.get('content-type')?.startsWith('image/')
+  } catch {
+    return false
+  }
+}
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
-  const t = await getTranslations()
+  const isKo = locale === 'ko'
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let featuredProducts: any[] = []
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let categories: any[] = []
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let forensicReports: any[] = []
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let latestReportCovers: any[] = []
+  let latestReportCovers: ReportWithCover[] = []
 
   try {
     const supabase = await createServerSupabaseClient()
-    const [productsRes, categoriesRes, forensicRes, latestCoverRes] = await Promise.all([
-      supabase
-        .from('products')
-        .select('*, category:categories(*)')
-        .eq('status', 'published')
-        .eq('featured', true)
-        .order('published_at', { ascending: false })
-        .limit(4),
-      supabase
-        .from('categories')
-        .select('*')
-        .order('sort_order'),
-      supabase
-        .from('project_reports')
-        .select('*, tracked_projects!inner(id, name, slug, symbol, chain, category)')
-        .eq('report_type', 'forensic')
-        .in('status', ['published', 'in_review'])
-        .not('card_data', 'is', null)
-        .order('updated_at', { ascending: false })
-        .limit(40),
+    const [latestCoverRes] = await Promise.all([
       supabase
         .from('project_reports')
         .select(`
@@ -54,18 +41,22 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         `)
         .in('report_type', ['econ', 'maturity', 'forensic'])
         .eq('status', 'published')
-        .not('product_id', 'is', null)
-        .order('updated_at', { ascending: false })
-        .limit(40),
+        .order('published_at', { ascending: false, nullsFirst: false })
+        .limit(200),
     ])
-    featuredProducts = productsRes.data || []
-    categories = categoriesRes.data || []
-    forensicReports = (forensicRes.data || [])
-      .filter((report) => reportSupportsLocale(report, locale))
-      .slice(0, 8)
-    latestReportCovers = (latestCoverRes.data || [])
-      .filter((report) => isPublishedReportCoverCandidate(report, locale))
-      .slice(0, 4)
+    const reports = (latestCoverRes.data || []) as ReportWithCover[]
+    const showcaseCandidates = selectLatestReportShowcaseCandidates(reports, locale, 40)
+    const verifiedCandidates: ReportWithCover[] = []
+
+    for (const report of showcaseCandidates) {
+      if (await hasReachableShowcaseImage(report, locale)) {
+        verifiedCandidates.push(report)
+      }
+
+      if (verifiedCandidates.length >= 6) break
+    }
+
+    latestReportCovers = verifiedCandidates
   } catch (e) {
     console.error('Failed to fetch data:', e)
   }
@@ -73,139 +64,93 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   return (
     <div>
       {/* Latest report covers */}
-      {latestReportCovers.length > 0 ? (
+      {latestReportCovers.length > 0 && (
         <LatestReportShowcase reports={latestReportCovers} locale={locale} />
-      ) : (
-        <ForensicSlideCards reports={forensicReports} locale={locale} />
       )}
 
-      {/* About — 360° Project Intelligence (moved below content) */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-gray-950 via-indigo-950 to-gray-950 py-20 px-6">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
-        <div className="relative max-w-5xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent mb-6">
-            {t('home.heroTitle')}
-          </h2>
-          <p className="text-lg text-gray-400 max-w-3xl mx-auto mb-8">
-            {t('home.heroSubtitle')}
-          </p>
-          <SubscribeForm
-            locale={locale}
-            source="homepage"
-            className="mb-12"
-            translations={{
-              placeholder: t('subscribe.emailPlaceholder'),
-              cta: t('home.freeNewsletter'),
-              success: t('subscribe.checkEmail'),
-            }}
-          />
+      <section className="border-y border-white/10 bg-slate-950 px-4 py-10 sm:px-6 md:py-12">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(420px,1.05fr)]">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                {isKo ? '분석 커버리지' : 'Research coverage'}
+              </p>
+              <h2 className="mt-3 max-w-2xl text-3xl font-black leading-tight tracking-normal text-white md:text-4xl">
+                {isKo
+                  ? '경제 설계, 성숙도, 포렌식 리스크를 같은 데이터 표면에서 비교'
+                  : 'Compare economic design, maturity, and forensic risk on one research surface'}
+              </h2>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-400">
+                {isKo
+                  ? '보고서 노출 기준은 슬라이드 HTML만 보지 않습니다. Google Drive/PDF 자산, 지원 언어, 발행 상태를 함께 확인해 카드와 상세 페이지를 구성합니다.'
+                  : 'Report visibility is not gated by slide HTML alone. Cards and detail pages use Drive/PDF assets, locale support, and publication status together.'}
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  href={`/${locale}/reports`}
+                  className="rounded-md bg-white px-4 py-2 text-sm font-bold text-slate-950 transition-colors hover:bg-cyan-100"
+                >
+                  {isKo ? '리포트 보기' : 'View reports'}
+                </Link>
+                <Link
+                  href={`/${locale}/score`}
+                  className="rounded-md border border-white/[0.12] px-4 py-2 text-sm font-bold text-slate-200 transition-colors hover:border-cyan-300/35 hover:bg-white/[0.04]"
+                >
+                  {isKo ? '스코어 보드' : 'Score board'}
+                </Link>
+              </div>
+            </div>
 
-          {/* 3 Report Types */}
-          <div className="relative max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid gap-3 md:grid-cols-3">
+              {[
+                {
+                  type: 'ECON',
+                  title: isKo ? '경제 설계 분석' : 'Economic design',
+                  desc: isKo ? '토큰노믹스, 가치 축적, 인센티브 구조' : 'Tokenomics, value accrual, incentive structure',
+                  tone: 'border-sky-300/25 bg-sky-400/10',
+                },
+                {
+                  type: 'MAT',
+                  title: isKo ? '성숙도 평가' : 'Maturity assessment',
+                  desc: isKo ? '7축 BCE Score, 내러티브 건강도' : '7-axis BCE Score and narrative health',
+                  tone: 'border-emerald-300/25 bg-emerald-400/10',
+                },
+                {
+                  type: 'FOR',
+                  title: isKo ? '포렌식 리스크' : 'Forensic risk',
+                  desc: isKo ? '온체인 포렌식, 급변동 감시, 위협 등급' : 'On-chain forensics, rapid-change monitoring, threat levels',
+                  tone: 'border-rose-300/25 bg-rose-400/10',
+                },
+              ].map((report) => (
+                <div key={report.type} className={`rounded-md border ${report.tone} p-4`}>
+                  <div className="text-[11px] font-black tracking-[0.18em] text-slate-400">{report.type}</div>
+                  <h3 className="mt-4 text-lg font-black text-white">{report.title}</h3>
+                  <p className="mt-3 text-xs leading-5 text-slate-400">{report.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-8 grid gap-3 md:grid-cols-6">
             {[
-              {
-                icon: '📊',
-                type: t('home.econType'),
-                title: t('home.econTitle'),
-                desc: t('home.econDesc'),
-                color: 'from-blue-500/10 to-blue-600/5 border-blue-500/20',
-              },
-              {
-                icon: '📈',
-                type: t('home.matType'),
-                title: t('home.matTitle'),
-                desc: t('home.matDesc'),
-                color: 'from-green-500/10 to-green-600/5 border-green-500/20',
-              },
-              {
-                icon: '🔍',
-                type: t('home.forType'),
-                title: t('home.forTitle'),
-                desc: t('home.forDesc'),
-                color: 'from-red-500/10 to-red-600/5 border-red-500/20',
-              },
-            ].map((report) => (
-              <div
-                key={report.type}
-                className={`p-6 rounded-xl bg-gradient-to-br ${report.color} border text-center`}
-              >
-                <span className="text-3xl">{report.icon}</span>
-                <div className="text-xs font-mono text-gray-500 mt-2">{report.type}</div>
-                <h3 className="font-bold text-white mt-2">{report.title}</h3>
-                <p className="text-xs text-gray-400 mt-2">{report.desc}</p>
+              'Slide PDF intake',
+              'Source confirmation',
+              'Summary extraction',
+              '7-language localization',
+              'Editorial review',
+              'Website publishing',
+            ].map((step, index) => (
+              <div key={step} className="rounded-md border border-white/10 bg-slate-900/55 p-3">
+                <div className="text-[11px] font-black text-cyan-200">{String(index + 1).padStart(2, '0')}</div>
+                <div className="mt-3 text-xs font-semibold leading-5 text-slate-300">{step}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Categories */}
-      <section className="max-w-6xl mx-auto px-6 py-20">
-        <h2 className="text-3xl font-bold mb-10">{t('home.researchDomains')}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {categories?.map((cat) => (
-            <Link
-              key={cat.id}
-              href={`/${locale}/products?category=${cat.slug}`}
-              className="p-6 rounded-xl bg-white/5 border border-white/5 hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all group"
-            >
-              <div className="text-3xl mb-3">{cat.icon}</div>
-              <h3 className="font-semibold text-white group-hover:text-indigo-400 transition-colors">
-                {getLocalizedField(cat, 'name', locale as Locale)}
-              </h3>
-              <p className="text-sm text-gray-500 mt-2 line-clamp-2">
-                {getLocalizedField(cat, 'description', locale as Locale)}
-              </p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Featured Products */}
-      {featuredProducts.length > 0 && (
-        <section className="max-w-6xl mx-auto px-6 pb-20">
-          <div className="flex justify-between items-center mb-10">
-            <h2 className="text-3xl font-bold">{t('products.featured')}</h2>
-            <Link href={`/${locale}/products`} className="text-indigo-400 hover:text-indigo-300 transition-colors">
-              {t('common.viewAll')} →
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} locale={locale as Locale} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Newsletter CTA */}
-      <section id="newsletter" className="max-w-6xl mx-auto px-6 pb-20">
-        <div className="rounded-2xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 p-10 text-center">
-          <h3 className="text-2xl font-bold mb-4">
-            {t('home.newsletterTitle')}
-          </h3>
-          <p className="text-gray-400 mb-6">
-            {t('home.newsletterSubtitle')}
-          </p>
-          <SubscribeForm
-            locale={locale}
-            source="newsletter"
-            translations={{
-              placeholder: t('subscribe.emailPlaceholder'),
-              cta: t('home.subscribeFree'),
-              success: t('subscribe.checkEmail'),
-            }}
-          />
-          <div className="flex justify-center gap-8 mt-6 text-sm text-gray-500">
-            <span>📊 {t('home.weeklyPulse')}</span>
-            <span>🔍 {t('home.deepDive')}</span>
-            <span>🚨 {t('home.forensicAlerts')}</span>
-          </div>
-        </div>
-      </section>
-
       {/* Disclaimer */}
-      <section className="max-w-6xl mx-auto px-6 pb-10">
+      <section className="max-w-6xl mx-auto px-6 py-10">
         <DisclaimerBanner />
       </section>
     </div>
