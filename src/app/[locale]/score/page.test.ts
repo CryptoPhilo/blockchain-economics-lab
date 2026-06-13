@@ -336,6 +336,70 @@ describe('score page tracked project aliases', () => {
     ])
   })
 
+  it('keeps Circle EURC and EUR CoinVertible as separate CMC rows', () => {
+    const trackedProjects = [
+      {
+        id: 'eurc-project',
+        name: 'EURC',
+        slug: 'eurc',
+        symbol: 'EURC',
+        category: 'Stablecoins',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: 'euro-coin',
+        aliases: ['euro-coin'],
+        maturity_score: 74,
+        last_econ_report_at: '2026-06-01T16:26:14.739924Z',
+        last_maturity_report_at: '2026-06-09T06:56:35.867095Z',
+        last_forensic_report_at: null,
+      },
+      {
+        id: 'eurcv-project',
+        name: 'EUR CoinVertible',
+        slug: 'eur-coinvertible',
+        symbol: 'EURCV',
+        category: 'Stablecoins',
+        market_cap_usd: 50,
+        coingecko_id: null,
+        cmc_id: 'eur-coinvertible',
+        aliases: ['EUR CoinVertible', 'EURCV', 'euro-coinvertible'],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const snapshotRows = [
+      makeSnapshotRow(85, 'euro-coin'),
+      makeSnapshotRow(238, 'eur-coinvertible'),
+    ]
+
+    const rows = snapshotRowsToScoreRows(snapshotRows, buildTrackedProjectLookup(trackedProjects))
+
+    expect(rows.map((row) => ({
+      rank: row.rank,
+      name: row.name,
+      slug: row.slug,
+      symbol: row.symbol,
+      reportTypes: row.reportTypes,
+    }))).toEqual([
+      {
+        rank: 85,
+        name: 'EURC',
+        slug: 'eurc',
+        symbol: 'EURC',
+        reportTypes: ['econ', 'maturity'],
+      },
+      {
+        rank: 238,
+        name: 'EUR CoinVertible',
+        slug: 'eur-coinvertible',
+        symbol: 'EURCV',
+        reportTypes: [],
+      },
+    ])
+  })
+
   it('does not show timestamp-only report badges when live report availability was loaded', () => {
     const trackedProjects = [
       {
