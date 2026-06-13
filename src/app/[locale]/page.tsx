@@ -82,7 +82,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               </h2>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-400">
                 {isKo
-                  ? '보고서 노출 기준은 슬라이드 HTML만 보지 않습니다. Google Drive/PDF 자산, 지원 언어, 발행 상태를 함께 확인해 카드와 상세 페이지를 구성합니다.'
+                  ? '크립토 이코노미 분석 전문 AI Agent가 프로젝트의 웹사이트와 백서, 온체인 데이터, 관련 커뮤니티, 뉴스 등을 종합적으로 검토합니다.'
                   : 'Report visibility is not gated by slide HTML alone. Cards and detail pages use Drive/PDF assets, locale support, and publication status together.'}
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
