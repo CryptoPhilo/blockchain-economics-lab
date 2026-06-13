@@ -51,6 +51,24 @@ const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'world-liberty-financial-wlfi', slug: 'world-liberty-financial' },
 ] as const
 
+const SCOREBOARD_SYNTHETIC_PROJECTS = [
+  {
+    id: 'scoreboard-synthetic-eur-coinvertible',
+    name: 'EUR CoinVertible',
+    slug: 'eur-coinvertible',
+    symbol: 'EURCV',
+    category: 'Stablecoins',
+    market_cap_usd: null,
+    coingecko_id: null,
+    cmc_id: 'eur-coinvertible',
+    aliases: ['EUR CoinVertible', 'EURCV', 'eur-coinvertible', 'euro-coinvertible'],
+    maturity_score: null,
+    last_econ_report_at: null,
+    last_maturity_report_at: null,
+    last_forensic_report_at: null,
+  },
+] satisfies TrackedScoreboardProject[]
+
 type TrackedScoreboardProject = Awaited<
   ReturnType<ReturnType<typeof createProjectsRepository>['getProjectsForScoreboard']>
 >[number]
@@ -167,6 +185,16 @@ export function buildTrackedProjectLookup(projects: TrackedScoreboardProject[]) 
   for (const project of projects) {
     addProjectLookup(lookup, project.slug, project)
     addProjectLookup(lookup, project.coingecko_id, project)
+    addProjectLookup(lookup, project.cmc_id, project)
+    if (Array.isArray(project.aliases)) {
+      for (const alias of project.aliases) {
+        addProjectLookup(lookup, alias, project, { overwrite: true })
+      }
+    }
+  }
+
+  for (const project of SCOREBOARD_SYNTHETIC_PROJECTS) {
+    addProjectLookup(lookup, project.slug, project)
     addProjectLookup(lookup, project.cmc_id, project)
     if (Array.isArray(project.aliases)) {
       for (const alias of project.aliases) {
