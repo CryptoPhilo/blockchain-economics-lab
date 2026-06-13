@@ -1,10 +1,10 @@
 import LatestReportShowcaseCarousel, { type LatestReportShowcaseItem } from './LatestReportShowcaseCarousel'
 import {
   formatReportDate,
-  getLocalizedProductTitle,
   getLocalizedSummary,
   getReportHref,
   getShowcasePreview,
+  getShowcaseDisplayTitle,
   isPublishedReportCoverCandidate,
   type ReportWithCover,
 } from '@/lib/latest-report-showcase'
@@ -76,7 +76,7 @@ export default function LatestReportShowcase({ reports, locale }: LatestReportSh
         id: report.id,
         href: getReportHref(report, locale),
         reportType: report.report_type,
-        title: getLocalizedProductTitle(report, locale),
+        title: getShowcaseDisplayTitle(report),
         summary: getLocalizedSummary(report, locale),
         projectName: project?.name,
         projectSymbol: project?.symbol,

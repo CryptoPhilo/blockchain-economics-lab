@@ -208,6 +208,12 @@ export function getLocalizedProductTitle(report: ReportWithCover, locale: string
   return report.tracked_projects?.name ?? report.project?.name ?? 'BCELab Report'
 }
 
+export function getShowcaseDisplayTitle(report: ReportWithCover) {
+  const projectName = report.tracked_projects?.name?.trim() ?? report.project?.name?.trim()
+
+  return projectName || 'BCELab Report'
+}
+
 export function getLocalizedSummary(report: ProjectReport, locale: string) {
   const cardData = report.card_data
   const localizedSummary = cardData?.summary_by_lang?.[locale]
