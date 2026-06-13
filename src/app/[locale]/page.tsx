@@ -133,7 +133,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
           <div className="mt-8 grid gap-3 md:grid-cols-6">
             {[
-              'Slide PDF intake',
+              'AI Agent Research',
               'Source confirmation',
               'Summary extraction',
               '7-language localization',
