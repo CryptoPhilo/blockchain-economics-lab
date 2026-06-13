@@ -63,6 +63,10 @@ type ReportAvailability = {
   reportDates: Record<ReportTypeKey, string | null>
 }
 
+function isReportTypeKey(value: unknown): value is ReportTypeKey {
+  return value === 'econ' || value === 'maturity' || value === 'forensic'
+}
+
 const SCOREBOARD_REPORT_AVAILABILITY_ALIASES = [
   { targetSlug: 'falcon-usd', sourceSlug: 'falcon-finance-ff' },
   { targetSlug: 'falcon-usd', sourceSlug: 'falcon-finance' },
@@ -269,20 +273,22 @@ export function buildReportAvailabilityByProjectId(
     ))
     const report = pickLatestReport(localizedLatestVersionReports)
     if (!report) continue
+    if (!isReportTypeKey(report.report_type)) continue
+    const reportType = report.report_type
 
     const existing = map.get(report.project_id) ?? {
       reportTypes: [],
       reportDates: { econ: null, maturity: null, forensic: null },
     }
 
-    if (!existing.reportTypes.includes(report.report_type)) {
-      existing.reportTypes.push(report.report_type)
+    if (!existing.reportTypes.includes(reportType)) {
+      existing.reportTypes.push(reportType)
     }
 
     const timestamp = getReportTimestamp(report)
-    const current = existing.reportDates[report.report_type]
+    const current = existing.reportDates[reportType]
     if (timestamp && (!current || new Date(timestamp).getTime() > new Date(current).getTime())) {
-      existing.reportDates[report.report_type] = timestamp
+      existing.reportDates[reportType] = timestamp
     }
 
     map.set(report.project_id, existing)
