@@ -424,6 +424,49 @@ def test_undeads_slug_filter_matches_short_slide2_filename(ws):
     )
 
 
+@pytest.mark.parametrize(
+    'filename',
+    [
+        'CRCL_ECON_ko.pdf',
+        'CRCLon_ECON_en.pdf',
+        'Circle_Tokenized_Stock_ECON_cn.pdf',
+    ],
+)
+def test_crcl_aliases_resolve_to_circle_tokenized_stock(ws, filename):
+    projects = [
+        {
+            'slug': 'circle-internet-group-tokenized-stock-ondo',
+            'name': 'Circle Internet Group Tokenized Stock (Ondo)',
+            'symbol': 'CRCLon',
+        },
+        {'slug': 'circle-usyc', 'name': 'Circle USYC', 'symbol': 'USYC'},
+    ]
+
+    project, source = ws._resolve_slug(filename, '', '', projects)
+
+    assert project['slug'] == 'circle-internet-group-tokenized-stock-ondo'
+    assert source == 'filename'
+
+
+def test_crcl_slug_filter_matches_tokenized_stock_filename(ws):
+    projects = [
+        {
+            'slug': 'circle-internet-group-tokenized-stock-ondo',
+            'name': 'Circle Internet Group Tokenized Stock (Ondo)',
+            'symbol': 'CRCLon',
+        },
+        {'slug': 'circle-usyc', 'name': 'Circle USYC', 'symbol': 'USYC'},
+    ]
+    hint_tokens = ws._slug_hint_tokens('circle-internet-group-tokenized-stock-ondo', projects)
+
+    assert ws._name_matches_slug_hint(
+        'CRCLon_ECON_ko.pdf',
+        hint_tokens,
+        filter_slug='circle-internet-group-tokenized-stock-ondo',
+        projects=projects,
+    )
+
+
 def test_kcs_filename_resolves_to_kucoin_without_gnosis_substring_collision(ws):
     projects = [
         {'slug': 'kucoin', 'name': 'KuCoin', 'symbol': 'KCS'},
