@@ -388,6 +388,42 @@ def test_sirenai_econ_filenames_resolve_to_active_siren_slug(ws, filename):
     assert source == 'filename'
 
 
+@pytest.mark.parametrize(
+    'filename',
+    [
+        'Undeads_ECON_ko.pdf',
+        'Undeads_ECON_jp.pdf',
+        'Undeads_ECON_en.pdf',
+        'Undeads_ECON_cn.pdf',
+    ],
+)
+def test_undeads_short_slide2_filenames_resolve_to_undeads_games(ws, filename):
+    projects = [
+        {'slug': 'undeads-games', 'name': 'Undeads Games', 'symbol': 'UDS'},
+        {'slug': 'immutable', 'name': 'Immutable', 'symbol': 'IMX'},
+    ]
+
+    project, source = ws._resolve_slug(filename, '', '', projects)
+
+    assert project['slug'] == 'undeads-games'
+    assert source == 'filename'
+
+
+def test_undeads_slug_filter_matches_short_slide2_filename(ws):
+    projects = [
+        {'slug': 'undeads-games', 'name': 'Undeads Games', 'symbol': 'UDS'},
+        {'slug': 'immutable', 'name': 'Immutable', 'symbol': 'IMX'},
+    ]
+    hint_tokens = ws._slug_hint_tokens('undeads-games', projects)
+
+    assert ws._name_matches_slug_hint(
+        'Undeads_ECON_ko.pdf',
+        hint_tokens,
+        filter_slug='undeads-games',
+        projects=projects,
+    )
+
+
 def test_kcs_filename_resolves_to_kucoin_without_gnosis_substring_collision(ws):
     projects = [
         {'slug': 'kucoin', 'name': 'KuCoin', 'symbol': 'KCS'},

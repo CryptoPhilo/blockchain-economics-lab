@@ -23,6 +23,7 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
     'gate': ['gatechain', 'gate chain'],
     'venice-token': ['venice ai', 'venice_ai'],
     'flare-networks': ['flare'],
+    'undeads-games': ['undeads'],
 }
 
 _TOKEN_RE = re.compile(r'[A-Za-z0-9]+')
