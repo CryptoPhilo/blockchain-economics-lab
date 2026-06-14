@@ -36,6 +36,15 @@ on:
         required: false
         type: boolean
         default: false
+      drive_root_scope:
+        description: 'Drive roots to scan: active=Slide2 operations, legacy=Slide backfill, all=manual audit'
+        required: false
+        type: choice
+        default: active
+        options:
+          - active
+          - legacy
+          - all
 
 permissions:
   contents: write
@@ -181,6 +190,22 @@ jobs:
           # Google Drive
           GDRIVE_ROOT_FOLDER_ID=${{ secrets.GDRIVE_ROOT_FOLDER_ID }}
           GDRIVE_DELEGATE_EMAIL=${{ secrets.GDRIVE_DELEGATE_EMAIL }}
+          BCE_ACTIVE_INGEST_PARENT_FOLDER_ID=${{ secrets.BCE_ACTIVE_INGEST_PARENT_FOLDER_ID }}
+          BCE_ACTIVE_INGEST_PARENT_FOLDER_NAME=${{ secrets.BCE_ACTIVE_INGEST_PARENT_FOLDER_NAME }}
+          BCE_ACTIVE_SLIDE_ROOT_FOLDER_NAME=${{ secrets.BCE_ACTIVE_SLIDE_ROOT_FOLDER_NAME }}
+          BCE_ACTIVE_ANALYSIS_ROOT_FOLDER_NAME=${{ secrets.BCE_ACTIVE_ANALYSIS_ROOT_FOLDER_NAME }}
+          BCE_SLIDE_ACTIVE_ECON_FOLDER_ID=${{ secrets.BCE_SLIDE_ACTIVE_ECON_FOLDER_ID }}
+          BCE_SLIDE_ACTIVE_MAT_FOLDER_ID=${{ secrets.BCE_SLIDE_ACTIVE_MAT_FOLDER_ID }}
+          BCE_SLIDE_ACTIVE_FOR_FOLDER_ID=${{ secrets.BCE_SLIDE_ACTIVE_FOR_FOLDER_ID }}
+          BCE_SLIDE_LEGACY_ECON_FOLDER_ID=${{ secrets.BCE_SLIDE_LEGACY_ECON_FOLDER_ID }}
+          BCE_SLIDE_LEGACY_MAT_FOLDER_ID=${{ secrets.BCE_SLIDE_LEGACY_MAT_FOLDER_ID }}
+          BCE_SLIDE_LEGACY_FOR_FOLDER_ID=${{ secrets.BCE_SLIDE_LEGACY_FOR_FOLDER_ID }}
+          BCE_MARKETING_ACTIVE_ECON_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_ACTIVE_ECON_SOURCE_FOLDER_ID }}
+          BCE_MARKETING_ACTIVE_MAT_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_ACTIVE_MAT_SOURCE_FOLDER_ID }}
+          BCE_MARKETING_ACTIVE_FOR_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_ACTIVE_FOR_SOURCE_FOLDER_ID }}
+          BCE_MARKETING_LEGACY_ECON_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_LEGACY_ECON_SOURCE_FOLDER_ID }}
+          BCE_MARKETING_LEGACY_MAT_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_LEGACY_MAT_SOURCE_FOLDER_ID }}
+          BCE_MARKETING_LEGACY_FOR_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_LEGACY_FOR_SOURCE_FOLDER_ID }}
           BCE_MARKETING_FOR_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_FOR_SOURCE_FOLDER_ID }}
 
           # App
@@ -197,12 +222,6 @@ jobs:
         working-directory: scripts/pipeline
         env:
           GDRIVE_SERVICE_ACCOUNT_FILE: ${{ github.workspace }}/scripts/pipeline/.gdrive_service_account.json
-          PAPERCLIP_API_URL: ${{ secrets.PAPERCLIP_API_URL }}
-          PAPERCLIP_API_KEY: ${{ secrets.PAPERCLIP_API_KEY }}
-          PAPERCLIP_COMPANY_ID: ${{ secrets.PAPERCLIP_COMPANY_ID }}
-          PAPERCLIP_ECON_PIPELINE_ID: ${{ secrets.PAPERCLIP_ECON_PIPELINE_ID }}
-          PAPERCLIP_MAT_PIPELINE_ID: ${{ secrets.PAPERCLIP_MAT_PIPELINE_ID }}
-          PAPERCLIP_FOR_PIPELINE_ID: ${{ secrets.PAPERCLIP_FOR_PIPELINE_ID }}
         run: |
           ARGS=""
           if [ "${{ github.event_name }}" = "schedule" ]; then
@@ -210,7 +229,7 @@ jobs:
             # watcher manifest skips already processed files cheaply, while a
             # modified-since window can strand unprocessed PDFs forever if the
             # workflow is paused or failing longer than the window.
-            ARGS="--type all --skip-db-reconcile"
+            ARGS="--type all --drive-root-scope active --skip-db-reconcile"
           else
             TYPE_INPUT="${{ github.event.inputs.type }}"
             if [ -n "$TYPE_INPUT" ]; then
@@ -218,6 +237,11 @@ jobs:
             else
               ARGS="--type all"
             fi
+            DRIVE_ROOT_SCOPE_INPUT="${{ github.event.inputs.drive_root_scope }}"
+            if [ -z "$DRIVE_ROOT_SCOPE_INPUT" ]; then
+              DRIVE_ROOT_SCOPE_INPUT="active"
+            fi
+            ARGS="$ARGS --drive-root-scope $DRIVE_ROOT_SCOPE_INPUT"
 
             if [ -n "${{ github.event.inputs.slug }}" ]; then
               ARGS="$ARGS --slug ${{ github.event.inputs.slug }}"

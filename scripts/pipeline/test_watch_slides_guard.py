@@ -906,10 +906,10 @@ def test_iter_targets_yields_root_and_subfolder_pdfs(ws, monkeypatch):
         ('econ', 'root-slide'),
         ('econ', 'slide-pdf'),
     ]
-    assert targets[0][1]['source_path'] == 'Slide/econ/bitcoin-root.pdf'
+    assert targets[0][1]['source_path'] == 'Slide2/econ/bitcoin-root.pdf'
     assert targets[0][1]['parent_folder_id'] == 'root-econ'
     assert targets[0][1]['source_depth'] == 0
-    assert targets[1][1]['source_path'] == 'Slide/econ/bitcoin/bitcoin-slide.pdf'
+    assert targets[1][1]['source_path'] == 'Slide2/econ/bitcoin/bitcoin-slide.pdf'
     assert targets[1][1]['parent_folder_id'] == 'folder-bitcoin'
     assert targets[1][1]['source_depth'] == 1
 
@@ -930,8 +930,76 @@ def test_iter_targets_recurses_nested_folders(ws, monkeypatch):
     targets = list(ws._iter_targets(object(), ['econ']))
 
     assert [(rtype, pdf['id']) for rtype, pdf in targets] == [('econ', 'nested-slide')]
-    assert targets[0][1]['source_path'] == 'Slide/econ/bitcoin/ko/bitcoin-ko.pdf'
+    assert targets[0][1]['source_path'] == 'Slide2/econ/bitcoin/ko/bitcoin-ko.pdf'
     assert targets[0][1]['source_depth'] == 2
+
+
+def test_iter_targets_legacy_scope_uses_backfill_slide_roots(ws, monkeypatch, tmp_path):
+    monkeypatch.setattr(ws, 'TYPE_FOLDER_IDS', {'econ': 'active-econ'})
+    monkeypatch.setattr(ws, 'LEGACY_TYPE_FOLDER_IDS', {'econ': 'legacy-econ'})
+    monkeypatch.setattr(ws, 'LEGACY_SLIDE_INVENTORY_PATH', tmp_path / '_legacy_slide_inventory.json')
+    pdfs_by_parent = {
+        'active-econ': [{'id': 'active-slide', 'name': 'bitcoin-active.pdf', 'modifiedTime': 't0'}],
+        'legacy-econ': [{'id': 'legacy-slide', 'name': 'bitcoin-legacy.pdf', 'modifiedTime': 't1'}],
+    }
+    monkeypatch.setattr(ws, '_list_pdfs_direct', lambda _service, parent_id: pdfs_by_parent.get(parent_id, []))
+    monkeypatch.setattr(ws, '_list_child_folders', lambda _service, _parent_id: [])
+
+    targets = list(ws._iter_targets(object(), ['econ'], drive_root_scope='legacy'))
+
+    assert [(rtype, pdf['id']) for rtype, pdf in targets] == [('econ', 'legacy-slide')]
+    assert targets[0][1]['source_path'] == 'Slide/econ/bitcoin-legacy.pdf'
+
+
+def test_iter_targets_legacy_scope_uses_static_slide_inventory(ws, monkeypatch, tmp_path):
+    inventory_path = tmp_path / '_legacy_slide_inventory.json'
+    monkeypatch.setattr(ws, 'LEGACY_SLIDE_INVENTORY_PATH', inventory_path)
+    monkeypatch.setattr(ws, 'LEGACY_TYPE_FOLDER_IDS', {'econ': 'legacy-econ'})
+    pdfs_by_parent = {
+        'legacy-econ': [{'id': 'legacy-slide', 'name': 'bitcoin-legacy.pdf', 'modifiedTime': 't1'}],
+    }
+    child_calls = []
+    monkeypatch.setattr(ws, '_list_pdfs_direct', lambda _service, parent_id: pdfs_by_parent.get(parent_id, []))
+
+    def fake_list_child_folders(_service, parent_id):
+        child_calls.append(parent_id)
+        return []
+
+    monkeypatch.setattr(ws, '_list_child_folders', fake_list_child_folders)
+
+    first = list(ws._iter_targets(object(), ['econ'], drive_root_scope='legacy'))
+    second = list(ws._iter_targets(object(), ['econ'], drive_root_scope='legacy'))
+
+    assert inventory_path.exists()
+    assert [(rtype, pdf['id']) for rtype, pdf in first] == [('econ', 'legacy-slide')]
+    assert [(rtype, pdf['id']) for rtype, pdf in second] == [('econ', 'legacy-slide')]
+    assert child_calls == ['legacy-econ']
+
+
+def test_iter_targets_resolves_active_slide2_folders_when_env_ids_missing(ws, monkeypatch):
+    monkeypatch.setattr(ws, 'TYPE_FOLDER_IDS', {'econ': '', 'mat': '', 'for': ''})
+    monkeypatch.setattr(ws, '_RESOLVED_ACTIVE_TYPE_FOLDER_IDS', None)
+    folders_by_parent = {
+        'bce-root': [{'id': 'slide2', 'name': 'Slide2'}],
+        'slide2': [
+            {'id': 'active-econ', 'name': 'ECON'},
+            {'id': 'active-mat', 'name': 'MAT'},
+            {'id': 'active-for', 'name': 'FOR'},
+        ],
+        'active-econ': [],
+    }
+    pdfs_by_parent = {
+        'active-econ': [{'id': 'active-slide', 'name': 'bitcoin-active.pdf', 'modifiedTime': 't0'}],
+    }
+    monkeypatch.setattr(ws, '_find_folders_by_name', lambda _service, name: [{'id': 'bce-root', 'name': name}])
+    monkeypatch.setattr(ws, '_list_child_folders', lambda _service, parent_id: folders_by_parent.get(parent_id, []))
+    monkeypatch.setattr(ws, '_list_pdfs_direct', lambda _service, parent_id: pdfs_by_parent.get(parent_id, []))
+
+    targets = list(ws._iter_targets(object(), ['econ']))
+
+    assert [(rtype, pdf['id']) for rtype, pdf in targets] == [('econ', 'active-slide')]
+    assert targets[0][1]['parent_folder_id'] == 'active-econ'
+    assert targets[0][1]['source_path'] == 'Slide2/econ/bitcoin-active.pdf'
 
 
 def test_iter_targets_routes_misfiled_forensic_pdf_by_filename(ws, monkeypatch):
@@ -958,7 +1026,7 @@ def test_iter_targets_routes_misfiled_forensic_pdf_by_filename(ws, monkeypatch):
     targets = list(ws._iter_targets(object(), ['for']))
 
     assert [(rtype, pdf['id']) for rtype, pdf in targets] == [('for', 'ton-forensic-en')]
-    assert targets[0][1]['source_path'] == 'Slide/mat/TON_Forensic_Market_Report_en.pdf'
+    assert targets[0][1]['source_path'] == 'Slide2/mat/TON_Forensic_Market_Report_en.pdf'
     assert targets[0][1]['parent_folder_id'] == 'root-mat'
 
 
@@ -1000,6 +1068,255 @@ def test_iter_targets_does_not_recurse_unrequested_slide_roots(ws, monkeypatch):
     assert 'root-for' in child_calls
     assert 'root-mat' not in child_calls
     assert 'folder-mat-heavy' not in child_calls
+
+
+class MutableFakeQuery:
+    def __init__(self, table_rows):
+        self.table_rows = table_rows
+        self.rows = list(table_rows)
+        self.update_payload = None
+        self.upsert_row = None
+        self.conflict_cols = []
+
+    def select(self, *_args, **_kwargs):
+        return self
+
+    def eq(self, field, value):
+        self.rows = [row for row in self.rows if row.get(field) == value]
+        return self
+
+    def in_(self, field, values):
+        self.rows = [row for row in self.rows if row.get(field) in values]
+        return self
+
+    def order(self, field, desc=False):
+        self.rows = sorted(
+            self.rows,
+            key=lambda row: (row.get(field) is not None, row.get(field)),
+            reverse=desc,
+        )
+        return self
+
+    def limit(self, count):
+        self.rows = self.rows[:count]
+        return self
+
+    def single(self):
+        return self
+
+    def update(self, payload):
+        self.update_payload = payload
+        return self
+
+    def upsert(self, row, on_conflict=None):
+        self.upsert_row = row
+        self.conflict_cols = [col.strip() for col in (on_conflict or '').split(',') if col.strip()]
+        return self
+
+    def execute(self):
+        if self.update_payload is not None:
+            selected_ids = {id(row) for row in self.rows}
+            for row in self.table_rows:
+                if id(row) in selected_ids:
+                    row.update(self.update_payload)
+            return SimpleNamespace(data=[row for row in self.table_rows if id(row) in selected_ids])
+
+        if self.upsert_row is not None:
+            match = None
+            if self.conflict_cols:
+                for row in self.table_rows:
+                    if all(row.get(col) == self.upsert_row.get(col) for col in self.conflict_cols):
+                        match = row
+                        break
+            if match is None:
+                match = {'id': f"r{len(self.table_rows) + 1}"}
+                self.table_rows.append(match)
+            match.update(self.upsert_row)
+            return SimpleNamespace(data=[match])
+
+        return SimpleNamespace(data=list(self.rows))
+
+
+class MutableFakeSupabase:
+    def __init__(self, tables):
+        self.tables = tables
+
+    def table(self, name):
+        return MutableFakeQuery(self.tables[name])
+
+
+def test_report_source_identity_reuses_existing_drive_source(ws):
+    project = {'id': 'p-bitcoin', 'slug': 'bitcoin'}
+    source_patch = ws._report_source_patch(
+        project=project,
+        db_type='econ',
+        lang='ko',
+        pdf_file_id='drive-1',
+        pdf_modified_time='2026-05-15T00:00:00Z',
+        pdf_size='1234',
+        pdf_name='bitcoin_ECON_ko.pdf',
+    )
+    sb = MutableFakeSupabase({
+        'project_reports': [{
+            'id': 'r-existing',
+            'project_id': 'p-bitcoin',
+            'report_type': 'econ',
+            'language': 'ko',
+            'version': 2,
+            'status': 'published',
+            'is_latest': True,
+            'source_identity': source_patch['source_identity'],
+            'source_file_id': 'drive-1',
+        }],
+    })
+
+    report_id, version, status, previous_report_id, existing_source = ws._resolve_report_version_target(
+        sb,
+        project=project,
+        db_type='econ',
+        lang='ko',
+        source_patch=source_patch,
+    )
+
+    assert report_id == 'r-existing'
+    assert version == 2
+    assert status == 'published'
+    assert previous_report_id is None
+    assert existing_source is True
+
+
+def test_report_source_identity_allocates_next_version_for_new_drive_pdf(ws):
+    project = {'id': 'p-bitcoin', 'slug': 'bitcoin'}
+    source_patch = ws._report_source_patch(
+        project=project,
+        db_type='econ',
+        lang='ko',
+        pdf_file_id='drive-new',
+        pdf_modified_time='2026-05-15T00:05:00Z',
+        pdf_size='2234',
+        pdf_name='bitcoin_ECON_ko_v3.pdf',
+    )
+    sb = MutableFakeSupabase({
+        'project_reports': [{
+            'id': 'r-latest',
+            'project_id': 'p-bitcoin',
+            'report_type': 'econ',
+            'language': 'ko',
+            'version': 2,
+            'status': 'published',
+            'is_latest': True,
+            'updated_at': '2026-05-14T00:00:00Z',
+            'source_identity': 'old-source',
+            'source_file_id': 'drive-old',
+        }],
+    })
+
+    report_id, version, status, previous_report_id, existing_source = ws._resolve_report_version_target(
+        sb,
+        project=project,
+        db_type='econ',
+        lang='ko',
+        source_patch=source_patch,
+    )
+
+    assert report_id is None
+    assert version == 3
+    assert status == 'published'
+    assert previous_report_id == 'r-latest'
+    assert existing_source is False
+
+
+def test_create_report_row_for_slide_moves_latest_pointer_and_stores_source(ws):
+    project = {'id': 'p-bitcoin', 'slug': 'bitcoin'}
+    source_patch = ws._report_source_patch(
+        project=project,
+        db_type='econ',
+        lang='ko',
+        pdf_file_id='drive-new',
+        pdf_modified_time='2026-05-15T00:05:00Z',
+        pdf_size='2234',
+        pdf_name='bitcoin_ECON_ko_v3.pdf',
+    )
+    rows = [{
+        'id': 'r-latest',
+        'project_id': 'p-bitcoin',
+        'report_type': 'econ',
+        'language': 'ko',
+        'version': 2,
+        'status': 'published',
+        'is_latest': True,
+    }]
+    sb = MutableFakeSupabase({
+        'project_reports': rows,
+        'tracked_projects': [{'id': 'p-bitcoin'}],
+    })
+
+    report_id, version = ws._create_report_row_for_slide(
+        sb,
+        project_id='p-bitcoin',
+        db_type='econ',
+        slug='bitcoin',
+        lang='ko',
+        pdf_file_id='drive-new',
+        pdf_name='bitcoin_ECON_ko_v3.pdf',
+        public_url='https://storage.example/econ/bitcoin/latest/ko.html',
+        version=3,
+        source_patch=source_patch,
+        previous_report_id='r-latest',
+    )
+
+    assert report_id == 'r2'
+    assert version == 3
+    assert rows[0]['is_latest'] is False
+    assert rows[1]['is_latest'] is True
+    assert rows[1]['previous_report_id'] == 'r-latest'
+    assert rows[1]['source_identity'] == source_patch['source_identity']
+    assert rows[1]['source_file_id'] == 'drive-new'
+
+
+def test_report_source_identity_migration_backfill_prefers_version_before_timestamp():
+    migration_sql = (
+        Path(__file__).parents[2]
+        / 'supabase'
+        / 'migrations'
+        / '20260515_add_report_source_identity_and_latest_contract.sql'
+    ).read_text()
+
+    order_start = migration_sql.index('ORDER BY')
+    order_end = migration_sql.index(') AS rn', order_start)
+    order_clause = migration_sql[order_start:order_end]
+
+    assert order_clause.index('version DESC') < order_clause.index(
+        'COALESCE(published_at, updated_at, created_at) DESC NULLS LAST'
+    )
+
+    rows = [
+        {
+            'id': 'v1-later-timestamp',
+            'status': 'published',
+            'version': 1,
+            'published_at': '2026-05-15T12:00:00Z',
+            'updated_at': '2026-05-15T12:00:00Z',
+            'created_at': '2026-05-15T12:00:00Z',
+        },
+        {
+            'id': 'v2-older-timestamp',
+            'status': 'published',
+            'version': 2,
+            'published_at': '2026-05-14T12:00:00Z',
+            'updated_at': '2026-05-14T12:00:00Z',
+            'created_at': '2026-05-14T12:00:00Z',
+        },
+    ]
+
+    def migration_rank_key(row):
+        visible_rank = 0 if row['status'] in {'published', 'approved', 'in_review', 'coming_soon'} else 1
+        timestamp = row.get('published_at') or row.get('updated_at') or row.get('created_at') or ''
+        return (visible_rank, -row['version'], timestamp, row['id'])
+
+    latest = sorted(rows, key=migration_rank_key)[0]
+
+    assert latest['id'] == 'v2-older-timestamp'
 
 
 def test_iter_targets_slug_filter_prunes_nonmatching_folders_and_pdfs(ws, monkeypatch):
@@ -1663,11 +1980,11 @@ def test_unchanged_manifest_repair_creates_missing_report_shell(ws, monkeypatch)
 
     assert report_id == 'report-created'
     assert version == 1
-    assert status == 'review_ready_created'
+    assert status == 'published_created'
     assert calls[0]['project_id'] == 'project-bitcoin'
     assert calls[0]['db_type'] == 'econ'
     assert calls[0]['public_url'] == 'https://storage/econ/bitcoin/latest/en.html'
-    assert calls[0]['status'] == ws.REVIEW_READY_STATUS
+    assert calls[0]['status'] == ws.PUBLICATION_PUBLISHED_STATUS
 
 
 def test_file_id_filtered_unchanged_run_is_rejected(ws, monkeypatch):
@@ -2187,9 +2504,9 @@ def test_create_report_row_for_slide_upserts_missing_report_shell(ws):
     assert payload['project_id'] == 'project-shib'
     assert payload['report_type'] == 'econ'
     assert payload['language'] == 'ko'
-    assert payload['status'] == ws.REVIEW_READY_STATUS
-    assert payload['review_at']
-    assert payload['published_at'] is None
+    assert payload['status'] == ws.PUBLICATION_PUBLISHED_STATUS
+    assert payload['review_at'] is None
+    assert payload['published_at']
     assert payload['gdrive_file_id'] == 'drive-pdf-id'
     assert payload['gdrive_urls_by_lang'] == {
         'ko': 'https://drive.google.com/file/d/drive-pdf-id/view?usp=drivesdk',
@@ -2198,7 +2515,7 @@ def test_create_report_row_for_slide_upserts_missing_report_shell(ws):
         'ko': 'https://storage/slides/econ/shiba-inu/latest/ko.html',
     }
     assert payload['card_data']['slug'] == 'shiba-inu'
-    assert sb.tracked_projects.patch is None
+    assert sb.tracked_projects.patch is not None
 
 
 def test_merge_slide_url_updates_publish_metadata_and_project_timestamp(ws):
@@ -2232,6 +2549,43 @@ def test_merge_slide_url_updates_publish_metadata_and_project_timestamp(ws):
     assert report['card_data']['summary'] == 'Avalanche summary'
     assert project['last_econ_report_at'] == publish_ts
     assert project['updated_at'] == publish_ts
+
+
+def test_extract_maturity_score_from_analysis_markdown(ws):
+    text = """
+    # Hyperliquid MAT
+
+    **Maturity Score: 85.0 | Stage: ESTABLISHED**
+    """
+
+    assert ws._extract_maturity_score_from_text(text) == 85.0
+    assert ws._extract_maturity_stage_from_text(text, 85.0) == 'established'
+
+
+def test_extract_maturity_score_from_korean_summary_forms(ws):
+    assert ws._extract_maturity_score_from_text('종합 점수 82.6% 기준 Aave는 성숙 서사 구간이다.') == 82.6
+    assert ws._extract_maturity_score_from_text('**최종 판정:** 전개 서사 단계, 종합 성숙도 57.4 / 100') == 57.4
+
+
+def test_persist_maturity_score_from_source_updates_tracked_project(ws):
+    class Source:
+        name = 'hyperliquid_mat_v1_en.md'
+        text = '**Overall Maturity Score: 85.0**\n\nStage: Established\n'
+
+    report = {'project_id': 'project-hype', 'report_type': 'maturity'}
+    project = {'id': 'project-hype', 'slug': 'hyperliquid'}
+    sb = _FakeMergeSupabase(report, project)
+
+    persisted = ws._persist_maturity_score_from_source(
+        sb,
+        project=project,
+        source=Source(),
+    )
+
+    assert persisted is True
+    assert project['maturity_score'] == 85.0
+    assert project['maturity_stage'] == 'established'
+    assert project['updated_at']
 
 
 def test_prune_stale_languages_removes_db_json_and_latest_storage(ws):
@@ -2632,7 +2986,8 @@ def test_db_reconcile_materializes_active_drive_pdf_only_report_row(ws, monkeypa
     assert tables['project_reports'][0]['project_id'] == 'project-flare'
     assert tables['project_reports'][0]['report_type'] == 'econ'
     assert tables['project_reports'][0]['language'] == 'zh'
-    assert tables['project_reports'][0]['status'] == ws.REVIEW_READY_STATUS
+    assert tables['project_reports'][0]['status'] == ws.PUBLICATION_PUBLISHED_STATUS
+    assert tables['project_reports'][0]['published_at'] is not None
     assert tables['project_reports'][0]['gdrive_file_id'] == 'drive-flare-cn'
     assert tables['project_reports'][0]['gdrive_urls_by_lang'] == {
         'zh': 'https://drive.google.com/file/d/drive-flare-cn/view?usp=drivesdk',
@@ -2933,7 +3288,7 @@ def test_paperclip_counts_and_event_payload_include_required_metrics(ws):
         {'rtype': 'mat', 'status': 'target'},
     ]
     processed = [
-        {'rtype': 'econ', 'status': 'review_ready'},
+        {'rtype': 'econ', 'status': 'published'},
         {'rtype': 'econ', 'status': 'unresolved'},
         {'rtype': 'econ', 'status': 'failed'},
         {'rtype': 'mat', 'status': 'published'},
@@ -2953,8 +3308,8 @@ def test_paperclip_counts_and_event_payload_include_required_metrics(ws):
     assert metrics == {
         'scanned': 2,
         'processed': 3,
-        'published': 0,
-        'review_ready': 1,
+        'published': 1,
+        'review_ready': 0,
         'unresolved': 1,
         'failed': 1,
         'blocked': 1,
@@ -2962,7 +3317,7 @@ def test_paperclip_counts_and_event_payload_include_required_metrics(ws):
     assert status == 'failed'
     assert payload['runId'] == 'run-1'
     assert payload['severity'] == 'error'
-    assert payload['details']['metrics']['review_ready'] == 1
+    assert payload['details']['metrics']['published'] == 1
     assert payload['details']['logArtifactPath'] == 'logs/slide_pipeline/20260510_120000.md'
 
 
@@ -2984,9 +3339,13 @@ def test_write_run_log_includes_paperclip_telemetry_warnings(ws, monkeypatch, tm
 
 
 def test_paperclip_telemetry_start_and_complete_builds_expected_calls(ws, monkeypatch):
+    monkeypatch.setenv('PAPERCLIP_TELEMETRY_SECONDARY_ENABLED', 'true')
     monkeypatch.setenv('PAPERCLIP_API_URL', 'http://paperclip.test')
     monkeypatch.setenv('PAPERCLIP_API_KEY', 'token')
     monkeypatch.setenv('PAPERCLIP_COMPANY_ID', 'company-1')
+    monkeypatch.delenv('SUPABASE_URL', raising=False)
+    monkeypatch.delenv('NEXT_PUBLIC_SUPABASE_URL', raising=False)
+    monkeypatch.delenv('SUPABASE_SERVICE_KEY', raising=False)
 
     calls = []
 
@@ -3023,7 +3382,7 @@ def test_paperclip_telemetry_start_and_complete_builds_expected_calls(ws, monkey
             {'rtype': 'econ', 'status': 'unchanged'},
         ],
         processed=[
-            {'rtype': 'econ', 'status': 'review_ready'},
+            {'rtype': 'econ', 'status': 'published'},
             {'rtype': 'econ', 'status': 'unresolved'},
         ],
         log_path='logs/slide_pipeline/20260510_120000.md',
@@ -3040,7 +3399,7 @@ def test_paperclip_telemetry_start_and_complete_builds_expected_calls(ws, monkey
     assert node_run_calls[0][2]['nodeId'] == 'node-source_collection'
     assert node_run_calls[0][2]['status'] == 'waiting_manual'
     assert node_run_calls[0][2]['metadata']['metrics']['scanned'] == 2
-    assert node_run_calls[0][2]['metadata']['metrics']['review_ready'] == 1
+    assert node_run_calls[0][2]['metadata']['metrics']['published'] == 1
     assert node_run_calls[0][2]['metadata']['metrics']['unresolved'] == 1
 
     event_call = next(call for call in calls if call[1] == '/pipelines/pipeline-econ/events')
@@ -3054,11 +3413,15 @@ def test_paperclip_telemetry_start_and_complete_builds_expected_calls(ws, monkey
     assert patch_call[2]['metadata']['source'] == 'watch_slides.py'
 
 
-def test_paperclip_telemetry_disabled_warns_without_raising(ws, monkeypatch):
+def test_paperclip_telemetry_disabled_without_supabase_is_quiet(ws, monkeypatch):
     monkeypatch.delenv('PAPERCLIP_API_URL', raising=False)
     monkeypatch.delenv('PAPERCLIP_API_KEY', raising=False)
     monkeypatch.delenv('PAPERCLIP_AGENT_TOKEN', raising=False)
     monkeypatch.delenv('PAPERCLIP_TOKEN', raising=False)
+    monkeypatch.delenv('PAPERCLIP_TELEMETRY_SECONDARY_ENABLED', raising=False)
+    monkeypatch.delenv('SUPABASE_URL', raising=False)
+    monkeypatch.delenv('NEXT_PUBLIC_SUPABASE_URL', raising=False)
+    monkeypatch.delenv('SUPABASE_SERVICE_KEY', raising=False)
 
     telemetry = ws.PaperclipTelemetry()
 
@@ -3072,6 +3435,90 @@ def test_paperclip_telemetry_disabled_warns_without_raising(ws, monkeypatch):
     telemetry.complete_runs(['econ'], scanned=[], processed=[], log_path=None)
 
     assert telemetry.run_ids == {}
-    assert telemetry.warnings == [
-        'disabled; set PAPERCLIP_API_URL and PAPERCLIP_API_KEY to publish pipeline telemetry'
-    ]
+    assert telemetry.warnings == []
+
+
+def test_supabase_telemetry_is_primary_sink(telemetry_helpers, monkeypatch):
+    monkeypatch.setenv('SUPABASE_URL', 'https://supabase.test')
+    monkeypatch.setenv('SUPABASE_SERVICE_KEY', 'service-key')
+    monkeypatch.delenv('PAPERCLIP_TELEMETRY_SECONDARY_ENABLED', raising=False)
+    monkeypatch.delenv('PAPERCLIP_API_URL', raising=False)
+
+    operations = []
+
+    class FakeResponse:
+        def __init__(self, data):
+            self.data = data
+
+    class FakeQuery:
+        def __init__(self, table, action, payload):
+            self.table = table
+            self.action = action
+            self.payload = payload
+            self.filters = []
+
+        def eq(self, column, value):
+            self.filters.append((column, value))
+            return self
+
+        def execute(self):
+            operations.append((self.table, self.action, self.payload, self.filters))
+            if self.table == 'pipeline_runs' and self.action == 'insert':
+                return FakeResponse([{**self.payload, 'id': 'run-supabase-econ'}])
+            if isinstance(self.payload, list):
+                return FakeResponse(self.payload)
+            return FakeResponse([{**self.payload}])
+
+    class FakeTable:
+        def __init__(self, name):
+            self.name = name
+
+        def insert(self, payload):
+            return FakeQuery(self.name, 'insert', payload)
+
+        def update(self, payload):
+            return FakeQuery(self.name, 'update', payload)
+
+    class FakeClient:
+        def table(self, name):
+            return FakeTable(name)
+
+    monkeypatch.setattr(telemetry_helpers, '_supabase_client', lambda: FakeClient())
+
+    telemetry = telemetry_helpers.PaperclipTelemetry()
+    telemetry.start_runs(
+        ['econ'],
+        scan_time='2026-05-10 12:00:00 UTC',
+        dry_run=False,
+        force=False,
+        slug=None,
+    )
+    telemetry.complete_runs(
+        ['econ'],
+        scanned=[{'rtype': 'econ', 'status': 'target'}],
+        processed=[{'rtype': 'econ', 'status': 'review_ready'}],
+        log_path='logs/slide_pipeline/20260510_120000.md',
+    )
+
+    assert telemetry.run_ids == {'econ': 'run-supabase-econ'}
+    assert telemetry.paperclip_run_ids == {}
+
+    run_insert = operations[0]
+    assert run_insert[0:2] == ('pipeline_runs', 'insert')
+    assert run_insert[2]['pipeline_name'] == 'slide-pipeline'
+    assert run_insert[2]['report_type'] == 'econ'
+    assert run_insert[2]['status'] == 'running'
+
+    node_insert = next(op for op in operations if op[0] == 'pipeline_node_runs')
+    assert len(node_insert[2]) == len(telemetry_helpers.PAPERCLIP_NODE_STAGES)
+    assert node_insert[2][0]['pipeline_run_id'] == 'run-supabase-econ'
+    assert node_insert[2][0]['metrics']['review_ready'] == 1
+
+    event_insert = next(op for op in operations if op[0] == 'pipeline_events')
+    assert event_insert[2]['event_type'] == 'slide_watcher.completed'
+    assert event_insert[2]['pipeline_run_id'] == 'run-supabase-econ'
+
+    run_update = next(op for op in operations if op[0] == 'pipeline_runs' and op[1] == 'update')
+    assert run_update[2]['status'] == 'succeeded'
+    assert run_update[2]['artifact_path'] == 'logs/slide_pipeline/20260510_120000.md'
+    assert run_update[3] == [('id', 'run-supabase-econ')]

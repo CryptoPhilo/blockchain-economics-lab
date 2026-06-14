@@ -2,7 +2,8 @@
 """
 Slide Pipeline Watcher — BCE-1085 / BCE-1099
 
-Scans `Slide/{TYPE}/` and child folders for landscape slide PDFs,
+Scans active `Slide2/{TYPE}/` or explicit backfill `Slide/{TYPE}/` folders for
+landscape slide PDFs,
 plus explicitly supported legacy report folders at
 `BCE Lab Reports/{slug}/{TYPE}/`,
 identifies (slug, lang) from PDF content, converts to a self-contained HTML
@@ -115,14 +116,60 @@ def _ocr_first_page_text(pdf_path: str, max_pages: int = _inspection_helpers.PDF
 # Configuration
 # ═══════════════════════════════════════════
 
-# GDrive root folder per type (provided in BCE-1085 spec)
-TYPE_FOLDER_IDS: Dict[str, str] = {
-    'econ': '19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn',
-    'mat':  '18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6',
-    'for':  '1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex',
+def _env_folder_id(name: str, default: str = '') -> str:
+    return (os.environ.get(name) or default or '').strip()
+
+
+# Active roots are the default operating pipeline. Legacy roots are reserved
+# for explicit backfill/repair runs so backfills cannot silently move the daily
+# watcher back onto the historical Drive tree.
+LEGACY_TYPE_FOLDER_IDS: Dict[str, str] = {
+    'econ': _env_folder_id('BCE_SLIDE_LEGACY_ECON_FOLDER_ID', '19VNGRg8eHAvoWH4SPyeQdtAfJNTmRwJn'),
+    'mat':  _env_folder_id('BCE_SLIDE_LEGACY_MAT_FOLDER_ID', '18ZhiiFRHEgYFkEHKpoEYR0nLdT_X29t6'),
+    'for':  _env_folder_id('BCE_SLIDE_LEGACY_FOR_FOLDER_ID', '1LZ2J4qvQoKuva74wlvgcwjCGG5kHEzex'),
 }
 
-# Legacy report PDFs sometimes live outside the active Slide/{TYPE} roots.
+ACTIVE_TYPE_FOLDER_IDS: Dict[str, str] = {
+    'econ': _env_folder_id('BCE_SLIDE_ACTIVE_ECON_FOLDER_ID'),
+    'mat': _env_folder_id('BCE_SLIDE_ACTIVE_MAT_FOLDER_ID'),
+    'for': _env_folder_id('BCE_SLIDE_ACTIVE_FOR_FOLDER_ID'),
+}
+
+# Backward-compatible test/patch point used as the active root set.
+TYPE_FOLDER_IDS: Dict[str, str] = ACTIVE_TYPE_FOLDER_IDS
+
+DRIVE_ROOT_SCOPES = {'active', 'legacy', 'all'}
+ACTIVE_INGEST_PARENT_FOLDER_NAME = _env_folder_id('BCE_ACTIVE_INGEST_PARENT_FOLDER_NAME', 'BCE Lab Reports')
+ACTIVE_INGEST_PARENT_FOLDER_ENV = 'BCE_ACTIVE_INGEST_PARENT_FOLDER_ID'
+ACTIVE_SLIDE_ROOT_FOLDER_NAME = _env_folder_id('BCE_ACTIVE_SLIDE_ROOT_FOLDER_NAME', 'Slide2')
+_RESOLVED_ACTIVE_TYPE_FOLDER_IDS: Optional[Dict[str, str]] = None
+
+
+def _normalize_drive_root_scope(scope: Optional[str]) -> str:
+    normalized = (scope or 'active').strip().lower()
+    if normalized not in DRIVE_ROOT_SCOPES:
+        raise ValueError(f"drive root scope must be one of {sorted(DRIVE_ROOT_SCOPES)}")
+    return normalized
+
+
+def _slide_type_folder_sets_for_scope(
+    scope: Optional[str],
+    *,
+    service: Optional[Any] = None,
+) -> List[Tuple[str, Dict[str, str]]]:
+    normalized = _normalize_drive_root_scope(scope)
+    active_folder_ids = _active_slide_type_folder_ids(service) if service is not None else TYPE_FOLDER_IDS
+    if normalized == 'active':
+        return [('active', active_folder_ids)]
+    if normalized == 'legacy':
+        return [('legacy', LEGACY_TYPE_FOLDER_IDS)]
+    return [('active', active_folder_ids), ('legacy', LEGACY_TYPE_FOLDER_IDS)]
+
+
+def _slide_source_path_prefix(root_scope: str) -> str:
+    return 'Slide2' if root_scope == 'active' else 'Slide'
+
+# Legacy report PDFs sometimes live outside the selected Slide2/Slide roots.
 # They are still scanned so the watcher can either publish a landscape deck or
 # record an explicit portrait-report skip instead of leaving the DB state silent.
 LEGACY_REPORTS_ROOT_FOLDER_NAME = 'BCE Lab Reports'
@@ -151,6 +198,7 @@ PUBLICATION_PUBLISHED_STATUS = 'published'
 PIPELINE_DIR = Path(__file__).resolve().parent
 REPO_ROOT = PIPELINE_DIR.parent.parent
 MANIFEST_PATH = PIPELINE_DIR / 'output' / '_slide_processed.json'
+LEGACY_SLIDE_INVENTORY_PATH = PIPELINE_DIR / 'output' / '_legacy_slide_inventory.json'
 LOG_DIR = REPO_ROOT / 'logs' / 'slide_pipeline'
 
 # NotebookLM slide decks are 16:9 landscape. Legacy PDF reports are portrait
@@ -252,6 +300,77 @@ def _list_child_folders(service, parent_id: str) -> List[Dict]:
     return out
 
 
+def _folder_name_key(value: str) -> str:
+    return re.sub(r'\s+', ' ', (value or '').strip()).casefold()
+
+
+def _find_child_folder_casefold(service, parent_id: str, name: str) -> Optional[Dict[str, Any]]:
+    expected = _folder_name_key(name)
+    for folder in _list_child_folders(service, parent_id):
+        if _folder_name_key(folder.get('name') or '') == expected:
+            return folder
+    return None
+
+
+def _configured_drive_folders(env_name: str, default_name: str) -> List[Dict[str, Any]]:
+    return [
+        {'id': folder_id.strip(), 'name': default_name}
+        for folder_id in (os.environ.get(env_name) or '').split(',')
+        if folder_id.strip()
+    ]
+
+
+def _active_ingest_parent_folders(service) -> List[Dict[str, Any]]:
+    configured = _configured_drive_folders(ACTIVE_INGEST_PARENT_FOLDER_ENV, ACTIVE_INGEST_PARENT_FOLDER_NAME)
+    if configured:
+        return configured
+    try:
+        return _find_folders_by_name(service, ACTIVE_INGEST_PARENT_FOLDER_NAME)
+    except Exception as e:
+        print(f"  [WARN] active ingest parent lookup failed: {e}")
+        return []
+
+
+def _active_slide_type_folder_ids(service) -> Dict[str, str]:
+    """Return active Slide2/{TYPE} folder IDs, using env vars first."""
+    global _RESOLVED_ACTIVE_TYPE_FOLDER_IDS
+    resolved = {rtype: folder_id for rtype, folder_id in TYPE_FOLDER_IDS.items() if folder_id}
+    missing_types = [rtype for rtype in ('econ', 'mat', 'for') if not resolved.get(rtype)]
+    if not missing_types:
+        return resolved
+    if _RESOLVED_ACTIVE_TYPE_FOLDER_IDS is not None:
+        resolved = {**_RESOLVED_ACTIVE_TYPE_FOLDER_IDS, **resolved}
+        missing_types = [rtype for rtype in ('econ', 'mat', 'for') if not resolved.get(rtype)]
+        if not missing_types:
+            return resolved
+
+    for parent in _active_ingest_parent_folders(service):
+        parent_id = parent.get('id')
+        if not parent_id:
+            continue
+        slide_root = _find_child_folder_casefold(service, parent_id, ACTIVE_SLIDE_ROOT_FOLDER_NAME)
+        if not slide_root or not slide_root.get('id'):
+            continue
+        for rtype in missing_types:
+            if resolved.get(rtype):
+                continue
+            folder = _find_child_folder_casefold(service, slide_root['id'], rtype.upper())
+            if folder and folder.get('id'):
+                resolved[rtype] = folder['id']
+        if all(resolved.get(rtype) for rtype in missing_types):
+            break
+
+    still_missing = [rtype for rtype in ('econ', 'mat', 'for') if not resolved.get(rtype)]
+    if still_missing:
+        print(
+            "  [WARN] active Slide2 ingest folders missing for "
+            f"{', '.join(still_missing)}; set BCE_SLIDE_ACTIVE_*_FOLDER_ID "
+            f"or create {ACTIVE_INGEST_PARENT_FOLDER_NAME}/{ACTIVE_SLIDE_ROOT_FOLDER_NAME}/{{ECON,MAT,FOR}}"
+        )
+    _RESOLVED_ACTIVE_TYPE_FOLDER_IDS = resolved
+    return resolved
+
+
 def _list_non_folder_files_direct(service, parent_id: str) -> List[Dict]:
     """List non-folder files in `parent_id` only."""
     query = (
@@ -333,6 +452,37 @@ def _save_manifest(data: Dict[str, Dict]) -> None:
     MANIFEST_PATH.parent.mkdir(parents=True, exist_ok=True)
     MANIFEST_PATH.write_text(
         json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True),
+        encoding='utf-8',
+    )
+
+
+def _load_legacy_slide_inventory() -> Optional[List[Dict[str, Any]]]:
+    if not LEGACY_SLIDE_INVENTORY_PATH.exists():
+        return None
+    try:
+        data = json.loads(LEGACY_SLIDE_INVENTORY_PATH.read_text(encoding='utf-8'))
+    except Exception as e:
+        print(f"  [WARN] legacy Slide inventory unreadable: {e}")
+        return None
+    files = data.get('files') if isinstance(data, dict) else None
+    if not isinstance(files, list):
+        return None
+    return [row for row in files if isinstance(row, dict)]
+
+
+def _save_legacy_slide_inventory(files: List[Dict[str, Any]]) -> None:
+    LEGACY_SLIDE_INVENTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    LEGACY_SLIDE_INVENTORY_PATH.write_text(
+        json.dumps(
+            {
+                'generated_at': datetime.now(timezone.utc).isoformat(),
+                'source': 'legacy Slide folder inventory',
+                'files': files,
+            },
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        ),
         encoding='utf-8',
     )
 
@@ -593,6 +743,137 @@ def run_active_project_backlog_guard() -> List[Dict[str, Any]]:
 # DB lookup helpers
 # ═══════════════════════════════════════════
 
+def _source_identity_part(value: Any) -> str:
+    return re.sub(r'\s+', ' ', str(value or '').strip())
+
+
+def _build_report_source_identity(
+    *,
+    project: Dict[str, Any],
+    db_type: str,
+    lang: str,
+    pdf_file_id: str,
+    pdf_modified_time: Optional[str],
+    pdf_size: Optional[Any],
+    pdf_name: str,
+    checksum: Optional[str] = None,
+) -> str:
+    """Return the stable source/version identity for a Drive-backed report."""
+    parts = [
+        'gdrive',
+        _source_identity_part(project.get('id')),
+        _source_identity_part(project.get('slug')),
+        _source_identity_part(db_type),
+        _source_identity_part(lang),
+        _source_identity_part(pdf_file_id),
+        _source_identity_part(pdf_modified_time),
+        _source_identity_part(pdf_size),
+        _source_identity_part(checksum),
+        _source_identity_part(pdf_name),
+    ]
+    return '|'.join(parts)
+
+
+def _report_source_patch(
+    *,
+    project: Dict[str, Any],
+    db_type: str,
+    lang: str,
+    pdf_file_id: str,
+    pdf_modified_time: Optional[str],
+    pdf_size: Optional[Any],
+    pdf_name: str,
+    checksum: Optional[str] = None,
+) -> Dict[str, Any]:
+    return {
+        'source_identity': _build_report_source_identity(
+            project=project,
+            db_type=db_type,
+            lang=lang,
+            pdf_file_id=pdf_file_id,
+            pdf_modified_time=pdf_modified_time,
+            pdf_size=pdf_size,
+            pdf_name=pdf_name,
+            checksum=checksum,
+        ),
+        'source_file_id': pdf_file_id,
+        'source_modified_time': pdf_modified_time,
+        'source_size': int(pdf_size) if str(pdf_size or '').isdigit() else None,
+        'source_checksum': checksum,
+        'source_filename': pdf_name,
+    }
+
+
+def _find_report_for_source_identity(
+    sb,
+    *,
+    project_id: str,
+    db_type: str,
+    lang: str,
+    source_identity: str,
+    pdf_file_id: str,
+) -> Optional[Dict[str, Any]]:
+    """Find the report row for an already-ingested Drive PDF source."""
+    select_cols = 'id, version, status, source_identity, source_file_id, gdrive_file_id'
+    try:
+        res = sb.table('project_reports').select(select_cols) \
+            .eq('project_id', project_id) \
+            .eq('report_type', db_type) \
+            .eq('language', lang) \
+            .eq('source_identity', source_identity) \
+            .limit(1) \
+            .execute()
+        if res.data:
+            return res.data[0]
+    except Exception:
+        pass
+
+    try:
+        res = sb.table('project_reports').select(select_cols) \
+            .eq('project_id', project_id) \
+            .eq('report_type', db_type) \
+            .eq('language', lang) \
+            .eq('source_file_id', pdf_file_id) \
+            .limit(1) \
+            .execute()
+        if res.data:
+            return res.data[0]
+    except Exception:
+        pass
+
+    try:
+        res = sb.table('project_reports').select('id, version, status, gdrive_file_id') \
+            .eq('project_id', project_id) \
+            .eq('report_type', db_type) \
+            .eq('language', lang) \
+            .eq('gdrive_file_id', pdf_file_id) \
+            .limit(1) \
+            .execute()
+        if res.data:
+            return res.data[0]
+    except Exception:
+        pass
+    return None
+
+
+def _latest_report_row_for_lang(sb, project_id: str, db_type: str, lang: str) -> Optional[Dict[str, Any]]:
+    rep = sb.table('project_reports').select(
+        'id, version, status, published_at, updated_at, is_latest'
+    ) \
+        .eq('project_id', project_id) \
+        .eq('report_type', db_type) \
+        .eq('language', lang) \
+        .in_('status', [PUBLICATION_PUBLISHED_STATUS, 'coming_soon', PUBLICATION_APPROVED_STATUS, REVIEW_READY_STATUS]) \
+        .order('is_latest', desc=True) \
+        .order('version', desc=True) \
+        .order('updated_at', desc=True) \
+        .limit(1) \
+        .execute()
+    if not rep.data:
+        return None
+    return rep.data[0]
+
+
 def _find_report_for_lang(sb, project_id: str, db_type: str, lang: str) -> Tuple[Optional[str], Optional[int], Optional[str]]:
     """Find the latest published project_reports row for (project, type, language).
 
@@ -600,19 +881,12 @@ def _find_report_for_lang(sb, project_id: str, db_type: str, lang: str) -> Tuple
     language filter the URL for one language would be merged into another
     language's row.
     """
-    rep = sb.table('project_reports').select('id, version, status, published_at, updated_at') \
-        .eq('project_id', project_id) \
-        .eq('report_type', db_type) \
-        .eq('language', lang) \
-        .in_('status', [PUBLICATION_PUBLISHED_STATUS, 'coming_soon', PUBLICATION_APPROVED_STATUS, REVIEW_READY_STATUS]) \
-        .order('updated_at', desc=True) \
-        .limit(1) \
-        .execute()
-    if not rep.data:
+    latest = _latest_report_row_for_lang(sb, project_id, db_type, lang)
+    if not latest:
         return None, None, None
-    report_id = rep.data[0]['id']
-    version = rep.data[0].get('version')
-    status = rep.data[0].get('status')
+    report_id = latest['id']
+    version = latest.get('version')
+    status = latest.get('status')
 
     try:
         rv = sb.table('report_versions').select('version') \
@@ -629,6 +903,57 @@ def _find_report_for_lang(sb, project_id: str, db_type: str, lang: str) -> Tuple
     return report_id, version, status
 
 
+def _resolve_report_version_target(
+    sb,
+    *,
+    project: Dict[str, Any],
+    db_type: str,
+    lang: str,
+    source_patch: Dict[str, Any],
+) -> Tuple[Optional[str], int, Optional[str], Optional[str], bool]:
+    """Resolve idempotent source row or allocate the next report version."""
+    project_id = project.get('id')
+    existing = _find_report_for_source_identity(
+        sb,
+        project_id=project_id,
+        db_type=db_type,
+        lang=lang,
+        source_identity=source_patch['source_identity'],
+        pdf_file_id=source_patch['source_file_id'],
+    )
+    if existing:
+        return (
+            existing.get('id'),
+            int(existing.get('version') or 1),
+            existing.get('status'),
+            None,
+            True,
+        )
+
+    try:
+        latest = _latest_report_row_for_lang(sb, project_id, db_type, lang)
+    except Exception:
+        latest_report_id, latest_version, latest_status = _find_report_for_lang(
+            sb,
+            project_id,
+            db_type,
+            lang,
+        )
+        if not latest_report_id:
+            return None, 1, None, None, False
+        return (
+            latest_report_id,
+            int(latest_version or 1),
+            latest_status,
+            None,
+            True,
+        )
+    if not latest:
+        return None, 1, None, None, False
+    next_version = int(latest.get('version') or 1) + 1
+    return None, next_version, latest.get('status'), latest.get('id'), False
+
+
 def _create_report_row_for_slide(
     sb,
     *,
@@ -640,11 +965,15 @@ def _create_report_row_for_slide(
     pdf_name: str,
     public_url: Optional[str],
     version: Optional[int],
-    status: str = REVIEW_READY_STATUS,
+    status: str = PUBLICATION_PUBLISHED_STATUS,
+    source_patch: Optional[Dict[str, Any]] = None,
+    previous_report_id: Optional[str] = None,
 ) -> Tuple[Optional[str], Optional[int]]:
     """Create a project_reports row when a slide PDF has no report shell yet."""
     now = datetime.now(timezone.utc).isoformat()
     resolved_version = version or 1
+    if status == REVIEW_READY_STATUS:
+        status = PUBLICATION_PUBLISHED_STATUS
     gdrive_url = f"https://drive.google.com/file/d/{pdf_file_id}/view?usp=drivesdk"
     row = {
         'project_id': project_id,
@@ -652,7 +981,7 @@ def _create_report_row_for_slide(
         'version': resolved_version,
         'language': lang,
         'status': status,
-        'review_at': now if status == REVIEW_READY_STATUS else None,
+        'review_at': None,
         'published_at': now if status == PUBLICATION_PUBLISHED_STATUS else None,
         'file_url': gdrive_url,
         'gdrive_url': gdrive_url,
@@ -665,11 +994,25 @@ def _create_report_row_for_slide(
             'slug': slug,
             'generated_at': now,
         },
+        'previous_report_id': previous_report_id,
+        'is_latest': True,
         'updated_at': now,
     }
+    if source_patch:
+        row.update(source_patch)
     title_col = f"title_{lang}"
-    if lang in SUPPORTED_LANGS:
+    if lang in SUPPORTED_LANGS and db_type != 'forensic':
         row[title_col] = Path(pdf_name).stem.replace('_', ' ')
+
+    if previous_report_id:
+        sb.table('project_reports').update({
+            'is_latest': False,
+            'updated_at': now,
+        }) \
+            .eq('project_id', project_id) \
+            .eq('report_type', db_type) \
+            .eq('language', lang) \
+            .execute()
 
     result = sb.table('project_reports').upsert(
         row,
@@ -689,10 +1032,8 @@ def _create_report_row_for_slide(
 
 
 def _target_publication_status(current_status: Optional[str]) -> str:
-    """Keep generated assets in review until an editor approves publication."""
-    if current_status == PUBLICATION_APPROVED_STATUS:
-        return PUBLICATION_PUBLISHED_STATUS
-    return REVIEW_READY_STATUS
+    """Treat an active Drive Slide PDF as the publication trigger."""
+    return PUBLICATION_PUBLISHED_STATUS
 
 
 def _tracked_timestamp_field(report_type: str) -> Optional[str]:
@@ -714,6 +1055,8 @@ def _merge_slide_url(
     published_at: Optional[str] = None,
 ) -> None:
     publish_ts = published_at or datetime.now(timezone.utc).isoformat()
+    if status in {REVIEW_READY_STATUS, PUBLICATION_APPROVED_STATUS}:
+        status = PUBLICATION_PUBLISHED_STATUS
     current = sb.table('project_reports').select(
         'slide_html_urls_by_lang, card_data, project_id, report_type'
     ) \
@@ -732,9 +1075,6 @@ def _merge_slide_url(
     }
     if status == PUBLICATION_PUBLISHED_STATUS:
         update_payload['published_at'] = publish_ts
-    elif status == REVIEW_READY_STATUS:
-        update_payload['review_at'] = publish_ts
-        update_payload['published_at'] = None
     if isinstance(card_data, dict):
         update_payload['card_data'] = card_data
     sb.table('project_reports').update(update_payload).eq('id', report_id).execute()
@@ -748,6 +1088,30 @@ def _merge_slide_url(
         }).eq('id', project_id).execute()
 
 
+def _set_product_cover_from_report(
+    sb,
+    report_id: Optional[str],
+    cover_url: Optional[str],
+    published_at: Optional[str] = None,
+) -> bool:
+    if not report_id or not cover_url:
+        return False
+    try:
+        current = sb.table('project_reports').select('product_id').eq('id', report_id).single().execute()
+        product_id = (current.data or {}).get('product_id')
+        if not product_id:
+            return False
+        patch = {
+            'cover_image_url': cover_url,
+            'updated_at': published_at or datetime.now(timezone.utc).isoformat(),
+        }
+        sb.table('products').update(patch).eq('id', product_id).execute()
+        return True
+    except Exception as e:
+        print(f"    [WARN] Product cover update skipped for project_reports[{report_id}]: {e}")
+        return False
+
+
 def _generate_summary_after_slide_publish(
     sb,
     drive_service,
@@ -757,6 +1121,7 @@ def _generate_summary_after_slide_publish(
     report_id: Optional[str],
     version: Optional[int],
     source: Optional[Any] = None,
+    drive_root_scope: str = 'active',
 ) -> bool:
     """Generate website card copy after a slide deck is published."""
     if rtype not in {'econ', 'mat', 'for'} or not report_id:
@@ -772,6 +1137,7 @@ def _generate_summary_after_slide_publish(
                 project=project,
                 rtype=rtype,
                 version=version,
+                drive_root_scope=drive_root_scope,
             )
         if not source:
             print(
@@ -783,7 +1149,7 @@ def _generate_summary_after_slide_publish(
         current = sb.table('project_reports').select('card_data').eq('id', report_id).single().execute()
         row = current.data or {}
         existing_card_data = row.get('card_data') if isinstance(row.get('card_data'), dict) else {}
-        patch = build_project_report_patch_from_drive_source(source, translate=True)
+        patch = build_project_report_patch_from_drive_source(source, translate=True, project=project)
         patch_card_data = patch.get('card_data') if isinstance(patch.get('card_data'), dict) else {}
         patch['card_data'] = {**existing_card_data, **patch_card_data}
         sb.table('project_reports').update(patch).eq('id', report_id).execute()
@@ -797,14 +1163,120 @@ def _generate_summary_after_slide_publish(
         return False
 
 
+MATURITY_SCORE_PATTERNS = (
+    re.compile(r'(?:Overall|Final)?\s*Maturity\s*Score\s*:?\s*\**\s*(\d+(?:\.\d+)?)\s*(?:/100|%)?', re.I),
+    re.compile(r'성숙도\s*점수\s*:?\s*\**\s*(\d+(?:\.\d+)?)\s*(?:/100|%)?', re.I),
+    re.compile(r'종합\s*성숙도\s*:?\s*\**\s*(\d+(?:\.\d+)?)\s*(?:/\s*100|%)?', re.I),
+    re.compile(r'종합\s*점수\s*:?\s*\**\s*(\d+(?:\.\d+)?)\s*(?:/\s*100|%)?', re.I),
+    re.compile(r'최종\s*점수\s*:?\s*\**\s*(\d+(?:\.\d+)?)\s*(?:/\s*100|%)?', re.I),
+    re.compile(r'합계\s*달성률.*?(\d+(?:\.\d+)?)\s*%', re.I | re.S),
+    re.compile(r'종합\s*진행률.*?(\d+(?:\.\d+)?)\s*%', re.I | re.S),
+    re.compile(r'최종\s*합계.*?(\d+(?:\.\d+)?)\s*%', re.I | re.S),
+    re.compile(r'\*\*(\d+(?:\.\d+)?)%\*\*로\s*(?:평가|산출)', re.I),
+)
+
+MATURITY_STAGE_PATTERNS = (
+    re.compile(r'(?:Maturity\s*)?Stage\s*:?\s*\**\s*([A-Za-z][A-Za-z _-]{2,30})', re.I),
+    re.compile(r'단계\s*:?\s*\**\s*([A-Za-z가-힣][A-Za-z가-힣 _-]{1,30})', re.I),
+)
+
+MATURITY_STAGE_ALIASES = {
+    'nascent': 'nascent',
+    'bootstrap': 'nascent',
+    '초기': 'nascent',
+    'growing': 'growing',
+    'growth': 'growing',
+    '성장': 'growing',
+    'mature': 'mature',
+    'maturity': 'mature',
+    '성숙': 'mature',
+    'established': 'established',
+    '확립': 'established',
+}
+
+
+def _classify_maturity_stage(score: float) -> str:
+    if score < 25:
+        return 'nascent'
+    if score < 50:
+        return 'growing'
+    if score < 75:
+        return 'mature'
+    return 'established'
+
+
+def _extract_maturity_score_from_text(text: str) -> Optional[float]:
+    if not text:
+        return None
+    for pattern in MATURITY_SCORE_PATTERNS:
+        match = pattern.search(text)
+        if not match:
+            continue
+        try:
+            score = float(match.group(1))
+        except (TypeError, ValueError):
+            continue
+        if 0 <= score <= 100:
+            return score
+    return None
+
+
+def _extract_maturity_stage_from_text(text: str, score: float) -> str:
+    for pattern in MATURITY_STAGE_PATTERNS:
+        match = pattern.search(text or '')
+        if not match:
+            continue
+        raw = (match.group(1) or '').strip().lower()
+        raw = re.sub(r'[^a-z가-힣_-]+.*$', '', raw)
+        normalized = MATURITY_STAGE_ALIASES.get(raw)
+        if normalized:
+            return normalized
+    return _classify_maturity_stage(score)
+
+
+def _persist_maturity_score_from_source(
+    sb,
+    *,
+    project: Dict[str, Any],
+    source: Optional[Any],
+) -> bool:
+    """Persist MAT score from the required analysis/MAT source after slide publication."""
+    if not source or not getattr(source, 'text', None):
+        return False
+
+    score = _extract_maturity_score_from_text(source.text)
+    if score is None:
+        print(f"    [WARN] MAT score not found in analysis/MAT source: {getattr(source, 'name', 'unknown')}")
+        return False
+
+    project_id = project.get('id')
+    if not project_id:
+        print("    [WARN] MAT score not persisted: project id missing")
+        return False
+
+    stage = _extract_maturity_stage_from_text(source.text, score)
+    patch = {
+        'maturity_score': score,
+        'maturity_stage': stage,
+        'updated_at': datetime.now(timezone.utc).isoformat(),
+    }
+    sb.table('tracked_projects').update(patch).eq('id', project_id).execute()
+    print(
+        f"    ✓ tracked_projects.maturity_score updated from analysis/MAT: "
+        f"{project.get('slug')}={score:.2f} ({stage})"
+    )
+    return True
+
+
 def _find_analysis_source_for_slide(
     drive_service,
     *,
     project: Dict[str, Any],
     rtype: str,
     version: Optional[int],
+    drive_root_scope: str = 'active',
 ) -> Optional[Any]:
-    """Find the required analysis/{TYPE} Markdown source for a slide publication."""
+    """Find the required analysis source for the selected slide publication scope."""
     if rtype not in {'econ', 'mat', 'for'}:
         return None
     try:
@@ -815,6 +1287,7 @@ def _find_analysis_source_for_slide(
             report_type=rtype,
             version=version or 1,
             service=drive_service,
+            source_scope=drive_root_scope,
         )
     except Exception as e:
         print(f"    [WARN] {rtype.upper()} analysis source lookup failed: {e}")
@@ -831,6 +1304,8 @@ def _repair_unchanged_manifest_publication(
     public_url: Optional[str],
     pdf_file_id: str,
     pdf_name: str,
+    pdf_modified_time: Optional[str] = None,
+    pdf_size: Optional[Any] = None,
     version: Optional[int],
 ) -> Tuple[Optional[str], Optional[int], str]:
     """Repair DB publication state for an unchanged already-converted PDF.
@@ -848,13 +1323,28 @@ def _repair_unchanged_manifest_publication(
         return None, version, 'missing_project_id'
 
     db_type = DB_REPORT_TYPE[rtype]
-    report_id, db_version, current_status = _find_report_for_lang(sb, project_id, db_type, lang)
-    resolved_version = db_version or version
+    source_patch = _report_source_patch(
+        project=project or {},
+        db_type=db_type,
+        lang=lang,
+        pdf_file_id=pdf_file_id,
+        pdf_modified_time=pdf_modified_time,
+        pdf_size=pdf_size,
+        pdf_name=pdf_name,
+    )
+    report_id, resolved_version, current_status, previous_report_id, existing_source = _resolve_report_version_target(
+        sb,
+        project=project or {},
+        db_type=db_type,
+        lang=lang,
+        source_patch=source_patch,
+    )
+    resolved_version = resolved_version or version
     target_status = _target_publication_status(current_status)
 
     if report_id:
         _merge_slide_url(sb, report_id, lang, public_url, status=target_status)
-        return report_id, resolved_version, 'published' if target_status == PUBLICATION_PUBLISHED_STATUS else 'review_ready'
+        return report_id, resolved_version, 'published_existing_source' if existing_source else 'published'
 
     report_id, created_version = _create_report_row_for_slide(
         sb,
@@ -867,8 +1357,10 @@ def _repair_unchanged_manifest_publication(
         public_url=public_url,
         version=resolved_version,
         status=target_status,
+        source_patch=source_patch,
+        previous_report_id=previous_report_id,
     )
-    return report_id, created_version or resolved_version, 'review_ready_created' if report_id else 'create_failed'
+    return report_id, created_version or resolved_version, 'published_created' if report_id else 'create_failed'
 
 
 def _remove_slide_url_if_matches(sb, report_id: str, lang: str, public_url: str) -> bool:
@@ -1073,12 +1565,18 @@ def _active_drive_report_inventory(
     service,
     types: Iterable[str],
     projects: List[Dict[str, Any]],
+    drive_root_scope: str = 'active',
 ) -> Tuple[Set[Tuple[str, str, str]], List[Dict[str, Any]], List[Dict[str, Any]]]:
-    """Return active Slide/{TYPE} report keys plus resolved Drive PDF metadata."""
+    """Return configured Drive slide report keys plus resolved PDF metadata."""
     pairs: Set[Tuple[str, str, str]] = set()
     resolved_rows: List[Dict[str, Any]] = []
     unresolved: List[Dict[str, Any]] = []
-    for rtype, pdf in _iter_active_slide_targets(service, types, projects=projects):
+    for rtype, pdf in _iter_active_slide_targets(
+        service,
+        types,
+        projects=projects,
+        drive_root_scope=drive_root_scope,
+    ):
         project = _match_drive_pdf_project(pdf, projects)
         lang = _lang_from_filename(pdf.get('name') or '')
         db_type = DB_REPORT_TYPE.get(rtype)
@@ -1110,9 +1608,15 @@ def _active_drive_report_pairs(
     service,
     types: Iterable[str],
     projects: List[Dict[str, Any]],
+    drive_root_scope: str = 'active',
 ) -> Tuple[Set[Tuple[str, str, str]], List[Dict[str, Any]]]:
-    """Return active Slide/{TYPE} report keys as (db_type, slug, lang)."""
-    pairs, _resolved_rows, unresolved = _active_drive_report_inventory(service, types, projects)
+    """Return configured Drive slide report keys as (db_type, slug, lang)."""
+    pairs, _resolved_rows, unresolved = _active_drive_report_inventory(
+        service,
+        types,
+        projects,
+        drive_root_scope=drive_root_scope,
+    )
     return pairs, unresolved
 
 
@@ -1172,8 +1676,9 @@ def _reconcile_visible_reports_with_drive(
     types: Iterable[str],
     projects: List[Dict[str, Any]],
     dry_run: bool,
+    drive_root_scope: str = 'active',
 ) -> List[Dict[str, Any]]:
-    """Keep website-visible report rows aligned with current active Slide folders."""
+    """Keep website-visible report rows aligned with the selected Drive slide roots."""
     if sb is None:
         return [{
             'rtype': None,
@@ -1184,7 +1689,12 @@ def _reconcile_visible_reports_with_drive(
         }]
 
     results: List[Dict[str, Any]] = []
-    drive_pairs, drive_rows, unresolved = _active_drive_report_inventory(service, types, projects)
+    drive_pairs, drive_rows, unresolved = _active_drive_report_inventory(
+        service,
+        types,
+        projects,
+        drive_root_scope=drive_root_scope,
+    )
     results.extend(unresolved)
     db_types = {DB_REPORT_TYPE[rtype] for rtype in types if rtype in DB_REPORT_TYPE}
     project_by_id = {p.get('id'): p for p in projects}
@@ -1235,7 +1745,7 @@ def _reconcile_visible_reports_with_drive(
                 pdf_name=pdf.get('name') or '',
                 public_url=None,
                 version=None,
-                status=REVIEW_READY_STATUS,
+                status=PUBLICATION_PUBLISHED_STATUS,
             )
         results.append({
             'rtype': drive_row.get('rtype'),
@@ -1253,8 +1763,8 @@ def _reconcile_visible_reports_with_drive(
                 'project_id': project.get('id'),
                 'report_type': drive_row.get('db_type'),
                 'language': drive_row.get('lang'),
-                'status': REVIEW_READY_STATUS,
-                'published_at': None,
+                'status': PUBLICATION_PUBLISHED_STATUS,
+                'published_at': now,
                 'updated_at': now,
                 'created_at': now,
                 'gdrive_urls_by_lang': {drive_row.get('lang'): gdrive_url},
@@ -1402,25 +1912,24 @@ def _convert_and_upload(
     version: Optional[int],
     storage_client,
 ) -> Dict[str, str]:
-    from pdf_to_html_slides import compress_slide_pdf, convert_pdf_to_html_slides
-    from supabase_storage import upload_html
+    from pdf_to_html_slides import convert_pdf_to_html_slides, render_first_page_image
+    from supabase_storage import upload_html, upload_object
 
     with tempfile.TemporaryDirectory() as tmp:
-        compressed = os.path.join(tmp, 'compressed.pdf')
-        try:
-            compress_slide_pdf(pdf_local_path, compressed)
-            source_pdf = compressed
-        except Exception as e:
-            print(f"    ⚠ compress_slide_pdf failed ({e}); using original PDF")
-            source_pdf = pdf_local_path
-
+        # Do not pre-compress the source PDF before rendering slide images.
+        # compress_slide_pdf rasterizes each page at PyMuPDF's default 72dpi,
+        # which permanently blurs text/graphics before the HTML viewer render.
+        source_pdf = pdf_local_path
         html_path = os.path.join(tmp, f'{lang}.html')
         convert_pdf_to_html_slides(source_pdf, output_path=html_path, title=slug, lang=lang)
         html_bytes = Path(html_path).read_bytes()
+        cover_content_type, cover_bytes = render_first_page_image(source_pdf)
 
     version_segment = str(version) if version else 'latest'
     versioned_key = f'{rtype}/{slug}/{version_segment}/{lang}.html'
     latest_key = f'{rtype}/{slug}/latest/{lang}.html'
+    versioned_cover_key = f'{rtype}/{slug}/{version_segment}/{lang}-cover.jpg'
+    latest_cover_key = f'{rtype}/{slug}/latest/{lang}-cover.jpg'
 
     versioned_url = upload_html(storage_client, BUCKET_NAME, versioned_key, html_bytes)
     if version_segment != 'latest':
@@ -1428,7 +1937,30 @@ def _convert_and_upload(
     else:
         latest_url = versioned_url
 
-    return {'versioned_url': versioned_url, 'latest_url': latest_url}
+    versioned_cover_url = upload_object(
+        storage_client,
+        BUCKET_NAME,
+        versioned_cover_key,
+        cover_bytes,
+        cover_content_type,
+    )
+    if version_segment != 'latest':
+        latest_cover_url = upload_object(
+            storage_client,
+            BUCKET_NAME,
+            latest_cover_key,
+            cover_bytes,
+            cover_content_type,
+        )
+    else:
+        latest_cover_url = versioned_cover_url
+
+    return {
+        'versioned_url': versioned_url,
+        'latest_url': latest_url,
+        'versioned_cover_url': versioned_cover_url,
+        'latest_cover_url': latest_cover_url,
+    }
 
 
 # ═══════════════════════════════════════════
@@ -1443,6 +1975,120 @@ def _with_source_metadata(pdf: Dict, *, parent_folder: Dict, source_path: str, d
         'source_path': f"{source_path}/{pdf.get('name', '')}",
         'source_depth': depth,
     }
+
+
+def _drive_modified_at(value: Optional[str]) -> Optional[datetime]:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace('Z', '+00:00'))
+    except ValueError:
+        return None
+
+
+def _modified_since_matches(row: Dict[str, Any], modified_since: Optional[datetime]) -> bool:
+    if modified_since is None:
+        return True
+    modified_at = _drive_modified_at(row.get('modifiedTime'))
+    return bool(modified_at and modified_at >= modified_since.astimezone(timezone.utc))
+
+
+def _build_legacy_slide_inventory(service, folder_ids: Dict[str, str]) -> List[Dict[str, Any]]:
+    files: List[Dict[str, Any]] = []
+    for root_rtype, type_folder in folder_ids.items():
+        if not type_folder:
+            continue
+        source_prefix = f"Slide/{root_rtype}"
+        root_folder = {'id': type_folder, 'name': root_rtype}
+        stack: List[Tuple[Dict[str, Any], str, int]] = [(root_folder, source_prefix, 0)]
+        seen_folders: Set[str] = set()
+        while stack:
+            folder, source_path, depth = stack.pop(0)
+            folder_id = folder.get('id')
+            if not folder_id or folder_id in seen_folders:
+                continue
+            seen_folders.add(folder_id)
+
+            for pdf in _list_pdfs_direct(service, folder_id):
+                files.append({
+                    **_with_source_metadata(
+                        pdf,
+                        parent_folder=folder,
+                        source_path=source_path,
+                        depth=depth,
+                    ),
+                    'root_scope': 'legacy',
+                    'root_rtype': root_rtype,
+                })
+
+            for child in _list_child_folders(service, folder_id):
+                stack.append((
+                    child,
+                    f"{source_path}/{child.get('name', '')}",
+                    depth + 1,
+                ))
+    return files
+
+
+def _legacy_slide_inventory(service, folder_ids: Dict[str, str]) -> List[Dict[str, Any]]:
+    files = _load_legacy_slide_inventory()
+    if files is not None:
+        return files
+
+    files = _build_legacy_slide_inventory(service, folder_ids)
+    try:
+        _save_legacy_slide_inventory(files)
+        print(f"  [INFO] legacy Slide inventory written: {LEGACY_SLIDE_INVENTORY_PATH} ({len(files)} PDFs)")
+    except Exception as e:
+        print(f"  [WARN] legacy Slide inventory could not be written: {e}")
+    return files
+
+
+def _iter_legacy_slide_inventory_targets(
+    service,
+    types: Iterable[str],
+    *,
+    filter_slug: Optional[str],
+    projects: Optional[List[Dict[str, Any]]],
+    modified_since: Optional[datetime],
+    folder_ids: Dict[str, str],
+):
+    requested_types = set(types)
+    hint_tokens = _slug_hint_tokens(filter_slug, projects or [])
+    seen_file_ids: Set[str] = set()
+
+    for pdf in _legacy_slide_inventory(service, folder_ids):
+        if not _modified_since_matches(pdf, modified_since):
+            continue
+        root_rtype = pdf.get('root_rtype')
+        target_rtype = (
+            _infer_rtype_from_file_name(
+                pdf.get('name') or '',
+                requested_types,
+                default_single_type=False,
+            )
+            or root_rtype
+        )
+        if target_rtype not in requested_types:
+            continue
+        if not _name_matches_slug_hint(
+            pdf.get('name') or '',
+            hint_tokens,
+            filter_slug=filter_slug,
+            projects=projects,
+        ) and not _folder_matches_slug_hint(
+            pdf.get('source_path') or '',
+            hint_tokens,
+            filter_slug=filter_slug,
+            projects=projects,
+        ):
+            continue
+        file_id = pdf.get('id')
+        if file_id and file_id in seen_file_ids:
+            continue
+        if file_id:
+            seen_file_ids.add(file_id)
+        yield target_rtype, pdf
 
 
 def _legacy_reports_root_folders(service) -> List[Dict]:
@@ -1761,7 +2407,13 @@ def _folder_matches_slug_hint(
     )
 
 
-def _root_scan_mode(root_rtype: str, requested_types: Set[str], hint_tokens: Set[str]) -> str:
+def _root_scan_mode(
+    root_rtype: str,
+    requested_types: Set[str],
+    hint_tokens: Set[str],
+    *,
+    root_count: int,
+) -> str:
     """Return scan mode for a Slide root.
 
     Requested roots are fully scanned. Sibling roots are checked only at the
@@ -1770,7 +2422,7 @@ def _root_scan_mode(root_rtype: str, requested_types: Set[str], hint_tokens: Set
     """
     if root_rtype in requested_types:
         return 'full'
-    if len(requested_types) == len(TYPE_FOLDER_IDS):
+    if len(requested_types) == root_count:
         return 'full'
     if hint_tokens:
         return 'skip'
@@ -1784,66 +2436,47 @@ def _iter_active_slide_targets(
     filter_slug: Optional[str] = None,
     projects: Optional[List[Dict[str, Any]]] = None,
     modified_since: Optional[datetime] = None,
+    drive_root_scope: str = 'active',
 ):
-    """Yield (rtype, pdf_info) for active Slide roots only."""
+    """Yield (rtype, pdf_info) for selected Drive slide roots."""
     requested_types = set(types)
     hint_tokens = _slug_hint_tokens(filter_slug, projects or [])
     seen_file_ids: Set[str] = set()
-    for root_rtype, type_folder in TYPE_FOLDER_IDS.items():
-        if not type_folder:
-            continue
-        scan_mode = _root_scan_mode(root_rtype, requested_types, hint_tokens)
-        if scan_mode == 'skip':
-            continue
-        root_folder = {'id': type_folder, 'name': root_rtype}
-        for pdf in _list_pdfs_direct_for_scope(service, type_folder, modified_since):
-            if not _name_matches_slug_hint(
-                pdf.get('name') or '',
-                hint_tokens,
+    for root_scope, folder_ids in _slide_type_folder_sets_for_scope(drive_root_scope, service=service):
+        if root_scope == 'legacy':
+            for rtype, pdf in _iter_legacy_slide_inventory_targets(
+                service,
+                types,
                 filter_slug=filter_slug,
                 projects=projects,
+                modified_since=modified_since,
+                folder_ids=folder_ids,
             ):
-                continue
-            target_rtype = (
-                _infer_rtype_from_file_name(
-                    pdf.get('name') or '',
-                    requested_types,
-                    default_single_type=False,
-                )
-                or root_rtype
-            )
-            if target_rtype not in requested_types:
-                continue
-            file_id = pdf.get('id')
-            if file_id:
-                seen_file_ids.add(file_id)
-            yield target_rtype, _with_source_metadata(
-                pdf,
-                parent_folder=root_folder,
-                source_path=f"Slide/{root_rtype}",
-                depth=0,
-            )
-        if scan_mode != 'full':
+                file_id = pdf.get('id')
+                if file_id and file_id in seen_file_ids:
+                    continue
+                if file_id:
+                    seen_file_ids.add(file_id)
+                yield rtype, pdf
             continue
-        stack: List[Tuple[Dict, str, int]] = [
-            (folder, f"Slide/{root_rtype}/{folder.get('name', '')}", 1)
-            for folder in _list_child_folders(service, type_folder)
-            if _folder_matches_slug_hint(
-                folder.get('name') or '',
-                hint_tokens,
-                filter_slug=filter_slug,
-                projects=projects,
-            )
-        ]
-        seen: set[str] = set()
-        while stack:
-            folder, source_path, depth = stack.pop(0)
-            folder_id = folder.get('id')
-            if not folder_id or folder_id in seen:
-                continue
-            seen.add(folder_id)
 
-            for pdf in _list_pdfs_direct_for_scope(service, folder_id, modified_since):
+        root_count = len([folder_id for folder_id in folder_ids.values() if folder_id])
+        source_prefix = _slide_source_path_prefix(root_scope)
+        search_prefix = 'Drive/search' if root_scope == 'active' else f"Drive/search/{root_scope}"
+        for root_rtype, type_folder in folder_ids.items():
+            if not type_folder:
+                continue
+            scan_mode = _root_scan_mode(
+                root_rtype,
+                requested_types,
+                hint_tokens,
+                root_count=root_count,
+            )
+            if scan_mode == 'skip':
+                continue
+            root_folder = {'id': type_folder, 'name': root_rtype}
+            root_matched = False
+            for pdf in _list_pdfs_direct_for_scope(service, type_folder, modified_since):
                 if not _name_matches_slug_hint(
                     pdf.get('name') or '',
                     hint_tokens,
@@ -1862,35 +2495,84 @@ def _iter_active_slide_targets(
                 if target_rtype not in requested_types:
                     continue
                 file_id = pdf.get('id')
-                if file_id and file_id in seen_file_ids:
-                    continue
                 if file_id:
                     seen_file_ids.add(file_id)
+                root_matched = True
                 yield target_rtype, _with_source_metadata(
                     pdf,
-                    parent_folder=folder,
-                    source_path=source_path,
-                    depth=depth,
+                    parent_folder=root_folder,
+                    source_path=f"{source_prefix}/{root_rtype}",
+                    depth=0,
                 )
-
-            for child in _list_child_folders(service, folder_id):
-                if hint_tokens and not (
-                    _folder_matches_slug_hint(
-                        child.get('name') or '',
-                        hint_tokens,
-                        filter_slug=filter_slug,
-                        projects=projects,
-                    )
-                    or _folder_matches_slug_hint(
-                        source_path,
-                        hint_tokens,
-                        filter_slug=filter_slug,
-                        projects=projects,
-                    )
-                ):
+            if scan_mode != 'full':
+                continue
+            scan_requested_root = root_rtype in requested_types or len(requested_types) == root_count
+            stack: List[Tuple[Dict, str, int]] = [
+                (folder, f"{source_prefix}/{root_rtype}/{folder.get('name', '')}", 1)
+                for folder in _list_child_folders(service, type_folder)
+                if scan_requested_root or _folder_matches_slug_hint(
+                    folder.get('name') or '',
+                    hint_tokens,
+                    filter_slug=filter_slug,
+                    projects=projects,
+                )
+            ]
+            seen: set[str] = set()
+            while stack:
+                folder, source_path, depth = stack.pop(0)
+                folder_id = folder.get('id')
+                if not folder_id or folder_id in seen:
                     continue
-                stack.append((child, f"{source_path}/{child.get('name', '')}", depth + 1))
+                seen.add(folder_id)
 
+                for pdf in _list_pdfs_direct_for_scope(service, folder_id, modified_since):
+                    if not _name_matches_slug_hint(
+                        pdf.get('name') or '',
+                        hint_tokens,
+                        filter_slug=filter_slug,
+                        projects=projects,
+                    ):
+                        continue
+                    target_rtype = (
+                        _infer_rtype_from_file_name(
+                            pdf.get('name') or '',
+                            requested_types,
+                            default_single_type=False,
+                        )
+                        or root_rtype
+                    )
+                    if target_rtype not in requested_types:
+                        continue
+                    file_id = pdf.get('id')
+                    if file_id and file_id in seen_file_ids:
+                        continue
+                    if file_id:
+                        seen_file_ids.add(file_id)
+                    root_matched = True
+                    yield target_rtype, _with_source_metadata(
+                        pdf,
+                        parent_folder=folder,
+                        source_path=source_path,
+                        depth=depth,
+                    )
+
+                for child in _list_child_folders(service, folder_id):
+                    if not scan_requested_root and hint_tokens and not (
+                        _folder_matches_slug_hint(
+                            child.get('name') or '',
+                            hint_tokens,
+                            filter_slug=filter_slug,
+                            projects=projects,
+                        )
+                        or _folder_matches_slug_hint(
+                            source_path,
+                            hint_tokens,
+                            filter_slug=filter_slug,
+                            projects=projects,
+                        )
+                    ):
+                        continue
+                    stack.append((child, f"{source_path}/{child.get('name', '')}", depth + 1))
 
 def _iter_targets(
     service,
@@ -1899,14 +2581,16 @@ def _iter_targets(
     filter_slug: Optional[str] = None,
     projects: Optional[List[Dict[str, Any]]] = None,
     modified_since: Optional[datetime] = None,
+    drive_root_scope: str = 'active',
 ):
-    """Yield (rtype, pdf_info) for active Slide roots only."""
+    """Yield (rtype, pdf_info) for selected Drive slide roots."""
     for rtype, pdf in _iter_active_slide_targets(
         service,
         types,
         filter_slug=filter_slug,
         projects=projects,
         modified_since=modified_since,
+        drive_root_scope=drive_root_scope,
     ):
         yield rtype, pdf
 
@@ -1943,9 +2627,10 @@ def process(
     reconcile_db: bool = True,
     language_overrides: Optional[Dict[str, str]] = None,
     modified_since: Optional[datetime] = None,
+    drive_root_scope: str = 'active',
 ) -> Tuple[List[Dict], List[Dict]]:
     if filter_file_ids:
-        raise ValueError('--file-id targets are disabled; place PDFs under Slide/{TYPE} and use --slug/--type filters')
+        raise ValueError('--file-id targets are disabled; place PDFs under Slide2/{TYPE} for operations or Slide/{TYPE} for explicit backfills, then use --slug/--type filters')
 
     service = _get_drive_service()
     manifest = _load_manifest()
@@ -1988,6 +2673,7 @@ def process(
         filter_slug=filter_slug,
         projects=projects,
         modified_since=modified_since,
+        drive_root_scope=drive_root_scope,
     )
 
     for rtype, pdf in target_iter:
@@ -2247,6 +2933,8 @@ def process(
                             public_url=public_url,
                             pdf_file_id=file_id,
                             pdf_name=pdf['name'],
+                            pdf_modified_time=modified,
+                            pdf_size=pdf.get('size'),
                             version=prev.get('version'),
                         )
                         if report_id:
@@ -2550,19 +3238,45 @@ def process(
             _save_manifest(manifest)
 
             db_type = DB_REPORT_TYPE[rtype]
-            report_id, version, current_status = _find_report_for_lang(sb, project_id, db_type, lang)
+            source_patch = _report_source_patch(
+                project=project,
+                db_type=db_type,
+                lang=lang,
+                pdf_file_id=file_id,
+                pdf_modified_time=modified,
+                pdf_size=pdf.get('size'),
+                pdf_name=pdf['name'],
+            )
+            report_id, version, current_status, previous_report_id, existing_source = _resolve_report_version_target(
+                sb,
+                project=project,
+                db_type=db_type,
+                lang=lang,
+                source_patch=source_patch,
+            )
             target_status = _target_publication_status(current_status)
             analysis_source = _find_analysis_source_for_slide(
                 service,
                 project=project,
                 rtype=rtype,
                 version=version,
+                drive_root_scope=drive_root_scope,
             )
             if not analysis_source:
                 print(
                     f"    [WARN] analysis/{rtype.upper()} Markdown source missing for "
                     f"{slug}/{DB_REPORT_TYPE[rtype]}/v{version or 1}; "
                     "continuing because Slide PDF presence is the publication trigger"
+                )
+            if existing_source:
+                print(
+                    f"    [VERSION] existing Drive source identity reused: "
+                    f"project_reports[{report_id}] v{version}"
+                )
+            else:
+                print(
+                    f"    [VERSION] new Drive source identity: "
+                    f"{slug}/{db_type}/{lang} -> v{version}"
                 )
 
             try:
@@ -2575,13 +3289,11 @@ def process(
                     storage_client=storage_client,
                 )
                 public_url = upload_result['latest_url']
+                cover_url = upload_result.get('latest_cover_url')
 
                 if report_id:
                     _merge_slide_url(sb, report_id, lang, public_url, status=target_status)
-                    if target_status == PUBLICATION_PUBLISHED_STATUS:
-                        print(f"    ✓ DB published after editorial approval: project_reports[{report_id}].slide_html_urls_by_lang.{lang}")
-                    else:
-                        print(f"    ✓ DB prepared for editorial review: project_reports[{report_id}].slide_html_urls_by_lang.{lang}")
+                    print(f"    ✓ DB published from Drive Slide PDF: project_reports[{report_id}].slide_html_urls_by_lang.{lang}")
                 else:
                     report_id, version = _create_report_row_for_slide(
                         sb,
@@ -2594,10 +3306,12 @@ def process(
                         public_url=public_url,
                         version=version,
                         status=target_status,
+                        source_patch=source_patch,
+                        previous_report_id=previous_report_id,
                     )
                     if report_id:
                         print(
-                            f"    ✓ DB created for editorial review: project_reports[{report_id}] "
+                            f"    ✓ DB created and published from Drive Slide PDF: project_reports[{report_id}] "
                             f"for ({slug}, {db_type}, {lang})"
                         )
                     else:
@@ -2605,6 +3319,9 @@ def process(
                             f"    [WARN] No project_reports row for ({slug}, {db_type}, {lang}); "
                             f"URL uploaded but DB not updated"
                         )
+
+                if _set_product_cover_from_report(sb, report_id, cover_url):
+                    print(f"    ✓ Product cover updated from Drive Slide PDF: {cover_url}")
 
                 _generate_summary_after_slide_publish(
                     sb,
@@ -2614,10 +3331,17 @@ def process(
                     report_id=report_id,
                     version=version,
                     source=analysis_source,
+                    drive_root_scope=drive_root_scope,
                 )
+                if rtype == 'mat':
+                    _persist_maturity_score_from_source(
+                        sb,
+                        project=project,
+                        source=analysis_source,
+                    )
 
                 manifest[file_id].update({
-                    'status': 'published' if target_status == PUBLICATION_PUBLISHED_STATUS else 'review_ready',
+                    'status': 'published',
                     'public_url': public_url,
                     'versioned_url': upload_result['versioned_url'],
                     'report_id': report_id,
@@ -2629,7 +3353,7 @@ def process(
                 _save_manifest(manifest)
                 processed.append({
                     **record,
-                    'status': 'published' if target_status == PUBLICATION_PUBLISHED_STATUS else 'review_ready',
+                    'status': 'published',
                     'public_url': public_url,
                     'report_id': report_id,
                 })
@@ -2725,6 +3449,7 @@ def process(
                     types=types,
                     projects=projects,
                     dry_run=dry_run,
+                    drive_root_scope=drive_root_scope,
                 )
                 processed.extend(reconcile_results)
             except Exception as e:
@@ -3047,6 +3772,12 @@ def main() -> int:
         help='Run only final Drive-vs-DB availability reconciliation; skip slide processing',
     )
     parser.add_argument(
+        '--drive-root-scope',
+        choices=sorted(DRIVE_ROOT_SCOPES),
+        default='active',
+        help='Drive roots to scan: active=Slide2 for operations, legacy=Slide for backfill, all=manual audit.',
+    )
+    parser.add_argument(
         '--language-override',
         action='append',
         default=[],
@@ -3062,6 +3793,11 @@ def main() -> int:
     args = parser.parse_args()
 
     types = ['econ', 'mat', 'for'] if args.type == 'all' else [args.type]
+    try:
+        drive_root_scope = _normalize_drive_root_scope(args.drive_root_scope)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 2
     try:
         language_overrides = _parse_language_overrides(args.language_override)
     except ValueError as e:
@@ -3082,7 +3818,8 @@ def main() -> int:
           f'Dry-run: {args.dry_run}  Force: {args.force}  '
           f'Reconcile-only: {args.reconcile_only}  '
           f'Language overrides: {len(language_overrides)}  '
-          f'Modified since: {modified_since.isoformat() if modified_since else "(none)"}')
+          f'Modified since: {modified_since.isoformat() if modified_since else "(none)"}  '
+          f'Drive root scope: {drive_root_scope}')
     print('=' * 60)
 
     paperclip_telemetry = PaperclipTelemetry()
@@ -3110,6 +3847,7 @@ def main() -> int:
                 types=types,
                 projects=projects,
                 dry_run=args.dry_run,
+                drive_root_scope=drive_root_scope,
             )
         except Exception as e:
             print(f"Error: reconcile-only run failed: {e}", file=sys.stderr)
@@ -3152,6 +3890,7 @@ def main() -> int:
         reconcile_db=not args.skip_db_reconcile and modified_since is None,
         language_overrides=language_overrides,
         modified_since=modified_since,
+        drive_root_scope=drive_root_scope,
     )
 
     guard_results = run_active_project_backlog_guard()
