@@ -28,10 +28,10 @@ describe('Footer', () => {
   it('uses the restored BCE brand block and does not resurrect the dead newsletter form', () => {
     render(<Footer />)
 
-    expect(screen.getByText('BCE Lab')).toBeInTheDocument()
-    expect(screen.getByText('블록체인 경제 연구소')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Rapid Change Items' })).toHaveAttribute('href', '/ko/reports')
-    expect(screen.getByRole('link', { name: 'Report Rankings' })).toHaveAttribute('href', '/ko/score')
+    expect(screen.getByText('BCE Lab')).toBeTruthy()
+    expect(screen.getByText('블록체인 경제 연구소')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Rapid Change Items' }).getAttribute('href')).toBe('/ko/reports')
+    expect(screen.getByRole('link', { name: 'Report Rankings' }).getAttribute('href')).toBe('/ko/score')
 
     expect(screen.queryByText('뉴스레터')).toBeNull()
     expect(screen.queryByPlaceholderText('이메일을 입력하세요')).toBeNull()
