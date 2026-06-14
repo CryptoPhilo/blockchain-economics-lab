@@ -1,5 +1,6 @@
 import type { ProjectReport } from '@/lib/types'
 import { compareReportVersions, sortReportsLatestFirst } from '@/lib/report-versioning'
+import type { ScoreboardMarketSnapshotRow } from '@/lib/repositories/projects'
 
 function getEffectiveTimestamp(report: Pick<ProjectReport, 'published_at' | 'created_at' | 'updated_at'>): number {
   const source = report.published_at || report.updated_at || report.created_at
@@ -174,4 +175,54 @@ export function prepareRapidChangeReports(args: {
     totalPages,
     currentPage,
   }
+}
+
+function normalizeRankKey(value: unknown) {
+  if (typeof value !== 'string') return null
+  const normalized = value.trim().toLowerCase()
+  return normalized.length > 0 ? normalized : null
+}
+
+function toDisplayRank(value: unknown) {
+  const rank = typeof value === 'number' ? value : Number(value)
+  return Number.isInteger(rank) && rank >= 1 && rank <= 500 ? rank : null
+}
+
+export function buildMarketRankLookup(snapshotRows: ScoreboardMarketSnapshotRow[]) {
+  const lookup = new Map<string, number>()
+
+  for (const row of snapshotRows) {
+    const rank = toDisplayRank(row.cmc_rank)
+    if (!rank) continue
+
+    for (const value of [row.slug, row.cmc_symbol, row.cmc_name]) {
+      const key = normalizeRankKey(value)
+      if (key && !lookup.has(key)) lookup.set(key, rank)
+    }
+  }
+
+  return lookup
+}
+
+export function getMarketRankForReport(report: ProjectReport, marketRankLookup: Map<string, number>) {
+  const project = report.project
+  if (!project) return null
+
+  const candidates = [
+    project.slug,
+    project.symbol,
+    project.name,
+    project.cmc_id,
+    project.coingecko_id,
+    ...(Array.isArray(project.aliases) ? project.aliases : []),
+  ]
+
+  for (const candidate of candidates) {
+    const key = normalizeRankKey(candidate)
+    if (!key) continue
+    const rank = marketRankLookup.get(key)
+    if (rank) return rank
+  }
+
+  return null
 }

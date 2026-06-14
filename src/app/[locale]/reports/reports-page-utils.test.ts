@@ -1,7 +1,9 @@
 import type { ProjectReport } from '@/lib/types'
 import {
+  buildMarketRankLookup,
   buildReportHistoryByProject,
   dedupeLatestReportsByProject,
+  getMarketRankForReport,
   prepareRapidChangeReports,
 } from './reports-page-utils'
 
@@ -615,5 +617,68 @@ describe('rapid change report list helpers', () => {
 
     expect(result.totalCount).toBe(1)
     expect(result.reports.map((report) => report.id)).toEqual(['alpha-legacy-ko-asset'])
+  })
+
+  it('maps rapid-change cards to CMC ranks by project identity fields', () => {
+    const report = createReport({
+      id: 'undeads-forensic',
+      project_id: 'undeads-games',
+      project: {
+        id: 'undeads-games',
+        name: 'Undeads Games',
+        slug: 'undeads-games',
+        symbol: 'UDS',
+        aliases: ['Undeads'],
+        status: 'active',
+        discovered_at: '2026-04-01T00:00:00.000Z',
+        forensic_monitoring: true,
+        created_at: '2026-04-01T00:00:00.000Z',
+      },
+    })
+    const lookup = buildMarketRankLookup([
+      {
+        slug: 'undeads-games',
+        cmc_symbol: 'UDS',
+        cmc_name: 'Undeads Games',
+        cmc_rank: 246,
+        price_usd: null,
+        market_cap: null,
+        change_24h: null,
+        recorded_at: '2026-06-14T00:00:00.000Z',
+      },
+    ])
+
+    expect(getMarketRankForReport(report, lookup)).toBe(246)
+  })
+
+  it('ignores malformed and out-of-range market ranks', () => {
+    const report = createReport({
+      id: 'alpha-forensic',
+      project_id: 'alpha',
+      project: {
+        id: 'alpha',
+        name: 'Alpha',
+        slug: 'alpha',
+        symbol: 'ALPHA',
+        status: 'active',
+        discovered_at: '2026-04-01T00:00:00.000Z',
+        forensic_monitoring: true,
+        created_at: '2026-04-01T00:00:00.000Z',
+      },
+    })
+    const lookup = buildMarketRankLookup([
+      {
+        slug: 'alpha',
+        cmc_symbol: 'ALPHA',
+        cmc_name: 'Alpha',
+        cmc_rank: 501,
+        price_usd: null,
+        market_cap: null,
+        change_24h: null,
+        recorded_at: '2026-06-14T00:00:00.000Z',
+      },
+    ])
+
+    expect(getMarketRankForReport(report, lookup)).toBeNull()
   })
 })

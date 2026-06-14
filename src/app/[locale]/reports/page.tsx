@@ -5,7 +5,8 @@ import type { ProjectReport } from '@/lib/types'
 import { getLocalizedMarketingContent } from '@/lib/report-marketing-content'
 import { getLocalizedCardSummary } from '@/lib/report-summary'
 import { buildReportVersionHref, getReportVersionLabel } from '@/lib/report-versioning'
-import { prepareRapidChangeReports } from './reports-page-utils'
+import { createProjectsRepository } from '@/lib/repositories/projects'
+import { buildMarketRankLookup, getMarketRankForReport, prepareRapidChangeReports } from './reports-page-utils'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -78,6 +79,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
   const { locale } = await params
   const { page: pageStr, q: searchQuery } = await searchParams
   const supabase = await createServerSupabaseClient()
+  const projectsRepository = createProjectsRepository(supabase)
   const t = await getTranslations('reports')
   const currentPage = Math.max(1, parseInt(pageStr || '1', 10))
 
@@ -86,7 +88,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
 
   const dataQuery = supabase
     .from('project_reports')
-    .select('*, project:tracked_projects(id, name, slug, symbol, chain, category)')
+    .select('*, project:tracked_projects(id, name, slug, symbol, chain, category, coingecko_id, cmc_id, aliases)')
     .in('status', ['published', 'coming_soon', 'in_review'])
     .eq('report_type', 'forensic')
     .gte('created_at', seventyTwoHoursAgo.toISOString())
@@ -95,6 +97,12 @@ export default async function ReportsPage({ params, searchParams }: Props) {
     .order('created_at', { ascending: false })
 
   const { data: rawReports } = await dataQuery
+  let marketRankLookup = new Map<string, number>()
+  try {
+    marketRankLookup = buildMarketRankLookup(await projectsRepository.getLatestScoreboardMarketSnapshot())
+  } catch (error) {
+    console.error('Failed to fetch rapid change market ranks', error)
+  }
   const {
     reports,
     historyByProject,
@@ -197,6 +205,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
             const rapidChangeReason = getRapidChangeReason(report, locale)
             const marketingContent = getLocalizedMarketingContent(report, locale, summary)
             const history = historyByProject.get(report.project_id) || []
+            const marketRank = getMarketRankForReport(report, marketRankLookup)
 
             const translationStatus = report.translation_status || {}
             const gdriveUrls = report.gdrive_urls_by_lang || {}
@@ -234,12 +243,19 @@ export default async function ReportsPage({ params, searchParams }: Props) {
                     <h3 className="text-lg font-semibold text-white mb-1">{title}</h3>
                     <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
                       {project && (
-                        <Link
-                          href={`/${locale}/projects/${project.slug}`}
-                          className="hover:text-red-400 transition-colors font-medium"
-                        >
-                          {project.name} ({project.symbol})
-                        </Link>
+                        <span className="inline-flex items-center gap-2">
+                          <Link
+                            href={`/${locale}/projects/${project.slug}`}
+                            className="hover:text-red-400 transition-colors font-medium"
+                          >
+                            {project.name} ({project.symbol})
+                          </Link>
+                          {marketRank && (
+                            <span className="rounded-md border border-cyan-400/20 bg-cyan-400/10 px-1.5 py-0.5 text-[10px] font-bold text-cyan-300">
+                              #{marketRank}
+                            </span>
+                          )}
+                        </span>
                       )}
                       {project?.category && (
                         <span className="px-1.5 py-0.5 rounded bg-white/5 text-gray-600">{project.category}</span>

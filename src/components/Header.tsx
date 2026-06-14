@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import { useState } from 'react'
 import { localeNames, type Locale } from '@/i18n/config'
+import BrandMark from './BrandMark'
 
 export default function Header() {
   const t = useTranslations('common')
@@ -28,29 +29,29 @@ export default function Header() {
   const navItems = [
     { href: `/${locale}/reports`, label: t('reports') },
     { href: `/${locale}/score`, label: t('score') },
-    { href: `/${locale}/products`, label: t('products') },
-    { href: `/${locale}/subscribe`, label: t('newsletter') },
-    { href: `/${locale}/dashboard`, label: t('dashboard') },
   ]
 
   return (
-    <header className="sticky top-0 z-50 bg-gray-950/80 backdrop-blur-xl border-b border-white/5">
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/[0.88] backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
         {/* Logo */}
-        <Link href={`/${locale}`} className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
-            B
-          </div>
-          <span className="font-bold text-lg hidden sm:block">{t('siteName')}</span>
+        <Link href={`/${locale}`} className="flex items-center gap-3">
+          <BrandMark />
+          <span className="hidden leading-none sm:block">
+            <span className="block text-[15px] font-semibold tracking-wide text-white">BCE Lab</span>
+            <span className="mt-1 block text-[10px] font-medium uppercase tracking-[0.24em] text-slate-500">
+              {t('siteName')}
+            </span>
+          </span>
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden items-center gap-1 md:flex">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm text-gray-400 hover:text-white transition-colors"
+              className="rounded-md px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-white/[0.04] hover:text-white"
             >
               {item.label}
             </Link>
@@ -63,18 +64,18 @@ export default function Header() {
           <div className="relative">
             <button
               onClick={() => setLangOpen(!langOpen)}
-              className="px-3 py-1.5 text-sm text-gray-400 hover:text-white bg-white/5 rounded-lg border border-white/10 transition-colors"
+              className="rounded-md border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm font-medium text-slate-300 transition-colors hover:border-cyan-300/30 hover:text-white"
             >
               {localeNames[locale]}
             </button>
             {langOpen && (
-              <div className="absolute right-0 mt-2 w-40 bg-gray-900 border border-white/10 rounded-xl shadow-xl overflow-hidden z-50">
+              <div className="absolute right-0 z-50 mt-2 w-40 overflow-hidden rounded-lg border border-white/10 bg-slate-950 shadow-2xl shadow-black/50">
                 {Object.entries(localeNames).map(([code, name]) => (
                   <button
                     key={code}
                     onClick={() => { switchLocale(code); setLangOpen(false) }}
-                    className={`w-full px-4 py-2.5 text-sm text-left hover:bg-white/5 transition-colors ${
-                      code === locale ? 'text-indigo-400 bg-indigo-500/10' : 'text-gray-300'
+                    className={`w-full px-4 py-2.5 text-left text-sm transition-colors hover:bg-white/[0.06] ${
+                      code === locale ? 'bg-cyan-400/10 text-cyan-200' : 'text-slate-300'
                     }`}
                   >
                     {name}
@@ -87,13 +88,13 @@ export default function Header() {
           {/* Sign In */}
           <Link
             href={`/${locale}/auth`}
-            className="px-4 py-1.5 text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors"
+            className="rounded-md bg-white px-4 py-1.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-100"
           >
             {t('signIn')}
           </Link>
 
           {/* Mobile Menu Toggle */}
-          <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-gray-400 hover:text-white">
+          <button onClick={() => setMenuOpen(!menuOpen)} className="text-slate-400 hover:text-white md:hidden">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {menuOpen ? (
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -107,13 +108,13 @@ export default function Header() {
 
       {/* Mobile Nav */}
       {menuOpen && (
-        <nav className="md:hidden border-t border-white/5 bg-gray-950 px-6 py-4 space-y-3">
+        <nav className="space-y-2 border-t border-white/10 bg-slate-950 px-6 py-4 md:hidden">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               onClick={() => setMenuOpen(false)}
-              className="block text-gray-400 hover:text-white transition-colors"
+              className="block rounded-md px-2 py-2 text-slate-400 transition-colors hover:bg-white/[0.04] hover:text-white"
             >
               {item.label}
             </Link>
