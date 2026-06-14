@@ -627,6 +627,7 @@ def find_drive_source_for_project(
     folder_id: Optional[str] = None,
     service: Any = None,
     min_score: int = 60,
+    source_scope: str = "legacy",
 ) -> Optional[MarkdownSource]:
     """Find a Drive Markdown source for a project, including natural MAT filenames."""
     drive_service = service or _get_drive_service()

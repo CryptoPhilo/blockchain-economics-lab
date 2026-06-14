@@ -234,6 +234,32 @@ def extract_pages_base64(
     return pages
 
 
+def render_first_page_image(
+    pdf_path: str,
+    dpi: int = 144,
+    fmt: str = "jpeg",
+    quality: int = 90,
+    mask_logo: bool = True,
+    add_copyright: bool = True,
+) -> tuple[str, bytes]:
+    """Render the first PDF page as an image for public report cover thumbnails."""
+    doc = fitz.open(pdf_path)
+    try:
+        if doc.page_count < 1:
+            raise ValueError("PDF has no pages")
+        pix = doc[0].get_pixmap(matrix=fitz.Matrix(dpi / 72.0, dpi / 72.0), alpha=False)
+    finally:
+        doc.close()
+
+    if mask_logo:
+        mask_notebooklm_logo(pix)
+        if add_copyright:
+            overlay_copyright_notice(pix)
+    if fmt == "png":
+        return "image/png", pix.tobytes("png")
+    return "image/jpeg", pix.tobytes("jpeg", jpg_quality=quality)
+
+
 def build_viewer_html(
     pages_b64: list[str],
     title: str = "Slide Viewer",

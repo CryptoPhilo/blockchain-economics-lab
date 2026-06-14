@@ -277,7 +277,7 @@ jobs:
           retention-days: 30
 
       - name: Commit processed files tracker
-        if: success() && steps.gate.outputs.should_run == 'true' && github.event.inputs.dry_run != 'true'
+        if: success() && steps.gate.outputs.should_run == 'true' && github.event.inputs.dry_run != 'true' && github.ref_name == 'main'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
