@@ -814,10 +814,10 @@ export default async function ScorePage({
   const isKo = locale === 'ko'
 
   return (
-    <div className="max-w-6xl mx-auto px-6 pb-8 pt-4">
+    <div className="max-w-6xl mx-auto px-6 pb-8 pt-6">
       {/* Header */}
       <section
-        className="relative mb-4 overflow-hidden rounded-xl border border-white/10 bg-slate-950 bg-cover bg-center px-5 py-7 text-center shadow-xl shadow-black/25 sm:px-8 sm:py-9"
+        className="relative mb-4 overflow-hidden rounded-lg border border-white/10 bg-slate-950 bg-cover bg-center px-5 py-7 text-center shadow-xl shadow-black/25 sm:px-8 sm:py-9"
         style={{
           backgroundImage: `linear-gradient(180deg, rgba(3, 7, 18, 0.46), rgba(3, 7, 18, 0.78)), url(${SCORE_HEADER_BACKGROUND_IMAGE})`,
         }}

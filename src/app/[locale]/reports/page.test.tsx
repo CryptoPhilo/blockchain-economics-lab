@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import ReportsPage, { dynamic, revalidate } from './page'
 
 const mockCreateServerSupabaseClient = jest.fn()
+const mockGetLatestScoreboardMarketSnapshot = jest.fn()
 
 jest.mock('next-intl/server', () => ({
   getTranslations: jest.fn(async () => (key: string) => key),
@@ -10,6 +11,12 @@ jest.mock('next-intl/server', () => ({
 
 jest.mock('@/lib/supabase-server', () => ({
   createServerSupabaseClient: () => mockCreateServerSupabaseClient(),
+}))
+
+jest.mock('@/lib/repositories/projects', () => ({
+  createProjectsRepository: () => ({
+    getLatestScoreboardMarketSnapshot: mockGetLatestScoreboardMarketSnapshot,
+  }),
 }))
 
 type MockReportQuery = {
@@ -56,6 +63,7 @@ function mockReportsQuery(data: unknown[]) {
 describe('ReportsPage rapid change cards', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockGetLatestScoreboardMarketSnapshot.mockResolvedValue([])
   })
 
   it('forces dynamic rendering so locale pages cannot cache divergent rapid-change lists', () => {
@@ -216,6 +224,53 @@ describe('ReportsPage rapid change cards', () => {
     expect(screen.getByText(/준비 중/).closest('a')?.getAttribute('href')).toBe(
       '/ko/reports/forensic/hyperliquid',
     )
+  })
+
+  it('shows the CMC rank next to rapid-change project names', async () => {
+    mockGetLatestScoreboardMarketSnapshot.mockResolvedValue([
+      {
+        slug: 'undeads-games',
+        cmc_symbol: 'UDS',
+        cmc_name: 'Undeads Games',
+        cmc_rank: 246,
+        price_usd: null,
+        market_cap: null,
+        change_24h: null,
+        recorded_at: '2026-06-14T00:00:00.000Z',
+      },
+    ])
+    mockReportsQuery([
+      {
+        id: 'undeads-published',
+        project_id: 'undeads-games',
+        report_type: 'forensic',
+        version: 1,
+        status: 'published',
+        language: 'ko',
+        assigned_at: '2026-06-14T00:00:00.000Z',
+        created_at: '2026-06-14T10:00:00.000Z',
+        title_ko: 'Undeads Games 포렌식 분석',
+        trigger_reason: '시장 급변동이 감지되었습니다.',
+        project: {
+          id: 'undeads-games',
+          name: 'Undeads Games',
+          slug: 'undeads-games',
+          symbol: 'UDS',
+          chain: 'BNB Chain',
+          category: 'GameFi',
+          aliases: ['Undeads'],
+        },
+      },
+    ])
+
+    const page = await ReportsPage({
+      params: Promise.resolve({ locale: 'ko' }),
+      searchParams: Promise.resolve({}),
+    })
+    render(page)
+
+    expect(screen.getByText('Undeads Games (UDS)')).toBeTruthy()
+    expect(screen.getByText('#246')).toBeTruthy()
   })
 
   it('renders previous version links without same-version language siblings', async () => {
