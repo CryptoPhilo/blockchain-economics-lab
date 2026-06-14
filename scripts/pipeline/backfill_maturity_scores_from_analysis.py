@@ -35,7 +35,7 @@ from watch_slides import (
 )
 
 
-DEFAULT_MIN_MATCH_SCORE = 60
+DEFAULT_MIN_MATCH_SCORE = 90
 DEFAULT_PAGE_SIZE = 1000
 
 

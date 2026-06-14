@@ -22,7 +22,7 @@ on:
         description: 'Minimum natural filename match score'
         required: false
         type: string
-        default: '60'
+        default: '90'
 
 permissions:
   contents: read
