@@ -1,0 +1,98 @@
+name: MAT Score Backfill from analysis2
+
+on:
+  workflow_dispatch:
+    inputs:
+      slugs:
+        description: 'Project slugs to backfill, separated by commas, spaces, or new lines. Leave empty to scan all projects.'
+        required: false
+        type: string
+        default: ''
+      dry_run:
+        description: 'Print planned updates without writing to Supabase'
+        required: false
+        type: boolean
+        default: true
+      overwrite:
+        description: 'Overwrite existing maturity_score values'
+        required: false
+        type: boolean
+        default: false
+      min_score:
+        description: 'Minimum natural filename match score'
+        required: false
+        type: string
+        default: '60'
+
+permissions:
+  contents: read
+
+jobs:
+  backfill:
+    name: Backfill MAT scores
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          cd scripts/pipeline
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib supabase requests
+          fi
+
+      - name: Create .env.local from secrets
+        run: |
+          cat > .env.local << EOF
+          NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
+
+          GDRIVE_ROOT_FOLDER_ID=${{ secrets.GDRIVE_ROOT_FOLDER_ID }}
+          GDRIVE_DELEGATE_EMAIL=${{ secrets.GDRIVE_DELEGATE_EMAIL }}
+          BCE_ACTIVE_INGEST_PARENT_FOLDER_ID=${{ secrets.BCE_ACTIVE_INGEST_PARENT_FOLDER_ID }}
+          BCE_ACTIVE_INGEST_PARENT_FOLDER_NAME=${{ secrets.BCE_ACTIVE_INGEST_PARENT_FOLDER_NAME }}
+          BCE_ACTIVE_ANALYSIS_ROOT_FOLDER_NAME=${{ secrets.BCE_ACTIVE_ANALYSIS_ROOT_FOLDER_NAME }}
+          BCE_MARKETING_ACTIVE_MAT_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_ACTIVE_MAT_SOURCE_FOLDER_ID }}
+          EOF
+
+      - name: Create Google Drive service account credentials
+        run: |
+          echo '${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}' > scripts/pipeline/.gdrive_service_account.json
+
+      - name: Run MAT score backfill
+        working-directory: scripts/pipeline
+        env:
+          GDRIVE_SERVICE_ACCOUNT_FILE: ${{ github.workspace }}/scripts/pipeline/.gdrive_service_account.json
+          RAW_SLUGS: ${{ inputs.slugs }}
+        run: |
+          ARGS=(
+            --min-score "${{ inputs.min_score }}"
+          )
+
+          if [ -n "$RAW_SLUGS" ]; then
+            ARGS+=(--slugs "$RAW_SLUGS")
+          fi
+
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            ARGS+=(--dry-run)
+          fi
+
+          if [ "${{ inputs.overwrite }}" = "true" ]; then
+            ARGS+=(--overwrite)
+          fi
+
+          echo "Invoking: python3 backfill_maturity_scores_from_analysis.py ${ARGS[*]}"
+          python3 backfill_maturity_scores_from_analysis.py "${ARGS[@]}"
