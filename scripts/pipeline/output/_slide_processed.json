@@ -4007,6 +4007,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/decred/1/ja.html"
   },
+  "13xdWmtNO67r1srlsuG1WIFYMeCgR9Pfe": {
+    "error": null,
+    "finished_at": "2026-06-14T13:10:57.416036+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-14T12:27:55.000Z",
+    "name": "BackPack_ECON_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/backpack-exchange/latest/ja.html",
+    "report_id": "f1d4ae64-2c56-4f16-9ee4-27f21a2cbb70",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "backpack-exchange",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/BackPack_ECON_jp.pdf",
+    "started_at": "2026-06-14T13:10:49.080629+00:00",
+    "status": "published",
+    "updated_at": "2026-06-14T13:10:57.416052+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/backpack-exchange/1/ja.html"
+  },
   "14-NFymmIurTJp819qHbbIP_pM7wAJN-s": {
     "error": null,
     "finished_at": "2026-05-31T10:33:56.863637+00:00",
@@ -7405,7 +7435,7 @@
     "source_path": "Slide2/mat/Collector_Crypt_MAT_jp.pdf",
     "started_at": "2026-06-14T11:20:18.834317+00:00",
     "status": "published",
-    "updated_at": "2026-06-14T11:20:30.322197+00:00",
+    "updated_at": "2026-06-14T13:11:44.603851+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/collector-crypt/1/ja.html"
   },
@@ -7997,6 +8027,36 @@
     "updated_at": "2026-06-11T04:55:31.007226+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitway-btw/1/ja.html"
+  },
+  "19rqyDorg0KVFn_Bo0ci0uvOOSw70tsEB": {
+    "error": null,
+    "finished_at": "2026-06-14T13:10:05.939453+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-14T12:33:07.000Z",
+    "name": "BackPack_ECON_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/backpack-exchange/latest/ko.html",
+    "report_id": "59212e89-71f1-40de-aa6f-086ff0440dff",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "backpack-exchange",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/BackPack_ECON_ko.pdf",
+    "started_at": "2026-06-14T13:09:49.898978+00:00",
+    "status": "published",
+    "updated_at": "2026-06-14T13:10:05.939468+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/backpack-exchange/1/ko.html"
   },
   "19uFmBp0CeQg_ZnPOdB11goA0ic3fwP7w": {
     "error": null,
@@ -18529,7 +18589,7 @@
     "source_path": "Slide2/mat/Collector_Crypt_MAT_cn.pdf",
     "started_at": "2026-06-14T11:21:18.297250+00:00",
     "status": "published",
-    "updated_at": "2026-06-14T11:22:12.355432+00:00",
+    "updated_at": "2026-06-14T13:11:47.421796+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/collector-crypt/1/zh.html"
   },
@@ -19974,7 +20034,7 @@
     "source_path": "Slide2/econ/GEOD_ECON_en.pdf",
     "started_at": "2026-06-14T08:48:22.830608+00:00",
     "status": "published",
-    "updated_at": "2026-06-14T11:18:36.376060+00:00",
+    "updated_at": "2026-06-14T13:11:39.762066+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/geodnet/1/en.html"
   },
@@ -20490,7 +20550,7 @@
     "source_path": "Slide2/mat/Collector_Crypt_MAT_ko.pdf",
     "started_at": "2026-06-14T11:19:10.646857+00:00",
     "status": "published",
-    "updated_at": "2026-06-14T11:19:38.371250+00:00",
+    "updated_at": "2026-06-14T13:11:43.139988+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/collector-crypt/1/ko.html"
   },
@@ -24122,7 +24182,7 @@
     "source_path": "Slide2/mat/GEOD_MAT_jp.pdf",
     "started_at": "2026-06-14T08:58:00.070695+00:00",
     "status": "published",
-    "updated_at": "2026-06-14T11:22:18.526373+00:00",
+    "updated_at": "2026-06-14T13:11:52.335200+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/geodnet/1/ja.html"
   },
@@ -27770,7 +27830,7 @@
     "source_path": "Slide2/mat/Collector_Crypt_MAT_en.pdf",
     "started_at": "2026-06-14T11:20:31.584954+00:00",
     "status": "published",
-    "updated_at": "2026-06-14T11:20:42.231551+00:00",
+    "updated_at": "2026-06-14T13:11:46.026742+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/collector-crypt/1/en.html"
   },
@@ -29677,6 +29737,36 @@
     "updated_at": "2026-06-09T19:06:24.309287+00:00",
     "version": null,
     "versioned_url": null
+  },
+  "1abtX3-foyRAbzPSsyTOz-3nvIRrfzMH-": {
+    "error": null,
+    "finished_at": "2026-06-14T13:10:15.893374+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-14T12:29:32.000Z",
+    "name": "BackPack_ECON_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/backpack-exchange/latest/en.html",
+    "report_id": "a84e1031-d0bd-44c9-87a7-8991ee1448a9",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "backpack-exchange",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/BackPack_ECON_en.pdf",
+    "started_at": "2026-06-14T13:10:07.268018+00:00",
+    "status": "published",
+    "updated_at": "2026-06-14T13:10:15.893391+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/backpack-exchange/1/en.html"
   },
   "1acBaTBrrOnIob4mOy6VrT073FwDSTf4k": {
     "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
@@ -31896,7 +31986,7 @@
     "source_path": "Slide2/mat/GEOD_MAT_en.pdf",
     "started_at": "2026-06-14T08:57:17.545531+00:00",
     "status": "published",
-    "updated_at": "2026-06-14T11:22:16.565428+00:00",
+    "updated_at": "2026-06-14T13:11:50.639519+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/geodnet/1/en.html"
   },
@@ -32438,7 +32528,7 @@
     "source_path": "Slide2/econ/GEOD_ECON_ko.pdf",
     "started_at": "2026-06-14T08:47:56.002366+00:00",
     "status": "published",
-    "updated_at": "2026-06-14T11:18:35.444402+00:00",
+    "updated_at": "2026-06-14T13:11:39.075120+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/geodnet/1/ko.html"
   },
@@ -35199,7 +35289,7 @@
     "source_path": "Slide2/mat/GEOD_MAT_cn.pdf",
     "started_at": "2026-06-14T08:58:44.936615+00:00",
     "status": "published",
-    "updated_at": "2026-06-14T11:22:20.224182+00:00",
+    "updated_at": "2026-06-14T13:11:53.832317+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/geodnet/1/zh.html"
   },
@@ -38511,7 +38601,7 @@
     "source_path": "Slide2/mat/GEOD_MAT_ko.pdf",
     "started_at": "2026-06-14T08:56:49.667719+00:00",
     "status": "published",
-    "updated_at": "2026-06-14T11:22:14.536534+00:00",
+    "updated_at": "2026-06-14T13:11:49.175188+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/geodnet/1/ko.html"
   },
@@ -42881,7 +42971,7 @@
     "source_path": "Slide2/econ/GEOD_ECON_cn.pdf",
     "started_at": "2026-06-14T08:50:01.042096+00:00",
     "status": "published",
-    "updated_at": "2026-06-14T11:18:38.245339+00:00",
+    "updated_at": "2026-06-14T13:11:41.145348+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/geodnet/1/zh.html"
   },
@@ -46735,6 +46825,36 @@
     "version": null,
     "versioned_url": null
   },
+  "1w3CMa9jyxzq3DlV7t1zkIf34UJu9_2vz": {
+    "error": null,
+    "finished_at": "2026-06-14T13:11:38.326348+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-14T12:25:49.000Z",
+    "name": "BackPack_ECON_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/backpack-exchange/latest/zh.html",
+    "report_id": "cdae6f3e-47e9-44bb-9a3d-3d0d76e9e69f",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "backpack-exchange",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/BackPack_ECON_cn.pdf",
+    "started_at": "2026-06-14T13:11:29.124246+00:00",
+    "status": "published",
+    "updated_at": "2026-06-14T13:11:38.326365+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/backpack-exchange/1/zh.html"
+  },
   "1w3f6xqctUtdW9TYK_2WEobjPlqS8J7nC": {
     "error": null,
     "finished_at": "2026-06-09T04:33:25.695229+00:00",
@@ -48823,7 +48943,7 @@
     "source_path": "Slide2/econ/GEOD_ECON_jp.pdf",
     "started_at": "2026-06-14T08:49:11.842927+00:00",
     "status": "published",
-    "updated_at": "2026-06-14T11:18:37.270273+00:00",
+    "updated_at": "2026-06-14T13:11:40.453591+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/geodnet/1/ja.html"
   },
