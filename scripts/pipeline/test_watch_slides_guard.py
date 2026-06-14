@@ -108,7 +108,7 @@ def test_passes_short_slug_report_with_long_peer_comparison(ws):
     assert ws._detect_slug_content_mismatch(rain_project, rain_body, '', projects) is None
 
 
-def test_still_flags_short_slug_filename_with_unrelated_ens_body(ws):
+def test_skips_ens_as_competing_content_mismatch_noise(ws):
     projects = [
         {'slug': 'rain', 'name': 'Rain', 'symbol': 'RAIN'},
         {'slug': 'ethereum-name-service', 'name': 'Ethereum Name Service', 'symbol': 'ENS'},
@@ -119,10 +119,39 @@ def test_still_flags_short_slug_filename_with_unrelated_ens_body(ws):
         'ENS token governance controls registry parameters and treasury decisions. '
     ) * 4
 
-    mismatch = ws._detect_slug_content_mismatch(rain_project, ens_body, '', projects)
-    assert mismatch is not None
-    assert mismatch['expected_slug'] == 'rain'
-    assert mismatch['detected_slug'] == 'ethereum-name-service'
+    assert ws._detect_slug_content_mismatch(rain_project, ens_body, '', projects) is None
+
+
+def test_gldx_report_is_not_blocked_by_ens_noise(ws):
+    projects = [
+        {
+            'slug': 'gold-tokenized-stock-xstock',
+            'name': 'Gold tokenized ETF (xStock)',
+            'symbol': 'GLDX',
+        },
+        {'slug': 'ethereum-name-service', 'name': 'Ethereum Name Service', 'symbol': 'ENS'},
+    ]
+    project = projects[0]
+    body = (
+        'GLDx provides tokenized exposure to gold through an xStock market structure. '
+        'The report analyzes GLDX reserves, issuer mechanics, exchange liquidity, '
+        'redemption constraints, and the role of gold-backed RWA products. '
+        'ENS Ethereum Name Service may appear as an unrelated wallet naming comparator. '
+    ) * 4
+
+    assert ws._detect_slug_content_mismatch(project, body, '', projects) is None
+
+
+def test_eurcv_alias_resolves_to_eur_coinvertible_filename(ws):
+    projects = [
+        {'slug': 'eur-coinvertible', 'name': 'EUR CoinVertible', 'symbol': 'EURCV'},
+        {'slug': 'eurc', 'name': 'EURC', 'symbol': 'EURC'},
+    ]
+
+    project, source = ws._resolve_slug('EUR_CoinVertible_EURCV_ECON_ko.pdf', '', '', projects)
+
+    assert project['slug'] == 'eur-coinvertible'
+    assert source == 'filename'
 
 
 def test_skips_empty_body_raster_pdf(ws, projects):
@@ -1181,10 +1210,10 @@ def test_iter_targets_yields_root_and_subfolder_pdfs(ws, monkeypatch):
         ('econ', 'root-slide'),
         ('econ', 'slide-pdf'),
     ]
-    assert targets[0][1]['source_path'] == 'Slide/econ/bitcoin-root.pdf'
+    assert targets[0][1]['source_path'] == 'Slide2/econ/bitcoin-root.pdf'
     assert targets[0][1]['parent_folder_id'] == 'root-econ'
     assert targets[0][1]['source_depth'] == 0
-    assert targets[1][1]['source_path'] == 'Slide/econ/bitcoin/bitcoin-slide.pdf'
+    assert targets[1][1]['source_path'] == 'Slide2/econ/bitcoin/bitcoin-slide.pdf'
     assert targets[1][1]['parent_folder_id'] == 'folder-bitcoin'
     assert targets[1][1]['source_depth'] == 1
 
@@ -1351,7 +1380,7 @@ def test_iter_targets_recurses_nested_folders(ws, monkeypatch):
     targets = list(ws._iter_targets(object(), ['econ']))
 
     assert [(rtype, pdf['id']) for rtype, pdf in targets] == [('econ', 'nested-slide')]
-    assert targets[0][1]['source_path'] == 'Slide/econ/bitcoin/ko/bitcoin-ko.pdf'
+    assert targets[0][1]['source_path'] == 'Slide2/econ/bitcoin/ko/bitcoin-ko.pdf'
     assert targets[0][1]['source_depth'] == 2
 
 
@@ -1379,7 +1408,7 @@ def test_iter_targets_routes_misfiled_forensic_pdf_by_filename(ws, monkeypatch):
     targets = list(ws._iter_targets(object(), ['for']))
 
     assert [(rtype, pdf['id']) for rtype, pdf in targets] == [('for', 'ton-forensic-en')]
-    assert targets[0][1]['source_path'] == 'Slide/mat/TON_Forensic_Market_Report_en.pdf'
+    assert targets[0][1]['source_path'] == 'Slide2/mat/TON_Forensic_Market_Report_en.pdf'
     assert targets[0][1]['parent_folder_id'] == 'root-mat'
 
 
