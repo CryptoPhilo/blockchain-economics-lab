@@ -37,6 +37,7 @@ from watch_slides import (
 
 DEFAULT_MIN_MATCH_SCORE = 90
 DEFAULT_PAGE_SIZE = 1000
+DEFAULT_DIAGNOSTIC_LIMIT = 20
 
 
 @dataclass(frozen=True)
@@ -99,6 +100,41 @@ def _source_match_for_project(
     return scored[0]
 
 
+def _diagnostic_candidates_for_project(
+    project: Dict[str, Any],
+    md_items: Iterable[Dict[str, Any]],
+    *,
+    limit: int = DEFAULT_DIAGNOSTIC_LIMIT,
+) -> List[MatSourceMatch]:
+    candidates: List[MatSourceMatch] = []
+    slug = str(project.get("slug") or "").strip().lower()
+
+    for item in md_items:
+        name = str(item.get("name") or "")
+        parsed = _parse_markdown_name(name)
+        if parsed:
+            parsed_slug, parsed_type, _version, _lang = parsed
+            if parsed_slug.lower() == slug and parsed_type == "mat":
+                candidates.append(MatSourceMatch(110, item, "exact_structured_name"))
+                continue
+
+        candidates.append(MatSourceMatch(
+            score_drive_source_for_project(name, project),
+            item,
+            "natural_filename_score",
+        ))
+
+    candidates.sort(
+        key=lambda match: (
+            match.score,
+            str(match.item.get("modifiedTime") or ""),
+            str(match.item.get("name") or ""),
+        ),
+        reverse=True,
+    )
+    return candidates[:limit]
+
+
 def _env(name: str, *fallbacks: str) -> str:
     for key in (name, *fallbacks):
         value = os.environ.get(key)
@@ -157,6 +193,7 @@ def backfill_maturity_scores(
     dry_run: bool,
     overwrite: bool,
     min_score: int,
+    diagnose_no_match: bool = False,
 ) -> Dict[str, int]:
     folder_ids = _active_analysis_source_folder_ids(drive_service)
     mat_folder_id = folder_ids.get("mat")
@@ -191,6 +228,12 @@ def backfill_maturity_scores(
         if not match:
             stats["skipped_no_md"] += 1
             print(f"SKIP {slug}: no_analysis2_mat_md")
+            if diagnose_no_match:
+                for candidate in _diagnostic_candidates_for_project(project, md_items):
+                    print(
+                        f"    candidate score={candidate.score} "
+                        f"source={candidate.item.get('name')}"
+                    )
             continue
 
         text = _download_drive_text(drive_service, str(match.item["id"]))
@@ -247,6 +290,11 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         default=DEFAULT_MIN_MATCH_SCORE,
         help="Minimum natural filename match score for unstructured md names.",
     )
+    parser.add_argument(
+        "--diagnose-no-match",
+        action="store_true",
+        help="Print best analysis2/MAT filename candidates when a slug has no match.",
+    )
     return parser.parse_args(argv)
 
 
@@ -263,6 +311,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             dry_run=args.dry_run,
             overwrite=args.overwrite,
             min_score=args.min_score,
+            diagnose_no_match=args.diagnose_no_match,
         )
     except Exception as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
