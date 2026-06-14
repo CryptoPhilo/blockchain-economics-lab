@@ -515,6 +515,25 @@ def test_immutable_short_filename_resolves_to_immutable_x(ws):
         ('soon-network', 'SOON', 'SOON', 'SOON_Network_MAT_en.pdf'),
         ('yzy', 'YZY MONEY', 'YZY', 'YZY_Money_ECON_ko.pdf'),
         ('yzy', 'YZY MONEY', 'YZY', 'YZY_MAT_en.pdf'),
+        ('undeads-games', 'Undeads Games', 'UDS', 'Undeads_ECON_ko.pdf'),
+        (
+            'circle-internet-group-tokenized-stock-ondo',
+            'Circle Internet Group Tokenized Stock (Ondo)',
+            'CRCLon',
+            'CRCL_ECON_ko.pdf',
+        ),
+        (
+            'circle-internet-group-tokenized-stock-ondo',
+            'Circle Internet Group Tokenized Stock (Ondo)',
+            'CRCLon',
+            'CRCLon_MAT_en.pdf',
+        ),
+        (
+            'circle-internet-group-tokenized-stock-ondo',
+            'Circle Internet Group Tokenized Stock (Ondo)',
+            'CRCLon',
+            'Circle_Tokenized_Stock_ECON_cn.pdf',
+        ),
     ],
 )
 def test_operational_short_filename_aliases_resolve_to_canonical_projects(ws, slug, name, symbol, filename):
@@ -526,6 +545,22 @@ def test_operational_short_filename_aliases_resolve_to_canonical_projects(ws, sl
     project, source = ws._resolve_slug(filename, '', '', projects)
 
     assert project['slug'] == slug
+    assert source == 'filename'
+
+
+def test_crcl_filename_resolves_to_tokenized_stock_not_usyc(ws):
+    projects = [
+        {
+            'slug': 'circle-internet-group-tokenized-stock-ondo',
+            'name': 'Circle Internet Group Tokenized Stock (Ondo)',
+            'symbol': 'CRCLon',
+        },
+        {'slug': 'circle-usyc', 'name': 'Circle USYC', 'symbol': 'USYC'},
+    ]
+
+    project, source = ws._resolve_slug('CRCL_ECON_ko.pdf', '', '', projects)
+
+    assert project['slug'] == 'circle-internet-group-tokenized-stock-ondo'
     assert source == 'filename'
 
 

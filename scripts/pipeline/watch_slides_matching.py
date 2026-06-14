@@ -122,6 +122,13 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
         'jupiter_perps_lp',
         'jupiter perpetuals liquidity provider token',
     ],
+    'undeads-games': ['undeads'],
+    'circle-internet-group-tokenized-stock-ondo': [
+        'crcl',
+        'crclon',
+        'circle internet group',
+        'circle tokenized stock',
+    ],
 }
 
 _TOKEN_RE = re.compile(r'[A-Za-z0-9]+')
