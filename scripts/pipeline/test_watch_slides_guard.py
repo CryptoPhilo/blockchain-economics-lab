@@ -1784,7 +1784,7 @@ def test_legacy_report_portrait_pdf_records_slug_hint_and_skip(ws, monkeypatch):
         'lang': None,
         'status': 'no_active_slide_pdf_for_slug',
         'error': 'active_slide_pdf_missing',
-        'source_path': 'Slide/econ',
+        'source_path': 'Slide2/econ',
         'source_kind': 'active_slide_diagnostic',
     }, {
         'rtype': 'econ',

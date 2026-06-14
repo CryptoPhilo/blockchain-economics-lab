@@ -2642,6 +2642,9 @@ def process(
     current_langs_by_pair: Dict[Tuple[str, str], Set[str]] = {}
     active_slide_seen_types: Set[str] = set()
     active_slide_missing_diag_types: Set[str] = set()
+    diagnostic_slide_prefix = _slide_source_path_prefix(
+        'legacy' if drive_root_scope == 'legacy' else 'active'
+    )
 
     storage_client = None
     sb = None
@@ -2693,7 +2696,7 @@ def process(
                     'lang': None,
                     'status': 'no_active_slide_pdf_for_slug',
                     'error': 'active_slide_pdf_missing',
-                    'source_path': f"Slide/{rtype}",
+                    'source_path': f"{diagnostic_slide_prefix}/{rtype}",
                     'source_kind': 'active_slide_diagnostic',
                 }
                 print(
@@ -3385,7 +3388,7 @@ def process(
                 'lang': None,
                 'status': 'no_active_slide_pdf_for_slug',
                 'error': 'active_slide_pdf_missing',
-                'source_path': f"Slide/{rtype}",
+                'source_path': f"{diagnostic_slide_prefix}/{rtype}",
                 'source_kind': 'active_slide_diagnostic',
             }
             print(
