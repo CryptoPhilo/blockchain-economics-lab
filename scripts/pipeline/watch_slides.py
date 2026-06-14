@@ -351,7 +351,7 @@ def _slide_type_folder_sets_for_scope(
 
 
 def _slide_source_path_prefix(root_scope: str) -> str:
-    return 'Slide' if root_scope == 'active' else 'Legacy/Slide'
+    return ACTIVE_SLIDE_ROOT_FOLDER_NAME if root_scope == 'active' else 'Legacy/Slide'
 
 
 # Legacy report PDFs sometimes live outside the active Slide/{TYPE} roots.
