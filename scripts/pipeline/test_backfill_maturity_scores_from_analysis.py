@@ -111,6 +111,21 @@ def test_source_match_rejects_substring_symbol_collision(backfill):
     assert match is None
 
 
+def test_diagnostic_candidates_include_zero_score_names(backfill):
+    project = {"slug": "deepbook-protocol", "name": "DeepBook Protocol", "symbol": "DEEP", "aliases": []}
+    candidates = backfill._diagnostic_candidates_for_project(
+        project,
+        [
+            {"id": "one", "name": "unrelated_mat_v1_ko.md", "modifiedTime": "2026-06-01T00:00:00Z"},
+            {"id": "two", "name": "another unrelated report.md", "modifiedTime": "2026-06-02T00:00:00Z"},
+        ],
+        limit=2,
+    )
+
+    assert len(candidates) == 2
+    assert [candidate.score for candidate in candidates] == [0, 0]
+
+
 def test_backfill_updates_only_projects_with_mat_md_and_score(monkeypatch, backfill):
     projects = [
         {

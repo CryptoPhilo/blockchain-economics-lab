@@ -23,6 +23,11 @@ on:
         required: false
         type: string
         default: '90'
+      diagnose_no_match:
+        description: 'Print best filename candidates when a slug has no analysis2/MAT match'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -92,6 +97,10 @@ jobs:
 
           if [ "${{ inputs.overwrite }}" = "true" ]; then
             ARGS+=(--overwrite)
+          fi
+
+          if [ "${{ inputs.diagnose_no_match }}" = "true" ]; then
+            ARGS+=(--diagnose-no-match)
           fi
 
           echo "Invoking: python3 backfill_maturity_scores_from_analysis.py ${ARGS[*]}"
