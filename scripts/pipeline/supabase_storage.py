@@ -115,3 +115,42 @@ def upload_html(
         raise RuntimeError(f"Could not resolve public URL for {bucket}/{key}")
     # Some SDK versions append a trailing '?' — strip it for cleanliness.
     return url.rstrip('?')
+
+
+def upload_object(
+    client,
+    bucket: str,
+    key: str,
+    content: bytes,
+    content_type: str,
+    upsert: bool = True,
+    cache_control: str = '300',
+) -> str:
+    """Upload a binary object and return its public URL."""
+    file_options = {
+        'content-type': content_type,
+        'cache-control': cache_control,
+        'upsert': 'true' if upsert else 'false',
+    }
+
+    storage = client.storage.from_(bucket)
+    try:
+        storage.upload(path=key, file=content, file_options=file_options)
+    except Exception as e:
+        msg = str(e)
+        if upsert and ('Duplicate' in msg or 'already exists' in msg.lower() or '409' in msg):
+            try:
+                storage.update(path=key, file=content, file_options=file_options)
+            except Exception as e2:
+                raise RuntimeError(f"Storage upsert failed for {bucket}/{key}: {e2}") from e2
+        else:
+            raise RuntimeError(f"Storage upload failed for {bucket}/{key}: {e}") from e
+
+    res = storage.get_public_url(key)
+    if isinstance(res, dict):
+        url = (res.get('data') or {}).get('publicUrl') or res.get('publicUrl') or res.get('publicURL')
+    else:
+        url = res
+    if not url:
+        raise RuntimeError(f"Could not resolve public URL for {bucket}/{key}")
+    return url.rstrip('?')
