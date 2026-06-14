@@ -81,6 +81,7 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
     ],
     'river': ['river protocol', 'river_protocol', 'river-protocol'],
     'river-protocol': ['rvr'],
+    'eur-coinvertible': ['eurcv', 'eur coinvertible', 'eur coinvertible eurcv'],
     'ab-chain': ['ab', 'ab chain', 'ab_chain'],
     'awe-network': ['awe', 'awe network', 'awe_network'],
     'maplestory-universe': [
@@ -131,6 +132,7 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
     ],
 }
 
+CONTENT_MISMATCH_NOISE_SLUGS: Set[str] = {'ethereum-name-service'}
 _TOKEN_RE = re.compile(r'[A-Za-z0-9]+')
 _ASCII_ONLY_RE = re.compile(r'^[a-z0-9 ]+$')
 _SIGNAL_SEPARATOR_RE = re.compile(r'[^a-z0-9]+')
@@ -316,7 +318,10 @@ def _detect_slug_content_mismatch(
     expected_slug = (resolved_project.get('slug') or '').lower()
     best_other: Optional[Tuple[int, Dict[str, str]]] = None
     for proj in projects:
-        if (proj.get('slug') or '').lower() == expected_slug:
+        other_slug = (proj.get('slug') or '').lower()
+        if other_slug == expected_slug:
+            continue
+        if other_slug in CONTENT_MISMATCH_NOISE_SLUGS:
             continue
         score = _score_project_in_text(body, proj)
         if score >= min_other_score and (best_other is None or score > best_other[0]):

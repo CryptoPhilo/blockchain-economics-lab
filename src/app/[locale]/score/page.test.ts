@@ -863,6 +863,21 @@ describe('score page tracked project aliases', () => {
         last_maturity_report_at: '2026-05-31T07:45:29.000Z',
         last_forensic_report_at: null,
       },
+      {
+        id: 'eurcv-project',
+        name: 'EUR CoinVertible',
+        slug: 'eur-coinvertible',
+        symbol: 'EURCV',
+        category: 'Stablecoins',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: '2026-06-13T00:00:00.000Z',
+        last_maturity_report_at: '2026-06-13T00:00:00.000Z',
+        last_forensic_report_at: null,
+      },
     ]
     const snapshotRows = [
       makeSnapshotRow(73, 'ether-fi-ethfi'),
@@ -874,6 +889,11 @@ describe('score page tracked project aliases', () => {
       makeSnapshotRow(38, 'world-liberty-financial-wlfi'),
       makeSnapshotRow(143, 'ethgas'),
       makeSnapshotRow(131, 'starknet-token'),
+      {
+        ...makeSnapshotRow(238, 'eur-coinvertible'),
+        cmc_name: 'EUR CoinVertible',
+        cmc_symbol: 'EURCV',
+      },
     ]
 
     const rows = snapshotRowsToScoreRows(snapshotRows, buildTrackedProjectLookup(trackedProjects))
@@ -892,7 +912,61 @@ describe('score page tracked project aliases', () => {
       { name: 'World Liberty Financial', slug: 'world-liberty-financial', reportTypes: ['econ', 'maturity'] },
       { name: 'ETHGas', slug: 'eth-gas', reportTypes: ['econ'] },
       { name: 'Starknet', slug: 'starknet', reportTypes: ['econ', 'maturity'] },
+      { name: 'EUR CoinVertible', slug: 'eur-coinvertible', reportTypes: ['econ', 'maturity'] },
     ])
+  })
+
+  it('keeps EUR CoinVertible mapped to EURCV instead of the EURC row', () => {
+    const trackedProjects = [
+      {
+        id: 'eurc-project',
+        name: 'EURC',
+        slug: 'eurc',
+        symbol: 'EURC',
+        category: 'Stablecoins',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+      {
+        id: 'eurcv-project',
+        name: 'EUR CoinVertible',
+        slug: 'eur-coinvertible',
+        symbol: 'EURCV',
+        category: 'Stablecoins',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: [],
+        maturity_score: 62,
+        last_econ_report_at: '2026-06-13T00:00:00.000Z',
+        last_maturity_report_at: '2026-06-13T00:00:00.000Z',
+        last_forensic_report_at: null,
+      },
+    ]
+
+    const [row] = snapshotRowsToScoreRows(
+      [
+        {
+          ...makeSnapshotRow(238, 'eur-coinvertible'),
+          cmc_name: 'EUR CoinVertible',
+          cmc_symbol: 'EURCV',
+        },
+      ],
+      buildTrackedProjectLookup(trackedProjects),
+    )
+
+    expect(row).toMatchObject({
+      name: 'EUR CoinVertible',
+      symbol: 'EURCV',
+      slug: 'eur-coinvertible',
+      reportTypes: ['econ', 'maturity'],
+    })
   })
 
   it('maps CMC Top 500 slugs to report-bearing canonical report slugs', () => {
