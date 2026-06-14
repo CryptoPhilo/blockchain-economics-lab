@@ -95,6 +95,22 @@ def test_source_match_prefers_structured_mat_name(backfill):
     assert match.reason == "exact_structured_name"
 
 
+def test_source_match_rejects_substring_symbol_collision(backfill):
+    project = {"slug": "usx", "name": "Solstice USX", "symbol": "USX", "aliases": []}
+    match = backfill._source_match_for_project(
+        project,
+        [
+            {
+                "id": "eusx",
+                "name": "Solstice eUSX의 크립토 이코노미 발전 단계 및 서사 진화 평가 보고서_ 2025 - 2026.md",
+                "modifiedTime": "2026-06-01T00:00:00Z",
+            },
+        ],
+    )
+
+    assert match is None
+
+
 def test_backfill_updates_only_projects_with_mat_md_and_score(monkeypatch, backfill):
     projects = [
         {
