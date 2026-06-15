@@ -223,6 +223,17 @@
           }
         },
         {
+          "key": "exchange_listing_backfill",
+          "paperclipLabel": "Approved exchange listing backfill",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/exchange-listing-backfill.yml",
+            "entrypoint": "scripts/backfill-exchange-listings.ts",
+            "commandContains": "backfill-exchange-listings.ts",
+            "localAllowed": ["dry_run", "development"]
+          }
+        },
+        {
           "key": "post_deploy_monitoring",
           "paperclipLabel": "Post-deploy monitoring",
           "execution": {
