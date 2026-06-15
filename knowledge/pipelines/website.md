@@ -226,6 +226,30 @@ scoped `binance,gdax` backfill were completed.
   BCE Score 65.38, and 62 scored projects.
 - Detail APIs reported 55 Binance rows and 76 Coinbase Exchange rows.
 
+## BCE-1972 CMC Top 30 Exchange Coverage Boundary
+
+As of 2026-06-15, the exchange menu/list acceptance baseline is the
+CoinMarketCap spot exchange ranking Top 30 snapshot from
+`https://coinmarketcap.com/ko/rankings/exchanges/`, not only the initially
+seeded Binance and Coinbase Exchange venues.
+
+The canonical snapshot and alias map live in `src/lib/exchange-top30.ts`. It
+records CMC rank/name, internal slug, CoinGecko id where available, aliases,
+source URL, and snapshot date. Known non-identity mappings include Coinbase
+Exchange -> internal `coinbase` / CoinGecko `gdax`, OKX -> `okx` / `okex`,
+Bybit -> `bybit` / `bybit_spot`, MEXC -> `mexc` / `mxc`, HTX -> `htx` /
+`huobi`, and Binance TR -> `binance-tr` with no CoinGecko spot exchange id in
+the checked CoinGecko exchange list.
+
+`scripts/backfill-exchange-listings.ts --cmc-top30` seeds all 30 active
+`exchanges` rows with CMC snapshot metadata and backfills listing rows only for
+venues with mapped CoinGecko ids. `.github/workflows/exchange-listing-backfill.yml`
+exposes this as the approved `seed_cmc_top30` production-environment dispatch
+input. `/api/exchanges` and `/[locale]/exchanges` aggregate from active
+`exchanges` rows first and then overlay active listing counts, so Top 30 venues
+with no matched projects appear with `listedProjectCount=0` and
+`averageBceScore=null`.
+
 ## BCE-1938 Production Deployment Evidence
 
 As of 2026-06-02 07:55 KST, BCE-1937/BCE-1938 was deployed through
