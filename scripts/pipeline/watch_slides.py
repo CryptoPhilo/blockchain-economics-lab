@@ -1826,6 +1826,20 @@ def _prune_stale_languages_for_pair(
             'status': 'prune_skipped_no_supabase',
             'error': 'supabase client unavailable',
         }]
+    if dry_run and project_id.startswith('dry-run-'):
+        print(
+            f"  [WARN] stale language prune skipped for {rtype}/{slug}: "
+            f"dry-run synthetic project id {project_id!r}"
+        )
+        return [{
+            'rtype': rtype,
+            'slug': slug,
+            'lang': None,
+            'status': 'prune_skipped_dry_run_synthetic_project_id',
+            'project_id': project_id,
+            'current_langs': sorted(current_langs),
+            'error': 'dry-run synthetic project id cannot be queried as UUID',
+        }]
 
     db_type = DB_REPORT_TYPE[rtype]
     rows = sb.table('project_reports').select(
