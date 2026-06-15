@@ -232,6 +232,21 @@ function exchangeMatches(exchange: ExchangeRecord, exchangeKey: string): boolean
   return candidateKeys.some((key) => normalizeKey(key) === normalizedExchangeKey)
 }
 
+function getCanonicalExchangeKey(exchange: ExchangeRecord): string {
+  const reference = findCmcTop30ExchangeReference(exchange.slug) ?? findCmcTop30ExchangeReference(exchange.name)
+  return normalizeKey(reference?.slug ?? exchange.slug ?? exchange.id)
+}
+
+function isCanonicalExchangeRow(exchange: ExchangeRecord): boolean {
+  const reference = findCmcTop30ExchangeReference(exchange.slug) ?? findCmcTop30ExchangeReference(exchange.name)
+  return !!reference && normalizeKey(exchange.slug) === normalizeKey(reference.slug)
+}
+
+function choosePreferredExchange(current: ExchangeRecord, candidate: ExchangeRecord): ExchangeRecord {
+  if (isCanonicalExchangeRow(candidate) && !isCanonicalExchangeRow(current)) return candidate
+  return current
+}
+
 function isActiveListing(row: ExchangeListingRecord) {
   const exchange = first(row.exchange)
   const project = first(row.project)
@@ -348,10 +363,16 @@ export function buildExchangeAggregates(
 
   for (const exchange of exchanges) {
     if (exchange.status !== 'active') continue
-    byExchange.set(exchange.id, {
-      exchange,
-      projects: new Map<string, ExchangeProjectRecord>(),
-    })
+    const exchangeKey = getCanonicalExchangeKey(exchange)
+    const group = byExchange.get(exchangeKey)
+    if (group) {
+      group.exchange = choosePreferredExchange(group.exchange, exchange)
+    } else {
+      byExchange.set(exchangeKey, {
+        exchange,
+        projects: new Map<string, ExchangeProjectRecord>(),
+      })
+    }
   }
 
   for (const row of rows) {
@@ -361,14 +382,16 @@ export function buildExchangeAggregates(
     const project = first(row.project)
     if (!exchange || !project) continue
 
-    const group = byExchange.get(exchange.id) ?? {
+    const exchangeKey = getCanonicalExchangeKey(exchange)
+    const group = byExchange.get(exchangeKey) ?? {
       exchange,
       projects: new Map<string, ExchangeProjectRecord>(),
     }
+    group.exchange = choosePreferredExchange(group.exchange, exchange)
     if (!group.projects.has(project.id)) {
       group.projects.set(project.id, project)
     }
-    byExchange.set(exchange.id, group)
+    byExchange.set(exchangeKey, group)
   }
 
   return Array.from(byExchange.values())
@@ -416,7 +439,7 @@ export function buildExchangeProjectRows(
       continue
     }
 
-    matchedExchange = exchange
+    matchedExchange = matchedExchange ? choosePreferredExchange(matchedExchange, exchange) : exchange
     if (!projects.has(project.id)) {
       projects.set(project.id, project)
     }
