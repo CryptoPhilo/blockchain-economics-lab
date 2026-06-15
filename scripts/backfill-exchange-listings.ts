@@ -99,6 +99,20 @@ interface CoinGeckoFetchOptions {
   nowMs?: () => number
 }
 
+export class CoinGeckoFetchError extends Error {
+  readonly status: number | null
+  readonly recoverable: boolean
+
+  constructor(exchangeSlug: string, page: number, status: number | null, recoverable: boolean) {
+    super(status === null
+      ? `CoinGecko ${exchangeSlug} page ${page} failed before a response was received`
+      : `CoinGecko ${exchangeSlug} page ${page} failed with HTTP ${status}`)
+    this.name = 'CoinGeckoFetchError'
+    this.status = status
+    this.recoverable = recoverable
+  }
+}
+
 interface SkippedExchangeFetch {
   exchangeSlug: string
   coingeckoId: string
@@ -251,6 +265,15 @@ function isRecoverableCoinGeckoStatus(status: number): boolean {
   return status === 408 || status === 429 || status >= 500
 }
 
+function isRecoverableCoinGeckoFetchError(error: unknown): boolean {
+  if (error instanceof CoinGeckoFetchError) return error.recoverable
+  if (!(error instanceof Error)) return false
+
+  const statusMatch = error.message.match(/HTTP\s+(\d{3})\b/)
+  const status = statusMatch ? Number(statusMatch[1]) : null
+  return status !== null && isRecoverableCoinGeckoStatus(status)
+}
+
 function sleep(milliseconds: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, milliseconds))
 }
@@ -388,15 +411,16 @@ export async function fetchCoinGeckoExchange(
       response = await fetchImpl(url, { headers })
       if (response.ok) break
 
-      if (!isRecoverableCoinGeckoStatus(response.status) || attempt === COINGECKO_RETRY_ATTEMPTS) {
-        throw new Error(`CoinGecko ${exchangeSlug} page ${page} failed with HTTP ${response.status}`)
+      const recoverable = isRecoverableCoinGeckoStatus(response.status)
+      if (!recoverable || attempt === COINGECKO_RETRY_ATTEMPTS) {
+        throw new CoinGeckoFetchError(exchangeSlug, page, response.status, recoverable)
       }
 
       const delayMs = getCoinGeckoRetryDelayMs(attempt, response.headers.get('retry-after'), nowMs())
       console.warn(`CoinGecko ${exchangeSlug} page ${page} returned HTTP ${response.status}; retry ${attempt + 1}/${COINGECKO_RETRY_ATTEMPTS} after ${delayMs}ms`)
       await sleepMs(delayMs)
     }
-    if (!response) throw new Error(`CoinGecko ${exchangeSlug} page ${page} failed before a response was received`)
+    if (!response) throw new CoinGeckoFetchError(exchangeSlug, page, null, true)
 
     const payload = (await response.json()) as CoinGeckoExchangeResponse
     if (isNonEmptyString(payload.name)) exchangeName = payload.name.trim()
@@ -561,6 +585,7 @@ export async function processExchangeBackfillScope(
   projects: TrackedProject[],
   pageLimit: number,
   fetchExchange: FetchCoinGeckoExchange = fetchCoinGeckoExchange,
+  continueOnRecoverableFetchFailure = false,
 ): Promise<ProcessedExchangeBackfill[]> {
   const rows: ProcessedExchangeBackfill[] = []
 
@@ -577,7 +602,7 @@ export async function processExchangeBackfillScope(
         exchangeName = response.exchangeName
         candidates = buildListingCandidates(reference.slug, reference.cmcName, tickers, projects)
       } catch (error) {
-        if (reference.cmcRank <= 0) throw error
+        if (!continueOnRecoverableFetchFailure || !isRecoverableCoinGeckoFetchError(error)) throw error
         skippedFetch = {
           exchangeSlug: reference.slug,
           coingeckoId: reference.coingeckoId,
@@ -682,7 +707,7 @@ async function main(): Promise<void> {
   console.log(`Tracked projects loaded: ${projects.length}; CMC rank snapshot rows loaded: ${latestCmcRanks.size}`)
 
   const evidence: ExchangeEvidence[] = []
-  const rows = await processExchangeBackfillScope(scope, projects, options.pageLimit)
+  const rows = await processExchangeBackfillScope(scope, projects, options.pageLimit, fetchCoinGeckoExchange, options.cmcTop30)
   const skippedFetches = rows.flatMap((row) => row.skippedFetch ? [row.skippedFetch] : [])
   let listingBackfilledExchangeCount = 0
 

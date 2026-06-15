@@ -1,6 +1,7 @@
 import {
   buildEvidence,
   buildListingCandidates,
+  CoinGeckoFetchError,
   fetchCoinGeckoExchange,
   getCoinGeckoRetryDelayMs,
   parseRetryAfterMs,
@@ -252,6 +253,7 @@ describe('buildListingCandidates', () => {
       }],
       1,
       fetchExchange,
+      true,
     )
 
     expect(fetchExchange).toHaveBeenCalledTimes(2)
@@ -269,5 +271,21 @@ describe('buildListingCandidates', () => {
       candidates: [expect.objectContaining({ project: expect.objectContaining({ slug: 'bitcoin' }) })],
       skippedFetch: null,
     }))
+  })
+
+  it('keeps explicit exchange backfills fail-fast even when the venue is in the CMC Top 30 snapshot', async () => {
+    const failedVenue = findCmcTop30ExchangeReference('lbank')
+    expect(failedVenue?.coingeckoId).toBe('lbank')
+
+    const fetchExchange = jest.fn()
+      .mockRejectedValueOnce(new CoinGeckoFetchError('lbank', 1, 429, true))
+
+    await expect(processExchangeBackfillScope(
+      [failedVenue!],
+      [],
+      1,
+      fetchExchange,
+      false,
+    )).rejects.toThrow('CoinGecko lbank page 1 failed with HTTP 429')
   })
 })
