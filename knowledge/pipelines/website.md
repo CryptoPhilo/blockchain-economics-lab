@@ -226,6 +226,21 @@ scoped `binance,gdax` backfill were completed.
   BCE Score 65.38, and 62 scored projects.
 - Detail APIs reported 55 Binance rows and 76 Coinbase Exchange rows.
 
+## BCE-1978 Exchange Top 30 CoinGecko Rate-Limit Recovery
+
+As of 2026-06-15, the approved exchange listing backfill retries recoverable
+CoinGecko ticker fetch failures before failing a mapped venue. The script
+honors bounded `Retry-After` delays and retries HTTP 429, 408, and 5xx
+responses up to four attempts per exchange ticker page.
+
+`.github/workflows/exchange-listing-backfill.yml` exposes
+`request_delay_ms`, defaulting to 2500 milliseconds, so Top 30 public API
+dry-run/apply dispatches can slow request pacing even when `COINGECKO_API_KEY`
+is blank. `pipelines/bcelab-runtime-pipelines.json` documents this input under
+the `exchange_listing_backfill` node. Production writes remain remote-only:
+dispatch `mode=dry_run` first, then `mode=apply` only after the relevant
+release/backfill approval covers the same scope.
+
 ## BCE-1938 Production Deployment Evidence
 
 As of 2026-06-02 07:55 KST, BCE-1937/BCE-1938 was deployed through

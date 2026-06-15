@@ -26,6 +26,7 @@ interface Options {
   seedCmcTop30: boolean
   pageLimit: number
   pageSize: number
+  requestDelayMs: number
 }
 
 interface ExchangeTarget {
@@ -95,7 +96,18 @@ interface ExchangeEvidence {
   scoredProjectCount: number
 }
 
+interface CoinGeckoFetchOptions {
+  fetchImpl?: typeof fetch
+  sleepMs?: (milliseconds: number) => Promise<void>
+  nowMs?: () => number
+  requestDelayMs?: number
+}
+
 const ACTIVE_PROJECT_STATUSES = new Set<ProjectStatus>(['active', 'monitoring_only'])
+const COINGECKO_RETRY_ATTEMPTS = 4
+const COINGECKO_RETRY_BASE_MS = 1_500
+const COINGECKO_RETRY_CAP_MS = 45_000
+const COINGECKO_RETRY_AFTER_CAP_MS = 60_000
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0
@@ -117,6 +129,14 @@ function parsePositiveInteger(value: string, name: string): number {
   return parsed
 }
 
+function parseNonNegativeInteger(value: string, name: string): number {
+  const parsed = Number(value)
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    throw new Error(`${name} must be a non-negative integer`)
+  }
+  return parsed
+}
+
 function parseExchangeList(value: string): string[] {
   const exchanges = value
     .split(',')
@@ -134,7 +154,14 @@ function parseExchangeList(value: string): string[] {
 }
 
 function parseArgs(argv: string[]): Options {
-  const options: Options = { apply: false, exchanges: [], seedCmcTop30: false, pageLimit: 2, pageSize: 250 }
+  const options: Options = {
+    apply: false,
+    exchanges: [],
+    seedCmcTop30: false,
+    pageLimit: 2,
+    pageSize: 250,
+    requestDelayMs: 2500,
+  }
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]
@@ -166,6 +193,12 @@ function parseArgs(argv: string[]): Options {
       i++
     } else if (arg.startsWith('--page-size=')) {
       options.pageSize = parsePositiveInteger(arg.slice('--page-size='.length), '--page-size')
+    } else if (arg === '--request-delay-ms') {
+      if (!next || next.startsWith('--')) throw new Error('--request-delay-ms requires a value')
+      options.requestDelayMs = parseNonNegativeInteger(next, '--request-delay-ms')
+      i++
+    } else if (arg.startsWith('--request-delay-ms=')) {
+      options.requestDelayMs = parseNonNegativeInteger(arg.slice('--request-delay-ms='.length), '--request-delay-ms')
     } else if (arg === '--help' || arg === '-h') {
       printHelp()
       process.exit(0)
@@ -193,6 +226,41 @@ function clamp(value: number, min: number, max: number) {
 
 function roundScore(value: number) {
   return Number(value.toFixed(2))
+}
+
+export function parseRetryAfterMs(value: string | null, nowMs = Date.now()): number | null {
+  if (!isNonEmptyString(value)) return null
+
+  const seconds = Number(value)
+  if (Number.isFinite(seconds) && seconds >= 0) {
+    return Math.min(seconds * 1000, COINGECKO_RETRY_AFTER_CAP_MS)
+  }
+
+  const retryAt = Date.parse(value)
+  if (!Number.isNaN(retryAt)) {
+    return Math.min(Math.max(retryAt - nowMs, 0), COINGECKO_RETRY_AFTER_CAP_MS)
+  }
+
+  return null
+}
+
+export function getCoinGeckoRetryDelayMs(
+  attempt: number,
+  retryAfter: string | null,
+  nowMs = Date.now(),
+): number {
+  const retryAfterMs = parseRetryAfterMs(retryAfter, nowMs)
+  if (retryAfterMs !== null) return retryAfterMs
+
+  return Math.min(COINGECKO_RETRY_BASE_MS * (2 ** Math.max(attempt - 1, 0)), COINGECKO_RETRY_CAP_MS)
+}
+
+function isRecoverableCoinGeckoStatus(status: number): boolean {
+  return status === 408 || status === 429 || status >= 500
+}
+
+function sleep(milliseconds: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds))
 }
 
 function calculateEvidenceScore(candidates: ListingCandidate[]) {
@@ -258,6 +326,7 @@ Options:
   --apply                  Upsert exchange rows and active listing rows.
   --page-limit             CoinGecko ticker pages per exchange. Default: 2.
   --page-size              Supabase page size. Default: 250.
+  --request-delay-ms       Delay between CoinGecko requests. Default: 2500.
 `)
 }
 
@@ -324,14 +393,21 @@ export function buildExchangeTargets(options: Pick<Options, 'exchanges' | 'seedC
   })
 }
 
-async function fetchCoinGeckoExchange(
+export async function fetchCoinGeckoExchange(
   exchangeSlug: string,
   pageLimit: number,
+  fetchOptions: CoinGeckoFetchOptions = {},
 ): Promise<{ exchangeName: string; tickers: CoinGeckoTicker[] }> {
   const tickers: CoinGeckoTicker[] = []
   let exchangeName = exchangeSlug
+  const fetchImpl = fetchOptions.fetchImpl ?? fetch
+  const sleepMs = fetchOptions.sleepMs ?? sleep
+  const nowMs = fetchOptions.nowMs ?? Date.now
+  const requestDelayMs = fetchOptions.requestDelayMs ?? 2500
 
   for (let page = 1; page <= pageLimit; page++) {
+    if (page > 1 && requestDelayMs > 0) await sleepMs(requestDelayMs)
+
     const url = new URL(`https://api.coingecko.com/api/v3/exchanges/${exchangeSlug}/tickers`)
     url.searchParams.set('page', String(page))
     url.searchParams.set('depth', 'false')
@@ -342,10 +418,20 @@ async function fetchCoinGeckoExchange(
     }
     if (process.env.COINGECKO_API_KEY) headers['x-cg-demo-api-key'] = process.env.COINGECKO_API_KEY
 
-    const response = await fetch(url, { headers })
-    if (!response.ok) {
-      throw new Error(`CoinGecko ${exchangeSlug} page ${page} failed with HTTP ${response.status}`)
+    let response: Response | null = null
+    for (let attempt = 1; attempt <= COINGECKO_RETRY_ATTEMPTS; attempt++) {
+      response = await fetchImpl(url, { headers })
+      if (response.ok) break
+
+      if (!isRecoverableCoinGeckoStatus(response.status) || attempt === COINGECKO_RETRY_ATTEMPTS) {
+        throw new Error(`CoinGecko ${exchangeSlug} page ${page} failed with HTTP ${response.status}`)
+      }
+
+      const delayMs = getCoinGeckoRetryDelayMs(attempt, response.headers.get('retry-after'), nowMs())
+      console.warn(`CoinGecko ${exchangeSlug} page ${page} returned HTTP ${response.status}; retry ${attempt + 1}/${COINGECKO_RETRY_ATTEMPTS} after ${delayMs}ms`)
+      await sleepMs(delayMs)
     }
+    if (!response) throw new Error(`CoinGecko ${exchangeSlug} page ${page} failed before a response was received`)
 
     const payload = (await response.json()) as CoinGeckoExchangeResponse
     if (isNonEmptyString(payload.name)) exchangeName = payload.name.trim()
@@ -568,6 +654,7 @@ async function main(): Promise<void> {
   console.log(`Source: ${options.seedCmcTop30 ? `CMC Top 30 snapshot ${CMC_TOP_30_EXCHANGE_SNAPSHOT_DATE} + CoinGecko /exchanges/{id}/tickers` : 'CoinGecko /exchanges/{id}/tickers'}`)
   console.log(`Scope: ${exchangeTargets.map((target) => target.exchangeSlug).join(', ')}`)
   console.log(`Rules: active exchange rows and active listing rows only; duplicate pairs dedupe to one exchange/project row; inactive/delisted rows are excluded by API aggregation.`)
+  console.log(`CoinGecko request delay: ${options.requestDelayMs}ms; recoverable HTTP 429/408/5xx retry attempts: ${COINGECKO_RETRY_ATTEMPTS}`)
 
   const [trackedProjects, latestCmcRanks] = await Promise.all([
     fetchTrackedProjects(supabase, options.pageSize),
@@ -577,11 +664,17 @@ async function main(): Promise<void> {
   console.log(`Tracked projects loaded: ${projects.length}; CMC rank snapshot rows loaded: ${latestCmcRanks.size}`)
 
   const evidence: ExchangeEvidence[] = []
+  let fetchedExchangeCount = 0
 
   for (const target of exchangeTargets) {
-    const fetched = target.coingeckoId
-      ? await fetchCoinGeckoExchange(target.coingeckoId, options.pageLimit)
-      : { exchangeName: target.exchangeName, tickers: [] }
+    let fetched = { exchangeName: target.exchangeName, tickers: [] as CoinGeckoTicker[] }
+    if (target.coingeckoId) {
+      if (fetchedExchangeCount > 0 && options.requestDelayMs > 0) await sleep(options.requestDelayMs)
+      fetchedExchangeCount++
+      fetched = await fetchCoinGeckoExchange(target.coingeckoId, options.pageLimit, {
+        requestDelayMs: options.requestDelayMs,
+      })
+    }
     const exchangeName = target.source === 'cmc_top30' ? target.exchangeName : fetched.exchangeName
     const candidates = buildListingCandidates(target.exchangeSlug, exchangeName, fetched.tickers, projects)
 

@@ -25,6 +25,11 @@ on:
         required: false
         type: number
         default: 2
+      request_delay_ms:
+        description: 'Delay between CoinGecko requests in milliseconds'
+        required: false
+        type: number
+        default: 2500
 
 permissions:
   contents: read
@@ -80,6 +85,7 @@ jobs:
           EXCHANGES: ${{ github.event.inputs.exchanges }}
           SEED_CMC_TOP30: ${{ github.event.inputs.seed_cmc_top30 || 'false' }}
           PAGE_LIMIT: ${{ github.event.inputs.page_limit || '2' }}
+          REQUEST_DELAY_MS: ${{ github.event.inputs.request_delay_ms || '2500' }}
         run: |
           set -euo pipefail
 
@@ -119,6 +125,11 @@ jobs:
             exit 1
           fi
 
+          if ! [[ "$REQUEST_DELAY_MS" =~ ^[0-9]+$ ]] || [ "$REQUEST_DELAY_MS" -gt 60000 ]; then
+            echo "::error::request_delay_ms must be an integer from 0 to 60000"
+            exit 1
+          fi
+
       - name: Run exchange listing backfill
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
@@ -129,10 +140,11 @@ jobs:
           EXCHANGES: ${{ github.event.inputs.exchanges }}
           SEED_CMC_TOP30: ${{ github.event.inputs.seed_cmc_top30 || 'false' }}
           PAGE_LIMIT: ${{ github.event.inputs.page_limit || '2' }}
+          REQUEST_DELAY_MS: ${{ github.event.inputs.request_delay_ms || '2500' }}
         run: |
           set -euo pipefail
 
-          args=(--page-limit "$PAGE_LIMIT")
+          args=(--page-limit "$PAGE_LIMIT" --request-delay-ms "$REQUEST_DELAY_MS")
           if [ "$SEED_CMC_TOP30" = "true" ]; then
             args+=(--cmc-top30)
           else
@@ -166,5 +178,6 @@ jobs:
           echo "- **Exchanges**: ${{ github.event.inputs.exchanges }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Seed CMC Top 30**: ${{ github.event.inputs.seed_cmc_top30 || 'false' }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Page limit**: ${{ github.event.inputs.page_limit || '2' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Request delay ms**: ${{ github.event.inputs.request_delay_ms || '2500' }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Run ID**: ${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Timestamp**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> "$GITHUB_STEP_SUMMARY"
