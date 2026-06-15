@@ -353,6 +353,9 @@ describe('buildListingCandidates', () => {
     expect(workflow).toContain('--request-delay-ms')
     expect(workflow).toContain('exchanges is required')
     expect(workflow).toContain('at most 5 exchanges may be backfilled in one run')
+    expect(workflow).toContain('default: 3')
+    expect(workflow).toContain('seed_cmc_top30 apply requires page_limit >= 3')
+    expect(workflow).toContain('upbit apply requires page_limit >= 3')
 
     const websitePipeline = manifest.pipelines.find((
       pipeline: { key: string },
@@ -364,7 +367,7 @@ describe('buildListingCandidates', () => {
     expect(exchangeBackfill.inputs).toEqual(expect.objectContaining({
       seedCmcTop30: expect.stringContaining('seed_cmc_top30'),
       exchanges: expect.stringContaining('Optional'),
-      pageLimit: expect.stringContaining('1 to 10'),
+      pageLimit: expect.stringMatching(/defaults to 3[\s\S]*Upbit/),
       requestDelayMs: expect.stringContaining('0 to 60000'),
     }))
   })

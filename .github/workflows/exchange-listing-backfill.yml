@@ -24,7 +24,7 @@ on:
         description: 'CoinGecko ticker pages per exchange'
         required: false
         type: number
-        default: 2
+        default: 3
       request_delay_ms:
         description: 'Delay between CoinGecko requests in milliseconds'
         required: false
@@ -84,7 +84,7 @@ jobs:
           MODE: ${{ github.event.inputs.mode || 'dry_run' }}
           EXCHANGES: ${{ github.event.inputs.exchanges }}
           SEED_CMC_TOP30: ${{ github.event.inputs.seed_cmc_top30 || 'false' }}
-          PAGE_LIMIT: ${{ github.event.inputs.page_limit || '2' }}
+          PAGE_LIMIT: ${{ github.event.inputs.page_limit || '3' }}
           REQUEST_DELAY_MS: ${{ github.event.inputs.request_delay_ms || '2500' }}
         run: |
           set -euo pipefail
@@ -125,6 +125,24 @@ jobs:
             exit 1
           fi
 
+          if [ "$MODE" = "apply" ] && [ "$PAGE_LIMIT" -lt 3 ]; then
+            if [ "$SEED_CMC_TOP30" = "true" ]; then
+              echo "::error::seed_cmc_top30 apply requires page_limit >= 3 so core assets like BTC are not missed on exchanges with unstable ticker ordering"
+              exit 1
+            fi
+
+            if [ -n "$EXCHANGES" ]; then
+              IFS=',' read -ra exchange_ids <<< "$EXCHANGES"
+              for raw_exchange in "${exchange_ids[@]}"; do
+                exchange="$(echo "$raw_exchange" | xargs | tr '[:upper:]' '[:lower:]')"
+                if [ "$exchange" = "upbit" ]; then
+                  echo "::error::upbit apply requires page_limit >= 3 so BTC/KRW and BTC/USDT cannot be skipped by CoinGecko ticker ordering"
+                  exit 1
+                fi
+              done
+            fi
+          fi
+
           if ! [[ "$REQUEST_DELAY_MS" =~ ^[0-9]+$ ]] || [ "$REQUEST_DELAY_MS" -gt 60000 ]; then
             echo "::error::request_delay_ms must be an integer from 0 to 60000"
             exit 1
@@ -139,7 +157,7 @@ jobs:
           MODE: ${{ github.event.inputs.mode || 'dry_run' }}
           EXCHANGES: ${{ github.event.inputs.exchanges }}
           SEED_CMC_TOP30: ${{ github.event.inputs.seed_cmc_top30 || 'false' }}
-          PAGE_LIMIT: ${{ github.event.inputs.page_limit || '2' }}
+          PAGE_LIMIT: ${{ github.event.inputs.page_limit || '3' }}
           REQUEST_DELAY_MS: ${{ github.event.inputs.request_delay_ms || '2500' }}
         run: |
           set -euo pipefail
@@ -177,7 +195,7 @@ jobs:
           echo "- **Mode**: ${{ github.event.inputs.mode || 'dry_run' }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Exchanges**: ${{ github.event.inputs.exchanges }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Seed CMC Top 30**: ${{ github.event.inputs.seed_cmc_top30 || 'false' }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Page limit**: ${{ github.event.inputs.page_limit || '2' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Page limit**: ${{ github.event.inputs.page_limit || '3' }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Request delay ms**: ${{ github.event.inputs.request_delay_ms || '2500' }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Run ID**: ${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Timestamp**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> "$GITHUB_STEP_SUMMARY"
