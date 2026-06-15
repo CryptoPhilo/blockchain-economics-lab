@@ -1,6 +1,73 @@
-import { buildEvidence, buildListingCandidates } from './backfill-exchange-listings'
+import { readFileSync } from 'fs'
+import { join } from 'path'
+import { buildEvidence, buildExchangeTargets, buildListingCandidates } from './backfill-exchange-listings'
+import { CMC_TOP_30_EXCHANGES } from '../src/lib/exchange-top30'
 
 describe('buildListingCandidates', () => {
+  it('keeps the CMC Top 30 snapshot complete with stable slugs and mappings', () => {
+    expect(CMC_TOP_30_EXCHANGES).toHaveLength(30)
+    expect(CMC_TOP_30_EXCHANGES.map((exchange) => exchange.cmcRank)).toEqual(
+      Array.from({ length: 30 }, (_, index) => index + 1),
+    )
+    expect(new Set(CMC_TOP_30_EXCHANGES.map((exchange) => exchange.slug)).size).toBe(30)
+
+    expect(CMC_TOP_30_EXCHANGES).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        cmcName: 'Coinbase Exchange',
+        slug: 'coinbase',
+        coingeckoId: 'gdax',
+      }),
+      expect.objectContaining({
+        cmcName: 'OKX',
+        slug: 'okx',
+        coingeckoId: 'okex',
+      }),
+      expect.objectContaining({
+        cmcName: 'Binance TR',
+        slug: 'binance-tr',
+        coingeckoId: null,
+      }),
+    ]))
+  })
+
+  it('builds CMC Top 30 backfill targets including zero-listing exchanges', () => {
+    const targets = buildExchangeTargets({ exchanges: [], seedCmcTop30: true })
+
+    expect(targets).toHaveLength(30)
+    expect(targets[0]).toEqual(expect.objectContaining({
+      exchangeSlug: 'binance',
+      exchangeName: 'Binance',
+      coingeckoId: 'binance',
+      source: 'cmc_top30',
+      metadata: expect.objectContaining({
+        source: 'cmc_top30_snapshot',
+        snapshot_date: '2026-06-15',
+        cmc_rank: 1,
+      }),
+    }))
+    expect(targets).toContainEqual(expect.objectContaining({
+      exchangeSlug: 'binance-tr',
+      coingeckoId: null,
+    }))
+  })
+
+  it('canonicalizes scoped CMC Top 30 exchange aliases to internal slugs', () => {
+    expect(buildExchangeTargets({ exchanges: ['gdax', 'okex'], seedCmcTop30: false })).toEqual([
+      expect.objectContaining({
+        exchangeSlug: 'coinbase',
+        exchangeName: 'Coinbase Exchange',
+        coingeckoId: 'gdax',
+        source: 'cmc_top30',
+      }),
+      expect.objectContaining({
+        exchangeSlug: 'okx',
+        exchangeName: 'OKX',
+        coingeckoId: 'okex',
+        source: 'cmc_top30',
+      }),
+    ])
+  })
+
   it('matches CoinGecko ids, deduplicates pairs by project, and ignores ambiguous symbol matches', () => {
     const projects = [
       {
@@ -139,6 +206,30 @@ describe('buildListingCandidates', () => {
         longTailPenalty: 4.29,
       }),
       scoredProjectCount: 1,
+    }))
+  })
+
+  it('documents the remote Top 30 workflow and runtime manifest contract', () => {
+    const workflow = readFileSync(join(process.cwd(), '.github/workflows/exchange-listing-backfill.yml'), 'utf8')
+    const manifest = JSON.parse(readFileSync(join(process.cwd(), 'pipelines/bcelab-runtime-pipelines.json'), 'utf8'))
+
+    expect(workflow).toContain('seed_cmc_top30:')
+    expect(workflow).toContain('SEED_CMC_TOP30')
+    expect(workflow).toContain('args+=(--cmc-top30)')
+    expect(workflow).toContain('exchanges is required')
+    expect(workflow).toContain('at most 5 exchanges may be backfilled in one run')
+
+    const websitePipeline = manifest.pipelines.find((
+      pipeline: { key: string },
+    ) => pipeline.key === 'bcelab-website-development-and-operations')
+    const exchangeBackfill = websitePipeline.nodes.find((node: { key: string }) => (
+      node.key === 'exchange_listing_backfill'
+    ))
+
+    expect(exchangeBackfill.inputs).toEqual(expect.objectContaining({
+      seedCmcTop30: expect.stringContaining('seed_cmc_top30'),
+      exchanges: expect.stringContaining('Optional'),
+      pageLimit: expect.stringContaining('1 to 10'),
     }))
   })
 })
