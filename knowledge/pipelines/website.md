@@ -255,6 +255,34 @@ The stdout evidence summary reports seeded exchange count, listing-backfilled
 exchange count, fetch-failed/skipped exchange count, and skipped exchange slugs
 with reasons.
 
+## BCE-1975 Top 30 Remote Backfill Evidence
+
+As of 2026-06-15, the BCE-1972/BCE-1974 exchange release candidate is merged
+through PR #206, PR #207, PR #208, and PR #210. The accepted main commit for the
+Top 30 continuation fix is `c6777693f2bb9917c4eae35b3ef8425a61da19fb`.
+
+Remote exchange listing backfill evidence:
+
+- Dry-run `27550608987` ran on `main` at `c677769`, with `mode=dry_run`,
+  `seed_cmc_top30=true`, `page_limit=1`, and `request_delay_ms=10000`.
+  It completed successfully with `Seeded exchange count: 30`,
+  `Listing backfilled exchange count: 29`, and
+  `Fetch failed/skipped exchange count: 0`.
+- Apply `27551222306` ran on the same commit and inputs with `mode=apply`.
+  It completed successfully, applied all 30 CMC Top 30 exchange rows, and
+  reported `Fetch failed/skipped exchange count: 0`. `binance-tr` remained a
+  seeded zero-listing venue because the snapshot has no mapped CoinGecko spot
+  exchange id.
+
+Post-apply live verification against `https://www.bcelab.xyz` returned HTTP 200
+for `/api/exchanges`, `/ko/exchanges`, `/ko/exchanges/mexc`,
+`/api/exchanges/binance/projects?locale=ko`, and
+`/api/exchanges/mexc/projects?locale=ko`. `/api/exchanges` contained all 30 CMC
+Top 30 slugs with no missing expected slug, versioned `bceExchangeScore` fields,
+and one pre-existing extra active legacy row: `gdax` for Coinbase Exchange. The
+legacy duplicate is operationally separate from Top 30 coverage and should be
+cleaned up through a scoped follow-up rather than local production writes.
+
 ## BCE-1938 Production Deployment Evidence
 
 As of 2026-06-02 07:55 KST, BCE-1937/BCE-1938 was deployed through
