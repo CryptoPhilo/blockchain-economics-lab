@@ -23,6 +23,7 @@ const REPORT_AVAILABILITY_QUERY_CHUNK_SIZE = 80
 const SCORE_HEADER_BACKGROUND_IMAGE = '/images/score-header-bg.png'
 export const MIN_CMC_CANONICAL_TOP_500_SNAPSHOT_ROWS = 500
 const SCOREBOARD_ENGLISH_ASSET_FALLBACK_LOCALES = new Set(['de', 'es', 'fr'])
+const SCOREBOARD_VISIBLE_REPORT_STATUSES = ['published', 'in_review'] as const
 const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'ethena-usde', slug: 'ethena' },
   { alias: 'usde', slug: 'ethena' },
@@ -385,7 +386,12 @@ function hasScoreboardAssetForLocale(report: ScoreboardVisibleReportRow, locale:
 }
 
 function reportIsVisibleOnScoreboard(report: ScoreboardVisibleReportRow, locale: string): boolean {
-  if (report.status && report.status !== 'published') return false
+  if (
+    report.status
+    && !SCOREBOARD_VISIBLE_REPORT_STATUSES.includes(
+      report.status as (typeof SCOREBOARD_VISIBLE_REPORT_STATUSES)[number],
+    )
+  ) return false
   return hasScoreboardAssetForLocale(report, locale)
     || (SCOREBOARD_ENGLISH_ASSET_FALLBACK_LOCALES.has(locale) && hasScoreboardAssetForLocale(report, 'en'))
 }
@@ -565,7 +571,7 @@ export async function fetchVisibleReportsForScoreboard(
       ].join(', '))
       .in('project_id', chunk)
       .in('report_type', ['econ', 'maturity', 'forensic'])
-      .eq('status', 'published')
+      .in('status', SCOREBOARD_VISIBLE_REPORT_STATUSES)
 
     if (error) {
       console.error('Failed to fetch scoreboard report availability', {
@@ -628,7 +634,7 @@ export async function fetchVisibleReportsForScoreboardByProjectSlugs(
       ].join(', '))
       .in('tracked_projects.slug', chunk)
       .in('report_type', ['econ', 'maturity', 'forensic'])
-      .eq('status', 'published')
+      .in('status', SCOREBOARD_VISIBLE_REPORT_STATUSES)
 
     if (error) {
       console.error('Failed to fetch scoreboard canonical alias report availability', {
@@ -662,7 +668,7 @@ export async function fetchVisibleReportsForScoreboardByProjectSlugs(
       ].join(', '))
       .in('card_data->>slug', chunk)
       .in('report_type', ['econ', 'maturity', 'forensic'])
-      .eq('status', 'published')
+      .in('status', SCOREBOARD_VISIBLE_REPORT_STATUSES)
 
     if (cardSlugError) {
       console.error('Failed to fetch scoreboard card slug report availability', {

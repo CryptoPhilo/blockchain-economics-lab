@@ -1303,13 +1303,11 @@ describe('score page report availability policy', () => {
     const query = {
       select: jest.fn().mockReturnThis(),
       in: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
       then: undefined,
     }
     query.in
       .mockReturnValueOnce(query)
       .mockReturnValueOnce(query)
-    query.eq
       .mockResolvedValueOnce({
         data: [
           {
@@ -1337,9 +1335,35 @@ describe('score page report availability policy', () => {
     expect(reportSupabase.from).toHaveBeenCalledWith('project_reports')
     expect(query.in).toHaveBeenNthCalledWith(1, 'project_id', ['bitcoin-project'])
     expect(query.in).toHaveBeenNthCalledWith(2, 'report_type', ['econ', 'maturity', 'forensic'])
-    expect(query.eq).toHaveBeenCalledWith('status', 'published')
+    expect(query.in).toHaveBeenNthCalledWith(3, 'status', ['published', 'in_review'])
     expect(result.loaded).toBe(true)
     expect(result.reports).toHaveLength(1)
+  })
+
+  it('includes review-ready reports when they have localized assets', () => {
+    const availability = buildReportAvailabilityByProjectId([
+      {
+        project_id: 'review-project',
+        report_type: 'econ',
+        status: 'in_review',
+        language: 'ko',
+        published_at: null,
+        updated_at: '2026-06-15T00:00:00.000Z',
+        gdrive_urls_by_lang: {
+          ko: { url: 'https://drive.google.com/file/d/review-ko/view' },
+        },
+      },
+    ], 'ko')
+
+    expect(availability.get('review-project')).toEqual({
+      reportTypes: ['econ'],
+      reportDates: {
+        econ: '2026-06-15T00:00:00.000Z',
+        maturity: null,
+        forensic: null,
+      },
+      maturityScore: null,
+    })
   })
 
   it('counts PDF-only localized reports as available for scoreboard badges', () => {
