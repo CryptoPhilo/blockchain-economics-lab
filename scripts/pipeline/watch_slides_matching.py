@@ -130,6 +130,8 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
         'circle internet group',
         'circle tokenized stock',
     ],
+    'rollbit-coin': ['rollbit', 'rlb'],
+    'bitmart-token': ['bitmart', 'bmx'],
 }
 
 CONTENT_MISMATCH_NOISE_SLUGS: Set[str] = {'ethereum-name-service'}
