@@ -225,6 +225,11 @@
         {
           "key": "exchange_listing_backfill",
           "paperclipLabel": "Approved exchange listing backfill",
+          "inputs": {
+            "seedCmcTop30": "workflow_dispatch input seed_cmc_top30 seeds the 2026-06-15 CoinMarketCap spot exchange Top 30 snapshot, including zero-listing exchanges.",
+            "exchanges": "Optional comma-separated CoinGecko ids or internal slugs for scoped listing refreshes.",
+            "pageLimit": "CoinGecko ticker pages per mapped exchange; validated from 1 to 10."
+          },
           "execution": {
             "mode": "github_actions",
             "workflow": ".github/workflows/exchange-listing-backfill.yml",

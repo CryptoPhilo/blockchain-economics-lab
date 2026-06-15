@@ -23,6 +23,15 @@ const coinbase = {
   country: 'US',
 }
 
+const binanceTr = {
+  id: 'exchange-binance-tr',
+  slug: 'binance-tr',
+  name: 'Binance TR',
+  status: 'active',
+  website_url: null,
+  country: 'TR',
+}
+
 const inactiveExchange = {
   id: 'exchange-archived',
   slug: 'archived',
@@ -140,6 +149,32 @@ describe('exchange repository aggregation helpers', () => {
     ])
   })
 
+  it('keeps active CMC Top 30 exchanges visible when they have no matched listings', () => {
+    const aggregates = buildExchangeAggregates({
+      exchanges: [coinbase, binanceTr, binance],
+      listings: rows,
+    })
+
+    expect(aggregates).toEqual([
+      expect.objectContaining({
+        slug: 'binance',
+        listedProjectCount: 2,
+        averageBceScore: 80,
+      }),
+      expect.objectContaining({
+        slug: 'coinbase',
+        listedProjectCount: 2,
+        averageBceScore: 80,
+      }),
+      expect.objectContaining({
+        slug: 'binance-tr',
+        listedProjectCount: 0,
+        averageBceScore: null,
+        scoredProjectCount: 0,
+      }),
+    ])
+  })
+
   it('returns Top500-compatible project rows for a slug or exact name match', () => {
     const detail = buildExchangeProjectRows(rows, 'Binance')
 
@@ -158,5 +193,12 @@ describe('exchange repository aggregation helpers', () => {
         reportTypes: [],
       }),
     ])
+  })
+
+  it('matches exchange detail aliases from the CMC Top 30 reference', () => {
+    const detail = buildExchangeProjectRows(rows, 'gdax')
+
+    expect(detail.exchange?.slug).toBe('coinbase')
+    expect(detail.projects).toHaveLength(2)
   })
 })

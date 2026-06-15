@@ -1,5 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import type { ScoreRow } from '@/lib/score-row'
+import { findCmcTop30ExchangeReference } from '@/lib/exchange-top30'
 
 const PAGE_SIZE = 1000
 const ACTIVE_PROJECT_STATUSES = new Set(['active', 'monitoring_only'])
@@ -34,6 +35,11 @@ export type ExchangeListingRecord = {
   listing_status: string
   exchange: ExchangeRecord | ExchangeRecord[] | null
   project: ExchangeProjectRecord | ExchangeProjectRecord[] | null
+}
+
+export type ExchangeAggregateSource = {
+  exchanges: ExchangeRecord[]
+  listings: ExchangeListingRecord[]
 }
 
 export type ExchangeAggregate = {
@@ -82,6 +88,21 @@ function normalizeKey(value: unknown): string {
   return typeof value === 'string' ? value.trim().toLowerCase() : ''
 }
 
+function exchangeMatches(exchange: ExchangeRecord, exchangeKey: string): boolean {
+  const normalizedExchangeKey = normalizeKey(exchangeKey)
+  const reference = findCmcTop30ExchangeReference(exchange.slug) ?? findCmcTop30ExchangeReference(exchange.name)
+  const candidateKeys = [
+    exchange.slug,
+    exchange.name,
+    reference?.slug,
+    reference?.cmcName,
+    reference?.coingeckoId,
+    ...(reference?.aliases ?? []),
+  ]
+
+  return candidateKeys.some((key) => normalizeKey(key) === normalizedExchangeKey)
+}
+
 function isActiveListing(row: ExchangeListingRecord) {
   const exchange = first(row.exchange)
   const project = first(row.project)
@@ -102,11 +123,23 @@ function getReportTypes(project: ExchangeProjectRecord) {
   return reportTypes
 }
 
-export function buildExchangeAggregates(rows: ExchangeListingRecord[]): ExchangeAggregate[] {
+export function buildExchangeAggregates(
+  input: ExchangeListingRecord[] | ExchangeAggregateSource,
+): ExchangeAggregate[] {
+  const exchanges = Array.isArray(input) ? [] : input.exchanges
+  const rows = Array.isArray(input) ? input : input.listings
   const byExchange = new Map<string, {
     exchange: ExchangeRecord
     projects: Map<string, ExchangeProjectRecord>
   }>()
+
+  for (const exchange of exchanges) {
+    if (exchange.status !== 'active') continue
+    byExchange.set(exchange.id, {
+      exchange,
+      projects: new Map<string, ExchangeProjectRecord>(),
+    })
+  }
 
   for (const row of rows) {
     if (!isActiveListing(row)) continue
@@ -146,7 +179,8 @@ export function buildExchangeAggregates(rows: ExchangeListingRecord[]): Exchange
       }
     })
     .sort((a, b) => (
-      b.listedProjectCount - a.listedProjectCount
+      getCmcRank(a) - getCmcRank(b)
+      || b.listedProjectCount - a.listedProjectCount
       || (b.averageBceScore ?? -1) - (a.averageBceScore ?? -1)
       || a.name.localeCompare(b.name)
     ))
@@ -167,10 +201,7 @@ export function buildExchangeProjectRows(
     const project = first(row.project)
     if (!exchange || !project) continue
 
-    if (
-      normalizeKey(exchange.slug) !== normalizedExchangeKey
-      && normalizeKey(exchange.name) !== normalizedExchangeKey
-    ) {
+    if (!exchangeMatches(exchange, normalizedExchangeKey)) {
       continue
     }
 
@@ -202,8 +233,37 @@ export function buildExchangeProjectRows(
   return { exchange: matchedExchange, projects: projectRows }
 }
 
+function getCmcRank(exchange: Pick<ExchangeAggregate, 'slug' | 'name'>): number {
+  return findCmcTop30ExchangeReference(exchange.slug)?.cmcRank
+    ?? findCmcTop30ExchangeReference(exchange.name)?.cmcRank
+    ?? Number.MAX_SAFE_INTEGER
+}
+
 export class ExchangesRepository {
   constructor(private supabase: SupabaseClient) {}
+
+  private async loadActiveExchanges(): Promise<ExchangeRecord[]> {
+    const rows: ExchangeRecord[] = []
+
+    for (let offset = 0; ; offset += PAGE_SIZE) {
+      const { data, error } = await this.supabase
+        .from('exchanges')
+        .select('id, slug, name, status, website_url, country')
+        .eq('status', 'active')
+        .range(offset, offset + PAGE_SIZE - 1)
+
+      if (error) {
+        throw new Error(`Failed to fetch exchanges: ${error.message}`)
+      }
+
+      const batch = (data || []) as ExchangeRecord[]
+      rows.push(...batch)
+
+      if (batch.length < PAGE_SIZE) break
+    }
+
+    return rows
+  }
 
   private async loadActiveListingRows(): Promise<LoadedListingRows> {
     const rows: ExchangeListingRecord[] = []
@@ -240,16 +300,23 @@ export class ExchangesRepository {
   }
 
   async getExchangeAggregates() {
-    const { rows } = await this.loadActiveListingRows()
-    return buildExchangeAggregates(rows)
+    const [exchanges, { rows }] = await Promise.all([
+      this.loadActiveExchanges(),
+      this.loadActiveListingRows(),
+    ])
+    return buildExchangeAggregates({ exchanges, listings: rows })
   }
 
   async getExchangeProjects(exchangeKey: string) {
     const normalizedExchangeKey = normalizeKey(exchangeKey)
-    const { rows } = await this.loadActiveListingRows()
+    const [exchanges, { rows }] = await Promise.all([
+      this.loadActiveExchanges(),
+      this.loadActiveListingRows(),
+    ])
+    const exchange = exchanges.find((candidate) => exchangeMatches(candidate, normalizedExchangeKey)) ?? null
     const result = buildExchangeProjectRows(rows, normalizedExchangeKey)
 
-    return result.exchange ? result : { exchange: null, projects: [] }
+    return result.exchange ? result : { exchange, projects: [] }
   }
 }
 

@@ -9,13 +9,25 @@
 import { createClient } from '@supabase/supabase-js'
 import { config } from 'dotenv'
 import { existsSync } from 'fs'
+import { createRequire } from 'module'
 import { join } from 'path'
+import { pathToFileURL } from 'url'
+const require = createRequire(import.meta.url)
+const {
+  CMC_TOP_30_EXCHANGE_SNAPSHOT_DATE,
+  CMC_TOP_30_EXCHANGE_SOURCE_URL,
+  CMC_TOP_30_EXCHANGES,
+  findCmcTop30ExchangeReference,
+} = require('../src/lib/exchange-top30') as typeof import('../src/lib/exchange-top30')
+
+type CmcTop30ExchangeReference = import('../src/lib/exchange-top30').CmcTop30ExchangeReference
 
 type ProjectStatus = 'active' | 'monitoring_only' | string
 
 interface Options {
   apply: boolean
   exchanges: string[]
+  cmcTop30: boolean
   pageLimit: number
   pageSize: number
 }
@@ -62,6 +74,8 @@ interface ListingCandidate {
 interface ExchangeEvidence {
   exchangeSlug: string
   exchangeName: string
+  cmcRank: number | null
+  coingeckoId: string | null
   candidateCount: number
   listedProjectCount: number
   averageBceScore: number | null
@@ -107,7 +121,7 @@ function parseExchangeList(value: string): string[] {
 }
 
 function parseArgs(argv: string[]): Options {
-  const options: Options = { apply: false, exchanges: [], pageLimit: 2, pageSize: 250 }
+  const options: Options = { apply: false, exchanges: [], cmcTop30: false, pageLimit: 2, pageSize: 250 }
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]
@@ -117,6 +131,8 @@ function parseArgs(argv: string[]): Options {
       options.apply = true
     } else if (arg === '--dry-run') {
       options.apply = false
+    } else if (arg === '--cmc-top30') {
+      options.cmcTop30 = true
     } else if (arg === '--exchange' || arg === '--exchanges') {
       if (!next || next.startsWith('--')) throw new Error(`${arg} requires a value`)
       options.exchanges = parseExchangeList(next)
@@ -145,8 +161,8 @@ function parseArgs(argv: string[]): Options {
     }
   }
 
-  if (options.exchanges.length === 0) {
-    throw new Error('--exchange is required')
+  if (options.exchanges.length === 0 && !options.cmcTop30) {
+    throw new Error('--exchange or --cmc-top30 is required')
   }
 
   return options
@@ -154,14 +170,37 @@ function parseArgs(argv: string[]): Options {
 
 function printHelp(): void {
   console.log(`Usage: npx ts-node scripts/backfill-exchange-listings.ts --exchange binance,gdax [--dry-run|--apply]
+       npx ts-node scripts/backfill-exchange-listings.ts --cmc-top30 [--dry-run|--apply]
 
 Options:
   --exchange, --exchanges  Comma-separated CoinGecko exchange ids to backfill.
+  --cmc-top30              Seed the CMC Top 30 exchange snapshot and backfill listings where CoinGecko ids are mapped.
   --dry-run                Report candidates and aggregate evidence without writes.
   --apply                  Upsert exchange rows and active listing rows.
   --page-limit             CoinGecko ticker pages per exchange. Default: 2.
   --page-size              Supabase page size. Default: 250.
 `)
+}
+
+function buildExchangeScope(options: Options): CmcTop30ExchangeReference[] {
+  const references = new Map<string, CmcTop30ExchangeReference>()
+
+  if (options.cmcTop30) {
+    for (const reference of CMC_TOP_30_EXCHANGES) references.set(reference.slug, reference)
+  }
+
+  for (const exchange of options.exchanges) {
+    const reference = findCmcTop30ExchangeReference(exchange) ?? {
+      cmcRank: 0,
+      cmcName: exchange,
+      slug: exchange,
+      coingeckoId: exchange,
+      aliases: [],
+    }
+    references.set(reference.slug, reference)
+  }
+
+  return Array.from(references.values())
 }
 
 function loadEnv(): void {
@@ -296,8 +335,7 @@ export function buildListingCandidates(
 }
 
 export function buildEvidence(
-  exchangeSlug: string,
-  exchangeName: string,
+  reference: CmcTop30ExchangeReference,
   candidates: ListingCandidate[],
 ): ExchangeEvidence {
   const scores = candidates
@@ -310,8 +348,10 @@ export function buildEvidence(
   const scoreTotal = scores.reduce((total, score) => total + score, 0)
 
   return {
-    exchangeSlug,
-    exchangeName,
+    exchangeSlug: reference.slug,
+    exchangeName: reference.cmcName,
+    cmcRank: reference.cmcRank || null,
+    coingeckoId: reference.coingeckoId,
     candidateCount: candidates.length,
     listedProjectCount: candidates.length,
     averageBceScore: scores.length > 0 ? Number((scoreTotal / scores.length).toFixed(2)) : null,
@@ -322,25 +362,35 @@ export function buildEvidence(
 async function applyExchangeListings(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
-  exchangeSlug: string,
-  exchangeName: string,
+  reference: CmcTop30ExchangeReference,
   candidates: ListingCandidate[],
 ): Promise<void> {
+  const isCmcSnapshotRow = reference.cmcRank > 0
   const { data: exchange, error: exchangeError } = await supabase
     .from('exchanges')
     .upsert({
-      slug: exchangeSlug,
-      name: exchangeName,
+      slug: reference.slug,
+      name: reference.cmcName,
       status: 'active',
-      source: 'coingecko',
-      source_exchange_id: exchangeSlug,
-      metadata: { source: 'coingecko_exchanges_tickers' },
+      source: isCmcSnapshotRow
+        ? (reference.coingeckoId ? 'coinmarketcap_coingecko' : 'coinmarketcap')
+        : 'coingecko',
+      source_exchange_id: reference.coingeckoId,
+      metadata: {
+        cmc_rank: isCmcSnapshotRow ? reference.cmcRank : null,
+        cmc_name: isCmcSnapshotRow ? reference.cmcName : null,
+        aliases: reference.aliases,
+        coingecko_id: reference.coingeckoId,
+        cmc_snapshot_date: isCmcSnapshotRow ? CMC_TOP_30_EXCHANGE_SNAPSHOT_DATE : null,
+        cmc_source_url: isCmcSnapshotRow ? CMC_TOP_30_EXCHANGE_SOURCE_URL : null,
+        listing_source: reference.coingeckoId ? 'coingecko_exchanges_tickers' : null,
+      },
       updated_at: new Date().toISOString(),
     }, { onConflict: 'slug' })
     .select('id')
     .single()
 
-  if (exchangeError) throw new Error(`Failed to upsert exchange ${exchangeSlug}: ${exchangeError.message}`)
+  if (exchangeError) throw new Error(`Failed to upsert exchange ${reference.slug}: ${exchangeError.message}`)
 
   const exchangeId = exchange.id as string
   const observedAt = new Date().toISOString()
@@ -369,7 +419,7 @@ async function applyExchangeListings(
     .from('exchange_project_listings')
     .upsert(rows, { onConflict: 'exchange_id,project_id' })
 
-  if (error) throw new Error(`Failed to upsert listings for ${exchangeSlug}: ${error.message}`)
+  if (error) throw new Error(`Failed to upsert listings for ${reference.slug}: ${error.message}`)
 }
 
 async function main(): Promise<void> {
@@ -380,7 +430,9 @@ async function main(): Promise<void> {
 
   console.log(`Mode: ${options.apply ? 'apply' : 'dry_run'}`)
   console.log(`Source: CoinGecko /exchanges/{id}/tickers`)
-  console.log(`Scope: ${options.exchanges.join(', ')}`)
+  const scope = buildExchangeScope(options)
+  console.log(`Scope: ${scope.map((exchange) => `${exchange.slug}${exchange.coingeckoId ? `/${exchange.coingeckoId}` : '/no-coingecko-id'}`).join(', ')}`)
+  console.log(`CMC Top 30 snapshot: ${CMC_TOP_30_EXCHANGE_SNAPSHOT_DATE} ${CMC_TOP_30_EXCHANGE_SOURCE_URL}`)
   console.log(`Rules: active exchange rows and active listing rows only; duplicate pairs dedupe to one exchange/project row; inactive/delisted rows are excluded by API aggregation.`)
 
   const projects = await fetchTrackedProjects(supabase, options.pageSize)
@@ -388,11 +440,27 @@ async function main(): Promise<void> {
 
   const evidence: ExchangeEvidence[] = []
 
-  for (const exchangeSlug of options.exchanges) {
-    const { exchangeName, tickers } = await fetchCoinGeckoExchange(exchangeSlug, options.pageLimit)
-    const candidates = buildListingCandidates(exchangeSlug, exchangeName, tickers, projects)
+  for (const reference of scope) {
+    let tickers: CoinGeckoTicker[] = []
+    let exchangeName = reference.cmcName
+    let candidates: ListingCandidate[] = []
 
-    console.log(`\nExchange: ${exchangeName} (${exchangeSlug})`)
+    if (reference.coingeckoId) {
+      try {
+        const response = await fetchCoinGeckoExchange(reference.coingeckoId, options.pageLimit)
+        tickers = response.tickers
+        exchangeName = response.exchangeName
+        candidates = buildListingCandidates(reference.slug, reference.cmcName, tickers, projects)
+      } catch (error) {
+        if (reference.cmcRank <= 0) throw error
+        console.error(`Listing fetch skipped for ${reference.slug}: ${error instanceof Error ? error.message : String(error)}`)
+      }
+    }
+
+    console.log(`\nExchange: ${reference.cmcName} (${reference.slug})`)
+    console.log(`CMC rank: ${reference.cmcRank || 'not in snapshot'}`)
+    console.log(`CoinGecko id: ${reference.coingeckoId ?? 'none'}`)
+    if (exchangeName !== reference.cmcName) console.log(`CoinGecko name: ${exchangeName}`)
     console.log(`CoinGecko tickers scanned: ${tickers.length}`)
     console.log(`Matched unique tracked projects: ${candidates.length}`)
     for (const candidate of candidates.slice(0, 20)) {
@@ -400,18 +468,18 @@ async function main(): Promise<void> {
     }
 
     if (options.apply) {
-      await applyExchangeListings(supabase, exchangeSlug, exchangeName, candidates)
-      console.log(`Applied rows for ${exchangeSlug}: ${candidates.length}`)
+      await applyExchangeListings(supabase, reference, candidates)
+      console.log(`Applied exchange row for ${reference.slug}; listing rows: ${candidates.length}`)
     }
 
-    evidence.push(buildEvidence(exchangeSlug, exchangeName, candidates))
+    evidence.push(buildEvidence(reference, candidates))
   }
 
   console.log('\nAggregate evidence:')
   console.log(JSON.stringify(evidence, null, 2))
 }
 
-if (process.env.JEST_WORKER_ID === undefined) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((error) => {
     console.error(error instanceof Error ? error.message : error)
     process.exit(1)

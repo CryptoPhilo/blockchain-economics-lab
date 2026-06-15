@@ -12,9 +12,14 @@ on:
           - dry_run
           - apply
       exchanges:
-        description: 'Comma-separated CoinGecko exchange ids, for example binance,gdax'
-        required: true
+        description: 'Comma-separated exchange ids/slugs, for example binance,gdax. Leave empty when seed_cmc_top30 is true.'
+        required: false
         type: string
+      seed_cmc_top30:
+        description: 'Seed the CoinMarketCap Top 30 snapshot before listing backfill'
+        required: true
+        type: boolean
+        default: false
       page_limit:
         description: 'CoinGecko ticker pages per exchange'
         required: false
@@ -25,7 +30,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: exchange-listing-backfill-${{ github.event.inputs.exchanges || 'unknown' }}
+  group: exchange-listing-backfill-${{ github.event.inputs.seed_cmc_top30 == 'true' && 'cmc-top30' || github.event.inputs.exchanges || 'unknown' }}
   cancel-in-progress: false
 
 jobs:
@@ -73,6 +78,7 @@ jobs:
         env:
           MODE: ${{ github.event.inputs.mode || 'dry_run' }}
           EXCHANGES: ${{ github.event.inputs.exchanges }}
+          SEED_CMC_TOP30: ${{ github.event.inputs.seed_cmc_top30 || 'false' }}
           PAGE_LIMIT: ${{ github.event.inputs.page_limit || '2' }}
         run: |
           set -euo pipefail
@@ -82,24 +88,26 @@ jobs:
             exit 1
           fi
 
-          if [ -z "$EXCHANGES" ]; then
-            echo "::error::exchanges is required"
+          if [ -z "$EXCHANGES" ] && [ "$SEED_CMC_TOP30" != "true" ]; then
+            echo "::error::exchanges is required unless seed_cmc_top30 is true"
             exit 1
           fi
 
-          IFS=',' read -ra exchange_ids <<< "$EXCHANGES"
-          if [ "${#exchange_ids[@]}" -gt 5 ]; then
-            echo "::error::at most 5 exchanges may be backfilled in one run"
-            exit 1
-          fi
-
-          for raw_exchange in "${exchange_ids[@]}"; do
-            exchange="$(echo "$raw_exchange" | xargs)"
-            if [ -z "$exchange" ] || ! [[ "$exchange" =~ ^[a-zA-Z0-9][a-zA-Z0-9_-]*$ ]]; then
-              echo "::error::invalid exchange id: $raw_exchange"
+          if [ -n "$EXCHANGES" ]; then
+            IFS=',' read -ra exchange_ids <<< "$EXCHANGES"
+            if [ "${#exchange_ids[@]}" -gt 5 ]; then
+              echo "::error::at most 5 exchanges may be backfilled in one run outside seed_cmc_top30 mode"
               exit 1
             fi
-          done
+
+            for raw_exchange in "${exchange_ids[@]}"; do
+              exchange="$(echo "$raw_exchange" | xargs)"
+              if [ -z "$exchange" ] || ! [[ "$exchange" =~ ^[a-zA-Z0-9][a-zA-Z0-9_-]*$ ]]; then
+                echo "::error::invalid exchange id: $raw_exchange"
+                exit 1
+              fi
+            done
+          fi
 
           if ! [[ "$PAGE_LIMIT" =~ ^[0-9]+$ ]] || [ "$PAGE_LIMIT" -le 0 ] || [ "$PAGE_LIMIT" -gt 10 ]; then
             echo "::error::page_limit must be an integer from 1 to 10"
@@ -114,11 +122,18 @@ jobs:
           COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
           MODE: ${{ github.event.inputs.mode || 'dry_run' }}
           EXCHANGES: ${{ github.event.inputs.exchanges }}
+          SEED_CMC_TOP30: ${{ github.event.inputs.seed_cmc_top30 || 'false' }}
           PAGE_LIMIT: ${{ github.event.inputs.page_limit || '2' }}
         run: |
           set -euo pipefail
 
-          args=(--exchange "$EXCHANGES" --page-limit "$PAGE_LIMIT")
+          args=(--page-limit "$PAGE_LIMIT")
+          if [ -n "$EXCHANGES" ]; then
+            args+=(--exchange "$EXCHANGES")
+          fi
+          if [ "$SEED_CMC_TOP30" = "true" ]; then
+            args+=(--cmc-top30)
+          fi
           if [ "$MODE" = "apply" ]; then
             args+=(--apply)
           else
@@ -126,7 +141,7 @@ jobs:
           fi
 
           echo "Invoking exchange listing backfill for scoped exchange ids"
-          npx ts-node --compiler-options '{"module":"CommonJS"}' scripts/backfill-exchange-listings.ts "${args[@]}" | tee exchange-listing-backfill.log
+          npx ts-node scripts/backfill-exchange-listings.ts "${args[@]}" | tee exchange-listing-backfill.log
 
       - name: Upload backfill log
         if: always()
@@ -144,6 +159,7 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Mode**: ${{ github.event.inputs.mode || 'dry_run' }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Exchanges**: ${{ github.event.inputs.exchanges }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Seed CMC Top 30**: ${{ github.event.inputs.seed_cmc_top30 || 'false' }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Page limit**: ${{ github.event.inputs.page_limit || '2' }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Run ID**: ${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Timestamp**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> "$GITHUB_STEP_SUMMARY"

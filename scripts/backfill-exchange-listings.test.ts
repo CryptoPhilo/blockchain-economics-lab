@@ -1,6 +1,21 @@
 import { buildEvidence, buildListingCandidates } from './backfill-exchange-listings'
+import {
+  CMC_TOP_30_EXCHANGE_SNAPSHOT_DATE,
+  CMC_TOP_30_EXCHANGES,
+  findCmcTop30ExchangeReference,
+} from '../src/lib/exchange-top30'
 
 describe('buildListingCandidates', () => {
+  it('keeps the CoinMarketCap Top 30 snapshot complete and slug-mapped', () => {
+    expect(CMC_TOP_30_EXCHANGE_SNAPSHOT_DATE).toBe('2026-06-15')
+    expect(CMC_TOP_30_EXCHANGES).toHaveLength(30)
+    expect(new Set(CMC_TOP_30_EXCHANGES.map((exchange) => exchange.cmcRank)).size).toBe(30)
+    expect(new Set(CMC_TOP_30_EXCHANGES.map((exchange) => exchange.slug)).size).toBe(30)
+    expect(findCmcTop30ExchangeReference('gdax')?.slug).toBe('coinbase')
+    expect(findCmcTop30ExchangeReference('bybit_spot')?.slug).toBe('bybit')
+    expect(findCmcTop30ExchangeReference('Binance TR')?.coingeckoId).toBeNull()
+  })
+
   it('matches CoinGecko ids, deduplicates pairs by project, and ignores ambiguous symbol matches', () => {
     const projects = [
       {
@@ -123,7 +138,12 @@ describe('buildListingCandidates', () => {
       },
     ]
 
-    expect(buildEvidence('binance', 'Binance', candidates)).toEqual(expect.objectContaining({
+    const binance = findCmcTop30ExchangeReference('binance')
+
+    expect(binance).not.toBeNull()
+    expect(buildEvidence(binance!, candidates)).toEqual(expect.objectContaining({
+      cmcRank: 1,
+      coingeckoId: 'binance',
       listedProjectCount: 2,
       averageBceScore: 80,
       scoredProjectCount: 1,
