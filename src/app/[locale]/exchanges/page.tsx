@@ -55,8 +55,8 @@ export default async function ExchangesPage({
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
           {isKo
-            ? '추적 중인 거래소와 BCE Score, Top500 매칭 종목 수를 확인하세요.'
-            : 'Track exchange projects with BCE Scores and matched Top500 assets.'}
+            ? '추적 중인 거래소와 BCE Exchange Score, Top500 매칭 종목 수를 확인하세요.'
+            : 'Track exchanges with BCE Exchange Scores and matched Top500 assets.'}
         </p>
       </section>
 
@@ -70,7 +70,7 @@ export default async function ExchangesPage({
           <div className="grid grid-cols-[minmax(0,1fr)_7rem_6rem] gap-3 border-b border-white/10 bg-white/[0.04] px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 sm:grid-cols-[minmax(0,1fr)_10rem_8rem]">
             <div>{isKo ? '거래소명' : 'Exchange'}</div>
             <div className="text-right">{isKo ? '상장 종목 수' : 'Listings'}</div>
-            <div className="text-right">BCE Score</div>
+            <div className="text-right">BCE Exchange Score</div>
           </div>
           <div className="divide-y divide-white/5">
             {rows.map((exchange) => (
@@ -89,11 +89,11 @@ export default async function ExchangesPage({
                 </div>
                 <div className="text-right font-mono text-sm text-slate-200">{exchange.listedProjectCount}</div>
                 <div className="text-right">
-                  {formatScore(exchange.averageBceScore) === '-' ? (
+                  {formatScore(exchange.bceExchangeScore) === '-' ? (
                     <span className="text-sm text-slate-600">-</span>
                   ) : (
                     <span className="inline-flex rounded bg-cyan-500/10 px-2 py-0.5 text-xs font-bold text-cyan-300">
-                      {formatScore(exchange.averageBceScore)}
+                      {formatScore(exchange.bceExchangeScore)}
                     </span>
                   )}
                 </div>

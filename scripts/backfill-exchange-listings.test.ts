@@ -9,6 +9,7 @@ describe('buildListingCandidates', () => {
         name: 'Bitcoin',
         symbol: 'BTC',
         coingecko_id: 'bitcoin',
+        cmc_rank: 1,
         maturity_score: 80,
         status: 'active',
       },
@@ -18,6 +19,7 @@ describe('buildListingCandidates', () => {
         name: 'Ethereum',
         symbol: 'ETH',
         coingecko_id: null,
+        cmc_rank: 2,
         maturity_score: null,
         status: 'monitoring_only',
       },
@@ -27,6 +29,7 @@ describe('buildListingCandidates', () => {
         name: 'ETH Duplicate',
         symbol: 'ETH',
         coingecko_id: null,
+        cmc_rank: 2,
         maturity_score: null,
         status: 'active',
       },
@@ -36,6 +39,7 @@ describe('buildListingCandidates', () => {
         name: 'Archived',
         symbol: 'OLD',
         coingecko_id: 'old',
+        cmc_rank: 5000,
         maturity_score: 10,
         status: 'archived',
       },
@@ -88,6 +92,7 @@ describe('buildListingCandidates', () => {
           name: 'Bitcoin',
           symbol: 'BTC',
           coingecko_id: 'bitcoin',
+          cmc_rank: 1,
           maturity_score: 80,
           status: 'active',
         },
@@ -109,6 +114,7 @@ describe('buildListingCandidates', () => {
           name: 'New',
           symbol: 'NEW',
           coingecko_id: 'new',
+          cmc_rank: 1200,
           maturity_score: null,
           status: 'active',
         },
@@ -125,7 +131,13 @@ describe('buildListingCandidates', () => {
 
     expect(buildEvidence('binance', 'Binance', candidates)).toEqual(expect.objectContaining({
       listedProjectCount: 2,
-      averageBceScore: 80,
+      bceExchangeScore: 68.92,
+      bceExchangeScoreFormulaVersion: 'bce-exchange-score-v1',
+      bceExchangeScoreComponents: expect.objectContaining({
+        coreBceQuality: 80,
+        scoreCoverage: 70.71,
+        longTailPenalty: 4.29,
+      }),
       scoredProjectCount: 1,
     }))
   })
