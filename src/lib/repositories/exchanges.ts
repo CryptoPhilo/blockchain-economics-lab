@@ -28,6 +28,7 @@ export type ExchangeProjectRecord = {
   symbol: string
   category: string | null
   market_cap_usd: number | string | null
+  cmc_rank?: number | string | null
   coingecko_id: string | null
   cmc_id: string | null
   aliases: string[] | null
@@ -57,11 +58,31 @@ export type ExchangeAggregate = {
   websiteUrl: string | null
   country: string | null
   listedProjectCount: number
-  averageBceScore: number | null
+  bceExchangeScore: number | null
+  bceExchangeScoreFormulaVersion: typeof BCE_EXCHANGE_SCORE_FORMULA_VERSION
+  bceExchangeScoreComponents: BceExchangeScoreComponents
   scoredProjectCount: number
 }
 
 export type ExchangeProjectListRow = ScoreRow
+
+export const BCE_EXCHANGE_SCORE_FORMULA_VERSION = 'bce-exchange-score-v1' as const
+
+export type BceExchangeScoreComponents = {
+  coreBceQuality: number
+  rankQuality: number
+  scoreCoverage: number
+  longTailPenalty: number
+  listedProjectCount: number
+  scoredProjectCount: number
+  longTailRatio: number
+}
+
+export type BceExchangeScoreResult = {
+  bceExchangeScore: number | null
+  bceExchangeScoreFormulaVersion: typeof BCE_EXCHANGE_SCORE_FORMULA_VERSION
+  bceExchangeScoreComponents: BceExchangeScoreComponents
+}
 
 type LoadedListingRows = {
   rows: ExchangeListingRecord[]
@@ -71,6 +92,11 @@ type ProjectReportAvailabilityCandidate = Pick<
   ExchangeProjectRecord,
   'id' | 'name' | 'slug' | 'symbol' | 'coingecko_id' | 'cmc_id' | 'aliases' | 'status'
 >
+
+type LatestCmcRankRow = {
+  slug: string
+  cmc_rank: number | string | null
+}
 
 function first<T>(value: T | T[] | null | undefined): T | null {
   if (Array.isArray(value)) return value[0] ?? null
@@ -94,6 +120,92 @@ function toNullableNumber(value: unknown): number | null {
     return Number.isFinite(numeric) ? numeric : null
   }
   return null
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
+}
+
+function roundScore(value: number) {
+  return Number(value.toFixed(2))
+}
+
+function getConservativeCmcRank(project: ExchangeProjectRecord): number {
+  const rank = toNullableNumber(project.cmc_rank)
+  return rank !== null && rank > 0 ? rank : 5000
+}
+
+function getRankScore(project: ExchangeProjectRecord): number {
+  const rank = toNullableNumber(project.cmc_rank)
+  if (rank === null || rank < 1 || rank > 5000) return 0
+  return clamp(100 * (1 - Math.log10(rank) / Math.log10(5000)), 0, 100)
+}
+
+export function calculateBceExchangeScore(projectRows: ExchangeProjectRecord[]): BceExchangeScoreResult {
+  const listedProjectCount = projectRows.length
+  const scoredRows = projectRows
+    .map((project) => ({
+      project,
+      score: toNullableNumber(project.maturity_score),
+    }))
+    .filter((row): row is { project: ExchangeProjectRecord; score: number } => row.score !== null)
+
+  const scoredProjectCount = scoredRows.length
+  const longTailCount = projectRows.filter((project) => {
+    const rank = toNullableNumber(project.cmc_rank)
+    return rank === null || rank > 1000
+  }).length
+  const longTailRatio = listedProjectCount > 0 ? longTailCount / listedProjectCount : 0
+
+  const weightedScore = scoredRows.reduce((total, { project, score }) => {
+    const weight = 1 / Math.log2(getConservativeCmcRank(project) + 1)
+    return total + (score * weight)
+  }, 0)
+  const weightTotal = scoredRows.reduce((total, { project }) => (
+    total + (1 / Math.log2(getConservativeCmcRank(project) + 1))
+  ), 0)
+
+  const coreBceQuality = weightTotal > 0 ? weightedScore / weightTotal : 0
+  const rankQuality = listedProjectCount > 0
+    ? projectRows.reduce((total, project) => total + getRankScore(project), 0) / listedProjectCount
+    : 0
+  const scoreCoverage = listedProjectCount > 0
+    ? 100 * Math.sqrt(scoredProjectCount / listedProjectCount)
+    : 0
+  const longTailPenalty = 15 * clamp((longTailRatio - 0.30) / 0.70, 0, 1)
+
+  const components: BceExchangeScoreComponents = {
+    coreBceQuality: roundScore(coreBceQuality),
+    rankQuality: roundScore(rankQuality),
+    scoreCoverage: roundScore(scoreCoverage),
+    longTailPenalty: roundScore(longTailPenalty),
+    listedProjectCount,
+    scoredProjectCount,
+    longTailRatio: roundScore(longTailRatio),
+  }
+
+  if (listedProjectCount === 0) {
+    return {
+      bceExchangeScore: null,
+      bceExchangeScoreFormulaVersion: BCE_EXCHANGE_SCORE_FORMULA_VERSION,
+      bceExchangeScoreComponents: components,
+    }
+  }
+
+  const bceExchangeScore = clamp(
+    (0.60 * coreBceQuality)
+    + (0.25 * rankQuality)
+    + (0.15 * scoreCoverage)
+    - longTailPenalty,
+    0,
+    100,
+  )
+
+  return {
+    bceExchangeScore: roundScore(bceExchangeScore),
+    bceExchangeScoreFormulaVersion: BCE_EXCHANGE_SCORE_FORMULA_VERSION,
+    bceExchangeScoreComponents: components,
+  }
 }
 
 function normalizeKey(value: unknown): string {
@@ -130,6 +242,26 @@ function isActiveListing(row: ExchangeListingRecord) {
     && !!project
     && ACTIVE_PROJECT_STATUSES.has(project.status)
   )
+}
+
+function applyLatestCmcRanks(
+  rows: ExchangeListingRecord[],
+  cmcRankBySlug: Map<string, number>,
+): ExchangeListingRecord[] {
+  return rows.map((row) => {
+    const project = first(row.project)
+    if (!project) return row
+
+    const rank = cmcRankBySlug.get(project.slug)
+    if (rank === undefined) return row
+
+    return {
+      ...row,
+      project: Array.isArray(row.project)
+        ? row.project.map((candidate) => ({ ...candidate, cmc_rank: cmcRankBySlug.get(candidate.slug) ?? candidate.cmc_rank ?? null }))
+        : { ...project, cmc_rank: rank },
+    }
+  })
 }
 
 function getReportTypes(project: ExchangeProjectRecord) {
@@ -242,10 +374,7 @@ export function buildExchangeAggregates(
   return Array.from(byExchange.values())
     .map(({ exchange, projects }) => {
       const projectRows = Array.from(projects.values())
-      const scores = projectRows
-        .map((project) => toNullableNumber(project.maturity_score))
-        .filter((score): score is number => score !== null)
-      const scoreTotal = scores.reduce((total, score) => total + score, 0)
+      const bceExchangeScore = calculateBceExchangeScore(projectRows)
 
       return {
         id: exchange.id,
@@ -255,14 +384,14 @@ export function buildExchangeAggregates(
         websiteUrl: exchange.website_url ?? null,
         country: exchange.country ?? null,
         listedProjectCount: projectRows.length,
-        averageBceScore: scores.length > 0 ? Number((scoreTotal / scores.length).toFixed(2)) : null,
-        scoredProjectCount: scores.length,
+        ...bceExchangeScore,
+        scoredProjectCount: bceExchangeScore.bceExchangeScoreComponents.scoredProjectCount,
       }
     })
     .sort((a, b) => (
       getCmcRank(a) - getCmcRank(b)
+      || (b.bceExchangeScore ?? -1) - (a.bceExchangeScore ?? -1)
       || b.listedProjectCount - a.listedProjectCount
-      || (b.averageBceScore ?? -1) - (a.averageBceScore ?? -1)
       || a.name.localeCompare(b.name)
     ))
 }
@@ -383,6 +512,54 @@ export class ExchangesRepository {
     return { rows }
   }
 
+  private async loadLatestCmcRanks(): Promise<Map<string, number>> {
+    const { data: latestSnapshot, error: latestError } = await this.supabase
+      .from('market_data_daily')
+      .select('recorded_at')
+      .eq('source', 'coinmarketcap')
+      .gte('cmc_rank', 1)
+      .lte('cmc_rank', 5000)
+      .order('recorded_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (latestError) {
+      throw new Error(`Failed to fetch latest CMC rank snapshot date: ${latestError.message}`)
+    }
+
+    if (!latestSnapshot?.recorded_at) {
+      return new Map()
+    }
+
+    const ranks = new Map<string, number>()
+
+    for (let offset = 0; ; offset += PAGE_SIZE) {
+      const { data, error } = await this.supabase
+        .from('market_data_daily')
+        .select('slug, cmc_rank')
+        .eq('recorded_at', latestSnapshot.recorded_at)
+        .eq('source', 'coinmarketcap')
+        .gte('cmc_rank', 1)
+        .lte('cmc_rank', 5000)
+        .order('cmc_rank', { ascending: true, nullsFirst: false })
+        .range(offset, offset + PAGE_SIZE - 1)
+
+      if (error) {
+        throw new Error(`Failed to fetch latest CMC ranks: ${error.message}`)
+      }
+
+      const batch = (data || []) as LatestCmcRankRow[]
+      for (const row of batch) {
+        const rank = toNullableNumber(row.cmc_rank)
+        if (row.slug && rank !== null) ranks.set(row.slug, rank)
+      }
+
+      if (batch.length < PAGE_SIZE) break
+    }
+
+    return ranks
+  }
+
   private async loadReportAvailabilityAliasCandidates(): Promise<ProjectReportAvailabilityCandidate[]> {
     const rows: ProjectReportAvailabilityCandidate[] = []
 
@@ -407,26 +584,29 @@ export class ExchangesRepository {
   }
 
   async getExchangeAggregates() {
-    const [exchanges, { rows }] = await Promise.all([
+    const [exchanges, { rows }, cmcRankBySlug] = await Promise.all([
       this.loadActiveExchanges(),
       this.loadActiveListingRows(),
+      this.loadLatestCmcRanks(),
     ])
-    return buildExchangeAggregates({ exchanges, listings: rows })
+    return buildExchangeAggregates({ exchanges, listings: applyLatestCmcRanks(rows, cmcRankBySlug) })
   }
 
   async getExchangeProjects(exchangeKey: string, locale?: string) {
     const normalizedExchangeKey = normalizeKey(exchangeKey)
-    const [exchanges, { rows }] = await Promise.all([
+    const [exchanges, { rows }, cmcRankBySlug] = await Promise.all([
       this.loadActiveExchanges(),
       this.loadActiveListingRows(),
+      this.loadLatestCmcRanks(),
     ])
+    const rankedRows = applyLatestCmcRanks(rows, cmcRankBySlug)
     const exchange = exchanges.find((candidate) => exchangeMatches(candidate, normalizedExchangeKey)) ?? null
-    let result = buildExchangeProjectRows(rows, normalizedExchangeKey)
+    let result = buildExchangeProjectRows(rankedRows, normalizedExchangeKey)
 
     if (locale && result.projects.length > 0) {
       const listedProjectsById = new Map<string, ExchangeProjectRecord>()
 
-      for (const row of rows) {
+      for (const row of rankedRows) {
         if (!isActiveListing(row)) continue
 
         const rowExchange = first(row.exchange)
@@ -463,11 +643,33 @@ export class ExchangesRepository {
 
       if (availabilityByProjectId) {
         applyProjectReportAvailabilityAliases(availabilityByProjectId, listedProjects, matchingAliasCandidates)
-        result = buildExchangeProjectRows(rows, normalizedExchangeKey, availabilityByProjectId)
+        result = buildExchangeProjectRows(rankedRows, normalizedExchangeKey, availabilityByProjectId)
       }
     }
 
-    return result.exchange ? result : { exchange, projects: [] }
+    if (!result.exchange) {
+      return {
+        exchange,
+        projects: [],
+        ...calculateBceExchangeScore([]),
+      }
+    }
+
+    const listedProjectsById = new Map<string, ExchangeProjectRecord>()
+    for (const row of rankedRows) {
+      if (!isActiveListing(row)) continue
+
+      const rowExchange = first(row.exchange)
+      const project = first(row.project)
+      if (rowExchange && project && exchangeMatches(rowExchange, normalizedExchangeKey) && !listedProjectsById.has(project.id)) {
+        listedProjectsById.set(project.id, project)
+      }
+    }
+
+    return {
+      ...result,
+      ...calculateBceExchangeScore(Array.from(listedProjectsById.values())),
+    }
   }
 }
 

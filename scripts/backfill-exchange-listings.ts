@@ -53,6 +53,7 @@ interface TrackedProject {
   name: string
   symbol: string | null
   coingecko_id: string | null
+  cmc_rank?: number | string | null
   maturity_score: number | string | null
   status: ProjectStatus
 }
@@ -78,7 +79,17 @@ interface ExchangeEvidence {
   coingeckoId: string | null
   candidateCount: number
   listedProjectCount: number
-  averageBceScore: number | null
+  bceExchangeScore: number | null
+  bceExchangeScoreFormulaVersion: 'bce-exchange-score-v1'
+  bceExchangeScoreComponents: {
+    coreBceQuality: number
+    rankQuality: number
+    scoreCoverage: number
+    longTailPenalty: number
+    listedProjectCount: number
+    scoredProjectCount: number
+    longTailRatio: number
+  }
   scoredProjectCount: number
 }
 
@@ -166,6 +177,73 @@ function parseArgs(argv: string[]): Options {
   }
 
   return options
+}
+
+function toNullableNumber(value: unknown): number | null {
+  if (value == null) return null
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
+}
+
+function roundScore(value: number) {
+  return Number(value.toFixed(2))
+}
+
+function calculateEvidenceScore(candidates: ListingCandidate[]) {
+  const listedProjectCount = candidates.length
+  const scored = candidates
+    .map((candidate) => ({
+      project: candidate.project,
+      score: toNullableNumber(candidate.project.maturity_score),
+    }))
+    .filter((row): row is { project: TrackedProject; score: number } => row.score !== null)
+  const longTailCount = candidates.filter((candidate) => {
+    const rank = toNullableNumber(candidate.project.cmc_rank)
+    return rank === null || rank > 1000
+  }).length
+  const longTailRatio = listedProjectCount > 0 ? longTailCount / listedProjectCount : 0
+  const weightedScore = scored.reduce((total, { project, score }) => {
+    const rank = toNullableNumber(project.cmc_rank)
+    const conservativeRank = rank !== null && rank > 0 ? rank : 5000
+    return total + (score / Math.log2(conservativeRank + 1))
+  }, 0)
+  const weightTotal = scored.reduce((total, { project }) => {
+    const rank = toNullableNumber(project.cmc_rank)
+    const conservativeRank = rank !== null && rank > 0 ? rank : 5000
+    return total + (1 / Math.log2(conservativeRank + 1))
+  }, 0)
+  const coreBceQuality = weightTotal > 0 ? weightedScore / weightTotal : 0
+  const rankQuality = listedProjectCount > 0
+    ? candidates.reduce((total, candidate) => {
+      const rank = toNullableNumber(candidate.project.cmc_rank)
+      if (rank === null || rank < 1 || rank > 5000) return total
+      return total + clamp(100 * (1 - Math.log10(rank) / Math.log10(5000)), 0, 100)
+    }, 0) / listedProjectCount
+    : 0
+  const scoreCoverage = listedProjectCount > 0
+    ? 100 * Math.sqrt(scored.length / listedProjectCount)
+    : 0
+  const longTailPenalty = 15 * clamp((longTailRatio - 0.30) / 0.70, 0, 1)
+
+  return {
+    bceExchangeScore: listedProjectCount > 0
+      ? roundScore(clamp((0.60 * coreBceQuality) + (0.25 * rankQuality) + (0.15 * scoreCoverage) - longTailPenalty, 0, 100))
+      : null,
+    bceExchangeScoreFormulaVersion: 'bce-exchange-score-v1' as const,
+    bceExchangeScoreComponents: {
+      coreBceQuality: roundScore(coreBceQuality),
+      rankQuality: roundScore(rankQuality),
+      scoreCoverage: roundScore(scoreCoverage),
+      longTailPenalty: roundScore(longTailPenalty),
+      listedProjectCount,
+      scoredProjectCount: scored.length,
+      longTailRatio: roundScore(longTailRatio),
+    },
+  }
 }
 
 function printHelp(): void {
@@ -278,6 +356,56 @@ async function fetchTrackedProjects(
   return rows
 }
 
+async function fetchLatestCmcRanks(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  pageSize: number,
+): Promise<Map<string, number>> {
+  const { data: latestSnapshot, error: latestError } = await supabase
+    .from('market_data_daily')
+    .select('recorded_at')
+    .eq('source', 'coinmarketcap')
+    .gte('cmc_rank', 1)
+    .lte('cmc_rank', 5000)
+    .order('recorded_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (latestError) throw new Error(`Failed to fetch latest CMC rank snapshot date: ${latestError.message}`)
+  if (!latestSnapshot?.recorded_at) return new Map()
+
+  const ranks = new Map<string, number>()
+
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabase
+      .from('market_data_daily')
+      .select('slug, cmc_rank')
+      .eq('recorded_at', latestSnapshot.recorded_at)
+      .eq('source', 'coinmarketcap')
+      .gte('cmc_rank', 1)
+      .lte('cmc_rank', 5000)
+      .range(offset, offset + pageSize - 1)
+
+    if (error) throw new Error(`Failed to fetch latest CMC ranks: ${error.message}`)
+
+    const batch = (data ?? []) as { slug: string; cmc_rank: number | string | null }[]
+    for (const row of batch) {
+      const rank = toNullableNumber(row.cmc_rank)
+      if (row.slug && rank !== null) ranks.set(row.slug, rank)
+    }
+    if (batch.length < pageSize) break
+  }
+
+  return ranks
+}
+
+function applyLatestCmcRanks(projects: TrackedProject[], rankBySlug: Map<string, number>): TrackedProject[] {
+  return projects.map((project) => ({
+    ...project,
+    cmc_rank: rankBySlug.get(project.slug) ?? project.cmc_rank ?? null,
+  }))
+}
+
 export function buildListingCandidates(
   exchangeSlug: string,
   exchangeName: string,
@@ -338,14 +466,7 @@ export function buildEvidence(
   reference: CmcTop30ExchangeReference,
   candidates: ListingCandidate[],
 ): ExchangeEvidence {
-  const scores = candidates
-    .map((candidate) => {
-      if (candidate.project.maturity_score == null) return null
-      const score = Number(candidate.project.maturity_score)
-      return Number.isFinite(score) ? score : null
-    })
-    .filter((score): score is number => score !== null)
-  const scoreTotal = scores.reduce((total, score) => total + score, 0)
+  const score = calculateEvidenceScore(candidates)
 
   return {
     exchangeSlug: reference.slug,
@@ -354,8 +475,8 @@ export function buildEvidence(
     coingeckoId: reference.coingeckoId,
     candidateCount: candidates.length,
     listedProjectCount: candidates.length,
-    averageBceScore: scores.length > 0 ? Number((scoreTotal / scores.length).toFixed(2)) : null,
-    scoredProjectCount: scores.length,
+    ...score,
+    scoredProjectCount: score.bceExchangeScoreComponents.scoredProjectCount,
   }
 }
 
@@ -435,8 +556,12 @@ async function main(): Promise<void> {
   console.log(`CMC Top 30 snapshot: ${CMC_TOP_30_EXCHANGE_SNAPSHOT_DATE} ${CMC_TOP_30_EXCHANGE_SOURCE_URL}`)
   console.log(`Rules: active exchange rows and active listing rows only; duplicate pairs dedupe to one exchange/project row; inactive/delisted rows are excluded by API aggregation.`)
 
-  const projects = await fetchTrackedProjects(supabase, options.pageSize)
-  console.log(`Tracked projects loaded: ${projects.length}`)
+  const [trackedProjects, latestCmcRanks] = await Promise.all([
+    fetchTrackedProjects(supabase, options.pageSize),
+    fetchLatestCmcRanks(supabase, options.pageSize),
+  ])
+  const projects = applyLatestCmcRanks(trackedProjects, latestCmcRanks)
+  console.log(`Tracked projects loaded: ${projects.length}; CMC rank snapshot rows loaded: ${latestCmcRanks.size}`)
 
   const evidence: ExchangeEvidence[] = []
 

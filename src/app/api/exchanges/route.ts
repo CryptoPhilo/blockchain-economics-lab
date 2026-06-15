@@ -16,7 +16,8 @@ export async function GET() {
       rules: {
         coverage: `CoinMarketCap spot exchange Top 30 snapshot from ${CMC_TOP_30_EXCHANGE_SNAPSHOT_DATE}; source ${CMC_TOP_30_EXCHANGE_SOURCE_URL}. Active exchange rows remain visible even when matched listing count is 0.`,
         listingCount: 'Distinct active projects with active exchange listings only.',
-        averageBceScore: 'Average of non-null tracked_projects.maturity_score values only; null when no listed project has a score.',
+        bceExchangeScore: 'BCE Exchange Score uses formula version bce-exchange-score-v1 and returns null when the exchange has no DB-matched listed projects.',
+        bceExchangeScoreComponents: 'Components are coreBceQuality, rankQuality, scoreCoverage, longTailPenalty, listedProjectCount, scoredProjectCount, and longTailRatio.',
         duplicates: 'exchange_project_listings has a UNIQUE(exchange_id, project_id) constraint; API aggregation also deduplicates project IDs.',
         inactiveAndDelisted: 'Inactive exchanges, inactive/delisted listings, and archived/suspended projects are excluded.',
       },

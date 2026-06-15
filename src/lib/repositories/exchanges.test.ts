@@ -2,6 +2,7 @@ import {
   applyProjectReportAvailabilityAliases,
   buildExchangeAggregates,
   buildExchangeProjectRows,
+  calculateBceExchangeScore,
   type ExchangeProjectRecord,
   type ExchangeListingRecord,
 } from './exchanges'
@@ -33,6 +34,24 @@ const bybit = {
   country: null,
 }
 
+const alpha = {
+  id: 'exchange-alpha',
+  slug: 'alpha',
+  name: 'Alpha',
+  status: 'active',
+  website_url: null,
+  country: null,
+}
+
+const beta = {
+  id: 'exchange-beta',
+  slug: 'beta',
+  name: 'Beta',
+  status: 'active',
+  website_url: null,
+  country: null,
+}
+
 const inactiveExchange = {
   id: 'exchange-archived',
   slug: 'archived',
@@ -52,6 +71,7 @@ function project(overrides: Partial<ExchangeProjectRecord> & Pick<ExchangeProjec
     symbol: slug.slice(0, 4).toUpperCase(),
     category: 'L1',
     market_cap_usd: 0,
+    cmc_rank: null,
     coingecko_id: null,
     cmc_id: null,
     aliases: null,
@@ -74,6 +94,7 @@ const rows: ExchangeListingRecord[] = [
       name: 'Bitcoin',
       symbol: 'BTC',
       market_cap_usd: 100,
+      cmc_rank: 1,
       maturity_score: 80,
       last_econ_report_at: '2026-06-01T00:00:00Z',
     }),
@@ -87,6 +108,7 @@ const rows: ExchangeListingRecord[] = [
       name: 'Ethereum',
       symbol: 'ETH',
       market_cap_usd: 90,
+      cmc_rank: 2,
       maturity_score: null,
       status: 'monitoring_only',
     }),
@@ -100,6 +122,7 @@ const rows: ExchangeListingRecord[] = [
       name: 'Bitcoin duplicate pair',
       symbol: 'BTC',
       market_cap_usd: 100,
+      cmc_rank: 1,
       maturity_score: 40,
     }),
   },
@@ -111,12 +134,12 @@ const rows: ExchangeListingRecord[] = [
   {
     listing_status: 'active',
     exchange: coinbase,
-    project: project({ id: 'bitcoin', slug: 'bitcoin', name: 'Bitcoin', maturity_score: 80 }),
+    project: project({ id: 'bitcoin', slug: 'bitcoin', name: 'Bitcoin', cmc_rank: 1, maturity_score: 80 }),
   },
   {
     listing_status: 'active',
     exchange: coinbase,
-    project: project({ id: 'ethereum', slug: 'ethereum', name: 'Ethereum', maturity_score: 'not-a-score' }),
+    project: project({ id: 'ethereum', slug: 'ethereum', name: 'Ethereum', cmc_rank: 1200, maturity_score: 'not-a-score' }),
   },
   {
     listing_status: 'active',
@@ -131,7 +154,7 @@ const rows: ExchangeListingRecord[] = [
 ]
 
 describe('exchange repository aggregation helpers', () => {
-  it('deduplicates listings and excludes null scores from the BCE average', () => {
+  it('deduplicates listings and applies BCE Exchange Score v1 instead of a simple average', () => {
     const aggregates = buildExchangeAggregates({
       exchanges: [binance, coinbase, bybit],
       listings: rows,
@@ -141,22 +164,49 @@ describe('exchange repository aggregation helpers', () => {
       expect.objectContaining({
         slug: 'binance',
         listedProjectCount: 2,
-        averageBceScore: 80,
+        bceExchangeScore: 82.59,
+        bceExchangeScoreFormulaVersion: 'bce-exchange-score-v1',
         scoredProjectCount: 1,
+        bceExchangeScoreComponents: expect.objectContaining({
+          coreBceQuality: 80,
+          rankQuality: 95.93,
+          scoreCoverage: 70.71,
+          longTailPenalty: 0,
+          listedProjectCount: 2,
+          scoredProjectCount: 1,
+          longTailRatio: 0,
+        }),
       }),
       expect.objectContaining({
         slug: 'coinbase',
         listedProjectCount: 2,
-        averageBceScore: 80,
+        bceExchangeScore: 68.92,
         scoredProjectCount: 1,
+        bceExchangeScoreComponents: expect.objectContaining({
+          longTailPenalty: 4.29,
+          longTailRatio: 0.5,
+        }),
       }),
       expect.objectContaining({
         slug: 'bybit',
         listedProjectCount: 0,
-        averageBceScore: null,
+        bceExchangeScore: null,
         scoredProjectCount: 0,
       }),
     ])
+  })
+
+  it('penalizes low-rank or missing-rank long-tail listings versus a simple scored average', () => {
+    const result = calculateBceExchangeScore([
+      project({ id: 'core', slug: 'core', name: 'Core', cmc_rank: 20, maturity_score: 90 }),
+      project({ id: 'tail-1', slug: 'tail-1', name: 'Tail 1', cmc_rank: 2200, maturity_score: 90 }),
+      project({ id: 'tail-2', slug: 'tail-2', name: 'Tail 2', cmc_rank: null, maturity_score: null }),
+      project({ id: 'tail-3', slug: 'tail-3', name: 'Tail 3', cmc_rank: 6000, maturity_score: null }),
+    ])
+
+    expect(result.bceExchangeScore).toBeLessThan(90)
+    expect(result.bceExchangeScoreComponents.longTailRatio).toBe(0.75)
+    expect(result.bceExchangeScoreComponents.longTailPenalty).toBeGreaterThan(0)
   })
 
   it('keeps CMC Top 30 exchanges visible when no listing rows match', () => {
@@ -170,9 +220,36 @@ describe('exchange repository aggregation helpers', () => {
         slug: 'bybit',
         name: 'Bybit',
         listedProjectCount: 0,
-        averageBceScore: null,
+        bceExchangeScore: null,
       }),
     ])
+  })
+
+  it('sorts non-Top-30 exchanges by BCE Exchange Score before listing count', () => {
+    const aggregates = buildExchangeAggregates({
+      exchanges: [alpha, beta],
+      listings: [
+        {
+          listing_status: 'active',
+          exchange: alpha,
+          project: project({ id: 'alpha-core', slug: 'alpha-core', name: 'Alpha Core', cmc_rank: 10, maturity_score: 90 }),
+        },
+        {
+          listing_status: 'active',
+          exchange: beta,
+          project: project({ id: 'beta-tail-1', slug: 'beta-tail-1', name: 'Beta Tail 1', cmc_rank: 4000, maturity_score: 40 }),
+        },
+        {
+          listing_status: 'active',
+          exchange: beta,
+          project: project({ id: 'beta-tail-2', slug: 'beta-tail-2', name: 'Beta Tail 2', cmc_rank: null, maturity_score: null }),
+        },
+      ],
+    })
+
+    expect(aggregates.map((exchange) => exchange.slug)).toEqual(['alpha', 'beta'])
+    expect(aggregates[0].bceExchangeScore).toBeGreaterThan(aggregates[1].bceExchangeScore ?? 0)
+    expect(aggregates[0].listedProjectCount).toBeLessThan(aggregates[1].listedProjectCount)
   })
 
   it('returns Top500-compatible project rows for a slug or exact name match', () => {

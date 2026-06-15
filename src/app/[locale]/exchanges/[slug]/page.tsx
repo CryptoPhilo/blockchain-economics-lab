@@ -39,12 +39,14 @@ export default async function ExchangeDetailPage({
   const exchangesRepository = createExchangesRepository(supabase)
   let exchange: ExchangeRecord | null = null
   let listingRows: ScoreRow[] = []
+  let bceExchangeScore: number | null = null
   let loadFailed = false
 
   try {
     const result = await exchangesRepository.getExchangeProjects(slug, locale)
     exchange = result.exchange
     listingRows = result.projects
+    bceExchangeScore = result.bceExchangeScore
   } catch (error) {
     loadFailed = true
     console.error('Failed to load exchange listing data', {
@@ -67,13 +69,6 @@ export default async function ExchangeDetailPage({
       </div>
     )
   }
-
-  const scoredRows = listingRows
-    .map((row) => row.score)
-    .filter((score): score is number => score != null)
-  const averageBceScore = scoredRows.length > 0
-    ? scoredRows.reduce((total, score) => total + score, 0) / scoredRows.length
-    : null
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
@@ -104,10 +99,10 @@ export default async function ExchangeDetailPage({
             </div>
             <div className="rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3">
               <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                BCE Score
+                BCE Exchange Score
               </div>
               <div className="mt-1 font-mono text-xl font-semibold text-white">
-                {formatScore(averageBceScore)}
+                {formatScore(bceExchangeScore)}
               </div>
             </div>
           </div>

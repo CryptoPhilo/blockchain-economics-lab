@@ -19,5 +19,7 @@ describe('exchange page data contract', () => {
     expect(source).not.toContain('getExchangeProjectBySlug')
     expect(source).not.toContain("ilike('category'")
     expect(source).not.toContain('.ilike("category"')
+    expect(source).toContain('BCE Exchange Score')
+    expect(source).not.toContain('averageBceScore')
   })
 })
