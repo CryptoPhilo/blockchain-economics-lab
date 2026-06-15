@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import ScoreTableGate, { type ScoreRow } from '@/components/ScoreTableGate'
+import ScoreTableGate from '@/components/ScoreTableGate'
+import type { ScoreRow } from '@/lib/score-row'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { createExchangesRepository, type ExchangeRecord } from '@/lib/repositories/exchanges'
 
