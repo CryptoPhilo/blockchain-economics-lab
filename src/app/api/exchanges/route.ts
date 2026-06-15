@@ -14,7 +14,8 @@ export async function GET() {
       data: exchanges,
       rules: {
         listingCount: 'Distinct active projects with active exchange listings only.',
-        averageBceScore: 'Average of non-null tracked_projects.maturity_score values only; null when no listed project has a score.',
+        bceExchangeScore: 'BCE Exchange Score uses formula version bce-exchange-score-v1 and returns null when the exchange has no DB-matched listed projects.',
+        bceExchangeScoreComponents: 'Components are coreBceQuality, rankQuality, scoreCoverage, longTailPenalty, listedProjectCount, scoredProjectCount, and longTailRatio.',
         duplicates: 'exchange_project_listings has a UNIQUE(exchange_id, project_id) constraint; API aggregation also deduplicates project IDs.',
         inactiveAndDelisted: 'Inactive exchanges, inactive/delisted listings, and archived/suspended projects are excluded.',
       },

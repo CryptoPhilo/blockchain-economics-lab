@@ -21,10 +21,14 @@ export async function GET(
 
     return NextResponse.json({
       exchange: result.exchange,
+      bceExchangeScore: result.bceExchangeScore,
+      bceExchangeScoreFormulaVersion: result.bceExchangeScoreFormulaVersion,
+      bceExchangeScoreComponents: result.bceExchangeScoreComponents,
       data: result.projects,
       rules: {
         detailFilter: 'Path segment matches exchange slug or exact exchange name, case-insensitive.',
         rowShape: 'Project rows match the existing Top500 score table fields: rank, name, symbol, slug, marketCap, score, category, reportTypes, reportDates.',
+        bceExchangeScore: 'Exchange-level aggregate uses bce-exchange-score-v1 and is separate from per-project BCE Score row values.',
       },
     })
   } catch (error) {
