@@ -139,6 +139,60 @@ Backfills remain dry-run first through `scripts/pipeline/backfill_card_summaries
 or the approved remote workflow. Production writes are still remote-only and
 approval-gated.
 
+## BCE-1959 Exchange Listing Boundary
+
+As of 2026-06-15, exchange pages and `/api/exchanges` depend on normalized
+`exchanges` and `exchange_project_listings` tables, introduced by
+`supabase/migrations/20260615_add_exchange_listing_model.sql`. The website API
+counts distinct active `tracked_projects` joined through active exchange
+listings and active exchanges. Average BCE Score excludes null
+`tracked_projects.maturity_score` values and returns null when no listed
+project has a score.
+
+The production Supabase schema checked during BCE-1959 implementation did not
+yet expose `public.exchanges` or `public.exchange_project_listings`; it only
+had the older referral-oriented `exchange_referrals` table. Real exchange count
+and average-score evidence therefore requires the migration to be applied
+through the approved remote path and a scoped listing backfill before release
+approval can cite representative venue counts.
+
+## BCE-1963 Exchange Page Contract and Migration No-Go
+
+As of 2026-06-15, the exchange list and detail pages must use
+`src/lib/repositories/exchanges.ts` and the normalized `exchanges` /
+`exchange_project_listings` contract. They must not fall back to the legacy
+`tracked_projects.category ilike %exchange%` token-category path.
+
+Local verification at workspace
+`/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+and SHA `910031e` confirmed the connected Supabase schema cache still lacks
+`public.exchange_project_listings`; `/api/exchanges` and representative detail
+APIs therefore return HTTP 500 until the migration is applied. Production
+release is no-go while this condition remains.
+
+Migration and backfill path:
+
+- Local/dev: apply `supabase/migrations/20260615_add_exchange_listing_model.sql`
+  to a local Supabase database or disposable development database, then run a
+  dry-run listing backfill that reports exchange row count, distinct listed
+  projects, and average BCE Score for at least two representative venues.
+- Remote/prod: production writes must follow the manifest remote-first policy.
+  Apply the migration only through the approved remote Supabase migration path
+  after board/release approval, then run a scoped service-role backfill.
+- Initial backfill: use `.github/workflows/exchange-listing-backfill.yml`.
+  The workflow runs in the GitHub `production` environment, defaults to
+  `dry_run`, validates a comma-separated CoinGecko exchange-id scope, uploads a
+  log artifact, and invokes `scripts/backfill-exchange-listings.ts`.
+  The script reads production `tracked_projects`, fetches CoinGecko
+  `/exchanges/{id}/tickers` as the production-available listing source, seeds
+  canonical `exchanges` rows, and upserts one active
+  `exchange_project_listings` row per exchange/project. Duplicate ticker pairs
+  collapse to one project listing; inactive/delisted exchanges/listings and
+  archived projects remain excluded by the API aggregation contract. Verify
+  `/api/exchanges`, two `/api/exchanges/{slug}/projects` endpoints,
+  `/ko/exchanges`, and two `/ko/exchanges/{slug}` pages before resuming release
+  validation.
+
 ## BCE-1938 Production Deployment Evidence
 
 As of 2026-06-02 07:55 KST, BCE-1937/BCE-1938 was deployed through
