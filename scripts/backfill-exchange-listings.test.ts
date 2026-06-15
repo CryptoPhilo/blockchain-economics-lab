@@ -10,7 +10,7 @@ import {
   parseRetryAfterMs,
   processExchangeBackfillTargets,
 } from './backfill-exchange-listings'
-import { CMC_TOP_30_EXCHANGES } from '../src/lib/exchange-top30'
+import { CMC_TOP_30_EXCHANGES, findCmcTop30ExchangeReference } from '../src/lib/exchange-top30'
 
 function makeFetchResponse(
   status: number,
@@ -56,6 +56,13 @@ describe('buildListingCandidates', () => {
         coingeckoId: null,
       }),
     ]))
+    expect(findCmcTop30ExchangeReference('coinbase')?.slug).toBe('coinbase')
+    expect(findCmcTop30ExchangeReference('gdax')?.slug).toBe('coinbase')
+    expect(findCmcTop30ExchangeReference('coinbase_exchange')?.slug).toBe('coinbase')
+    expect(findCmcTop30ExchangeReference('coinbase-exchange')?.slug).toBe('coinbase')
+    expect(findCmcTop30ExchangeReference('Coinbase Pro')?.slug).toBe('coinbase')
+    expect(findCmcTop30ExchangeReference('bybit_spot')?.slug).toBe('bybit')
+    expect(findCmcTop30ExchangeReference('Binance TR')?.coingeckoId).toBeNull()
   })
 
   it('builds CMC Top 30 backfill targets including zero-listing exchanges', () => {

@@ -13,7 +13,13 @@ export const CMC_TOP_30_EXCHANGE_SOURCE_URL = 'https://coinmarketcap.com/ko/rank
 
 export const CMC_TOP_30_EXCHANGES: CmcTop30ExchangeReference[] = [
   { cmcRank: 1, cmcName: 'Binance', slug: 'binance', coingeckoId: 'binance', aliases: ['Binance'] },
-  { cmcRank: 2, cmcName: 'Coinbase Exchange', slug: 'coinbase', coingeckoId: 'gdax', aliases: ['Coinbase', 'Coinbase Pro'] },
+  {
+    cmcRank: 2,
+    cmcName: 'Coinbase Exchange',
+    slug: 'coinbase',
+    coingeckoId: 'gdax',
+    aliases: ['Coinbase', 'Coinbase Pro', 'coinbase-pro', 'coinbase_exchange', 'coinbase-exchange', 'GDAX'],
+  },
   { cmcRank: 3, cmcName: 'Upbit', slug: 'upbit', coingeckoId: 'upbit', aliases: ['Upbit'] },
   { cmcRank: 4, cmcName: 'OKX', slug: 'okx', coingeckoId: 'okex', aliases: ['OKEx'] },
   { cmcRank: 5, cmcName: 'Bybit', slug: 'bybit', coingeckoId: 'bybit_spot', aliases: ['Bybit Spot'] },
@@ -45,11 +51,17 @@ export const CMC_TOP_30_EXCHANGES: CmcTop30ExchangeReference[] = [
 ]
 
 export function findCmcTop30ExchangeReference(value: string): CmcTop30ExchangeReference | null {
-  const normalized = value.trim().toLowerCase()
+  const normalized = normalizeExchangeIdentifier(value)
   return CMC_TOP_30_EXCHANGES.find((exchange) => (
-    exchange.slug.toLowerCase() === normalized
-    || exchange.coingeckoId?.toLowerCase() === normalized
-    || exchange.cmcName.toLowerCase() === normalized
-    || exchange.aliases.some((alias) => alias.toLowerCase() === normalized)
+    normalizeExchangeIdentifier(exchange.slug) === normalized
+    || normalizeExchangeIdentifier(exchange.coingeckoId) === normalized
+    || normalizeExchangeIdentifier(exchange.cmcName) === normalized
+    || exchange.aliases.some((alias) => normalizeExchangeIdentifier(alias) === normalized)
   )) ?? null
+}
+
+function normalizeExchangeIdentifier(value: string | null | undefined): string {
+  return typeof value === 'string'
+    ? value.trim().toLowerCase().replace(/[\s_]+/g, '-')
+    : ''
 }
