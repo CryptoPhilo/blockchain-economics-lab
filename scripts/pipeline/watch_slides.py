@@ -1826,6 +1826,15 @@ def _prune_stale_languages_for_pair(
             'status': 'prune_skipped_no_supabase',
             'error': 'supabase client unavailable',
         }]
+    if dry_run and str(project_id or '').startswith('dry-run-'):
+        print(f"  [DRY-RUN] stale language prune skipped for {rtype}/{slug}: dry-run project id")
+        return [{
+            'rtype': rtype,
+            'slug': slug,
+            'lang': None,
+            'status': 'prune_skipped_dry_run_project',
+            'error': 'dry-run project id',
+        }]
 
     db_type = DB_REPORT_TYPE[rtype]
     rows = sb.table('project_reports').select(

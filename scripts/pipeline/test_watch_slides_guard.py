@@ -3670,6 +3670,38 @@ def test_prune_stale_languages_dry_run_does_not_mutate_db_or_storage(ws):
     }
 
 
+def test_prune_stale_languages_dry_run_skips_synthetic_project_id(ws):
+    rows = [{
+        'id': 'report-1',
+        'project_id': 'dry-run-usdon',
+        'report_type': 'econ',
+        'gdrive_urls_by_lang': {'ko': 'drive-ko', 'de': 'drive-de'},
+        'slide_html_urls_by_lang': {'ko': 'slide-ko', 'de': 'slide-de'},
+    }]
+    storage = _FakeStorageClient()
+
+    results = ws._prune_stale_languages_for_pair(
+        _FakePruneSupabase(rows),
+        storage,
+        rtype='econ',
+        slug='us-dollar-tokenized-currency-ondo',
+        project_id='dry-run-us-dollar-tokenized-currency-ondo',
+        current_langs={'ko'},
+        dry_run=True,
+    )
+
+    assert rows[0]['gdrive_urls_by_lang'] == {'ko': 'drive-ko', 'de': 'drive-de'}
+    assert rows[0]['slide_html_urls_by_lang'] == {'ko': 'slide-ko', 'de': 'slide-de'}
+    assert storage.storage.bucket.removed == []
+    assert results == [{
+        'rtype': 'econ',
+        'slug': 'us-dollar-tokenized-currency-ondo',
+        'lang': None,
+        'status': 'prune_skipped_dry_run_project',
+        'error': 'dry-run project id',
+    }]
+
+
 def test_prune_stale_languages_skips_empty_current_language_set(ws):
     rows = [{
         'id': 'report-1',
