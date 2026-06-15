@@ -193,6 +193,39 @@ Migration and backfill path:
   `/ko/exchanges`, and two `/ko/exchanges/{slug}` pages before resuming release
   validation.
 
+## BCE-1971 Exchange Pages Production Deployment Evidence
+
+As of 2026-06-15, PR #203 deployed the exchange list/detail pages and exchange
+APIs to Vercel production after the production exchange listing migration and
+scoped `binance,gdax` backfill were completed.
+
+- Paperclip deployment approval:
+  `28077e9b-7d61-4ca5-90c2-d507dceccc08`.
+- BCE-1945 single-GitHub-account waiver:
+  `08b7c9f6-dc58-470a-a8f3-b19a279c996a`.
+- PR #203 merge commit on `main`:
+  `a6161e1764912cc9286b4de5feb0e2064e252035`.
+- The approved PR head `49ac038fc16e8fefc99c9dd73b03bf9ea324cdbd` and merged
+  main commit have the same Git tree:
+  `2bf85e86f467e70f1e4f52dbccfaf4da1dffed79`.
+- Production deploy workflow:
+  `https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27534546339`.
+- Vercel production deployment URL:
+  `https://blockchain-economics-o8qhpdq1c-michael-zhangs-projects-df54ac7d.vercel.app`.
+- Production alias: `https://www.bcelab.xyz`.
+- Remote verification passed in the deploy workflow: report publication policy,
+  pipeline verifier, runtime pipeline manifest, TypeScript, test suite, and
+  production build.
+- Post-deploy production verification returned HTTP 200 for `/api/exchanges`,
+  `/api/exchanges/gdax/projects`, `/api/exchanges/binance/projects`,
+  `/ko/exchanges`, `/en/exchanges`, `/ko/exchanges/gdax`, and
+  `/ko/exchanges/binance` on both the Vercel deployment URL and
+  `https://www.bcelab.xyz`.
+- `/api/exchanges` reported `binance` with 55 listed projects, average BCE Score
+  65.05, and 47 scored projects; `gdax` reported 76 listed projects, average
+  BCE Score 65.38, and 62 scored projects.
+- Detail APIs reported 55 Binance rows and 76 Coinbase Exchange rows.
+
 ## BCE-1938 Production Deployment Evidence
 
 As of 2026-06-02 07:55 KST, BCE-1937/BCE-1938 was deployed through
