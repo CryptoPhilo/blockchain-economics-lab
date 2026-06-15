@@ -1826,6 +1826,15 @@ def _prune_stale_languages_for_pair(
             'status': 'prune_skipped_no_supabase',
             'error': 'supabase client unavailable',
         }]
+    if dry_run and str(project_id or '').startswith('dry-run-'):
+        print(f"  [DRY-RUN] stale language prune skipped for {rtype}/{slug}: dry-run project id")
+        return [{
+            'rtype': rtype,
+            'slug': slug,
+            'lang': None,
+            'status': 'prune_skipped_dry_run_project',
+            'error': 'dry-run project id',
+        }]
 
     db_type = DB_REPORT_TYPE[rtype]
     rows = sb.table('project_reports').select(
@@ -2039,6 +2048,11 @@ RECONCILE_FILENAME_PREFIX_ALIASES: Dict[str, str] = {
     'bmx': 'bitmart-token',
     'bnb': 'binancecoin',
     'bnbchain': 'binancecoin',
+    'backpack': 'backpack-exchange',
+    'backpackexchange': 'backpack-exchange',
+    'bp': 'backpack-exchange',
+    'cards': 'collector-crypt',
+    'collectorcrypt': 'collector-crypt',
     'dai': 'dai',
     'flare': 'flare-networks',
     'flarenetwork': 'flare-networks',
@@ -2072,6 +2086,10 @@ RECONCILE_FILENAME_PREFIX_ALIASES: Dict[str, str] = {
     'falconfinance': 'falcon-finance',
     'falconusd': 'falcon-finance',
     'usdf': 'falcon-finance',
+    'usdon': 'us-dollar-tokenized-currency-ondo',
+    'usdontokenizedcurrency': 'us-dollar-tokenized-currency-ondo',
+    'usdollartokenizedcurrency': 'us-dollar-tokenized-currency-ondo',
+    'usdollartokenizedcurrencyondo': 'us-dollar-tokenized-currency-ondo',
     'usdai': 'usdai',
     'usualmoney': 'usual-usd',
     'usualprotocol': 'usual-usd',

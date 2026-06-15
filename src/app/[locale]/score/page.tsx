@@ -1,6 +1,5 @@
 import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 import { createProjectsRepository } from '@/lib/repositories/projects'
-import { reportSupportsLocale } from '@/lib/report-locale'
 import { pickLatestReport } from '@/lib/report-versioning'
 import type { ProjectReport } from '@/lib/types'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -23,6 +22,8 @@ const MAX_RANK = 500
 const REPORT_AVAILABILITY_QUERY_CHUNK_SIZE = 80
 const SCORE_HEADER_BACKGROUND_IMAGE = '/images/score-header-bg.png'
 export const MIN_CMC_CANONICAL_TOP_500_SNAPSHOT_ROWS = 500
+const SCOREBOARD_ENGLISH_ASSET_FALLBACK_LOCALES = new Set(['de', 'es', 'fr'])
+const SCOREBOARD_VISIBLE_REPORT_STATUSES = ['published', 'in_review'] as const
 const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'ethena-usde', slug: 'ethena' },
   { alias: 'usde', slug: 'ethena' },
@@ -83,14 +84,13 @@ type ReportAvailability = {
   maturityScore: number | null
 }
 
-const REPORT_TYPE_KEYS: ReportTypeKey[] = ['econ', 'maturity', 'forensic']
-
 type ScoreboardVisibleReportRow = {
   project_id: string
   report_type: ReportTypeKey
   id?: string
   version?: number
   is_latest?: boolean | null
+  status?: ProjectReport['status'] | null
   language?: ProjectReport['language'] | null
   published_at?: string | null
   updated_at?: string | null
@@ -302,35 +302,26 @@ function createFallbackReportAvailability(project: TrackedScoreboardProject | un
   }
 }
 
-function mergeReportAvailability(
+function mergeNonForensicFallback(
+  source: ReportAvailability,
   fallback: ReportAvailability,
-  ...sources: (ReportAvailability | undefined)[]
 ): ReportAvailability {
   const merged: ReportAvailability = {
-    reportTypes: [...fallback.reportTypes],
-    reportDates: { ...fallback.reportDates },
-    maturityScore: fallback.maturityScore,
+    reportTypes: [...source.reportTypes],
+    reportDates: { ...source.reportDates },
+    maturityScore: source.maturityScore ?? fallback.maturityScore,
   }
 
-  for (const source of sources) {
-    if (!source) continue
-
-    for (const reportType of source.reportTypes) {
-      if (!merged.reportTypes.includes(reportType)) {
-        merged.reportTypes.push(reportType)
-      }
+  for (const reportType of ['econ', 'maturity'] as const) {
+    if (!fallback.reportTypes.includes(reportType)) continue
+    if (!merged.reportTypes.includes(reportType)) {
+      merged.reportTypes.push(reportType)
     }
 
-    for (const reportType of REPORT_TYPE_KEYS) {
-      const sourceDate = source.reportDates[reportType]
-      const currentDate = merged.reportDates[reportType]
-      if (sourceDate && (!currentDate || new Date(sourceDate).getTime() > new Date(currentDate).getTime())) {
-        merged.reportDates[reportType] = sourceDate
-      }
-    }
-
-    if (source.maturityScore != null) {
-      merged.maturityScore = source.maturityScore
+    const fallbackDate = fallback.reportDates[reportType]
+    const currentDate = merged.reportDates[reportType]
+    if (fallbackDate && (!currentDate || new Date(fallbackDate).getTime() > new Date(currentDate).getTime())) {
+      merged.reportDates[reportType] = fallbackDate
     }
   }
 
@@ -343,7 +334,7 @@ function getReportAvailability(
   canonicalAvailability?: ReportAvailability,
 ): ReportAvailability {
   const fallback = createFallbackReportAvailability(project)
-  if (canonicalAvailability) return mergeReportAvailability(fallback, canonicalAvailability)
+  if (canonicalAvailability) return mergeNonForensicFallback(canonicalAvailability, fallback)
   const live = project?.id ? availabilityByProjectId?.get(project.id) : undefined
   if (!availabilityByProjectId) return fallback
   if (!live) {
@@ -354,7 +345,55 @@ function getReportAvailability(
     }
   }
 
-  return mergeReportAvailability(fallback, live)
+  return mergeNonForensicFallback(live, fallback)
+}
+
+function hasNonEmptyAssetValue(value: unknown): boolean {
+  if (typeof value === 'string') {
+    return value.trim().length > 0
+  }
+
+  if (Array.isArray(value)) {
+    return value.some(hasNonEmptyAssetValue)
+  }
+
+  return false
+}
+
+function hasUrlAssetEntry(value: unknown): boolean {
+  if (typeof value === 'string') {
+    return value.trim().length > 0
+  }
+
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const entry = value as { url?: unknown; download_url?: unknown }
+  return hasNonEmptyAssetValue(entry.url) || hasNonEmptyAssetValue(entry.download_url)
+}
+
+function hasScoreboardAssetForLocale(report: ScoreboardVisibleReportRow, locale: string): boolean {
+  if (!locale) return true
+
+  const gdriveUrls = report.gdrive_urls_by_lang as Record<string, unknown> | undefined
+  const fileUrls = report.file_urls_by_lang as Record<string, unknown> | undefined
+  const slideUrls = report.slide_html_urls_by_lang as Record<string, unknown> | undefined
+
+  return hasUrlAssetEntry(gdriveUrls?.[locale])
+    || hasUrlAssetEntry(fileUrls?.[locale])
+    || hasNonEmptyAssetValue(slideUrls?.[locale])
+}
+
+function reportIsVisibleOnScoreboard(report: ScoreboardVisibleReportRow, locale: string): boolean {
+  if (
+    report.status
+    && !SCOREBOARD_VISIBLE_REPORT_STATUSES.includes(
+      report.status as (typeof SCOREBOARD_VISIBLE_REPORT_STATUSES)[number],
+    )
+  ) return false
+  return hasScoreboardAssetForLocale(report, locale)
+    || (SCOREBOARD_ENGLISH_ASSET_FALLBACK_LOCALES.has(locale) && hasScoreboardAssetForLocale(report, 'en'))
 }
 
 function extractReportMaturityScore(report: ScoreboardVisibleReportRow): number | null {
@@ -415,7 +454,7 @@ export function buildReportAvailabilityByProjectId(
 
   for (const report of reports) {
     if (!report.project_id) continue
-    if (!reportSupportsLocale(report as ProjectReport, locale)) continue
+    if (!reportIsVisibleOnScoreboard(report, locale)) continue
     const key = `${report.project_id}:${report.report_type}`
     const latest = pickLatestReport([latestByProjectType.get(key), report].filter(Boolean) as ScoreboardVisibleReportRow[])
     if (latest) latestByProjectType.set(key, latest)
@@ -460,7 +499,7 @@ export function buildReportAvailabilityByProjectSlug(
     const cardData = report.card_data as Record<string, unknown> | null | undefined
     const slug = normalizeKey(report.tracked_projects?.slug) ?? normalizeKey(cardData?.slug)
     if (!slug) continue
-    if (!reportSupportsLocale(report as ProjectReport, locale)) continue
+    if (!reportIsVisibleOnScoreboard(report, locale)) continue
     const key = `${slug}:${report.report_type}`
     const latest = pickLatestReport(
       [latestByProjectType.get(key), report].filter(Boolean) as ScoreboardVisibleReportRowWithProjectSlug[],
@@ -520,6 +559,7 @@ export async function fetchVisibleReportsForScoreboard(
         'report_type',
         'version',
         'is_latest',
+        'status',
         'language',
         'published_at',
         'updated_at',
@@ -531,7 +571,7 @@ export async function fetchVisibleReportsForScoreboard(
       ].join(', '))
       .in('project_id', chunk)
       .in('report_type', ['econ', 'maturity', 'forensic'])
-      .in('status', ['published', 'coming_soon', 'in_review'])
+      .in('status', SCOREBOARD_VISIBLE_REPORT_STATUSES)
 
     if (error) {
       console.error('Failed to fetch scoreboard report availability', {
@@ -581,6 +621,7 @@ export async function fetchVisibleReportsForScoreboardByProjectSlugs(
         'report_type',
         'version',
         'is_latest',
+        'status',
         'language',
         'published_at',
         'updated_at',
@@ -593,7 +634,7 @@ export async function fetchVisibleReportsForScoreboardByProjectSlugs(
       ].join(', '))
       .in('tracked_projects.slug', chunk)
       .in('report_type', ['econ', 'maturity', 'forensic'])
-      .in('status', ['published', 'coming_soon', 'in_review'])
+      .in('status', SCOREBOARD_VISIBLE_REPORT_STATUSES)
 
     if (error) {
       console.error('Failed to fetch scoreboard canonical alias report availability', {
@@ -614,6 +655,7 @@ export async function fetchVisibleReportsForScoreboardByProjectSlugs(
         'report_type',
         'version',
         'is_latest',
+        'status',
         'language',
         'published_at',
         'updated_at',
@@ -626,7 +668,7 @@ export async function fetchVisibleReportsForScoreboardByProjectSlugs(
       ].join(', '))
       .in('card_data->>slug', chunk)
       .in('report_type', ['econ', 'maturity', 'forensic'])
-      .in('status', ['published', 'coming_soon', 'in_review'])
+      .in('status', SCOREBOARD_VISIBLE_REPORT_STATUSES)
 
     if (cardSlugError) {
       console.error('Failed to fetch scoreboard card slug report availability', {

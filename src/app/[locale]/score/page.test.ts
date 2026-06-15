@@ -1313,6 +1313,7 @@ describe('score page report availability policy', () => {
           {
             project_id: 'bitcoin-project',
             report_type: 'econ',
+            status: 'published',
             language: 'ko',
             published_at: '2026-05-01T00:00:00.000Z',
             gdrive_urls_by_lang: {
@@ -1334,9 +1335,35 @@ describe('score page report availability policy', () => {
     expect(reportSupabase.from).toHaveBeenCalledWith('project_reports')
     expect(query.in).toHaveBeenNthCalledWith(1, 'project_id', ['bitcoin-project'])
     expect(query.in).toHaveBeenNthCalledWith(2, 'report_type', ['econ', 'maturity', 'forensic'])
-    expect(query.in).toHaveBeenNthCalledWith(3, 'status', ['published', 'coming_soon', 'in_review'])
+    expect(query.in).toHaveBeenNthCalledWith(3, 'status', ['published', 'in_review'])
     expect(result.loaded).toBe(true)
     expect(result.reports).toHaveLength(1)
+  })
+
+  it('includes review-ready reports when they have localized assets', () => {
+    const availability = buildReportAvailabilityByProjectId([
+      {
+        project_id: 'review-project',
+        report_type: 'econ',
+        status: 'in_review',
+        language: 'ko',
+        published_at: null,
+        updated_at: '2026-06-15T00:00:00.000Z',
+        gdrive_urls_by_lang: {
+          ko: { url: 'https://drive.google.com/file/d/review-ko/view' },
+        },
+      },
+    ], 'ko')
+
+    expect(availability.get('review-project')).toEqual({
+      reportTypes: ['econ'],
+      reportDates: {
+        econ: '2026-06-15T00:00:00.000Z',
+        maturity: null,
+        forensic: null,
+      },
+      maturityScore: null,
+    })
   })
 
   it('counts PDF-only localized reports as available for scoreboard badges', () => {
@@ -1379,6 +1406,74 @@ describe('score page report availability policy', () => {
     ], 'ko')
 
     expect(availability.has('alpha-project')).toBe(false)
+  })
+
+  it('does not count coming-soon placeholder rows as scoreboard badges', () => {
+    const availability = buildReportAvailabilityByProjectId([
+      {
+        project_id: 'backpack-project',
+        report_type: 'forensic',
+        status: 'coming_soon',
+        language: 'ko',
+        published_at: null,
+        gdrive_urls_by_lang: null,
+        slide_html_urls_by_lang: null,
+      },
+    ], 'ko')
+
+    expect(availability.has('backpack-project')).toBe(false)
+  })
+
+  it('does not merge stale timestamp fallback over loaded slug availability', () => {
+    const trackedProjects = [
+      {
+        id: 'backpack-project',
+        name: 'Backpack',
+        slug: 'backpack-exchange',
+        symbol: 'BP',
+        category: 'Exchange',
+        market_cap_usd: 100,
+        coingecko_id: 'backpack-exchange',
+        cmc_id: 'backpack-exchange',
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: '2026-06-14T12:33:07.000Z',
+        last_maturity_report_at: null,
+        last_forensic_report_at: '2026-05-31T04:53:54.487754Z',
+      },
+    ]
+    const availabilityByProjectSlug = buildReportAvailabilityByProjectSlug([
+      {
+        project_id: 'backpack-project',
+        report_type: 'econ',
+        status: 'published',
+        language: 'ko',
+        published_at: '2026-06-14T12:33:07.000Z',
+        gdrive_urls_by_lang: {
+          ko: { url: 'https://drive.google.com/file/d/backpack-econ-ko/view' },
+        },
+        tracked_projects: {
+          slug: 'backpack-exchange',
+        },
+      },
+    ], 'ko')
+
+    const [row] = snapshotRowsToScoreRows(
+      [makeSnapshotRow(298, 'backpack-exchange')],
+      buildTrackedProjectLookup(trackedProjects),
+      new Map(),
+      availabilityByProjectSlug,
+    )
+
+    expect(row).toMatchObject({
+      slug: 'backpack-exchange',
+      reportTypes: ['econ'],
+      reportDates: {
+        econ: '2026-06-14T12:33:07.000Z',
+        maturity: null,
+        forensic: null,
+      },
+    })
   })
 
   it('renders active ECON availability for Bitcoin when a Korean localized asset exists', () => {
