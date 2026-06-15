@@ -1399,6 +1399,41 @@ def test_targeted_slide_aliases_match_rollbit_and_bitmart_prefixes(ws):
     )
 
 
+def test_targeted_slide_aliases_match_collector_and_backpack_prefixes(ws):
+    projects = [
+        {
+            'slug': 'collector-crypt',
+            'name': 'Collector Crypt',
+            'symbol': 'CARDS',
+            'aliases': [],
+        },
+        {
+            'slug': 'backpack-exchange',
+            'name': 'Backpack',
+            'symbol': 'BP',
+            'aliases': [],
+        },
+    ]
+
+    collector_terms = ws._drive_pdf_name_search_terms('collector-crypt', projects)
+    backpack_terms = ws._drive_pdf_name_search_terms('backpack-exchange', projects)
+
+    assert 'Collector Crypt' in collector_terms
+    assert 'Backpack' in backpack_terms
+    assert ws._name_matches_slug_hint(
+        'Collector_Crypt_MAT_ko.pdf',
+        ws._slug_hint_tokens('collector-crypt', projects),
+        filter_slug='collector-crypt',
+        projects=projects,
+    )
+    assert ws._name_matches_slug_hint(
+        'Backpack_MAT_ko.pdf',
+        ws._slug_hint_tokens('backpack-exchange', projects),
+        filter_slug='backpack-exchange',
+        projects=projects,
+    )
+
+
 def test_iter_targets_recurses_nested_folders(ws, monkeypatch):
     monkeypatch.setattr(ws, 'TYPE_FOLDER_IDS', {'econ': 'root-econ'})
     pdfs_by_parent = {
