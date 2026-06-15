@@ -241,6 +241,20 @@ the `exchange_listing_backfill` node. Production writes remain remote-only:
 dispatch `mode=dry_run` first, then `mode=apply` only after the relevant
 release/backfill approval covers the same scope.
 
+## BCE-1979 Exchange Top 30 Partial Apply Continuation
+
+As of 2026-06-15, CMC Top 30 exchange listing backfill apply is tolerant of
+partial progress when a mapped CoinGecko venue exhausts recoverable HTTP 429,
+408, or 5xx retries after the BCE-1978 retry policy. In `--cmc-top30` mode, the
+script records the venue as a skipped listing fetch, preserves the seeded CMC
+exchange row/evidence at zero listings, and continues processing remaining Top
+30 venues.
+
+Explicit scoped `--exchange` backfills remain fail-fast on fetch exhaustion.
+The stdout evidence summary reports seeded exchange count, listing-backfilled
+exchange count, fetch-failed/skipped exchange count, and skipped exchange slugs
+with reasons.
+
 ## BCE-1938 Production Deployment Evidence
 
 As of 2026-06-02 07:55 KST, BCE-1937/BCE-1938 was deployed through

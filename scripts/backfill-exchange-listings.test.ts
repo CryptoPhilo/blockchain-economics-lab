@@ -4,9 +4,11 @@ import {
   buildEvidence,
   buildExchangeTargets,
   buildListingCandidates,
+  CoinGeckoFetchError,
   fetchCoinGeckoExchange,
   getCoinGeckoRetryDelayMs,
   parseRetryAfterMs,
+  processExchangeBackfillTargets,
 } from './backfill-exchange-listings'
 import { CMC_TOP_30_EXCHANGES } from '../src/lib/exchange-top30'
 
@@ -242,6 +244,7 @@ describe('buildListingCandidates', () => {
     expect(parseRetryAfterMs('120', nowMs)).toBe(60000)
     expect(parseRetryAfterMs('Mon, 15 Jun 2026 00:00:05 GMT', nowMs)).toBe(5000)
     expect(parseRetryAfterMs('not-a-date', nowMs)).toBeNull()
+    expect(getCoinGeckoRetryDelayMs(1, '1', nowMs)).toBe(1500)
     expect(getCoinGeckoRetryDelayMs(3, null, nowMs)).toBe(6000)
   })
 
@@ -265,11 +268,78 @@ describe('buildListingCandidates', () => {
     })
 
     expect(fetchImpl).toHaveBeenCalledTimes(2)
-    expect(sleeps).toEqual([1000])
+    expect(sleeps).toEqual([1500])
     expect(result).toEqual({
       exchangeName: 'Binance',
       tickers: [{ coin_id: 'bitcoin', base: 'BTC', target: 'USDT' }],
     })
+  })
+
+  it('continues CMC Top 30 processing when one mapped venue exhausts retryable fetches', async () => {
+    const [failedTarget, continuedTarget] = buildExchangeTargets({
+      exchanges: ['lbank', 'binance'],
+      seedCmcTop30: false,
+    })
+    expect(failedTarget).toEqual(expect.objectContaining({ exchangeSlug: 'lbank', coingeckoId: 'lbank' }))
+    expect(continuedTarget).toEqual(expect.objectContaining({ exchangeSlug: 'binance', coingeckoId: 'binance' }))
+
+    const fetchExchange = jest.fn()
+      .mockRejectedValueOnce(new CoinGeckoFetchError('lbank', 1, 429, true))
+      .mockResolvedValueOnce({
+        exchangeName: 'Binance',
+        tickers: [{ coin_id: 'bitcoin', base: 'BTC', target: 'USDT', converted_volume: { usd: 10 } }],
+      })
+
+    const rows = await processExchangeBackfillTargets(
+      [failedTarget, continuedTarget],
+      [{
+        id: 'bitcoin-id',
+        slug: 'bitcoin',
+        name: 'Bitcoin',
+        symbol: 'BTC',
+        coingecko_id: 'bitcoin',
+        cmc_rank: 1,
+        maturity_score: 80,
+        status: 'active',
+      }],
+      1,
+      0,
+      fetchExchange,
+      async () => undefined,
+      true,
+    )
+
+    expect(fetchExchange).toHaveBeenCalledTimes(2)
+    expect(rows[0]).toEqual(expect.objectContaining({
+      target: expect.objectContaining({ exchangeSlug: 'lbank' }),
+      candidates: [],
+      skippedFetch: {
+        exchangeSlug: 'lbank',
+        coingeckoId: 'lbank',
+        reason: 'CoinGecko lbank page 1 failed with HTTP 429',
+      },
+    }))
+    expect(rows[1]).toEqual(expect.objectContaining({
+      target: expect.objectContaining({ exchangeSlug: 'binance' }),
+      candidates: [expect.objectContaining({ project: expect.objectContaining({ slug: 'bitcoin' }) })],
+      skippedFetch: null,
+    }))
+  })
+
+  it('keeps explicit exchange backfills fail-fast even when the venue is in the CMC Top 30 snapshot', async () => {
+    const [target] = buildExchangeTargets({ exchanges: ['lbank'], seedCmcTop30: false })
+    const fetchExchange = jest.fn()
+      .mockRejectedValueOnce(new CoinGeckoFetchError('lbank', 1, 429, true))
+
+    await expect(processExchangeBackfillTargets(
+      [target],
+      [],
+      1,
+      0,
+      fetchExchange,
+      async () => undefined,
+      false,
+    )).rejects.toThrow('CoinGecko lbank page 1 failed with HTTP 429')
   })
 
   it('documents the remote Top 30 workflow and runtime manifest contract', () => {
