@@ -1434,6 +1434,33 @@ def test_targeted_slide_aliases_match_collector_and_backpack_prefixes(ws):
     )
 
 
+def test_targeted_slide_aliases_match_usdon_prefix(ws):
+    projects = [
+        {
+            'slug': 'us-dollar-tokenized-currency-ondo',
+            'name': 'U.S. Dollar Tokenized Currency (Ondo)',
+            'symbol': 'USDON',
+            'aliases': [],
+        },
+    ]
+
+    terms = ws._drive_pdf_name_search_terms('us-dollar-tokenized-currency-ondo', projects)
+
+    assert 'USDON' in terms
+    assert ws._name_matches_slug_hint(
+        'USDON_ECON_ko.pdf',
+        ws._slug_hint_tokens('us-dollar-tokenized-currency-ondo', projects),
+        filter_slug='us-dollar-tokenized-currency-ondo',
+        projects=projects,
+    )
+    assert ws._name_matches_slug_hint(
+        'USDON_MAT_ko.pdf',
+        ws._slug_hint_tokens('us-dollar-tokenized-currency-ondo', projects),
+        filter_slug='us-dollar-tokenized-currency-ondo',
+        projects=projects,
+    )
+
+
 def test_iter_targets_recurses_nested_folders(ws, monkeypatch):
     monkeypatch.setattr(ws, 'TYPE_FOLDER_IDS', {'econ': 'root-econ'})
     pdfs_by_parent = {

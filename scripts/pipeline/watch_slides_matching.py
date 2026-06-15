@@ -130,6 +130,13 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
         'circle internet group',
         'circle tokenized stock',
     ],
+    'us-dollar-tokenized-currency-ondo': [
+        'usdon',
+        'usd on',
+        'u.s. dollar tokenized currency',
+        'us dollar tokenized currency',
+        'us dollar tokenized currency ondo',
+    ],
     'rollbit-coin': ['rollbit', 'rlb'],
     'bitmart-token': ['bitmart', 'bmx'],
     'collector-crypt': ['collector crypt', 'collector_crypt', 'collectorcrypt', 'cards'],
