@@ -7,6 +7,10 @@ function readRouteSource(relativePath: string) {
   return readFileSync(join(appDir, relativePath), 'utf8')
 }
 
+function readApiRouteSource() {
+  return readFileSync(join(process.cwd(), 'src/app/api/exchanges/[exchange]/projects/route.ts'), 'utf8')
+}
+
 describe('exchange page data contract', () => {
   it('keeps exchange pages aligned to the exchange listing repository', () => {
     const source = [
@@ -21,5 +25,14 @@ describe('exchange page data contract', () => {
     expect(source).not.toContain('.ilike("category"')
     expect(source).toContain('BCE Exchange Score')
     expect(source).not.toContain('averageBceScore')
+  })
+
+  it('keeps exchange detail UI/API calls on the locale-aware availability path', () => {
+    const detailPageSource = readRouteSource('[slug]/page.tsx')
+    const apiRouteSource = readApiRouteSource()
+
+    expect(detailPageSource).toContain('getExchangeProjects(slug, locale)')
+    expect(apiRouteSource).toContain('getExchangeProjects(exchange, locale)')
+    expect(apiRouteSource).toContain('resolveExchangeProjectsLocale(request)')
   })
 })

@@ -44,7 +44,7 @@ export default async function ExchangeDetailPage({
   let loadFailed = false
 
   try {
-    const result = await exchangesRepository.getExchangeProjects(slug)
+    const result = await exchangesRepository.getExchangeProjects(slug, locale)
     exchange = result.exchange
     listingRows = result.projects
     bceExchangeScore = result.bceExchangeScore
