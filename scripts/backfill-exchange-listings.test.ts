@@ -1,9 +1,35 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
-import { buildEvidence, buildExchangeTargets, buildListingCandidates } from './backfill-exchange-listings'
+import {
+  buildEvidence,
+  buildExchangeTargets,
+  buildListingCandidates,
+  fetchCoinGeckoExchange,
+  getCoinGeckoRetryDelayMs,
+  parseRetryAfterMs,
+} from './backfill-exchange-listings'
 import { CMC_TOP_30_EXCHANGES } from '../src/lib/exchange-top30'
 
+function makeFetchResponse(
+  status: number,
+  body: unknown,
+  headers: Record<string, string> = {},
+): Response {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    headers: {
+      get: (name: string) => headers[name.toLowerCase()] ?? null,
+    },
+    json: async () => body,
+  } as Response
+}
+
 describe('buildListingCandidates', () => {
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
   it('keeps the CMC Top 30 snapshot complete with stable slugs and mappings', () => {
     expect(CMC_TOP_30_EXCHANGES).toHaveLength(30)
     expect(CMC_TOP_30_EXCHANGES.map((exchange) => exchange.cmcRank)).toEqual(
@@ -209,6 +235,43 @@ describe('buildListingCandidates', () => {
     }))
   })
 
+  it('parses CoinGecko Retry-After headers for bounded backoff', () => {
+    const nowMs = Date.parse('2026-06-15T00:00:00.000Z')
+
+    expect(parseRetryAfterMs('2', nowMs)).toBe(2000)
+    expect(parseRetryAfterMs('120', nowMs)).toBe(60000)
+    expect(parseRetryAfterMs('Mon, 15 Jun 2026 00:00:05 GMT', nowMs)).toBe(5000)
+    expect(parseRetryAfterMs('not-a-date', nowMs)).toBeNull()
+    expect(getCoinGeckoRetryDelayMs(3, null, nowMs)).toBe(6000)
+  })
+
+  it('retries recoverable CoinGecko 429 responses before reading tickers', async () => {
+    jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const sleeps: number[] = []
+    const fetchImpl = jest.fn()
+      .mockResolvedValueOnce(makeFetchResponse(429, { error: 'rate limited' }, { 'retry-after': '1' }))
+      .mockResolvedValueOnce(makeFetchResponse(200, {
+        name: 'Binance',
+        tickers: [{ coin_id: 'bitcoin', base: 'BTC', target: 'USDT' }],
+      }))
+
+    const result = await fetchCoinGeckoExchange('binance', 1, {
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      sleepMs: async (milliseconds) => {
+        sleeps.push(milliseconds)
+      },
+      nowMs: () => Date.parse('2026-06-15T00:00:00.000Z'),
+      requestDelayMs: 0,
+    })
+
+    expect(fetchImpl).toHaveBeenCalledTimes(2)
+    expect(sleeps).toEqual([1000])
+    expect(result).toEqual({
+      exchangeName: 'Binance',
+      tickers: [{ coin_id: 'bitcoin', base: 'BTC', target: 'USDT' }],
+    })
+  })
+
   it('documents the remote Top 30 workflow and runtime manifest contract', () => {
     const workflow = readFileSync(join(process.cwd(), '.github/workflows/exchange-listing-backfill.yml'), 'utf8')
     const manifest = JSON.parse(readFileSync(join(process.cwd(), 'pipelines/bcelab-runtime-pipelines.json'), 'utf8'))
@@ -216,6 +279,8 @@ describe('buildListingCandidates', () => {
     expect(workflow).toContain('seed_cmc_top30:')
     expect(workflow).toContain('SEED_CMC_TOP30')
     expect(workflow).toContain('args+=(--cmc-top30)')
+    expect(workflow).toContain('request_delay_ms:')
+    expect(workflow).toContain('--request-delay-ms')
     expect(workflow).toContain('exchanges is required')
     expect(workflow).toContain('at most 5 exchanges may be backfilled in one run')
 
@@ -230,6 +295,7 @@ describe('buildListingCandidates', () => {
       seedCmcTop30: expect.stringContaining('seed_cmc_top30'),
       exchanges: expect.stringContaining('Optional'),
       pageLimit: expect.stringContaining('1 to 10'),
+      requestDelayMs: expect.stringContaining('0 to 60000'),
     }))
   })
 })
