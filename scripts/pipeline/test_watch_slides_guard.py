@@ -1364,6 +1364,41 @@ def test_name_slug_hint_prefers_explicit_prefix_alias_for_usdai(ws):
     )
 
 
+def test_targeted_slide_aliases_match_rollbit_and_bitmart_prefixes(ws):
+    projects = [
+        {
+            'slug': 'rollbit-coin',
+            'name': 'Rollbit Coin',
+            'symbol': 'RLB',
+            'aliases': [],
+        },
+        {
+            'slug': 'bitmart-token',
+            'name': 'BitMart Token',
+            'symbol': 'BMX',
+            'aliases': [],
+        },
+    ]
+
+    rollbit_terms = ws._drive_pdf_name_search_terms('rollbit-coin', projects)
+    bitmart_terms = ws._drive_pdf_name_search_terms('bitmart-token', projects)
+
+    assert 'Rollbit' in rollbit_terms
+    assert 'Bitmart' in bitmart_terms
+    assert ws._name_matches_slug_hint(
+        'Rollbit_ECON_ko.pdf',
+        ws._slug_hint_tokens('rollbit-coin', projects),
+        filter_slug='rollbit-coin',
+        projects=projects,
+    )
+    assert ws._name_matches_slug_hint(
+        'Bitmart_MAT_ko.pdf',
+        ws._slug_hint_tokens('bitmart-token', projects),
+        filter_slug='bitmart-token',
+        projects=projects,
+    )
+
+
 def test_iter_targets_recurses_nested_folders(ws, monkeypatch):
     monkeypatch.setattr(ws, 'TYPE_FOLDER_IDS', {'econ': 'root-econ'})
     pdfs_by_parent = {
