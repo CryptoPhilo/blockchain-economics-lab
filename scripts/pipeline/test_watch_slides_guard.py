@@ -3573,6 +3573,40 @@ def test_prune_stale_languages_dry_run_does_not_mutate_db_or_storage(ws):
     }
 
 
+def test_prune_stale_languages_dry_run_skips_synthetic_project_id(ws):
+    rows = [{
+        'id': 'report-1',
+        'project_id': 'dry-run-solstice-eusx',
+        'report_type': 'maturity',
+        'gdrive_urls_by_lang': {'ko': 'drive-ko', 'en': 'drive-en'},
+        'slide_html_urls_by_lang': {'ko': 'slide-ko', 'en': 'slide-en'},
+    }]
+    storage = _FakeStorageClient()
+
+    results = ws._prune_stale_languages_for_pair(
+        _FakePruneSupabase(rows),
+        storage,
+        rtype='mat',
+        slug='solstice-eusx',
+        project_id='dry-run-solstice-eusx',
+        current_langs={'ko', 'en'},
+        dry_run=True,
+    )
+
+    assert results == [{
+        'rtype': 'mat',
+        'slug': 'solstice-eusx',
+        'lang': None,
+        'status': 'prune_skipped_dry_run_synthetic_project_id',
+        'project_id': 'dry-run-solstice-eusx',
+        'current_langs': ['en', 'ko'],
+        'error': 'dry-run synthetic project id cannot be queried as UUID',
+    }]
+    assert rows[0]['gdrive_urls_by_lang'] == {'ko': 'drive-ko', 'en': 'drive-en'}
+    assert rows[0]['slide_html_urls_by_lang'] == {'ko': 'slide-ko', 'en': 'slide-en'}
+    assert storage.storage.bucket.removed == []
+
+
 def test_prune_stale_languages_skips_empty_current_language_set(ws):
     rows = [{
         'id': 'report-1',
