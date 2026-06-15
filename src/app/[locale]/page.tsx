@@ -4,7 +4,6 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getLocalizedField, type Locale } from '@/lib/types'
 import ProductCard from '@/components/ProductCard'
 import DisclaimerBanner from '@/components/DisclaimerBanner'
-import SubscribeForm from '@/components/SubscribeForm'
 import LatestReportShowcase from '@/components/LatestReportShowcase'
 
 const SHOWCASE_PRODUCT_BACKFILL_LIMIT = 24
@@ -98,17 +97,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <p className="text-lg text-gray-400 max-w-3xl mx-auto mb-8">
             {t('home.heroSubtitle')}
           </p>
-          <SubscribeForm
-            locale={locale}
-            source="homepage"
-            className="mb-12"
-            translations={{
-              placeholder: t('subscribe.emailPlaceholder'),
-              cta: t('home.freeNewsletter'),
-              success: t('subscribe.checkEmail'),
-            }}
-          />
-
           {/* 3 Report Types */}
           <div className="relative max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
@@ -186,32 +174,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </div>
         </section>
       )}
-
-      {/* Newsletter CTA */}
-      <section id="newsletter" className="max-w-6xl mx-auto px-6 pb-20">
-        <div className="rounded-2xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 p-10 text-center">
-          <h3 className="text-2xl font-bold mb-4">
-            {t('home.newsletterTitle')}
-          </h3>
-          <p className="text-gray-400 mb-6">
-            {t('home.newsletterSubtitle')}
-          </p>
-          <SubscribeForm
-            locale={locale}
-            source="newsletter"
-            translations={{
-              placeholder: t('subscribe.emailPlaceholder'),
-              cta: t('home.subscribeFree'),
-              success: t('subscribe.checkEmail'),
-            }}
-          />
-          <div className="flex justify-center gap-8 mt-6 text-sm text-gray-500">
-            <span>📊 {t('home.weeklyPulse')}</span>
-            <span>🔍 {t('home.deepDive')}</span>
-            <span>🚨 {t('home.forensicAlerts')}</span>
-          </div>
-        </div>
-      </section>
 
       {/* Disclaimer */}
       <section className="max-w-6xl mx-auto px-6 pb-10">
