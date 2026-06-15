@@ -10,7 +10,6 @@ import { createClient } from '@supabase/supabase-js'
 import { config } from 'dotenv'
 import { existsSync } from 'fs'
 import { join } from 'path'
-import { pathToFileURL } from 'url'
 
 type ProjectStatus = 'active' | 'monitoring_only' | string
 
@@ -412,7 +411,7 @@ async function main(): Promise<void> {
   console.log(JSON.stringify(evidence, null, 2))
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.env.JEST_WORKER_ID === undefined) {
   main().catch((error) => {
     console.error(error instanceof Error ? error.message : error)
     process.exit(1)
