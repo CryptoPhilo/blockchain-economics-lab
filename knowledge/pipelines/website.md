@@ -303,6 +303,58 @@ Evidence:
   `round(px`, `\times`, and `{i-1}` absent. The remaining `투자 관점` label
   rendered safe natural-language copy: `리스크: HyperEVM 앱 생태계가 실제 수요를 만들지 못하면, 시장은 Hyperliquid를 “수익성 높은 perp DEX”로만 재평가할 수 있다.`
 
+As of BCE-1980 on 2026-06-15, `/api/exchanges` suppresses active legacy alias
+exchange rows when a canonical CMC Top 30 row exists. The observed production
+case was the BCE-1963 legacy Coinbase row `gdax` remaining active after the
+BCE-1972/BCE-1975 canonical Top 30 row `coinbase` was seeded with CoinGecko id
+`gdax`, causing 31 active aggregate rows. `src/lib/repositories/exchanges.ts`
+now aggregates exchange list rows by the CMC alias key, prefers the canonical
+Top 30 exchange row for display, and deduplicates listed projects across legacy
+and canonical rows. Detail lookup remains alias-compatible: requests such as
+`/api/exchanges/gdax/projects` are expected to resolve through the canonical
+Coinbase exchange mapping while the legacy row remains active. Production DB
+cleanup, if still desired, must use the approved remote-first
+`exchange-listing-backfill`/migration path after dry-run evidence; local
+production writes remain forbidden.
+
+Final BCE-1963 verification on 2026-06-15 at workspace
+`/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+and SHA `cbbe92d` passed after the Top 30, BCE Exchange Score, report badge,
+and alias-dedup blockers were resolved:
+
+- `/api/exchanges` returned HTTP 200 with 30 rows and all CMC Top 30 names.
+- Aggregate rows expose `bceExchangeScore`,
+  `bceExchangeScoreFormulaVersion=bce-exchange-score-v1`, and
+  `bceExchangeScoreComponents`; `averageBceScore` is not exposed as the
+  representative exchange score.
+- Representative aggregates: Binance `listedProjectCount=60`,
+  `scoredProjectCount=50`, `bceExchangeScore=65.67`; Coinbase Exchange
+  `listedProjectCount=80`, `scoredProjectCount=65`,
+  `bceExchangeScore=64.69`; MEXC `listedProjectCount=80`,
+  `scoredProjectCount=64`, `bceExchangeScore=63.77`; Binance TR
+  `listedProjectCount=0`, `bceExchangeScore=null`.
+- Detail APIs returned HTTP 200 for `/api/exchanges/binance/projects?locale=ko`,
+  `/api/exchanges/coinbase/projects?locale=ko`, and
+  `/api/exchanges/mexc/projects?locale=ko`; their top-level exchange score
+  fields matched the aggregate score contract.
+- Binance detail retained NEAR report availability:
+  `reportTypes=econ,maturity`.
+- HTML checks returned HTTP 200 for `/ko/exchanges`, `/ko/exchanges/binance`,
+  and `/ko/score`; `/ko/exchanges` rendered Top 30 representatives including
+  Binance, Coinbase Exchange, MEXC, and Deepcoin, while `/ko/exchanges/binance`
+  and `/ko/score` both rendered NEAR ECON/MAT badge evidence.
+
+As of BCE-1981 on 2026-06-15, the Coinbase/GDAX alias contract was tightened
+at the shared CMC Top 30 reference boundary. `src/lib/exchange-top30.ts` maps
+`coinbase`, `gdax`, `coinbase-pro`, `coinbase_exchange`, `coinbase-exchange`,
+and display-name variants to the canonical CMC Coinbase Exchange row. Runtime
+exchange aggregation and detail helpers continue to union listings by canonical
+exchange key, so duplicate legacy rows do not change listed-project counts or
+`BCE Exchange Score`. No local production database cleanup was performed; any
+physical merge/archive of legacy exchange rows remains subject to the
+remote-first production-write policy and the approved
+`.github/workflows/exchange-listing-backfill.yml` path.
+
 ## BCE-1869 Relationship
 
 BCE-1869 affected the report-publishing watcher boundary, not this website

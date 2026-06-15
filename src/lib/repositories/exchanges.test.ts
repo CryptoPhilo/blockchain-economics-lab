@@ -25,6 +25,15 @@ const coinbase = {
   country: 'US',
 }
 
+const legacyGdax = {
+  id: 'exchange-gdax',
+  slug: 'gdax',
+  name: 'Coinbase Exchange',
+  status: 'active',
+  website_url: null,
+  country: 'US',
+}
+
 const bybit = {
   id: 'exchange-bybit',
   slug: 'bybit',
@@ -225,6 +234,37 @@ describe('exchange repository aggregation helpers', () => {
     ])
   })
 
+  it('suppresses legacy CMC alias exchange duplicates in aggregate lists', () => {
+    const aggregates = buildExchangeAggregates({
+      exchanges: [legacyGdax, coinbase],
+      listings: [
+        {
+          listing_status: 'active',
+          exchange: legacyGdax,
+          project: project({ id: 'bitcoin', slug: 'bitcoin', name: 'Bitcoin', cmc_rank: 1, maturity_score: 80 }),
+        },
+        {
+          listing_status: 'active',
+          exchange: coinbase,
+          project: project({ id: 'bitcoin', slug: 'bitcoin', name: 'Bitcoin', cmc_rank: 1, maturity_score: 80 }),
+        },
+        {
+          listing_status: 'active',
+          exchange: coinbase,
+          project: project({ id: 'ethereum', slug: 'ethereum', name: 'Ethereum', cmc_rank: 2, maturity_score: 70 }),
+        },
+      ],
+    })
+
+    expect(aggregates).toEqual([
+      expect.objectContaining({
+        slug: 'coinbase',
+        name: 'Coinbase',
+        listedProjectCount: 2,
+      }),
+    ])
+  })
+
   it('sorts non-Top-30 exchanges by BCE Exchange Score before listing count', () => {
     const aggregates = buildExchangeAggregates({
       exchanges: [alpha, beta],
@@ -373,5 +413,43 @@ describe('exchange repository aggregation helpers', () => {
 
     expect(detail.exchange?.slug).toBe('coinbase')
     expect(detail.projects).toHaveLength(1)
+  })
+
+  it('keeps legacy gdax detail compatibility while preferring the canonical Coinbase exchange row', () => {
+    const detail = buildExchangeProjectRows([
+      {
+        listing_status: 'active',
+        exchange: legacyGdax,
+        project: project({ id: 'bitcoin', slug: 'bitcoin', name: 'Bitcoin', maturity_score: 80 }),
+      },
+      {
+        listing_status: 'active',
+        exchange: coinbase,
+        project: project({ id: 'bitcoin', slug: 'bitcoin', name: 'Bitcoin', maturity_score: 80 }),
+      },
+    ], 'gdax')
+
+    expect(detail.exchange?.slug).toBe('coinbase')
+    expect(detail.projects).toEqual([
+      expect.objectContaining({ slug: 'bitcoin' }),
+    ])
+  })
+
+  it('normalizes Coinbase source identifier variants to the same canonical detail row', () => {
+    const detail = buildExchangeProjectRows([
+      {
+        listing_status: 'active',
+        exchange: legacyGdax,
+        project: project({ id: 'bitcoin', slug: 'bitcoin', name: 'Bitcoin', maturity_score: 80 }),
+      },
+      {
+        listing_status: 'active',
+        exchange: coinbase,
+        project: project({ id: 'ethereum', slug: 'ethereum', name: 'Ethereum', maturity_score: 70 }),
+      },
+    ], 'coinbase_exchange')
+
+    expect(detail.exchange?.slug).toBe('coinbase')
+    expect(detail.projects.map((row) => row.slug)).toEqual(['bitcoin', 'ethereum'])
   })
 })
