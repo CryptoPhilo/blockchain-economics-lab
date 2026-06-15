@@ -1,0 +1,300 @@
+import {
+  applyProjectReportAvailabilityAliases,
+  buildExchangeAggregates,
+  buildExchangeProjectRows,
+  type ExchangeProjectRecord,
+  type ExchangeListingRecord,
+} from './exchanges'
+
+const binance = {
+  id: 'exchange-binance',
+  slug: 'binance',
+  name: 'Binance',
+  status: 'active',
+  website_url: 'https://www.binance.com',
+  country: null,
+}
+
+const coinbase = {
+  id: 'exchange-coinbase',
+  slug: 'coinbase',
+  name: 'Coinbase',
+  status: 'active',
+  website_url: null,
+  country: 'US',
+}
+
+const bybit = {
+  id: 'exchange-bybit',
+  slug: 'bybit',
+  name: 'Bybit',
+  status: 'active',
+  website_url: null,
+  country: null,
+}
+
+const inactiveExchange = {
+  id: 'exchange-archived',
+  slug: 'archived',
+  name: 'Archived',
+  status: 'archived',
+  website_url: null,
+  country: null,
+}
+
+function project(overrides: Partial<ExchangeProjectRecord> & Pick<ExchangeProjectRecord, 'id' | 'slug' | 'name'>) {
+  const { id, name, slug, ...rest } = overrides
+
+  return {
+    id,
+    name,
+    slug,
+    symbol: slug.slice(0, 4).toUpperCase(),
+    category: 'L1',
+    market_cap_usd: 0,
+    coingecko_id: null,
+    cmc_id: null,
+    aliases: null,
+    maturity_score: null,
+    last_econ_report_at: null,
+    last_maturity_report_at: null,
+    last_forensic_report_at: null,
+    status: 'active',
+    ...rest,
+  }
+}
+
+const rows: ExchangeListingRecord[] = [
+  {
+    listing_status: 'active',
+    exchange: binance,
+    project: project({
+      id: 'bitcoin',
+      slug: 'bitcoin',
+      name: 'Bitcoin',
+      symbol: 'BTC',
+      market_cap_usd: 100,
+      maturity_score: 80,
+      last_econ_report_at: '2026-06-01T00:00:00Z',
+    }),
+  },
+  {
+    listing_status: 'active',
+    exchange: binance,
+    project: project({
+      id: 'ethereum',
+      slug: 'ethereum',
+      name: 'Ethereum',
+      symbol: 'ETH',
+      market_cap_usd: 90,
+      maturity_score: null,
+      status: 'monitoring_only',
+    }),
+  },
+  {
+    listing_status: 'active',
+    exchange: binance,
+    project: project({
+      id: 'bitcoin',
+      slug: 'bitcoin',
+      name: 'Bitcoin duplicate pair',
+      symbol: 'BTC',
+      market_cap_usd: 100,
+      maturity_score: 40,
+    }),
+  },
+  {
+    listing_status: 'delisted',
+    exchange: binance,
+    project: project({ id: 'solana', slug: 'solana', name: 'Solana', maturity_score: 70 }),
+  },
+  {
+    listing_status: 'active',
+    exchange: coinbase,
+    project: project({ id: 'bitcoin', slug: 'bitcoin', name: 'Bitcoin', maturity_score: 80 }),
+  },
+  {
+    listing_status: 'active',
+    exchange: coinbase,
+    project: project({ id: 'ethereum', slug: 'ethereum', name: 'Ethereum', maturity_score: 'not-a-score' }),
+  },
+  {
+    listing_status: 'active',
+    exchange: inactiveExchange,
+    project: project({ id: 'aave', slug: 'aave', name: 'Aave', maturity_score: 50 }),
+  },
+  {
+    listing_status: 'active',
+    exchange: coinbase,
+    project: project({ id: 'archived-project', slug: 'old', name: 'Old', status: 'archived' }),
+  },
+]
+
+describe('exchange repository aggregation helpers', () => {
+  it('deduplicates listings and excludes null scores from the BCE average', () => {
+    const aggregates = buildExchangeAggregates({
+      exchanges: [binance, coinbase, bybit],
+      listings: rows,
+    })
+
+    expect(aggregates).toEqual([
+      expect.objectContaining({
+        slug: 'binance',
+        listedProjectCount: 2,
+        averageBceScore: 80,
+        scoredProjectCount: 1,
+      }),
+      expect.objectContaining({
+        slug: 'coinbase',
+        listedProjectCount: 2,
+        averageBceScore: 80,
+        scoredProjectCount: 1,
+      }),
+      expect.objectContaining({
+        slug: 'bybit',
+        listedProjectCount: 0,
+        averageBceScore: null,
+        scoredProjectCount: 0,
+      }),
+    ])
+  })
+
+  it('keeps CMC Top 30 exchanges visible when no listing rows match', () => {
+    const aggregates = buildExchangeAggregates({
+      exchanges: [bybit],
+      listings: [],
+    })
+
+    expect(aggregates).toEqual([
+      expect.objectContaining({
+        slug: 'bybit',
+        name: 'Bybit',
+        listedProjectCount: 0,
+        averageBceScore: null,
+      }),
+    ])
+  })
+
+  it('returns Top500-compatible project rows for a slug or exact name match', () => {
+    const detail = buildExchangeProjectRows(rows, 'Binance')
+
+    expect(detail.exchange?.slug).toBe('binance')
+    expect(detail.projects).toEqual([
+      expect.objectContaining({
+        rank: 1,
+        slug: 'bitcoin',
+        score: 80,
+        reportTypes: ['econ'],
+      }),
+      expect.objectContaining({
+        rank: 2,
+        slug: 'ethereum',
+        score: null,
+        reportTypes: [],
+      }),
+    ])
+  })
+
+  it('uses live localized report availability when it is provided', () => {
+    const detail = buildExchangeProjectRows(rows, 'Binance', new Map([
+      ['bitcoin', {
+        reportTypes: ['econ', 'maturity'],
+        reportDates: {
+          econ: '2026-06-10T00:00:00Z',
+          maturity: '2026-06-11T00:00:00Z',
+          forensic: null,
+        },
+      }],
+      ['ethereum', {
+        reportTypes: [],
+        reportDates: { econ: null, maturity: null, forensic: null },
+      }],
+    ]))
+
+    expect(detail.projects).toEqual([
+      expect.objectContaining({
+        slug: 'bitcoin',
+        reportTypes: ['econ', 'maturity'],
+        reportDates: expect.objectContaining({
+          econ: '2026-06-10T00:00:00Z',
+          maturity: '2026-06-11T00:00:00Z',
+        }),
+      }),
+      expect.objectContaining({
+        slug: 'ethereum',
+        reportTypes: [],
+      }),
+    ])
+  })
+
+  it('maps canonical report availability to exchange listing aliases', () => {
+    const nearListing = project({
+      id: 'near-market-row',
+      slug: 'near',
+      name: 'NEAR Protocol',
+      symbol: 'NEAR',
+    })
+    const nearReportProject = project({
+      id: 'near-report-row',
+      slug: 'near-protocol',
+      name: 'NEAR Protocol',
+      symbol: 'NEAR',
+      status: 'monitoring_only',
+      last_econ_report_at: '2026-06-11T03:35:01Z',
+      last_maturity_report_at: '2026-06-11T03:02:41Z',
+    })
+    const availabilityByProjectId = new Map([
+      [nearReportProject.id, {
+        reportTypes: ['econ', 'maturity'],
+        reportDates: {
+          econ: '2026-06-11T03:35:01Z',
+          maturity: '2026-06-11T03:02:41Z',
+          forensic: null,
+        },
+      }],
+    ])
+
+    applyProjectReportAvailabilityAliases(
+      availabilityByProjectId,
+      [nearListing],
+      [nearListing, nearReportProject],
+    )
+
+    const detail = buildExchangeProjectRows([
+      {
+        listing_status: 'active',
+        exchange: binance,
+        project: nearListing,
+      },
+    ], 'binance', availabilityByProjectId)
+
+    expect(detail.projects[0]).toEqual(expect.objectContaining({
+      slug: 'near',
+      reportTypes: ['econ', 'maturity'],
+      reportDates: expect.objectContaining({
+        econ: '2026-06-11T03:35:01Z',
+        maturity: '2026-06-11T03:02:41Z',
+      }),
+    }))
+  })
+
+  it('matches CMC aliases against internal exchange slugs', () => {
+    const detail = buildExchangeProjectRows([
+      {
+        listing_status: 'active',
+        exchange: {
+          id: 'exchange-coinbase',
+          slug: 'coinbase',
+          name: 'Coinbase Exchange',
+          status: 'active',
+          website_url: null,
+          country: 'US',
+        },
+        project: project({ id: 'bitcoin', slug: 'bitcoin', name: 'Bitcoin', maturity_score: 80 }),
+      },
+    ], 'gdax')
+
+    expect(detail.exchange?.slug).toBe('coinbase')
+    expect(detail.projects).toHaveLength(1)
+  })
+})
