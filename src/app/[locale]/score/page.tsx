@@ -405,12 +405,14 @@ export function snapshotRowsToScoreRows(
     .map((snapshot, index) => {
       const project = trackedLookup.get(normalizeKey(snapshot.slug) || '')
       const reportAvailability = getReportAvailability(project, availabilityByProjectId)
+      const cmcRank = toCmcCanonicalRank(snapshot.cmc_rank)
 
       return {
-        rank: toCmcCanonicalRank(snapshot.cmc_rank) ?? index + 1,
+        rank: cmcRank ?? index + 1,
         name: project?.name || formatSnapshotName(snapshot.slug),
         symbol: project?.symbol || formatSnapshotSymbol(snapshot.slug),
         slug: project?.slug || snapshot.slug,
+        cmcRank,
         change24h: snapshot.change_24h == null ? null : toNumber(snapshot.change_24h),
         marketCap: toNumber(snapshot.market_cap),
         score: project?.maturity_score == null ? null : toNumber(project.maturity_score),
@@ -436,6 +438,39 @@ export function canonicalSnapshotRowsToScoreRows(
     buildTrackedProjectLookup(trackedProjects),
     availabilityByProjectId,
   )
+}
+
+export function getCanonicalSnapshotReportProjectIds(
+  snapshotRows: ScoreboardSnapshotRow[],
+  trackedProjects: TrackedScoreboardProject[],
+) {
+  const canonicalRows = snapshotRows
+    .filter((row) => toCmcCanonicalRank(row.cmc_rank) !== null)
+    .sort((a, b) => (toCmcCanonicalRank(a.cmc_rank) ?? 0) - (toCmcCanonicalRank(b.cmc_rank) ?? 0))
+
+  if (!hasCompleteCmcCanonicalTop500Snapshot(canonicalRows)) return []
+
+  const trackedProjectIds = new Set(trackedProjects.map((project) => project.id).filter(Boolean))
+  const trackedLookup = buildTrackedProjectLookup(trackedProjects)
+  const ids = new Set<string>()
+
+  for (const snapshot of canonicalRows) {
+    const project = trackedLookup.get(normalizeKey(snapshot.slug) || '')
+    if (project?.id && trackedProjectIds.has(project.id)) {
+      ids.add(project.id)
+    }
+  }
+
+  const projectsBySlug = new Map(trackedProjects.map((project) => [project.slug, project]))
+  for (const alias of SCOREBOARD_REPORT_AVAILABILITY_ALIASES) {
+    const targetProject = projectsBySlug.get(alias.targetSlug)
+    const sourceProject = projectsBySlug.get(alias.sourceSlug)
+    if (targetProject?.id && sourceProject?.id && ids.has(targetProject.id)) {
+      ids.add(sourceProject.id)
+    }
+  }
+
+  return Array.from(ids)
 }
 
 export function hasCompleteCmcCanonicalTop500Snapshot(snapshotRows: ScoreboardSnapshotRow[]) {
@@ -469,7 +504,7 @@ export default async function ScorePage({
     projectsRepository.getProjectsForScoreboard(),
     projectsRepository.getLatestScoreboardMarketSnapshot(MAX_RANK),
   ])
-  const trackedProjectIds = trackedProjects.map((project) => project.id).filter(Boolean)
+  const reportProjectIds = getCanonicalSnapshotReportProjectIds(cmcSnapshotRows, trackedProjects)
   let reportClient: SupabaseClient | undefined
   try {
     reportClient = createSupabaseAdminClient()
@@ -480,7 +515,7 @@ export default async function ScorePage({
   }
   let visibleReportResult: Awaited<ReturnType<typeof fetchVisibleReportsForScoreboard>>
   try {
-    visibleReportResult = await fetchVisibleReportsForScoreboard(trackedProjectIds, reportClient, supabase)
+    visibleReportResult = await fetchVisibleReportsForScoreboard(reportProjectIds, reportClient, supabase)
   } catch (error) {
     console.error('Failed to initialize scoreboard report availability boundary', {
       message: error instanceof Error ? error.message : String(error),

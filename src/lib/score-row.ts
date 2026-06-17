@@ -1,8 +1,9 @@
 export interface ScoreRow {
-  rank: number
+  rank: number | null
   name: string
   symbol: string
   slug: string
+  cmcRank?: number | null
   change24h: number | null
   marketCap: number
   score: number | null

@@ -3,6 +3,7 @@ import {
   buildTrackedProjectLookup,
   canonicalSnapshotRowsToScoreRows,
   fetchVisibleReportsForScoreboard,
+  getCanonicalSnapshotReportProjectIds,
   hasCompleteCmcCanonicalTop500Snapshot,
   MIN_CMC_CANONICAL_TOP_500_SNAPSHOT_ROWS,
   snapshotRowsToScoreRows,
@@ -110,6 +111,92 @@ describe('score page CMC canonical Top 500 snapshot guard', () => {
     expect(rows[499]).toMatchObject({ rank: 500, slug: 'cmc-project-500' })
     expect(rows.map((row) => row.slug)).not.toContain('rain')
     expect(rows.map((row) => row.slug)).not.toContain('htx')
+  })
+
+  it('preserves CMC rank on score rows for the project-name badge', () => {
+    const [row] = snapshotRowsToScoreRows(
+      [makeSnapshotRow(298, 'usd-ai')],
+      buildTrackedProjectLookup([]),
+    )
+
+    expect(row).toMatchObject({
+      rank: 298,
+      cmcRank: 298,
+      slug: 'usd-ai',
+    })
+  })
+
+  it('limits report availability lookups to projects matched by the canonical Top 500 snapshot', () => {
+    const trackedProjects = Array.from({ length: 650 }, (_, index) => {
+      const rank = index + 1
+      return {
+        id: `project-${rank}`,
+        name: `Project ${rank}`,
+        slug: `cmc-project-${rank}`,
+        symbol: `P${rank}`,
+        category: 'L1',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      }
+    })
+    const snapshotRows = Array.from({ length: 500 }, (_, index) => makeSnapshotRow(index + 1))
+
+    const ids = getCanonicalSnapshotReportProjectIds(snapshotRows, trackedProjects)
+
+    expect(ids).toHaveLength(500)
+    expect(ids).toContain('project-1')
+    expect(ids).toContain('project-500')
+    expect(ids).not.toContain('project-501')
+    expect(ids).not.toContain('project-650')
+  })
+
+  it('keeps report availability alias sources when the Top 500 row is an alias target', () => {
+    const trackedProjects = [
+      {
+        id: 'falcon-usd-project',
+        name: 'Falcon USD',
+        slug: 'falcon-usd',
+        symbol: 'USDf',
+        category: 'Stablecoins',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+      {
+        id: 'falcon-finance-ff-project',
+        name: 'Falcon Finance FF',
+        slug: 'falcon-finance-ff',
+        symbol: 'FF',
+        category: 'Stablecoins',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const snapshotRows = [
+      makeSnapshotRow(1, 'falcon-usd'),
+      ...Array.from({ length: 499 }, (_, index) => makeSnapshotRow(index + 2)),
+    ]
+
+    const ids = getCanonicalSnapshotReportProjectIds(snapshotRows, trackedProjects)
+
+    expect(ids).toEqual(['falcon-usd-project', 'falcon-finance-ff-project'])
   })
 })
 
