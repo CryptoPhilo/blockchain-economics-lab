@@ -102,7 +102,7 @@ function getSlideThumbnailUrl(report: ReportWithCover, locale: string) {
     if (index === -1) return ''
 
     const objectPath = parsed.pathname.slice(index + marker.length)
-    const thumbnailPath = `showcase-thumbnails-v2/${objectPath.replace(/\.html$/i, '.jpg')}`
+    const thumbnailPath = objectPath.replace(/\.html$/i, '-cover.jpg')
     return `${parsed.origin}${marker}${thumbnailPath}`
   } catch {
     return ''
@@ -110,14 +110,14 @@ function getSlideThumbnailUrl(report: ReportWithCover, locale: string) {
 }
 
 export function getShowcasePreview(report: ReportWithCover, locale: string): { url: string; kind: 'image' | 'html' } {
-  const slideThumbnailUrl = getSlideThumbnailUrl(report, locale)
-  if (slideThumbnailUrl) {
-    return { url: slideThumbnailUrl, kind: 'image' }
-  }
-
   const coverImageUrl = getProduct(report)?.cover_image_url?.trim()
   if (coverImageUrl) {
     return { url: coverImageUrl, kind: 'image' }
+  }
+
+  const slideThumbnailUrl = getSlideThumbnailUrl(report, locale)
+  if (slideThumbnailUrl) {
+    return { url: slideThumbnailUrl, kind: 'image' }
   }
 
   return { url: '', kind: 'html' }

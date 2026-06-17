@@ -56,7 +56,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       if (verifiedCandidates.length >= 6) break
     }
 
-    latestReportCovers = verifiedCandidates
+    latestReportCovers = verifiedCandidates.length > 0
+      ? verifiedCandidates
+      : showcaseCandidates.slice(0, 6)
   } catch (e) {
     console.error('Failed to fetch data:', e)
   }
