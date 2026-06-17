@@ -156,6 +156,40 @@ describe('score page CMC canonical Top 500 snapshot guard', () => {
     expect(ids).not.toContain('project-650')
   })
 
+  it('limits report availability lookups to the current score page when a range is supplied', () => {
+    const trackedProjects = Array.from({ length: 650 }, (_, index) => {
+      const rank = index + 1
+      return {
+        id: `project-${rank}`,
+        name: `Project ${rank}`,
+        slug: `cmc-project-${rank}`,
+        symbol: `P${rank}`,
+        category: 'L1',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      }
+    })
+    const snapshotRows = Array.from({ length: 500 }, (_, index) => makeSnapshotRow(index + 1))
+
+    const ids = getCanonicalSnapshotReportProjectIds(
+      snapshotRows,
+      trackedProjects,
+      { start: 100, end: 200 },
+    )
+
+    expect(ids).toHaveLength(100)
+    expect(ids).toContain('project-101')
+    expect(ids).toContain('project-200')
+    expect(ids).not.toContain('project-1')
+    expect(ids).not.toContain('project-201')
+  })
+
   it('keeps report availability alias sources when the Top 500 row is an alias target', () => {
     const trackedProjects = [
       {

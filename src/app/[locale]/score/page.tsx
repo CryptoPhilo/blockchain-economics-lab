@@ -428,9 +428,7 @@ export function canonicalSnapshotRowsToScoreRows(
   trackedProjects: TrackedScoreboardProject[],
   availabilityByProjectId?: Map<string, ReportAvailability>,
 ) {
-  const canonicalRows = snapshotRows
-    .filter((row) => toCmcCanonicalRank(row.cmc_rank) !== null)
-    .sort((a, b) => (toCmcCanonicalRank(a.cmc_rank) ?? 0) - (toCmcCanonicalRank(b.cmc_rank) ?? 0))
+  const canonicalRows = getCanonicalSnapshotRows(snapshotRows)
 
   if (!hasCompleteCmcCanonicalTop500Snapshot(canonicalRows)) return []
   return snapshotRowsToScoreRows(
@@ -440,21 +438,27 @@ export function canonicalSnapshotRowsToScoreRows(
   )
 }
 
+export function getCanonicalSnapshotRows(snapshotRows: ScoreboardSnapshotRow[]) {
+  return snapshotRows
+    .filter((row) => toCmcCanonicalRank(row.cmc_rank) !== null)
+    .sort((a, b) => (toCmcCanonicalRank(a.cmc_rank) ?? 0) - (toCmcCanonicalRank(b.cmc_rank) ?? 0))
+}
+
 export function getCanonicalSnapshotReportProjectIds(
   snapshotRows: ScoreboardSnapshotRow[],
   trackedProjects: TrackedScoreboardProject[],
+  options: { start?: number; end?: number } = {},
 ) {
-  const canonicalRows = snapshotRows
-    .filter((row) => toCmcCanonicalRank(row.cmc_rank) !== null)
-    .sort((a, b) => (toCmcCanonicalRank(a.cmc_rank) ?? 0) - (toCmcCanonicalRank(b.cmc_rank) ?? 0))
+  const canonicalRows = getCanonicalSnapshotRows(snapshotRows)
 
   if (!hasCompleteCmcCanonicalTop500Snapshot(canonicalRows)) return []
 
+  const scopedRows = canonicalRows.slice(options.start ?? 0, options.end ?? canonicalRows.length)
   const trackedProjectIds = new Set(trackedProjects.map((project) => project.id).filter(Boolean))
   const trackedLookup = buildTrackedProjectLookup(trackedProjects)
   const ids = new Set<string>()
 
-  for (const snapshot of canonicalRows) {
+  for (const snapshot of scopedRows) {
     const project = trackedLookup.get(normalizeKey(snapshot.slug) || '')
     if (project?.id && trackedProjectIds.has(project.id)) {
       ids.add(project.id)
@@ -499,12 +503,18 @@ export default async function ScorePage({
   const projectsRepository = createProjectsRepository(supabase)
 
   const currentPage = Math.max(1, Math.min(5, parseInt(pageStr || '1', 10)))
+  const startIdx = (currentPage - 1) * ITEMS_PER_PAGE
+  const endIdx = startIdx + ITEMS_PER_PAGE
 
   const [trackedProjects, cmcSnapshotRows] = await Promise.all([
     projectsRepository.getProjectsForScoreboard(),
     projectsRepository.getLatestScoreboardMarketSnapshot(MAX_RANK),
   ])
-  const reportProjectIds = getCanonicalSnapshotReportProjectIds(cmcSnapshotRows, trackedProjects)
+  const reportProjectIds = getCanonicalSnapshotReportProjectIds(
+    cmcSnapshotRows,
+    trackedProjects,
+    { start: startIdx, end: endIdx },
+  )
   let reportClient: SupabaseClient | undefined
   try {
     reportClient = createSupabaseAdminClient()
@@ -537,8 +547,6 @@ export default async function ScorePage({
   )
 
   // Paginate: 100 per page
-  const startIdx = (currentPage - 1) * ITEMS_PER_PAGE
-  const endIdx = startIdx + ITEMS_PER_PAGE
   const rows = allRows.slice(startIdx, endIdx)
   const totalPages = Math.ceil(Math.min(allRows.length, MAX_RANK) / ITEMS_PER_PAGE)
 
