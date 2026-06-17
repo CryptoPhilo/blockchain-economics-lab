@@ -85,7 +85,7 @@
     "source_path": "Slide2/mat/Ordi_MAT_ko.pdf",
     "started_at": "2026-06-17T09:01:18.082846+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T09:01:41.405138+00:00",
+    "updated_at": "2026-06-17T12:43:06.018682+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ordi/1/ko.html"
   },
@@ -940,7 +940,7 @@
     "source_path": "Slide2/mat/Ontology_MAT_cn.pdf",
     "started_at": "2026-06-17T09:05:59.641440+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T09:06:11.543263+00:00",
+    "updated_at": "2026-06-17T12:43:18.680383+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ontology/1/zh.html"
   },
@@ -1256,7 +1256,7 @@
     "source_path": "Slide2/econ/Ontology_ECON_jp.pdf",
     "started_at": "2026-06-17T08:52:38.048402+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T08:52:49.647950+00:00",
+    "updated_at": "2026-06-17T12:42:52.256023+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ontology/1/ja.html"
   },
@@ -3133,6 +3133,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/mantle/1/en.html"
   },
+  "12asxiZsKDEbAnnmD2DPhR01YpxZef_yy": {
+    "error": null,
+    "finished_at": "2026-06-17T12:45:31.760006+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-17T09:43:47.000Z",
+    "name": "Verge_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/verge/latest/en.html",
+    "report_id": "e7b3d727-4f20-4c46-8c33-3b6e7309082f",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "verge",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/Verge_FOR_en.pdf",
+    "started_at": "2026-06-17T12:45:20.957700+00:00",
+    "status": "published",
+    "updated_at": "2026-06-17T12:45:31.760018+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/verge/2/en.html"
+  },
   "12bVEFtViaKPWgrYLeMWikb6L9cyF4Veg": {
     "error": null,
     "finished_at": "2026-05-31T07:38:47.898527+00:00",
@@ -3239,7 +3269,7 @@
     "source_path": "Slide2/econ/Gensyn_ECON_en.pdf",
     "started_at": "2026-06-17T08:54:15.789217+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T08:54:26.019492+00:00",
+    "updated_at": "2026-06-17T12:42:54.544852+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/gensyn/1/en.html"
   },
@@ -3964,7 +3994,7 @@
     "source_path": "Slide2/econ/Gensyn_ECON_jp.pdf",
     "started_at": "2026-06-17T08:54:57.790806+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T08:55:08.021312+00:00",
+    "updated_at": "2026-06-17T12:42:55.290958+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/gensyn/1/ja.html"
   },
@@ -4600,7 +4630,7 @@
     "source_path": "Slide2/mat/Pharos_MAT_jp.pdf",
     "started_at": "2026-06-17T09:07:55.351737+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T09:08:07.571725+00:00",
+    "updated_at": "2026-06-17T12:43:23.903088+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/pharos/1/ja.html"
   },
@@ -5542,7 +5572,7 @@
     "source_path": "Slide2/econ/Ordi_ECON_ko.pdf",
     "started_at": "2026-06-17T08:56:13.685388+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T08:56:35.337871+00:00",
+    "updated_at": "2026-06-17T12:42:56.782393+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ordi/1/ko.html"
   },
@@ -6417,6 +6447,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/canton-network/1/en.html"
   },
+  "16Hrn3C7KbwdggEdgdV-U5CcMxgb230ec": {
+    "error": null,
+    "finished_at": "2026-06-17T12:46:14.430703+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-17T09:40:21.000Z",
+    "name": "Verge_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/verge/latest/ko.html",
+    "report_id": "8b56ef6c-a19c-4c9a-9578-c7c8a43e6659",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "verge",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/Verge_FOR_ko.pdf",
+    "started_at": "2026-06-17T12:46:03.167081+00:00",
+    "status": "published",
+    "updated_at": "2026-06-17T12:46:14.430717+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/verge/1/ko.html"
+  },
   "16KzhzkAAGTb6-B5Hh4pq0K1pEmiaW5i2": {
     "error": "unresolved (slug=? via filename_unresolved; lang=ko via filename)",
     "lang": "ko",
@@ -7104,7 +7164,7 @@
     "source_path": "Slide2/mat/Gensyn_MAT_cn.pdf",
     "started_at": "2026-06-17T09:11:26.037208+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T09:11:39.242797+00:00",
+    "updated_at": "2026-06-17T12:43:32.950670+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gensyn/1/zh.html"
   },
@@ -8043,7 +8103,7 @@
     "source_path": "Slide2/mat/Pharos_MAT_cn.pdf",
     "started_at": "2026-06-17T09:08:42.998163+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T09:08:56.068591+00:00",
+    "updated_at": "2026-06-17T12:43:25.762971+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/pharos/1/zh.html"
   },
@@ -14697,7 +14757,7 @@
     "source_path": "Slide2/mat/Pharos_MAT_en.pdf",
     "started_at": "2026-06-17T09:07:05.804797+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T09:07:16.645915+00:00",
+    "updated_at": "2026-06-17T12:43:22.244788+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/pharos/1/en.html"
   },
@@ -16016,7 +16076,7 @@
     "source_path": "Slide2/mat/Ontology_MAT_jp.pdf",
     "started_at": "2026-06-17T09:05:16.382524+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T09:05:27.310236+00:00",
+    "updated_at": "2026-06-17T12:43:16.886104+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ontology/1/ja.html"
   },
@@ -17864,7 +17924,7 @@
     "source_path": "Slide2/econ/Gensyn_ECON_ko.pdf",
     "started_at": "2026-06-17T08:53:59.807506+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T08:54:14.257207+00:00",
+    "updated_at": "2026-06-17T12:42:53.814623+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/gensyn/1/ko.html"
   },
@@ -19188,6 +19248,36 @@
     "status": "language_mismatch",
     "updated_at": "2026-05-12T18:21:09.415730+00:00"
   },
+  "1LAqslckC_VngPOVCaFpG2INCZXUF4xVn": {
+    "error": null,
+    "finished_at": "2026-06-17T12:45:18.885129+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-17T09:46:41.000Z",
+    "name": "Verge_FOR_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/verge/latest/ja.html",
+    "report_id": "5c1e18be-5a9d-483f-8707-4685add0438d",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "verge",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/Verge_FOR_jp.pdf",
+    "started_at": "2026-06-17T12:45:07.800152+00:00",
+    "status": "published",
+    "updated_at": "2026-06-17T12:45:18.885144+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/verge/1/ja.html"
+  },
   "1LDd2YzH3P1BUnzjk8BNTarbgFSAUqmGi": {
     "error": null,
     "finished_at": "2026-06-09T03:51:46.991680+00:00",
@@ -19594,7 +19684,7 @@
     "source_path": "Slide2/mat/Ordi_MAT_en.pdf",
     "started_at": "2026-06-17T09:01:43.081379+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T09:01:54.191120+00:00",
+    "updated_at": "2026-06-17T12:43:07.812769+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ordi/1/en.html"
   },
@@ -20040,7 +20130,7 @@
     "source_path": "Slide2/econ/Ontology_ECON_cn.pdf",
     "started_at": "2026-06-17T08:53:23.987415+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T08:53:36.304898+00:00",
+    "updated_at": "2026-06-17T12:42:53.003931+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ontology/1/zh.html"
   },
@@ -24739,7 +24829,7 @@
     "source_path": "Slide2/mat/Gensyn_MAT_en.pdf",
     "started_at": "2026-06-17T09:09:48.100702+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T09:09:59.379749+00:00",
+    "updated_at": "2026-06-17T12:43:29.443124+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gensyn/1/en.html"
   },
@@ -25104,7 +25194,7 @@
     "source_path": "Slide2/econ/Ordi_ECON_en.pdf",
     "started_at": "2026-06-17T08:56:37.321592+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T08:56:52.241641+00:00",
+    "updated_at": "2026-06-17T12:42:57.586990+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ordi/1/en.html"
   },
@@ -25376,7 +25466,7 @@
     "source_path": "Slide2/mat/Gensyn_MAT_jp.pdf",
     "started_at": "2026-06-17T09:10:37.730072+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T09:10:49.661359+00:00",
+    "updated_at": "2026-06-17T12:43:31.098643+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gensyn/1/ja.html"
   },
@@ -25923,7 +26013,7 @@
     "source_path": "Slide2/mat/Gensyn_MAT_ko.pdf",
     "started_at": "2026-06-17T09:09:25.831416+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T09:09:46.315384+00:00",
+    "updated_at": "2026-06-17T12:43:27.793911+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gensyn/1/ko.html"
   },
@@ -29695,7 +29785,7 @@
     "source_path": "Slide2/econ/Pharos_ECON_jp.pdf",
     "started_at": "2026-06-17T08:59:52.185730+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T09:00:05.462328+00:00",
+    "updated_at": "2026-06-17T12:43:02.011175+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pharos/1/ja.html"
   },
@@ -34676,7 +34766,7 @@
     "source_path": "Slide2/mat/Pharos_MAT_ko.pdf",
     "started_at": "2026-06-17T09:06:40.854777+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T09:07:03.598444+00:00",
+    "updated_at": "2026-06-17T12:43:20.629428+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/pharos/1/ko.html"
   },
@@ -35921,7 +36011,7 @@
     "source_path": "Slide2/mat/Ordi_MAT_jp.pdf",
     "started_at": "2026-06-17T09:02:31.594124+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T09:02:42.526549+00:00",
+    "updated_at": "2026-06-17T12:43:09.345059+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ordi/1/ja.html"
   },
@@ -37261,7 +37351,7 @@
     "source_path": "Slide2/mat/Ontology_MAT_ko.pdf",
     "started_at": "2026-06-17T09:04:03.920028+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T09:04:28.359693+00:00",
+    "updated_at": "2026-06-17T12:43:13.174836+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ontology/1/ko.html"
   },
@@ -40797,7 +40887,7 @@
     "source_path": "Slide2/econ/Gensyn_ECON_cn.pdf",
     "started_at": "2026-06-17T08:55:34.723595+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T08:55:45.109260+00:00",
+    "updated_at": "2026-06-17T12:42:56.044259+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/gensyn/1/zh.html"
   },
@@ -45907,7 +45997,7 @@
     "source_path": "Slide2/econ/Ontology_ECON_ko.pdf",
     "started_at": "2026-06-17T08:51:28.754938+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T08:51:52.608047+00:00",
+    "updated_at": "2026-06-17T12:42:50.710534+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ontology/1/ko.html"
   },
@@ -46189,7 +46279,7 @@
     "source_path": "Slide2/econ/Pharos_ECON_en.pdf",
     "started_at": "2026-06-17T08:59:09.038358+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T08:59:19.343712+00:00",
+    "updated_at": "2026-06-17T12:43:01.247135+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pharos/1/en.html"
   },
@@ -46269,7 +46359,7 @@
     "source_path": "Slide2/mat/Ordi_MAT_cn.pdf",
     "started_at": "2026-06-17T09:03:18.552631+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T09:03:32.143316+00:00",
+    "updated_at": "2026-06-17T12:43:11.022716+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ordi/1/zh.html"
   },
@@ -46641,7 +46731,7 @@
     "source_path": "Slide2/econ/Ordi_ECON_cn.pdf",
     "started_at": "2026-06-17T08:58:11.491393+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T08:58:21.465104+00:00",
+    "updated_at": "2026-06-17T12:42:59.102436+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ordi/1/zh.html"
   },
@@ -50026,7 +50116,7 @@
     "source_path": "Slide2/econ/Pharos_ECON_ko.pdf",
     "started_at": "2026-06-17T08:58:51.602561+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T08:59:06.818776+00:00",
+    "updated_at": "2026-06-17T12:42:59.854044+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pharos/1/ko.html"
   },
@@ -50830,6 +50920,36 @@
     "version": 3,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/zcash/3/en.html"
   },
+  "1w8YJ7YYtpu6S3R053TqGyJphfgbiOBmH": {
+    "error": null,
+    "finished_at": "2026-06-17T12:44:30.504105+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-17T09:53:07.000Z",
+    "name": "Verge_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/verge/latest/zh.html",
+    "report_id": "ed09cd17-a9c1-47e3-b911-257433ddc315",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "verge",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/Verge_FOR_cn.pdf",
+    "started_at": "2026-06-17T12:44:09.681833+00:00",
+    "status": "published",
+    "updated_at": "2026-06-17T12:44:30.504120+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/verge/1/zh.html"
+  },
   "1wELXjl6I9yER-cUzv-Z1jUkHBQnbycUW": {
     "error": "unresolved (slug=? via filename_unresolved; lang=ja via filename)",
     "lang": "ja",
@@ -51390,7 +51510,7 @@
     "source_path": "Slide2/econ/Pharos_ECON_cn.pdf",
     "started_at": "2026-06-17T09:00:36.694346+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T09:00:47.727685+00:00",
+    "updated_at": "2026-06-17T12:43:02.760885+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pharos/1/zh.html"
   },
@@ -52752,7 +52872,7 @@
     "source_path": "Slide2/econ/Ontology_ECON_en.pdf",
     "started_at": "2026-06-17T08:51:55.038223+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T08:52:06.836746+00:00",
+    "updated_at": "2026-06-17T12:42:51.485678+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ontology/1/en.html"
   },
@@ -53148,7 +53268,7 @@
     "source_path": "Slide2/econ/Ordi_ECON_jp.pdf",
     "started_at": "2026-06-17T08:57:27.425582+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T08:57:38.365819+00:00",
+    "updated_at": "2026-06-17T12:42:58.327019+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ordi/1/ja.html"
   },
@@ -53418,7 +53538,7 @@
     "source_path": "Slide2/mat/Ontology_MAT_en.pdf",
     "started_at": "2026-06-17T09:04:30.045907+00:00",
     "status": "published",
-    "updated_at": "2026-06-17T09:04:41.847610+00:00",
+    "updated_at": "2026-06-17T12:43:14.969971+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ontology/1/en.html"
   },
