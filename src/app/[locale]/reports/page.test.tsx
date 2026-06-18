@@ -92,7 +92,6 @@ describe('ReportsPage rapid change cards', () => {
           symbol: 'ETH',
           chain: 'Ethereum',
           category: 'L1',
-          cmc_rank: null,
         },
       },
       {
@@ -117,7 +116,6 @@ describe('ReportsPage rapid change cards', () => {
           symbol: 'BTC',
           chain: 'Bitcoin',
           category: 'L1',
-          cmc_rank: null,
         },
       },
     ], [
@@ -133,7 +131,7 @@ describe('ReportsPage rapid change cards', () => {
 
     expect(reportsQuery.in).toHaveBeenCalledWith('status', ['published', 'coming_soon', 'in_review'])
     expect(reportsQuery.select).toHaveBeenCalledWith(
-      '*, project:tracked_projects(id, name, slug, symbol, chain, category, cmc_rank, cmc_id, coingecko_id, aliases)',
+      '*, project:tracked_projects(id, name, slug, symbol, chain, category, coingecko_id, aliases)',
     )
     expect(reportsQuery.eq).toHaveBeenCalledWith('report_type', 'forensic')
     expect(reportsQuery.gte).toHaveBeenCalledWith('created_at', expect.any(String))

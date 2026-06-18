@@ -102,7 +102,7 @@ function getReportCmcLookupKeys(report: ProjectReport): string[] {
   if (!project) return []
 
   const keys = new Set<string>()
-  for (const value of [project.slug, project.cmc_id, project.coingecko_id]) {
+  for (const value of [project.slug, project.coingecko_id]) {
     const normalized = normalizeCmcLookupKey(value)
     if (normalized) keys.add(normalized)
   }
@@ -165,12 +165,6 @@ async function loadLatestCmcRanksForReports(
 
   const ranksByReportId = new Map<string, number>()
   for (const report of reports) {
-    const directRank = getCmcRank(report.project?.cmc_rank)
-    if (directRank) {
-      ranksByReportId.set(report.id, directRank)
-      continue
-    }
-
     for (const key of getReportCmcLookupKeys(report)) {
       const rank = ranksByKey.get(key)
       if (rank) {
@@ -195,14 +189,17 @@ export default async function ReportsPage({ params, searchParams }: Props) {
 
   const dataQuery = supabase
     .from('project_reports')
-    .select('*, project:tracked_projects(id, name, slug, symbol, chain, category, cmc_rank, cmc_id, coingecko_id, aliases)')
+    .select('*, project:tracked_projects(id, name, slug, symbol, chain, category, coingecko_id, aliases)')
     .in('status', ['published', 'coming_soon', 'in_review'])
     .eq('report_type', 'forensic')
     .gte('created_at', seventyTwoHoursAgo.toISOString())
     .order('updated_at', { ascending: false })
     .order('created_at', { ascending: false })
 
-  const { data: rawReports } = await dataQuery
+  const { data: rawReports, error: reportsError } = await dataQuery
+  if (reportsError) {
+    throw new Error(`Failed to load rapid change reports: ${reportsError.message}`)
+  }
   const { reports, totalCount, totalPages, currentPage: activePage } = prepareRapidChangeReports({
     reports: (rawReports || []) as ProjectReport[],
     locale,
@@ -294,7 +291,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
         <div className="grid gap-4">
           {reports.map((report: ProjectReport) => {
             const project = report.project
-            const cmcRank = cmcRanksByReportId.get(report.id) ?? getCmcRank(project?.cmc_rank)
+            const cmcRank = cmcRanksByReportId.get(report.id) ?? null
             const config = FORENSIC_CONFIG
             const title = getLocalizedTitle(report, locale)
             const summary = getLocalizedSummary(report, locale)
