@@ -1875,6 +1875,15 @@ def _reconcile_visible_reports_with_drive(
         projects,
         drive_root_scope=drive_root_scope,
     )
+    protected_pairs = set(drive_pairs)
+    if _normalize_drive_root_scope(drive_root_scope) == 'active':
+        legacy_pairs, _legacy_rows, _legacy_unresolved = _active_drive_report_inventory(
+            service,
+            types,
+            projects,
+            drive_root_scope='legacy',
+        )
+        protected_pairs.update(legacy_pairs)
     results.extend(unresolved)
     db_types = {DB_REPORT_TYPE[rtype] for rtype in types if rtype in DB_REPORT_TYPE}
     project_by_id = {p.get('id'): p for p in projects}
@@ -1894,7 +1903,7 @@ def _reconcile_visible_reports_with_drive(
 
     now = datetime.now(timezone.utc).isoformat()
     active_slugs_by_type: Dict[str, Set[str]] = {}
-    for db_type, slug, _lang in drive_pairs:
+    for db_type, slug, _lang in protected_pairs:
         active_slugs_by_type.setdefault(db_type, set()).add(slug)
 
     visible_keys = {
@@ -1958,7 +1967,7 @@ def _reconcile_visible_reports_with_drive(
     for row in report_rows:
         project = project_by_id.get(row.get('project_id')) or {}
         key = (row.get('report_type'), project.get('slug'), row.get('language'))
-        if row.get('status') not in VISIBLE_REPORT_STATUSES or key in drive_pairs:
+        if row.get('status') not in VISIBLE_REPORT_STATUSES or key in protected_pairs:
             continue
         is_for = _rtype_for_db_type(row.get('report_type')) == 'for'
         if _is_for_coming_soon_placeholder_without_asset(row):
@@ -2006,7 +2015,7 @@ def _reconcile_visible_reports_with_drive(
         project = project_by_id.get(row.get('project_id')) or {}
         slug = project.get('slug')
         key = (row.get('report_type'), slug, row.get('language'))
-        if key not in drive_pairs:
+        if key not in protected_pairs:
             continue
         if row.get('status') not in VISIBLE_REPORT_STATUSES:
             continue

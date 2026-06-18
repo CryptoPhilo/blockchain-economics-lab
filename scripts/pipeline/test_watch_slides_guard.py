@@ -3047,6 +3047,71 @@ def test_db_reconcile_cancels_visible_rows_absent_from_active_drive(ws, monkeypa
     }
 
 
+def test_db_reconcile_keeps_visible_rows_when_legacy_slide_pdf_exists(ws, monkeypatch):
+    projects = [
+        {
+            'id': 'project-melania',
+            'slug': 'melania-meme',
+            'name': 'Official Melania Meme',
+            'symbol': 'MELANIA',
+        },
+    ]
+    tables = {
+        'project_reports': [{
+            'id': 'report-melania-ko',
+            'project_id': 'project-melania',
+            'report_type': 'maturity',
+            'language': 'ko',
+            'status': 'published',
+            'published_at': '2026-06-02T13:31:27Z',
+            'updated_at': '2026-06-02T13:31:27Z',
+            'created_at': '2026-06-02T13:31:27Z',
+            'slide_html_urls_by_lang': {
+                'ko': 'https://storage/mat/melania-meme/latest/ko.html',
+            },
+        }],
+        'tracked_projects': [{
+            'id': 'project-melania',
+            'slug': 'melania-meme',
+            'last_econ_report_at': None,
+            'last_maturity_report_at': '2026-06-02T13:31:27Z',
+            'last_forensic_report_at': None,
+        }],
+    }
+
+    def fake_iter_active_slide_targets(_service, _types, **kwargs):
+        if kwargs.get('drive_root_scope') == 'legacy':
+            return [
+                ('mat', {
+                    'id': 'legacy-melania-ko',
+                    'name': 'MELANIA_MAT_ko.pdf',
+                    'source_path': 'Slide/mat/MELANIA_MAT_ko.pdf',
+                }),
+            ]
+        return []
+
+    monkeypatch.setattr(ws, '_iter_active_slide_targets', fake_iter_active_slide_targets)
+
+    results = ws._reconcile_visible_reports_with_drive(
+        _FakeReconcileSupabase(tables),
+        object(),
+        types=['mat'],
+        projects=projects,
+        dry_run=False,
+        drive_root_scope='active',
+    )
+
+    assert tables['project_reports'][0]['status'] == 'published'
+    assert tables['tracked_projects'][0]['last_maturity_report_at'] == '2026-06-02T13:31:27Z'
+    assert results == [{
+        'rtype': None,
+        'slug': None,
+        'lang': None,
+        'status': 'db_reconcile_ok',
+        'error': 'visible DB report availability already matches active Drive Slide folders',
+    }]
+
+
 def test_db_reconcile_dry_run_does_not_mutate_rows(ws, monkeypatch):
     projects = [
         {'id': 'project-polygon', 'slug': 'matic-network', 'name': 'Polygon', 'symbol': 'MATIC'},
