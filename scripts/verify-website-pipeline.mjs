@@ -88,8 +88,18 @@ for (const file of [
   'src/lib/repositories/reports.ts',
 ]) {
   requireText(file, 'in_review', `${file} includes review-ready slide reports`)
-  requireText(file, 'slide_html_urls_by_lang', `${file} requires slide HTML assets`)
 }
+
+requireText(
+  'src/app/[locale]/score/page.tsx',
+  'slide_html_urls_by_lang',
+  'src/app/[locale]/score/page.tsx requires slide HTML assets'
+)
+requireText(
+  'src/lib/repositories/reports.ts',
+  'reportSupportsLocale',
+  'src/lib/repositories/reports.ts delegates locale asset checks'
+)
 
 requireText('src/app/[locale]/projects/[slug]/page.tsx', 'in_review', 'src/app/[locale]/projects/[slug]/page.tsx includes review-ready slide reports')
 requireText('src/app/[locale]/projects/[slug]/page.tsx', 'reportSupportsLocale', 'src/app/[locale]/projects/[slug]/page.tsx delegates locale asset checks')
