@@ -231,7 +231,7 @@ export class DashboardRepository {
 
     const resolvedPath = path.isAbsolute(configuredPath)
       ? configuredPath
-      : path.join(process.cwd(), configuredPath)
+      : path.join(/* turbopackIgnore: true */ process.cwd(), configuredPath)
 
     try {
       const raw = await readFile(resolvedPath, 'utf8')

@@ -46,12 +46,17 @@ if (packageJson.scripts?.test && !packageJson.scripts.test.includes('No tests co
 
 for (const [script, expected] of [
   ['dev', 'next dev'],
-  ['build', 'next build'],
   ['lint', 'eslint'],
   ['verify:pipeline', 'node scripts/verify-website-pipeline.mjs'],
 ]) {
   if (packageJson.scripts?.[script] === expected) pass(`package script ${script}`)
   else fail(`package script ${script}`, `expected ${expected}`)
+}
+
+if (/\bnext build\b/.test(packageJson.scripts?.build || '')) {
+  pass('package script build runs Next production build')
+} else {
+  fail('package script build', 'expected a next build command')
 }
 
 const vercel = JSON.parse(read('vercel.json'))
