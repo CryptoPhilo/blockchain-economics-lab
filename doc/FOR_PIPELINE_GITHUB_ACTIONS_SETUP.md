@@ -1,18 +1,26 @@
 # FOR Pipeline - GitHub Actions Setup Guide
 
+**Status**: Deprecated archive. Do not use for current operations.  
 **Task**: BCE-364  
-**Workflow**: `.github/workflows/for-pipeline-cron.yml`  
+**Retired workflow**: `.github/workflows/for-pipeline-cron.yml`  
+**Replacement workflow**: `.github/workflows/slide-pipeline-cron.yml`  
 **Purpose**: Automated FOR report processing using GitHub Actions cron instead of Paperclip routine
+
+This document is retained only for historical context. The FOR draft workflow
+scanned the obsolete Google Drive `drafts/FOR/` folder and has been replaced by
+the slide pipeline. Do not recreate the retired workflow, Paperclip routine, or
+system cron from this guide. Current publishing uses
+`scripts/pipeline/watch_slides.py` against Google Drive `Slide/{TYPE}/` PDFs.
 
 ## Overview
 
-The FOR pipeline has been migrated from Paperclip routine scheduling to GitHub Actions for:
+The retired FOR pipeline migrated from Paperclip routine scheduling to GitHub Actions for:
 - Better reliability and visibility
 - Integrated CI/CD with the main repository
 - Built-in logging and artifact storage
 - No dependency on external Paperclip infrastructure
 
-## Workflow Schedule
+## Retired Workflow Schedule
 
 - **Cron**: Every 30 minutes (`*/30 * * * *`)
 - **Manual Trigger**: Available via workflow_dispatch with optional parameters
@@ -53,21 +61,21 @@ Configure these secrets in: **Settings → Secrets and variables → Actions →
 
 ### Process All New Reports
 1. Go to **Actions** tab in GitHub
-2. Select **FOR Pipeline - Automated Processing**
+2. Select the retired FOR pipeline workflow in historical reproductions only
 3. Click **Run workflow**
 4. Leave inputs empty
 5. Click **Run workflow**
 
 ### Process Specific Project
 1. Go to **Actions** tab
-2. Select **FOR Pipeline - Automated Processing**
+2. Select the retired FOR pipeline workflow in historical reproductions only
 3. Click **Run workflow**
 4. Enter slug in **slug** field (e.g., `bitcoin`)
 5. Click **Run workflow**
 
 ### Dry Run (Test Mode)
 1. Go to **Actions** tab
-2. Select **FOR Pipeline - Automated Processing**
+2. Select the retired FOR pipeline workflow in historical reproductions only
 3. Click **Run workflow**
 4. Check the **dry_run** checkbox
 5. Click **Run workflow**
@@ -111,7 +119,8 @@ Each workflow run generates a summary with:
 - **APIs**: Ensure API keys haven't expired
 
 ### No Files Detected
-- **Verify**: `drafts/FOR/` folder exists in Google Drive
+- **Do not use for current operations**: `drafts/FOR/` is retired.
+- **Current path**: verify Google Drive `Slide/{TYPE}/` PDFs and run `scripts/pipeline/watch_slides.py`
 - **Check**: Service account has read access to the folder
 - **Test**: Run with dry_run mode to test GDrive scanning
 

@@ -34,6 +34,14 @@ Company Mission → ... → This PR
 - **Pipeline definition alignment check**:
 - **Board approval**:
 
+## Release Gate
+<!-- Required before merge for pipeline, deploy, and production-facing website PRs. -->
+- [ ] Non-author approval recorded: the approving GitHub identity is not the author identity.
+- [ ] Same-account approval is not counted. If only one GitHub account is available, a CEO waiver and linked Paperclip issue evidence are attached.
+- [ ] Pipeline/deploy impact checked against remote GitHub Actions or Vercel checks.
+- [ ] Pipeline state wiki checked under `knowledge/pipelines/`.
+- [ ] Executable runtime manifest checked: `pipelines/bcelab-runtime-pipelines.json`.
+
 ## Testing
 - [ ] Unit tests pass
 - [ ] Build succeeds (`npm run build`)

@@ -55,6 +55,30 @@ npm run build
 - active nodes are not declared as local-only,
 - CI, slide cron, and production deploy workflows run the manifest verifier.
 
+## Release Review Gate
+
+Pipeline, deploy, and production-facing website PRs require approval from a
+GitHub identity that is not the PR author identity before merge. An approval
+from the same GitHub account that authored the PR does not satisfy the release
+gate, even if the same person or agent is performing multiple roles in
+Paperclip.
+
+A single-account exception is allowed only when both conditions are true:
+
+- the CEO has granted an explicit waiver for that release, and
+- the PR links Paperclip issue evidence that records the waiver and the release
+  scope.
+
+Before merging a pipeline or deploy PR, the reviewer must confirm:
+
+- remote checks passed in GitHub Actions or Vercel, as applicable,
+- the relevant state page under `knowledge/pipelines/` was read and still
+  matches the change,
+- `pipelines/bcelab-runtime-pipelines.json` still maps the affected pipeline
+  nodes to their executable remote runtime, and
+- any production deployment or production-write path remains approval-gated
+  through Paperclip and the GitHub `production` environment.
+
 ## Change Procedure
 
 1. Create or update a Paperclip issue that names the affected pipeline and node.

@@ -77,20 +77,11 @@ pipeline now uploads first-page slide cover images to the public `slides` bucket
 at `{type}/{slug}/{version-or-latest}/{lang}-cover.jpg` and updates the linked
 product cover during `website_publish`.
 
-Existing rows are handled by
-`scripts/backfill-report-cover-image-urls.ts`, which defaults to dry-run and
-must be applied only through the approved remote production-write path. Local
-dry-run evidence at checkout `c7666ba` found 1 candidate:
-Uniswap MAT/en product `b195234f-cbbb-4cd6-b696-f065054d911d`.
-
-As of BCE-1923, approved report cover backfills have a dedicated manual GitHub
-Actions execution surface at `.github/workflows/report-cover-backfill.yml`.
-The workflow runs in the `production` environment, defaults to `dry_run`, reuses
-the existing Supabase production secrets, and requires a project `slug` when
-`mode=apply` so production writes stay scoped to the board-approved target.
-For the BCE-1922 one-row backfill, dispatch `mode=dry_run`, `report_type=maturity`,
-and `slug=uniswap` first; dispatch `mode=apply` only after approval covers that
-same target.
+Existing rows were historically handled by
+`scripts/backfill-report-cover-image-urls.ts`, but that script and its dedicated
+manual workflow are not present in the current repository. Do not register report
+cover backfill as an active runtime node until a real workflow and entrypoint are
+landed together with a dry-run-first production approval contract.
 
 ## BCE-1932 Homepage Latest Report Cover Boundary
 
@@ -131,10 +122,10 @@ available report body sentences. The semantic quality gate lives in
 last-resort display defense only.
 
 Backfills must use `scripts/pipeline/backfill_card_summaries.py` in dry-run
-first and keep the generated diff audit artifact. Approved remote execution is
-available through `.github/workflows/report-card-summary-backfill.yml`.
-Production writes remain remote-only and require approval plus slug-scoped
-`mode=apply`.
+first and keep the generated diff audit artifact. A dedicated remote workflow is
+not registered in the current manifest; production writes remain remote-only and
+must not be run locally. Add a real GitHub Actions workflow plus approval evidence
+before registering this as an active runtime node.
 
 ## BCE-1937 Report Card Auxiliary Text Boundary
 
@@ -154,9 +145,9 @@ does not rewrite weak summaries; the pipeline must reject definitions,
 methodology/table fragments, internal prompt/template leakage, and raw fallback
 source text before persistence.
 
-Backfills remain dry-run first through `scripts/pipeline/backfill_card_summaries.py`
-or the approved remote workflow. Production writes are still remote-only and
-approval-gated.
+Backfills remain dry-run first through `scripts/pipeline/backfill_card_summaries.py`.
+Production writes are still remote-only and approval-gated; the runtime manifest
+must only list a card-summary backfill node after a real remote workflow exists.
 
 ## BCE-1933 Production Deployment Evidence
 
@@ -407,6 +398,30 @@ non-author GitHub review or CEO waiver, merge, then approved remote
 backfill evidence is present and runtime verification passes against the
 post-backfill API/UI.
 
+## BCE-1986 Exchange-Listed Long-Tail Report Availability
+
+As of 2026-06-16, exchange detail report availability is explicitly independent
+from the Top500 score page universe. Top500 remains the score/ranking page
+scope, but exchange detail rows are driven by canonical `tracked_projects`
+joined through active `exchange_project_listings`.
+
+The report watcher project resolver loads canonical `tracked_projects` with
+slug, name, symbol, aliases, `coingecko_id`, and `cmc_id`, and marks projects
+that are present in active `exchange_project_listings`. It does not require a
+project to be in the Top500 CMC snapshot before resolving a Drive slide/report
+file. Unresolved Drive PDFs continue to be recorded in the slide manifest and
+processed output with `status=unresolved` or
+`db_reconcile_unresolved_drive_pdf` rather than being silently dropped.
+
+The exchange detail API and UI continue to use the existing score-table row
+shape for visual consistency, but the rows represent active exchange listings,
+not Top500 membership. Report badges and dates are loaded from visible
+`project_reports` by canonical project id plus alias/name/coin-id matching, so
+an OpenGradient-like Binance listing with CMC rank greater than 500 can show
+ECON/MAT/FOR availability when a report row exists. Missing or rank greater
+than 500 entries are treated as long-tail score inputs, not report-availability
+exclusions.
+
 As of BCE-1978 on 2026-06-15, the exchange Top 30 listing backfill retries
 recoverable CoinGecko ticker fetch failures before treating a venue as
 unavailable. `scripts/backfill-exchange-listings.ts` honors bounded
@@ -475,6 +490,29 @@ exchange key, so duplicate legacy rows do not change listed-project counts or
 physical merge/archive of legacy exchange rows remains subject to the
 remote-first production-write policy and the approved
 `.github/workflows/exchange-listing-backfill.yml` path.
+
+As of BCE-1987 on 2026-06-16, Binance remains only the representative example
+for Top500-outside exchange detail report availability. The verified contract is
+all active `exchange_project_listings` rows across exchanges: report badge
+availability is keyed by canonical project identity plus alias/name/coin-id
+matching, and one published report metadata row can surface on every active
+exchange detail page where that project is listed. Regression coverage includes
+non-Binance OKX, Bybit, and Coinbase Exchange long-tail fixtures, plus a project
+listed on both Binance and OKX. Watcher coverage marks multiple active listing
+rows as `exchange_listed` without inspecting exchange slug and preserves the
+numeric `cmc_id` false-positive guard.
+
+As of BCE-1988 on 2026-06-16, exchange detail project rows expose `rank` and
+`cmcRank` as the same CoinMarketCap asset rank when available. The UI displays
+that value next to the asset name as a CMC badge; rows without a CMC rank do not
+receive a synthetic exchange-detail row number. The runtime rank resolver first
+uses the latest CMC Top5000 snapshot and then fills missing exchange-listed
+assets from their own latest `market_data_daily` CMC rows by
+`tracked_projects.slug`, `coingecko_id`, or `cmc_id`. `coingecko_id` is only a
+market-data lookup alias, not the source of rank semantics. This allows
+OpenGradient-like long-tail listings to show ranks such as CMC #481 even when
+they are absent from the Top500 score universe or were populated by a scoped CMC
+lookup/backfill at a different `recorded_at`.
 
 ## BCE-1869 Relationship
 
