@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { getLocalizedMarketingContent } from '@/lib/report-marketing-content'
+import { getShowcasePreview, type ReportWithCover } from '@/lib/latest-report-showcase'
 import { cleanCardSummary } from '@/lib/report-summary'
 import { pickLocaleReport, reportSupportsLocale } from '@/lib/report-locale'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
@@ -130,6 +131,20 @@ export function selectReportsByType(
   return selected
 }
 
+export function selectProjectHeroBackground(
+  reports: ProjectReport[],
+  locale: string,
+): string {
+  for (const report of reports) {
+    const preview = getShowcasePreview(report as ReportWithCover, locale)
+    if (preview.kind === 'image' && preview.url) {
+      return preview.url
+    }
+  }
+
+  return ''
+}
+
 const REPORT_TYPE_ORDER: ReportType[] = ['econ', 'maturity', 'forensic']
 
 export default async function ProjectDetailPage({ params }: Props) {
@@ -149,7 +164,7 @@ export default async function ProjectDetailPage({ params }: Props) {
 
   const { data: reportsRaw } = await supabase
     .from('project_reports')
-    .select('*')
+    .select('*, product:products(id, slug, title_en, title_ko, title_fr, title_es, title_de, title_ja, title_zh, cover_image_url, published_at)')
     .eq('project_id', project.id)
     .in('status', ['published', 'in_review'])
     .order('updated_at', { ascending: false })
@@ -162,6 +177,7 @@ export default async function ProjectDetailPage({ params }: Props) {
 
   const marketCap = formatMarketCap(project.market_cap_usd)
   const dateLocale = localeDateMap[locale] || 'en-US'
+  const heroBackgroundUrl = selectProjectHeroBackground(orderedReports, locale)
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
@@ -179,7 +195,24 @@ export default async function ProjectDetailPage({ params }: Props) {
       </nav>
 
       {/* Header */}
-      <header className="mb-12">
+      <header
+        data-testid="project-hero"
+        className={`relative mb-12 overflow-hidden rounded-2xl border border-white/10 bg-slate-950 px-6 py-12 shadow-2xl shadow-black/30 sm:px-10 sm:py-16 ${
+          heroBackgroundUrl ? 'bg-cover bg-center' : ''
+        }`}
+        style={heroBackgroundUrl
+          ? {
+              backgroundImage: `linear-gradient(90deg, rgba(3, 7, 18, 0.92) 0%, rgba(3, 7, 18, 0.72) 48%, rgba(3, 7, 18, 0.28) 100%), url("${heroBackgroundUrl}")`,
+            }
+          : undefined}
+      >
+        {heroBackgroundUrl && (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent to-gray-950/20" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.10),transparent_30%)]" />
+          </>
+        )}
+        <div className="relative z-10">
         <div className="flex flex-wrap items-center gap-2 mb-4">
           {project.category && (
             <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
@@ -200,7 +233,7 @@ export default async function ProjectDetailPage({ params }: Props) {
 
         <div className="flex flex-wrap gap-4">
           {marketCap && (
-            <div className="px-5 py-3 rounded-xl bg-white/[0.03] border border-white/5">
+            <div className="px-5 py-3 rounded-xl bg-black/25 border border-white/10 backdrop-blur-sm">
               <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">
                 {isKo ? '시가총액' : 'Market Cap'}
               </div>
@@ -208,7 +241,7 @@ export default async function ProjectDetailPage({ params }: Props) {
             </div>
           )}
           {project.maturity_score != null && (
-            <div className="px-5 py-3 rounded-xl bg-white/[0.03] border border-white/5">
+            <div className="px-5 py-3 rounded-xl bg-black/25 border border-white/10 backdrop-blur-sm">
               <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">
                 {isKo ? '성숙도 점수' : 'Maturity Score'}
               </div>
@@ -227,7 +260,7 @@ export default async function ProjectDetailPage({ params }: Props) {
               href={project.website_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-5 py-3 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.06] hover:border-white/10 transition-all"
+              className="px-5 py-3 rounded-xl bg-black/25 border border-white/10 backdrop-blur-sm hover:bg-white/[0.08] hover:border-white/20 transition-all"
             >
               <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">
                 {isKo ? '웹사이트' : 'Website'}
@@ -238,6 +271,7 @@ export default async function ProjectDetailPage({ params }: Props) {
               </div>
             </a>
           )}
+        </div>
         </div>
       </header>
 
