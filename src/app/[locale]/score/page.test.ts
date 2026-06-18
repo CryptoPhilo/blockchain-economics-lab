@@ -2,6 +2,7 @@ import {
   buildReportAvailabilityByProjectId,
   buildTrackedProjectLookup,
   canonicalSnapshotRowsToScoreRows,
+  fetchCache,
   fetchVisibleReportsForScoreboard,
   getCanonicalSnapshotReportProjectIds,
   hasCompleteCmcCanonicalTop500Snapshot,
@@ -41,6 +42,10 @@ jest.mock('@/components/SubscribeForm', () => function SubscribeForm() {
 })
 
 describe('score page CMC canonical Top 500 snapshot guard', () => {
+  it('keeps score data uncached so stale scoreboard renders cannot survive deploys', () => {
+    expect(fetchCache).toBe('force-no-store')
+  })
+
   it('rejects partial snapshots as non-canonical Top 500 data', () => {
     expect(hasCompleteCmcCanonicalTop500Snapshot([makeSnapshotRow(1)])).toBe(false)
     expect(hasCompleteCmcCanonicalTop500Snapshot(

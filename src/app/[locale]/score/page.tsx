@@ -9,6 +9,7 @@ import ScoreTableGate from '@/components/ScoreTableGate'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
+export const fetchCache = 'force-no-store'
 
 /**
  * CMC-Style Market Cap Ranking Page + Report Badges (BCE-379)
