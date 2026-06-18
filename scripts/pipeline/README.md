@@ -57,6 +57,35 @@ The active watcher also runs the active-project backlog guard. It flags active
 projects with no `project_reports` row and no report/due timestamp markers so
 newly tracked projects are visible from the current pipeline logs.
 
+Audit published slide language consistency after incident repair or before
+closing locale-contamination work:
+
+```bash
+python scripts/pipeline/audit_public_slide_language.py \
+  --rank-limit 100 \
+  --report-type econ \
+  --report-type maturity \
+  --output scripts/pipeline/output/slide_language_audit_top100.json \
+  --fail-on-findings
+```
+
+For a route-specific smoke check, build conventional public Storage URLs without
+querying Supabase:
+
+```bash
+python scripts/pipeline/audit_public_slide_language.py \
+  --conventional-urls \
+  --slug bitcoin \
+  --report-type econ \
+  --fail-on-findings
+```
+
+The audit fails on two conservative signals: identical HTML bytes across sibling
+language slots for the same `(slug, report_type)`, or text/OCR content whose CJK
+script contradicts the route language. Use `--ocr` when validating raster-only
+slide HTML; the default still catches duplicate latest objects and any text
+layer/fixture mismatch.
+
 Full type scans also run a final Drive-vs-DB availability reconcile. The
 watcher rebuilds the current `(report_type, slug, language)` set from active
 `Slide/{TYPE}` PDFs and cancels website-visible `project_reports` rows outside
