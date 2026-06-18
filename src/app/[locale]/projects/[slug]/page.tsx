@@ -1,9 +1,18 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import type { CSSProperties } from 'react'
 
+import { getShowcasePreview, type ReportWithCover } from '@/lib/latest-report-showcase'
 import { getLocalizedMarketingContent } from '@/lib/report-marketing-content'
-import { cleanCardSummary } from '@/lib/report-summary'
+import { getMatchingProjectReportAliasIds, type ProjectReportAvailabilityCandidate } from '@/lib/report-availability'
+import { getLocalizedCardSummary } from '@/lib/report-summary'
 import { pickLocaleReport, reportSupportsLocale } from '@/lib/report-locale'
+import {
+  buildReportVersionHref,
+  getReportVersionLabel,
+  pickLatestReport,
+  sortReportsLatestFirst,
+} from '@/lib/report-versioning'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import type { ProjectReport, ReportType, TrackedProject } from '@/lib/types'
 
@@ -99,10 +108,11 @@ function pickLocalizedTitle(report: ProjectReport, locale: string, symbol: strin
 }
 
 function pickLocalizedSummary(report: ProjectReport, locale: string): string | null {
-  const direct = report[`card_summary_${locale}` as keyof ProjectReport] as string | undefined
-  if (direct) return cleanCardSummary(direct)
-  if (locale === 'en' && report.card_summary_en) return cleanCardSummary(report.card_summary_en)
-  return null
+  return getLocalizedCardSummary(report, locale) || null
+}
+
+function reportBelongsToLocale(report: ProjectReport, locale: string): boolean {
+  return reportSupportsLocale(report, locale)
 }
 
 /**
@@ -123,14 +133,59 @@ export function selectReportsByType(
 
   const selected = new Map<ReportType, ProjectReport>()
   for (const [type, list] of byType.entries()) {
-    const eligible = list.filter((report) => reportSupportsLocale(report, locale))
+    const localeList = list.filter((report) => reportBelongsToLocale(report, locale))
+    const latest = pickLatestReport(localeList)
+    const eligible = latest
+      ? sortReportsLatestFirst(
+          localeList.filter((report) => report.version === latest.version),
+        )
+      : []
     const pick = pickLocaleReport(eligible, locale)
     if (pick) selected.set(type, pick)
   }
   return selected
 }
 
+export function buildReportHistoryByType(
+  reports: ProjectReport[],
+  selectedReports: Map<ReportType, ProjectReport>,
+  locale: string,
+): Map<ReportType, ProjectReport[]> {
+  const history = new Map<ReportType, ProjectReport[]>()
+
+  for (const type of REPORT_TYPE_ORDER) {
+    const selected = selectedReports.get(type)
+    const rows = sortReportsLatestFirst(
+      reports.filter((report) => (
+        report.report_type === type
+        && Number(report.version || 0) < Number(selected?.version || 0)
+        && reportBelongsToLocale(report, locale)
+      )),
+    )
+    if (rows.length > 0) history.set(type, rows)
+  }
+
+  return history
+}
+
 const REPORT_TYPE_ORDER: ReportType[] = ['econ', 'maturity', 'forensic']
+const PROJECT_HEADER_FALLBACK_IMAGE = '/images/score-header-bg.png'
+
+export function getProjectDetailHeaderStyle(
+  reports: ReportWithCover[],
+  locale: string,
+): CSSProperties {
+  const previewUrl = reports
+    .map((report) => getShowcasePreview(report, locale).url)
+    .find((url) => typeof url === 'string' && url.trim().length > 0)
+    || PROJECT_HEADER_FALLBACK_IMAGE
+
+  return {
+    backgroundImage: `linear-gradient(118deg, rgba(2, 6, 23, 0.9) 9%, rgba(2, 6, 23, 0.58) 46%, rgba(2, 6, 23, 0.9) 100%), url('${previewUrl}')`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+  }
+}
 
 export default async function ProjectDetailPage({ params }: Props) {
   const { locale, slug } = await params
@@ -147,15 +202,42 @@ export default async function ProjectDetailPage({ params }: Props) {
     notFound()
   }
 
+  const { data: aliasCandidatesRaw } = await supabase
+    .from('tracked_projects')
+    .select('id, name, slug, symbol, coingecko_id, cmc_id, aliases')
+    .in('status', ['active', 'monitoring_only'])
+
+  const reportProjectIds = getMatchingProjectReportAliasIds(
+    project as ProjectReportAvailabilityCandidate,
+    (aliasCandidatesRaw || []) as ProjectReportAvailabilityCandidate[],
+  )
+
   const { data: reportsRaw } = await supabase
     .from('project_reports')
-    .select('*')
-    .eq('project_id', project.id)
+    .select(`
+      *,
+      product:products(
+        id,
+        slug,
+        title_en,
+        title_ko,
+        title_fr,
+        title_es,
+        title_de,
+        title_ja,
+        title_zh,
+        cover_image_url,
+        published_at
+      )
+    `)
+    .in('project_id', reportProjectIds.length > 0 ? reportProjectIds : [project.id])
     .in('status', ['published', 'in_review'])
+    .order('is_latest', { ascending: false })
     .order('updated_at', { ascending: false })
 
-  const reports = (reportsRaw || []) as ProjectReport[]
+  const reports = (reportsRaw || []) as ReportWithCover[]
   const reportsByType = selectReportsByType(reports, locale)
+  const historyByType = buildReportHistoryByType(reports, reportsByType, locale)
   const orderedReports = REPORT_TYPE_ORDER
     .map((type) => reportsByType.get(type))
     .filter((r): r is ProjectReport => Boolean(r))
@@ -165,81 +247,96 @@ export default async function ProjectDetailPage({ params }: Props) {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-gray-500 mb-8">
-        <Link href={`/${locale}`} className="hover:text-indigo-400 transition-colors">
-          {isKo ? '홈' : 'Home'}
-        </Link>
-        <span>/</span>
-        <Link href={`/${locale}/score`} className="hover:text-indigo-400 transition-colors">
-          {isKo ? '리포트' : 'Reports'}
-        </Link>
-        <span>/</span>
-        <span className="text-gray-300">{project.name}</span>
-      </nav>
+      <section
+        className="relative mb-12 overflow-hidden rounded-2xl border border-white/10 bg-slate-950 bg-cover bg-center px-6 py-8 shadow-2xl shadow-black/30 sm:px-8 sm:py-10"
+        style={getProjectDetailHeaderStyle(reports, locale)}
+      >
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08),transparent_36%)]" />
+        <div className="relative">
+          <nav className="flex items-center gap-2 text-sm text-slate-300/75 mb-6">
+            <Link href={`/${locale}`} className="transition-colors hover:text-cyan-200">
+              {isKo ? '홈' : 'Home'}
+            </Link>
+            <span>/</span>
+            <Link href={`/${locale}/score`} className="transition-colors hover:text-cyan-200">
+              {isKo ? '리포트' : 'Reports'}
+            </Link>
+            <span>/</span>
+            <span className="text-white">{project.name}</span>
+          </nav>
 
-      {/* Header */}
-      <header className="mb-12">
-        <div className="flex flex-wrap items-center gap-2 mb-4">
-          {project.category && (
-            <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
-              {project.category}
-            </span>
-          )}
-          {project.chain && (
-            <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-white/5 text-gray-400 border border-white/10">
-              {project.chain}
-            </span>
-          )}
-        </div>
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            {project.category && (
+              <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-cyan-400/12 text-cyan-200 border border-cyan-300/20 backdrop-blur-sm">
+                {project.category}
+              </span>
+            )}
+            {project.chain && (
+              <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-slate-950/20 text-slate-200 border border-white/10 backdrop-blur-sm">
+                {project.chain}
+              </span>
+            )}
+          </div>
 
-        <div className="flex flex-wrap items-baseline gap-3 mb-6">
-          <h1 className="text-4xl md:text-5xl font-bold text-white">{project.name}</h1>
-          <span className="text-xl text-gray-500 font-mono uppercase">{project.symbol}</span>
-        </div>
-
-        <div className="flex flex-wrap gap-4">
-          {marketCap && (
-            <div className="px-5 py-3 rounded-xl bg-white/[0.03] border border-white/5">
-              <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-                {isKo ? '시가총액' : 'Market Cap'}
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="min-w-0 max-w-3xl">
+              <div className="flex flex-wrap items-baseline gap-3">
+                <h1 className="break-words text-4xl font-bold text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.84)] sm:text-5xl">
+                  {project.name}
+                </h1>
+                <span className="text-xl text-slate-300/80 font-mono uppercase">{project.symbol}</span>
               </div>
-              <div className="text-lg font-semibold text-white font-mono">{marketCap}</div>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-200/90 drop-shadow-[0_2px_12px_rgba(0,0,0,0.76)]">
+                {isKo
+                  ? '발행된 ECON, MAT, FOR 보고서와 최신 프로젝트 인사이트를 한 곳에서 확인하세요.'
+                  : 'Review published ECON, MAT, and FOR reports with the latest project intelligence in one place.'}
+              </p>
             </div>
-          )}
-          {project.maturity_score != null && (
-            <div className="px-5 py-3 rounded-xl bg-white/[0.03] border border-white/5">
-              <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-                {isKo ? '성숙도 점수' : 'Maturity Score'}
-              </div>
-              <div className="text-lg font-semibold text-white">
-                {Number(project.maturity_score).toFixed(1)}
-                {project.maturity_stage && (
-                  <span className="ml-2 text-sm text-gray-400 font-normal">
-                    {project.maturity_stage}
-                  </span>
-                )}
-              </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:min-w-[min(100%,34rem)]">
+              {marketCap && (
+                <div className="rounded-lg border border-white/10 bg-slate-950/12 px-4 py-3 backdrop-blur-[1.5px]">
+                  <div className="text-xs font-medium uppercase tracking-wide text-slate-300/72">
+                    {isKo ? '시가총액' : 'Market Cap'}
+                  </div>
+                  <div className="mt-1 text-lg font-semibold text-white font-mono">{marketCap}</div>
+                </div>
+              )}
+              {project.maturity_score != null && (
+                <div className="rounded-lg border border-white/10 bg-slate-950/12 px-4 py-3 backdrop-blur-[1.5px]">
+                  <div className="text-xs font-medium uppercase tracking-wide text-slate-300/72">
+                    {isKo ? '성숙도 점수' : 'Maturity Score'}
+                  </div>
+                  <div className="mt-1 text-lg font-semibold text-white">
+                    {Number(project.maturity_score).toFixed(1)}
+                    {project.maturity_stage && (
+                      <span className="ml-2 text-sm text-slate-300/80 font-normal">
+                        {project.maturity_stage}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+              {project.website_url && (
+                <a
+                  href={project.website_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-lg border border-white/10 bg-slate-950/12 px-4 py-3 backdrop-blur-[1.5px] transition-colors hover:bg-slate-950/24"
+                >
+                  <div className="text-xs font-medium uppercase tracking-wide text-slate-300/72">
+                    {isKo ? '웹사이트' : 'Website'}
+                  </div>
+                  <div className="mt-1 truncate text-sm font-medium text-cyan-200">
+                    {project.website_url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                    <span className="ml-1">↗</span>
+                  </div>
+                </a>
+              )}
             </div>
-          )}
-          {project.website_url && (
-            <a
-              href={project.website_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-5 py-3 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.06] hover:border-white/10 transition-all"
-            >
-              <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-                {isKo ? '웹사이트' : 'Website'}
-              </div>
-              <div className="text-sm font-medium text-indigo-400 truncate max-w-[220px]">
-                {project.website_url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-                <span className="ml-1">↗</span>
-              </div>
-            </a>
-          )}
+          </div>
         </div>
-      </header>
+      </section>
 
       {/* Reports Section */}
       <section>
@@ -256,6 +353,7 @@ export default async function ProjectDetailPage({ params }: Props) {
               const summary = pickLocalizedSummary(report, locale)
               const marketingContent = getLocalizedMarketingContent(report, locale, summary)
               const href = buildReportHref(locale, project.slug, report.report_type)
+              const history = historyByType.get(report.report_type) || []
               const publishedAt = report.published_at
                 ? new Date(report.published_at).toLocaleDateString(dateLocale, {
                     year: 'numeric', month: 'short', day: 'numeric',
@@ -263,9 +361,8 @@ export default async function ProjectDetailPage({ params }: Props) {
                 : null
 
               return (
-                <Link
+                <div
                   key={report.id}
-                  href={href}
                   className={`relative group flex flex-col p-6 rounded-2xl bg-white/[0.03] border ${theme.cardBorder} ${theme.hoverBorder} hover:bg-white/[0.05] transition-all`}
                 >
                   {/* Type chip - top right */}
@@ -276,9 +373,11 @@ export default async function ProjectDetailPage({ params }: Props) {
                   </span>
 
                   {/* Title */}
-                  <h3 className="text-lg font-semibold text-white mb-3 pr-20 line-clamp-2 group-hover:text-indigo-300 transition-colors">
-                    {title}
-                  </h3>
+                  <Link href={href}>
+                    <h3 className="text-lg font-semibold text-white mb-3 pr-20 line-clamp-2 hover:text-indigo-300 transition-colors">
+                      {title}
+                    </h3>
+                  </Link>
 
                   {/* Summary */}
                   {summary && (
@@ -303,7 +402,36 @@ export default async function ProjectDetailPage({ params }: Props) {
                     <span>{publishedAt || '—'}</span>
                     <span className="font-mono">v{report.version}</span>
                   </div>
-                </Link>
+
+                  {history.length > 0 && (
+                    <div className="mt-4 border-t border-white/5 pt-3">
+                      <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-600">
+                        {isKo ? '이전 버전' : 'Previous Versions'}
+                      </p>
+                      <div className="flex flex-col gap-1.5">
+                        {history.map((item) => {
+                          const label = getReportVersionLabel(item)
+                          return (
+                            <Link
+                              key={item.id}
+                              href={buildReportVersionHref({
+                                baseHref: href,
+                                version: label.version,
+                                language: label.language,
+                                reportType: label.reportType,
+                              })}
+                              className="rounded-md border border-white/10 bg-black/10 px-2.5 py-1 text-[11px] text-gray-500 transition-colors hover:border-indigo-500/30 hover:text-indigo-300"
+                            >
+                              {new Date(label.date || item.created_at).toLocaleDateString(dateLocale, {
+                                year: 'numeric', month: 'short', day: 'numeric',
+                              })} · v{label.version} · {label.language.toUpperCase()} · {label.reportType.toUpperCase()}
+                            </Link>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
               )
             })}
           </div>

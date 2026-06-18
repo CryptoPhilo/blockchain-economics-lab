@@ -12,7 +12,7 @@ Usage:
         --output /path/to/output.html \
         --title "Humanity Protocol" \
         --lang ko \
-        --dpi 200
+        --dpi 144
 """
 from __future__ import annotations
 
@@ -20,6 +20,8 @@ import argparse
 import base64
 import io
 import os
+import re
+import shutil
 import sys
 from pathlib import Path
 
@@ -27,7 +29,7 @@ import fitz  # PyMuPDF
 import numpy as np
 
 try:
-    from PIL import Image, ImageDraw, ImageFont
+    from PIL import Image, ImageOps
     HAS_PIL = True
 except ImportError:
     HAS_PIL = False
@@ -65,6 +67,10 @@ def compress_slide_pdf(
 # 1–3 pixels above the logo body, and a tight bbox would let those bleed pixels into the
 # source row and produce vertical streaks (BCE-1701 follow-up).
 NOTEBOOKLM_LOGO_BBOX = (0.90, 0.93, 1.00, 1.00)  # (x0, y0, x1, y1) as page fractions
+OPENAI_COPYRIGHT_FOOTER_BBOXES = (
+    (0.00, 0.88, 0.42, 1.00),
+    (0.58, 0.88, 1.00, 1.00),
+)
 
 
 def _median_color(pix: fitz.Pixmap, x0: int, y0: int, x1: int, y1: int) -> tuple[int, int, int]:
@@ -86,73 +92,75 @@ def _median_color(pix: fitz.Pixmap, x0: int, y0: int, x1: int, y1: int) -> tuple
 _SOURCE_STRIP_ROWS = 3  # rows sampled above the bbox for the per-column median
 
 
-# Copyright overlay (BCE-1701 follow-up): instead of fighting to make the masked area
-# look like nothing was there, paint a small BCE Lab brand mark in the same spot.
-# Turns the masked region into intentional branding rather than a "blank patch."
-COPYRIGHT_OVERLAY_TEXT = "© BCE Lab"
-COPYRIGHT_OVERLAY_FONT_FRAC = 0.022   # font size as fraction of page height
-COPYRIGHT_OVERLAY_COLOR = (110, 110, 100)  # subtle warm gray, matches typical footer
-COPYRIGHT_OVERLAY_RIGHT_PAD_FRAC = 0.008
-_FONT_CANDIDATES = (
-    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-    "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
-    "/System/Library/Fonts/Supplemental/Arial.ttf",
-    "/Library/Fonts/Arial.ttf",
-    "C:/Windows/Fonts/arial.ttf",
-)
+def _normalize_copyright_ocr_text(text: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", text.lower())
 
 
-def _load_overlay_font(size: int):
-    if not HAS_PIL:
-        return None
-    for path in _FONT_CANDIDATES:
-        try:
-            return ImageFont.truetype(path, size)
-        except (OSError, IOError):
-            continue
-    return ImageFont.load_default()
+def detect_openai_copyright_text(texts: list[str]) -> list[str]:
+    """Return OCR strings that indicate an OpenAI copyright footer.
 
-
-def overlay_copyright_notice(
-    pix: fitz.Pixmap,
-    bbox: tuple[float, float, float, float] = NOTEBOOKLM_LOGO_BBOX,
-    text: str = COPYRIGHT_OVERLAY_TEXT,
-    color: tuple[int, int, int] = COPYRIGHT_OVERLAY_COLOR,
-) -> fitz.Pixmap:
-    """Render a small copyright/brand text inside the logo bbox.
-
-    Run AFTER mask_notebooklm_logo so the surface is already inpainted. Right-aligned
-    within the bbox and vertically centered. No-op if PIL is unavailable.
-    Mutates and returns the pixmap. Requires alpha=False, 3-channel RGB.
+    The check is deliberately scoped to footer OCR text. General slide content can
+    legitimately mention OpenAI; the failure condition is a copyright footer mark.
     """
+    hits: list[str] = []
+    for text in texts:
+        compact = _normalize_copyright_ocr_text(text)
+        has_openai = any(token in compact for token in ("openai", "openal", "opena1"))
+        has_copyright = (
+            "©" in text
+            or any(token in compact for token in (
+                "copyright",
+                "copyr1ght",
+                "copynght",
+                "copynight",
+                "copyriqht",
+                "copvright",
+            ))
+        )
+        if has_openai and has_copyright:
+            hits.append(text)
+    return hits
+
+
+def _ocr_footer_regions(pix: fitz.Pixmap) -> list[str]:
     if not HAS_PIL:
-        return pix
+        raise RuntimeError("Pillow is required for OpenAI copyright OCR guard")
     if pix.alpha or pix.n != 3:
-        raise ValueError("overlay_copyright_notice requires an alpha=False RGB pixmap")
-    W, H = pix.width, pix.height
-    fx0, fy0, fx1, fy1 = bbox
-    x0 = int(W * fx0); y0 = int(H * fy0)
-    x1 = int(W * fx1); y1 = int(H * fy1)
-    bw = x1 - x0; bh = y1 - y0
-    if bw <= 0 or bh <= 0:
-        return pix
+        raise ValueError("OpenAI copyright OCR guard requires an alpha=False RGB pixmap")
+    if shutil.which("tesseract") is None:
+        raise RuntimeError("tesseract is required for OpenAI copyright OCR guard")
+    try:
+        import pytesseract
+    except Exception as exc:
+        raise RuntimeError("pytesseract is required for OpenAI copyright OCR guard") from exc
 
-    arr = np.frombuffer(pix.samples_mv, dtype=np.uint8).reshape(H, W, pix.n)
-    img = Image.fromarray(arr.copy())
-    draw = ImageDraw.Draw(img)
+    image = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
+    texts: list[str] = []
+    for fx0, fy0, fx1, fy1 in OPENAI_COPYRIGHT_FOOTER_BBOXES:
+        crop = image.crop((
+            int(pix.width * fx0),
+            int(pix.height * fy0),
+            int(pix.width * fx1),
+            int(pix.height * fy1),
+        ))
+        crop = ImageOps.grayscale(crop)
+        crop = ImageOps.autocontrast(crop)
+        crop = crop.resize((crop.width * 2, crop.height * 2))
+        text = pytesseract.image_to_string(crop, lang="eng", config="--psm 6") or ""
+        if text.strip():
+            texts.append(text.strip())
+    return texts
 
-    font_size = max(10, int(H * COPYRIGHT_OVERLAY_FONT_FRAC))
-    font = _load_overlay_font(font_size)
 
-    tbox = draw.textbbox((0, 0), text, font=font)
-    tw, th = tbox[2] - tbox[0], tbox[3] - tbox[1]
-    pad = int(W * COPYRIGHT_OVERLAY_RIGHT_PAD_FRAC)
-    tx = max(x0, x1 - tw - pad)
-    ty = y0 + max(0, (bh - th) // 2) - tbox[1]
-    draw.text((tx, ty), text, font=font, fill=color)
-
-    arr[:] = np.array(img)
-    return pix
+def assert_no_openai_copyright(pix: fitz.Pixmap, page_number: int, source: str) -> None:
+    """Fail conversion when footer OCR detects an OpenAI copyright mark."""
+    texts = _ocr_footer_regions(pix)
+    hits = detect_openai_copyright_text(texts)
+    if hits:
+        matched = " | ".join(hit.replace("\n", " ") for hit in hits)
+        raise RuntimeError(
+            f"OpenAI copyright footer detected by OCR on page {page_number} of {source}: {matched}"
+        )
 
 
 def mask_notebooklm_logo(
@@ -202,36 +210,66 @@ def mask_notebooklm_logo(
 
 def extract_pages_base64(
     pdf_path: str,
-    dpi: int = 200,
+    dpi: int = 144,
     fmt: str = "jpeg",
-    quality: int = 80,
+    quality: int = 92,
     mask_logo: bool = True,
-    add_copyright: bool = True,
+    fail_on_openai_copyright: bool = True,
 ) -> list[tuple[str, str]]:
     """Render each PDF page to a base64-encoded image. Returns [(mime, b64), ...].
-    When mask_logo is True (default), paints over the NotebookLM logo at the bottom-right of each page.
-    When add_copyright is True (default), renders a BCE Lab copyright notice into the same area."""
+    When fail_on_openai_copyright is True (default), footer OCR blocks PDFs
+    that contain an OpenAI copyright mark instead of silently repairing them.
+    When mask_logo is True (default), paints over the NotebookLM logo at the
+    bottom-right of each page. No replacement copyright text is rendered."""
     doc = fitz.open(pdf_path)
     zoom = dpi / 72.0
     mat = fitz.Matrix(zoom, zoom)
     pages = []
-    for i in range(doc.page_count):
-        page = doc[i]
-        pix = page.get_pixmap(matrix=mat, alpha=False)
-        if mask_logo:
-            mask_notebooklm_logo(pix)
-            if add_copyright:
-                overlay_copyright_notice(pix)
-        if fmt == "jpeg":
-            raw = pix.tobytes("jpeg", jpg_quality=quality)
-            mime = "image/jpeg"
-        else:
-            raw = pix.tobytes("png")
-            mime = "image/png"
-        b64 = base64.b64encode(raw).decode('ascii')
-        pages.append((mime, b64))
-    doc.close()
+    try:
+        for i in range(doc.page_count):
+            page = doc[i]
+            pix = page.get_pixmap(matrix=mat, alpha=False)
+            if fail_on_openai_copyright:
+                assert_no_openai_copyright(pix, i + 1, pdf_path)
+            if mask_logo:
+                mask_notebooklm_logo(pix)
+            if fmt == "jpeg":
+                raw = pix.tobytes("jpeg", jpg_quality=quality)
+                mime = "image/jpeg"
+            else:
+                raw = pix.tobytes("png")
+                mime = "image/png"
+            b64 = base64.b64encode(raw).decode('ascii')
+            pages.append((mime, b64))
+    finally:
+        doc.close()
     return pages
+
+
+def render_first_page_image(
+    pdf_path: str,
+    dpi: int = 144,
+    fmt: str = "jpeg",
+    quality: int = 90,
+    mask_logo: bool = True,
+    fail_on_openai_copyright: bool = True,
+) -> tuple[str, bytes]:
+    """Render the first PDF page as an image for public report cover thumbnails."""
+    doc = fitz.open(pdf_path)
+    if doc.page_count < 1:
+        doc.close()
+        raise ValueError("PDF has no pages")
+
+    zoom = dpi / 72.0
+    pix = doc[0].get_pixmap(matrix=fitz.Matrix(zoom, zoom), alpha=False)
+    doc.close()
+    if fail_on_openai_copyright:
+        assert_no_openai_copyright(pix, 1, pdf_path)
+    if mask_logo:
+        mask_notebooklm_logo(pix)
+    if fmt == "png":
+        return "image/png", pix.tobytes("png")
+    return "image/jpeg", pix.tobytes("jpeg", jpg_quality=quality)
 
 
 def build_viewer_html(
@@ -516,7 +554,8 @@ def convert_pdf_to_html_slides(
     output_path: str | None = None,
     title: str = "Slide Viewer",
     lang: str = "ko",
-    dpi: int = 200,
+    dpi: int = 144,
+    quality: int = 92,
     mask_logo: bool = True,
 ) -> str:
     """Main entry: convert a PDF to an HTML slide viewer."""
@@ -526,7 +565,7 @@ def convert_pdf_to_html_slides(
 
     print(f"[1/2] Extracting pages from {pdf_path} at {dpi} DPI (JPEG)"
           f"{' with NotebookLM logo masking' if mask_logo else ''}...")
-    pages = extract_pages_base64(pdf_path, dpi=dpi, fmt="jpeg", quality=80, mask_logo=mask_logo)
+    pages = extract_pages_base64(pdf_path, dpi=dpi, fmt="jpeg", quality=quality, mask_logo=mask_logo)
     print(f"  ✓ {len(pages)} pages extracted")
 
     print(f"[2/2] Building HTML viewer...")
@@ -548,7 +587,8 @@ def main():
     parser.add_argument("--output", default=None, help="Output HTML path")
     parser.add_argument("--title", default="Slide Viewer", help="Viewer title")
     parser.add_argument("--lang", default="ko", help="Language code")
-    parser.add_argument("--dpi", type=int, default=200, help="Render DPI (default: 200)")
+    parser.add_argument("--dpi", type=int, default=144, help="Render DPI (default: 144)")
+    parser.add_argument("--quality", type=int, default=92, help="JPEG quality (default: 92)")
     parser.add_argument(
         "--no-mask-logo", dest="mask_logo", action="store_false",
         help="Disable NotebookLM logo masking (use when input PDF is not from NotebookLM)",
@@ -562,6 +602,7 @@ def main():
         title=args.title,
         lang=args.lang,
         dpi=args.dpi,
+        quality=args.quality,
         mask_logo=args.mask_logo,
     )
 

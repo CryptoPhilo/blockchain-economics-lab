@@ -122,6 +122,45 @@ export class ProjectsRepository {
     return data || []
   }
 
+  async getExchangeProjects() {
+    const { data, error } = await this.supabase
+      .from('tracked_projects')
+      .select(`
+        id, name, slug, symbol, category,
+        market_cap_usd, coingecko_id, cmc_id, aliases, maturity_score,
+        last_econ_report_at, last_maturity_report_at, last_forensic_report_at
+      `)
+      .in('status', ['active', 'monitoring_only'])
+      .ilike('category', '%exchange%')
+      .order('name', { ascending: true })
+
+    if (error) {
+      throw new Error(`Failed to fetch exchange projects: ${error.message}`)
+    }
+
+    return data || []
+  }
+
+  async getExchangeProjectBySlug(slug: string) {
+    const { data, error } = await this.supabase
+      .from('tracked_projects')
+      .select(`
+        id, name, slug, symbol, category,
+        market_cap_usd, coingecko_id, cmc_id, aliases, maturity_score,
+        last_econ_report_at, last_maturity_report_at, last_forensic_report_at
+      `)
+      .eq('slug', slug)
+      .in('status', ['active', 'monitoring_only'])
+      .ilike('category', '%exchange%')
+      .maybeSingle()
+
+    if (error) {
+      throw new Error(`Failed to fetch exchange project: ${error.message}`)
+    }
+
+    return data || null
+  }
+
   async getLatestScoreboardMarketSnapshot(limit = 500) {
     const latestRecordedAt = await this.getLatestCmcSnapshotDate(500)
     if (!latestRecordedAt) return []

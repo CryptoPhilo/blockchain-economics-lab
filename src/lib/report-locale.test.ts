@@ -103,6 +103,24 @@ describe('report locale helpers', () => {
     expect(reportHasSlideAssetForLocale(slideReport, 'de')).toBe(true)
   })
 
+  it('uses legacy top-level English PDF URLs for English fallback locales', () => {
+    const report = createReport({
+      language: 'en',
+      gdrive_url: 'https://drive.google.com/file/d/kucoin-en/view',
+      file_url: 'https://drive.google.com/file/d/kucoin-en/view',
+      gdrive_urls_by_lang: {},
+      file_urls_by_lang: {},
+      slide_html_urls_by_lang: {},
+    } as Partial<ProjectReport>)
+
+    expect(reportSupportsLocale(report, 'en')).toBe(true)
+    expect(reportSupportsLocale(report, 'de')).toBe(true)
+    expect(reportSupportsLocale(report, 'es')).toBe(true)
+    expect(reportSupportsLocale(report, 'fr')).toBe(true)
+    expect(reportSupportsLocale(report, 'ko')).toBe(false)
+    expect(pickLocaleReport([report], 'de')).toBe(report)
+  })
+
   it('still prefers exact locale rows over asset-bearing sibling rows', () => {
     const sharedAssetRow = createReport({
       id: 'btc-econ-ko-shared-assets',

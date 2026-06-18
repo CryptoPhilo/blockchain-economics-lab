@@ -205,6 +205,7 @@ LOG_DIR = REPO_ROOT / 'logs' / 'slide_pipeline'
 # documents and must not be published as slide HTML.
 STALE_PROCESSING_AFTER_MINUTES = int(os.environ.get('SLIDE_PIPELINE_STALE_PROCESSING_MINUTES', '30'))
 BLOCKED_RECHECK_AFTER_MINUTES = int(os.environ.get('SLIDE_PIPELINE_BLOCKED_RECHECK_MINUTES', '720'))
+MAX_LANGUAGE_PUBLISH_RETRIES = int(os.environ.get('SLIDE_PIPELINE_MAX_LANGUAGE_PUBLISH_RETRIES', '3'))
 
 TRACKED_PROJECT_GUARD_FIELDS = (
     'id, slug, name, symbol, status, '
@@ -449,6 +450,8 @@ def _load_manifest() -> Dict[str, Dict]:
 
 
 def _save_manifest(data: Dict[str, Dict]) -> None:
+    if os.environ.get('SLIDE_WATCHER_DISABLE_MANIFEST_WRITE') == '1':
+        return
     MANIFEST_PATH.parent.mkdir(parents=True, exist_ok=True)
     MANIFEST_PATH.write_text(
         json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True),
@@ -565,15 +568,50 @@ def _blocked_manifest_diagnostic(
     }
 
 
-def _load_tracked_projects(sb) -> List[Dict[str, Any]]:
-    """Fetch all tracked_projects (id, slug, name, symbol, aliases)."""
-    out: List[Dict[str, Any]] = []
+def _load_exchange_listed_project_ids(sb) -> Set[str]:
+    """Fetch project ids present in active exchange listings when the table exists."""
+    project_ids: Set[str] = set()
     page_size = 1000
     offset = 0
     while True:
-        res = sb.table('tracked_projects').select('id, slug, name, symbol, aliases') \
-            .range(offset, offset + page_size - 1).execute()
+        res = (
+            sb.table('exchange_project_listings')
+            .select('project_id')
+            .eq('listing_status', 'active')
+            .range(offset, offset + page_size - 1)
+            .execute()
+        )
         rows = res.data or []
+        for row in rows:
+            project_id = row.get('project_id')
+            if project_id:
+                project_ids.add(project_id)
+        if len(rows) < page_size:
+            break
+        offset += page_size
+    return project_ids
+
+
+def _load_tracked_projects(sb) -> List[Dict[str, Any]]:
+    """Fetch the report-publication project universe from canonical projects."""
+    out: List[Dict[str, Any]] = []
+    exchange_listed_project_ids: Set[str] = set()
+    try:
+        exchange_listed_project_ids = _load_exchange_listed_project_ids(sb)
+    except Exception as e:
+        print(f"  [WARN] exchange_project_listings fetch failed: {e}")
+    page_size = 1000
+    offset = 0
+    while True:
+        res = (
+            sb.table('tracked_projects')
+            .select('id, slug, name, symbol, coingecko_id, cmc_id, aliases, status')
+            .range(offset, offset + page_size - 1)
+            .execute()
+        )
+        rows = res.data or []
+        for row in rows:
+            row['exchange_listed'] = bool(row.get('id') in exchange_listed_project_ids)
         out.extend(rows)
         if len(rows) < page_size:
             break
@@ -2056,6 +2094,7 @@ def _iter_legacy_slide_inventory_targets(
     requested_types = set(types)
     hint_tokens = _slug_hint_tokens(filter_slug, projects or [])
     seen_file_ids: Set[str] = set()
+    candidates: List[Tuple[str, Dict[str, Any]]] = []
 
     for pdf in _legacy_slide_inventory(service, folder_ids):
         if not _modified_since_matches(pdf, modified_since):
@@ -2088,6 +2127,47 @@ def _iter_legacy_slide_inventory_targets(
             continue
         if file_id:
             seen_file_ids.add(file_id)
+        candidates.append((target_rtype, pdf))
+
+    latest_by_key: Dict[Tuple[str, str, str], Tuple[str, Dict[str, Any]]] = {}
+    passthrough_ids: Set[str] = set()
+    for target_rtype, pdf in candidates:
+        lang = _lang_from_filename(pdf.get('name') or '')
+        matched_project = _match_project_by_text(
+            f"{pdf.get('name') or ''} {pdf.get('source_path') or ''}",
+            projects or [],
+        )
+        slug = (matched_project or {}).get('slug')
+        file_id = pdf.get('id')
+        if not lang or not slug or not file_id:
+            if file_id:
+                passthrough_ids.add(file_id)
+            continue
+
+        key = (target_rtype, slug, lang)
+        existing = latest_by_key.get(key)
+        existing_modified = _drive_modified_at((existing[1] if existing else {}).get('modifiedTime'))
+        current_modified = _drive_modified_at(pdf.get('modifiedTime'))
+        if existing is None or (
+            current_modified is not None
+            and (existing_modified is None or current_modified > existing_modified)
+        ):
+            latest_by_key[key] = (target_rtype, pdf)
+
+    selected_ids = {
+        pdf.get('id')
+        for _key, (_target_rtype, pdf) in latest_by_key.items()
+        if pdf.get('id')
+    } | passthrough_ids
+    yielded_ids: Set[str] = set()
+    for target_rtype, pdf in candidates:
+        file_id = pdf.get('id')
+        if file_id and file_id not in selected_ids:
+            continue
+        if file_id and file_id in yielded_ids:
+            continue
+        if file_id:
+            yielded_ids.add(file_id)
         yield target_rtype, pdf
 
 
@@ -2617,10 +2697,30 @@ def _has_verified_landscape_profile(manifest_entry: Dict[str, Any]) -> bool:
     return isinstance(page_profile, dict) and page_profile.get('is_landscape_slide') is True
 
 
+def _language_publish_retry_count(manifest_entry: Dict[str, Any]) -> int:
+    value = manifest_entry.get('publish_retry_count', manifest_entry.get('retry_count', 0))
+    try:
+        return max(0, int(value or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _language_publish_retry_exhausted(
+    manifest_entry: Dict[str, Any],
+    modified: str,
+) -> bool:
+    return (
+        manifest_entry.get('modifiedTime') == modified
+        and manifest_entry.get('status') in {'failed', 'publish_pending_retry_exhausted'}
+        and _language_publish_retry_count(manifest_entry) >= MAX_LANGUAGE_PUBLISH_RETRIES
+    )
+
+
 def process(
     types: List[str],
     *,
     filter_slug: Optional[str],
+    filter_lang: Optional[str] = None,
     filter_file_ids: Optional[set[str]] = None,
     dry_run: bool,
     force: bool,
@@ -2683,6 +2783,10 @@ def process(
         file_id = pdf['id']
         if filter_file_ids and file_id not in filter_file_ids:
             continue
+        if filter_lang:
+            candidate_lang = language_overrides.get(file_id) or _lang_from_filename(pdf.get('name') or '')
+            if candidate_lang and candidate_lang != filter_lang:
+                continue
         modified = pdf.get('modifiedTime', '')
         if pdf.get('source_kind') == 'legacy_report':
             if (
@@ -2730,6 +2834,45 @@ def process(
             continue
 
         prev = manifest.get(file_id) or {}
+        if not force and _language_publish_retry_exhausted(prev, modified):
+            retry_count = _language_publish_retry_count(prev)
+            lang = (
+                language_overrides.get(file_id)
+                or prev.get('lang')
+                or _lang_from_filename(pdf.get('name') or '')
+            )
+            slug = prev.get('slug') or pdf.get('legacy_slug_hint')
+            status = 'publish_pending_retry_exhausted'
+            print(
+                f"  [PENDING] {rtype}/{pdf['name']}: "
+                f"{lang or 'unknown'} publish failed {retry_count} times; "
+                "waiting for manual repair or --force"
+            )
+            manifest[file_id] = {
+                **prev,
+                'rtype': rtype,
+                'name': pdf['name'],
+                'modifiedTime': modified,
+                'parent_folder_id': pdf.get('parent_folder_id'),
+                'parent_folder_name': pdf.get('parent_folder_name'),
+                'source_path': pdf.get('source_path'),
+                'source_depth': pdf.get('source_depth'),
+                'status': status,
+                'slug': slug,
+                'lang': lang,
+                'publish_retry_count': retry_count,
+                'updated_at': datetime.now(timezone.utc).isoformat(),
+            }
+            _save_manifest(manifest)
+            scanned.append({
+                **record,
+                'slug': slug,
+                'lang': lang,
+                'status': status,
+                'retry_count': retry_count,
+                'error': prev.get('error'),
+            })
+            continue
         now = datetime.now(timezone.utc)
         processing_diag = _processing_manifest_diagnostic(prev, now=now)
         if (
@@ -3363,14 +3506,29 @@ def process(
                 print(f"    ✓ {public_url}")
             except Exception as e:
                 err = str(e)[:300]
+                retry_count = _language_publish_retry_count(manifest[file_id]) + 1
+                status = (
+                    'publish_pending_retry_exhausted'
+                    if retry_count >= MAX_LANGUAGE_PUBLISH_RETRIES
+                    else 'failed'
+                )
                 manifest[file_id].update({
-                    'status': 'failed',
+                    'status': status,
                     'error': err,
+                    'publish_retry_count': retry_count,
                     'updated_at': datetime.now(timezone.utc).isoformat(),
                 })
                 _save_manifest(manifest)
-                processed.append({**record, 'status': 'failed', 'error': err})
-                print(f"    ✗ failed: {err}")
+                processed.append({
+                    **record,
+                    'status': status,
+                    'error': err,
+                    'retry_count': retry_count,
+                })
+                if status == 'publish_pending_retry_exhausted':
+                    print(f"    ✗ failed after {retry_count} attempts; publish pending manual repair: {err}")
+                else:
+                    print(f"    ✗ failed (attempt {retry_count}/{MAX_LANGUAGE_PUBLISH_RETRIES}): {err}")
         finally:
             if downloaded:
                 try:
@@ -3397,9 +3555,10 @@ def process(
             )
             scanned.append(diag)
 
-    if filter_file_ids:
+    if filter_file_ids or filter_lang:
         if prune_candidate_pairs or current_langs_by_pair:
-            print("  [SKIP] stale language prune skipped during file-id filtered run")
+            reason = 'file-id' if filter_file_ids else f'language={filter_lang}'
+            print(f"  [SKIP] stale language prune skipped during {reason} filtered run")
         return scanned, processed
 
     prune_pairs = sorted(prune_candidate_pairs | set(current_langs_by_pair.keys()))
@@ -3476,6 +3635,7 @@ def _publishable_slide_keys(scanned: List[Dict], processed: List[Dict]) -> Set[T
         'mismatch',
         'language_mismatch',
         'failed',
+        'publish_pending_retry_exhausted',
         'prune_skipped_no_publishable_pdf',
         'prune_skipped_no_project_id',
         'prune_skipped_no_supabase',
@@ -3762,6 +3922,8 @@ def main() -> int:
                         help='Report type to process (default: all)')
     parser.add_argument('--slug', default=None,
                         help='Process only files resolving to this slug (post-resolution filter)')
+    parser.add_argument('--lang', default=None, choices=sorted(SUPPORTED_LANGS),
+                        help='Process only files resolving to this language; disables stale language prune')
     parser.add_argument('--dry-run', action='store_true', help='Scan only — no download/upload/DB')
     parser.add_argument('--force', action='store_true', help='Reprocess even if manifest is up-to-date')
     parser.add_argument(
@@ -3820,6 +3982,7 @@ def main() -> int:
     print(f'Types: {types}  Slug filter: {args.slug or "(none)"}  '
           f'Dry-run: {args.dry_run}  Force: {args.force}  '
           f'Reconcile-only: {args.reconcile_only}  '
+          f'Lang filter: {args.lang or "(none)"}  '
           f'Language overrides: {len(language_overrides)}  '
           f'Modified since: {modified_since.isoformat() if modified_since else "(none)"}  '
           f'Drive root scope: {drive_root_scope}')
@@ -3887,6 +4050,7 @@ def main() -> int:
     scanned, processed = process(
         types,
         filter_slug=args.slug,
+        filter_lang=args.lang,
         filter_file_ids=None,
         dry_run=args.dry_run,
         force=args.force,

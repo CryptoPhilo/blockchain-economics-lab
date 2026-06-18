@@ -47,4 +47,30 @@ describe('getLocalizedMarketingContent', () => {
       ),
     ).toBe('')
   })
+
+  it('does not render raw LaTeX or formula fragments in investment view copy', () => {
+    expect(
+      getLocalizedMarketingContent(
+        {
+          marketing_content_by_lang: {
+            ko: String.raw`$$ px i = round(px {i-1} \times 1.003) $$ 각 level 간격은 약 0.3% 전략은 최소 3초마다 조정된다.`,
+          },
+        },
+        'ko',
+      ),
+    ).toBe('')
+  })
+
+  it('does not render markdown table or code fragments in investment view copy', () => {
+    expect(
+      getLocalizedMarketingContent(
+        {
+          marketing_content_by_lang: {
+            en: '| Metric | Value | `raw_code`',
+          },
+        },
+        'en',
+      ),
+    ).toBe('')
+  })
 })

@@ -28,6 +28,16 @@ export type VisibleReportRow = {
   slide_html_urls_by_lang?: unknown
 }
 
+export type ProjectReportAvailabilityCandidate = {
+  id: string
+  name: string
+  slug: string
+  symbol: string
+  coingecko_id: string | null
+  cmc_id: string | number | null
+  aliases: string[] | null
+}
+
 function isReportTypeKey(value: unknown): value is ReportTypeKey {
   return value === 'econ' || value === 'maturity' || value === 'forensic'
 }
@@ -38,6 +48,51 @@ function getReportTimestamp(report: {
   created_at?: string | null
 }) {
   return report.published_at || report.updated_at || report.created_at || null
+}
+
+function normalizeAvailabilityKey(value: unknown): string {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? String(value) : ''
+  }
+
+  return typeof value === 'string' ? value.trim().toLowerCase() : ''
+}
+
+function normalizeNullableAvailabilityKey(value: unknown): string | null {
+  const normalized = normalizeAvailabilityKey(value)
+  return normalized || null
+}
+
+export function getProjectReportAvailabilityKeys(project: ProjectReportAvailabilityCandidate): string[] {
+  const keys = [
+    normalizeNullableAvailabilityKey(project.slug),
+    normalizeNullableAvailabilityKey(project.coingecko_id),
+    normalizeNullableAvailabilityKey(project.cmc_id),
+    normalizeNullableAvailabilityKey(project.name),
+    normalizeNullableAvailabilityKey(`${project.name}:${project.symbol}`),
+  ]
+
+  if (Array.isArray(project.aliases)) {
+    for (const alias of project.aliases) {
+      keys.push(normalizeNullableAvailabilityKey(alias))
+    }
+  }
+
+  return Array.from(new Set(keys.filter((key): key is string => !!key)))
+}
+
+export function getMatchingProjectReportAliasIds(
+  project: ProjectReportAvailabilityCandidate,
+  candidateProjects: ProjectReportAvailabilityCandidate[],
+): string[] {
+  const projectKeys = new Set(getProjectReportAvailabilityKeys(project))
+
+  return candidateProjects
+    .filter((candidate) => (
+      candidate.id === project.id
+      || getProjectReportAvailabilityKeys(candidate).some((key) => projectKeys.has(key))
+    ))
+    .map((candidate) => candidate.id)
 }
 
 export function createEmptyReportAvailability(): ReportAvailability {
@@ -61,15 +116,10 @@ export function buildReportAvailabilityByProjectId(
   }
 
   for (const projectTypeReports of reportsByProjectType.values()) {
-    const latest = pickLatestReport(projectTypeReports)
-    if (!latest) continue
-
-    const latestVersion = latest.version ?? null
-    const localizedLatestVersionReports = projectTypeReports.filter((report) => (
-      (report.version ?? null) === latestVersion
-        && reportSupportsLocale(report as ProjectReport, locale)
+    const localizedReports = projectTypeReports.filter((report) => (
+      reportSupportsLocale(report as ProjectReport, locale)
     ))
-    const report = pickLatestReport(localizedLatestVersionReports)
+    const report = pickLatestReport(localizedReports)
     if (!report) continue
     if (!isReportTypeKey(report.report_type)) continue
     const reportType = report.report_type
@@ -90,6 +140,41 @@ export function buildReportAvailabilityByProjectId(
   }
 
   return map
+}
+
+function hasReportAvailability(availability: ReportAvailability | undefined): availability is ReportAvailability {
+  return !!availability && availability.reportTypes.length > 0
+}
+
+export function applyProjectReportAvailabilityAliases(
+  availabilityByProjectId: Map<string, ReportAvailability>,
+  listedProjects: ProjectReportAvailabilityCandidate[],
+  candidateProjects: ProjectReportAvailabilityCandidate[],
+) {
+  const availabilityByKey = new Map<string, ReportAvailability>()
+
+  for (const project of candidateProjects) {
+    const availability = availabilityByProjectId.get(project.id)
+    if (!hasReportAvailability(availability)) continue
+
+    for (const key of getProjectReportAvailabilityKeys(project)) {
+      if (!availabilityByKey.has(key)) {
+        availabilityByKey.set(key, availability)
+      }
+    }
+  }
+
+  for (const project of listedProjects) {
+    if (hasReportAvailability(availabilityByProjectId.get(project.id))) continue
+
+    for (const key of getProjectReportAvailabilityKeys(project)) {
+      const availability = availabilityByKey.get(key)
+      if (availability) {
+        availabilityByProjectId.set(project.id, availability)
+        break
+      }
+    }
+  }
 }
 
 export async function fetchVisibleReportsForProjectIds(

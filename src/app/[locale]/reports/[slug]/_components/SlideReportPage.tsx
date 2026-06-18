@@ -3,21 +3,36 @@ import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 
 import SlideViewer from '@/components/SlideViewer'
+import { getLocalizedMarketingContent } from '@/lib/report-marketing-content'
+import { getMatchingProjectReportAliasIds, type ProjectReportAvailabilityCandidate } from '@/lib/report-availability'
 import { cleanCardSummary } from '@/lib/report-summary'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import {
+  sortReportsLatestFirst,
+} from '@/lib/report-versioning'
 import {
   type CardDataRecord,
   getLocaleReportState,
   getLocalizedSummary,
+  getReportDisplayDate,
   resolveSlideUrl,
 } from './slide-report-utils'
 
 type ReportTypeKey = 'econ' | 'maturity'
 
 type ReportRecord = Record<string, unknown> & {
+  id: string
+  project_id: string
+  report_type: ReportTypeKey
+  version: number
   card_keywords?: string[] | null
   card_summary_en?: string | null
   language?: string | null
+  published_at?: string | null
+  updated_at?: string | null
+  created_at?: string | null
+  is_latest?: boolean | null
+  marketing_content_by_lang?: Record<string, unknown> | null
 }
 
 const localeMap: Record<string, string> = {
@@ -75,13 +90,11 @@ function getLocalizedKeywords(
     if (genericKeywords.length > 0) return genericKeywords
   }
 
-  if (locale !== 'en') return []
-
   return asStringArray(
     keywordsByLang?.en
     ?? cardData?.keywords_en
-    ?? report.card_keywords
-    ?? cardData?.keywords,
+    ?? (report.language === 'en' ? report.card_keywords : undefined)
+    ?? (report.language === 'en' ? cardData?.keywords : undefined),
   )
 }
 
@@ -89,11 +102,20 @@ interface SlideReportPageProps {
   locale: string
   slug: string
   reportType: ReportTypeKey
+  requestedVersion?: number | null
+  requestedLanguage?: string | null
 }
 
-export async function SlideReportPage({ locale, slug, reportType }: SlideReportPageProps) {
+export async function SlideReportPage({
+  locale,
+  slug,
+  reportType,
+  requestedVersion,
+  requestedLanguage,
+}: SlideReportPageProps) {
   const t = await getTranslations('slideReportDetail')
   const supabase = await createServerSupabaseClient()
+  const effectiveLocale = requestedLanguage === locale ? requestedLanguage : locale
 
   const { data: project } = await supabase
     .from('tracked_projects')
@@ -103,22 +125,34 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
 
   if (!project) notFound()
 
+  const { data: aliasCandidatesRaw } = await supabase
+    .from('tracked_projects')
+    .select('id, name, slug, symbol, coingecko_id, cmc_id, aliases')
+    .in('status', ['active', 'monitoring_only'])
+
+  const reportProjectIds = getMatchingProjectReportAliasIds(
+    project as ProjectReportAvailabilityCandidate,
+    (aliasCandidatesRaw || []) as ProjectReportAvailabilityCandidate[],
+  )
+
   const { data: allRows } = await supabase
     .from('project_reports')
     .select('*')
-    .eq('project_id', project.id)
+    .in('project_id', reportProjectIds.length > 0 ? reportProjectIds : [project.id])
     .eq('report_type', reportType)
-    .in('status', ['published', 'coming_soon'])
-    .order('published_at', { ascending: false })
+    .in('status', ['published', 'coming_soon', 'in_review'])
+    .order('updated_at', { ascending: false })
 
-  const reportState = getLocaleReportState(allRows, locale)
+  const sortedRows = sortReportsLatestFirst((allRows || []) as ReportRecord[])
+  const versionRows = pickVersionRowsForLocale(sortedRows, effectiveLocale, requestedVersion)
+  const reportState = getLocaleReportState(versionRows, effectiveLocale)
   if (reportState.status === 'not_found') notFound()
 
   const report = reportState.status === 'available' ? reportState.report : null
   const isLocalePending = reportState.status === 'locale_pending'
 
   const mergedSlideUrls: Record<string, string> = {}
-  for (const row of allRows ?? []) {
+  for (const row of versionRows ?? []) {
     const urls = row?.slide_html_urls_by_lang as Record<string, unknown> | null | undefined
     if (urls && typeof urls === 'object') {
       for (const [k, v] of Object.entries(urls)) {
@@ -133,10 +167,11 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
   const allReportsHref = `/${locale}/score`
 
   const cardData = report?.card_data as CardDataRecord | null
-  const slideUrl = report ? resolveSlideUrl(mergedSlideUrls, locale) : null
+  const slideUrl = report ? resolveSlideUrl(mergedSlideUrls, effectiveLocale) : null
 
-  const keywords = report ? getLocalizedKeywords(locale, report, cardData) : []
-  const summary = report ? cleanCardSummary(getLocalizedSummary(locale, report, cardData)) : ''
+  const keywords = report ? getLocalizedKeywords(effectiveLocale, report, cardData) : []
+  const summary = report ? cleanCardSummary(getLocalizedSummary(effectiveLocale, report, cardData)) : ''
+  const marketingContent = report ? getLocalizedMarketingContent(report, effectiveLocale, summary) : ''
 
   const score =
     report && reportType === 'maturity'
@@ -145,7 +180,7 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
         ? (cardData?.economy_score ?? cardData?.score ?? null)
         : null
 
-  const generatedAt = report ? (cardData?.generated_at || report.published_at || report.created_at) : null
+  const generatedAt = getReportDisplayDate(versionRows, report)
 
   return (
     <div className="min-h-screen">
@@ -191,6 +226,16 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
                 <p className="text-gray-400 text-lg leading-relaxed max-w-2xl mt-4">
                   {t('localePendingHeroDesc', { locale: locale.toUpperCase() })}
                 </p>
+              )}
+              {marketingContent && (
+                <div className="mt-6 max-w-2xl rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                    {locale === 'ko' ? '투자 관점' : 'Investment View'}
+                  </p>
+                  <p className="whitespace-pre-line text-base leading-7 text-gray-300">
+                    {marketingContent}
+                  </p>
+                </div>
               )}
             </div>
           </div>
@@ -291,6 +336,74 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
       </div>
     </div>
   )
+}
+
+function pickVersionRowsForLocale<T extends {
+  version?: number | null
+  language?: string | null
+  gdrive_urls_by_lang?: Record<string, unknown> | null
+  file_urls_by_lang?: Record<string, unknown> | null
+  slide_html_urls_by_lang?: Record<string, unknown> | null
+}>(
+  rows: T[],
+  locale: string,
+  requestedVersion?: number | null,
+): T[] {
+  if (rows.length === 0) return []
+
+  const localeRows = rows.filter((row) => (
+    getLocaleReportState([row], locale).status === 'available'
+  ))
+  if (localeRows.length === 0) return []
+
+  const rowsByVersion = new Map<number, T[]>()
+  for (const row of localeRows) {
+    const version = row.version || 0
+    const list = rowsByVersion.get(version) || []
+    list.push(row)
+    rowsByVersion.set(version, list)
+  }
+
+  const versions = [...rowsByVersion.keys()].sort((a, b) => b - a)
+
+  if (requestedVersion != null) {
+    const exact = rowsByVersion.get(requestedVersion)
+    if (exact) return exact
+  }
+
+  for (const version of versions) {
+    const candidate = rowsByVersion.get(version)
+    if (!candidate) continue
+    if (resolveSlideUrl(mergeSlideUrls(candidate), locale)) {
+      return candidate
+    }
+  }
+
+  for (const version of versions) {
+    const candidate = rowsByVersion.get(version)
+    if (!candidate) continue
+    if (getLocaleReportState(candidate, locale).status === 'available') {
+      return candidate
+    }
+  }
+
+  return rowsByVersion.get(versions[0]) || []
+}
+
+function mergeSlideUrls<T extends {
+  slide_html_urls_by_lang?: Record<string, unknown> | null
+}>(rows: T[]): Record<string, string> {
+  const merged: Record<string, string> = {}
+  for (const row of rows) {
+    const urls = row.slide_html_urls_by_lang
+    if (!urls || typeof urls !== 'object') continue
+    for (const [locale, url] of Object.entries(urls)) {
+      if (typeof url === 'string' && url && !merged[locale]) {
+        merged[locale] = url
+      }
+    }
+  }
+  return merged
 }
 
 export default SlideReportPage

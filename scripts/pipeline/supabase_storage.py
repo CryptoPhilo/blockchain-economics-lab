@@ -68,15 +68,15 @@ def ensure_bucket(client, name: str = 'slides', public: bool = True) -> None:
         raise RuntimeError(f"Failed to create bucket '{name}': {e}") from e
 
 
-def upload_html(
+def upload_object(
     client,
     bucket: str,
     key: str,
     content: bytes,
-    content_type: str = 'text/html; charset=utf-8',
+    content_type: str,
     upsert: bool = True,
 ) -> str:
-    """Upload an HTML blob and return its public URL.
+    """Upload a blob and return its public URL.
 
     `key` is the in-bucket object path (e.g. 'econ/foo/latest/ko.html').
     """
@@ -115,3 +115,15 @@ def upload_html(
         raise RuntimeError(f"Could not resolve public URL for {bucket}/{key}")
     # Some SDK versions append a trailing '?' — strip it for cleanliness.
     return url.rstrip('?')
+
+
+def upload_html(
+    client,
+    bucket: str,
+    key: str,
+    content: bytes,
+    content_type: str = 'text/html; charset=utf-8',
+    upsert: bool = True,
+) -> str:
+    """Upload an HTML blob and return its public URL."""
+    return upload_object(client, bucket, key, content, content_type, upsert)
