@@ -25,10 +25,18 @@ import requests as http_requests
 
 # ── Pipeline imports ──
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from config import (
-    FORENSIC_TRIGGERS, MARKET_BENCHMARK,
-    CMC_API_KEY, CMC_RATE_LIMIT_SLEEP, get_forensic_scan_deviation_threshold,
-)
+try:
+    from config import (
+        FORENSIC_TRIGGERS, MARKET_BENCHMARK,
+        CMC_API_KEY, CMC_RATE_LIMIT_SLEEP, get_forensic_scan_deviation_threshold,
+    )
+except ModuleNotFoundError:
+    _shared_pipeline_dir = Path(__file__).resolve().parents[2] / 'scripts' / 'pipeline'
+    sys.path.insert(0, str(_shared_pipeline_dir))
+    from config import (
+        FORENSIC_TRIGGERS, MARKET_BENCHMARK,
+        CMC_API_KEY, CMC_RATE_LIMIT_SLEEP, get_forensic_scan_deviation_threshold,
+    )
 
 # ── Load .env.local ──
 _env = Path(__file__).resolve().parent.parent.parent / '.env.local'
@@ -45,6 +53,7 @@ if not CMC_API_KEY:
 
 RELATIVE_DEVIATION_THRESHOLD = get_forensic_scan_deviation_threshold()
 NOTIFY_EMAIL = 'philoskor@gmail.com'
+ACTIVE_REPORT_STATUSES = ('coming_soon', 'assigned', 'in_progress', 'in_review')
 
 
 # ═══════════════════════════════════════════
@@ -168,6 +177,71 @@ def _get_supabase():
     return create_client(url, key)
 
 
+def build_trigger_reason(trigger: dict) -> str:
+    direction_ko = '급등' if trigger['direction'] == 'up' else '급락'
+    return (
+        f"24h {direction_ko} {trigger['price_change_24h']:+.1f}% "
+        f"(시장평균 {trigger['market_avg_change_24h']:+.1f}%, "
+        f"초과변동 {trigger['relative_deviation']:.1f}%)"
+    )
+
+
+def build_trigger_contract(trigger: dict, project_id: str, scan_ts: str) -> dict:
+    risk_level = 'high' if trigger['relative_deviation'] >= 20 else 'elevated'
+    reason = (
+        f"relative_deviation_24h: {trigger['relative_deviation']}% "
+        f"({'up' if trigger['direction'] == 'up' else 'down'} vs market avg "
+        f"{trigger['market_avg_change_24h']:.1f}%)"
+    )
+    return {
+        'project_id': project_id,
+        'slug': trigger['slug'],
+        'symbol': trigger['symbol'],
+        'scan_timestamp': scan_ts,
+        'price_usd': trigger['price_usd'],
+        'price_change_24h': trigger['price_change_24h'],
+        'market_avg_change_24h': trigger['market_avg_change_24h'],
+        'relative_deviation': trigger['relative_deviation'],
+        'volume_24h': trigger['volume_24h'],
+        'market_cap': trigger['market_cap'],
+        'triggered': True,
+        'risk_level': risk_level,
+        'trigger_reasons': [reason],
+    }
+
+
+def _log_registration_failure(stage: str, trigger: dict, error: Exception) -> None:
+    print(
+        f"  [ERROR] {stage} failed for "
+        f"slug={trigger.get('slug')} symbol={trigger.get('symbol')}: {error}"
+    )
+
+
+def _next_forensic_report_version(sb, project_id: str) -> int:
+    """Return the next FOR version for a project.
+
+    FOR reports expire after the configured validity window, but historical
+    records remain in project_reports. Re-triggering after expiry must therefore
+    create vN+1 instead of trying to recreate v1 and hitting
+    idx_project_reports_unique_version.
+    """
+    try:
+        existing = sb.table('project_reports').select('version') \
+            .eq('project_id', project_id) \
+            .eq('report_type', 'forensic') \
+            .execute()
+    except Exception:
+        return 1
+
+    versions = []
+    for row in existing.data or []:
+        try:
+            versions.append(int(row.get('version') or 0))
+        except (TypeError, ValueError):
+            continue
+    return (max(versions) + 1) if versions else 1
+
+
 def register_coming_soon(triggers: list[dict], dry_run: bool = False) -> list[dict]:
     """
     감지된 종목을 Supabase에 등록:
@@ -206,34 +280,30 @@ def register_coming_soon(triggers: list[dict], dry_run: bool = False) -> list[di
                 project_id = new_proj.data[0]['id']
                 print(f"  새 프로젝트 등록: {slug} ({t['symbol']})")
             except Exception as e:
-                print(f"  프로젝트 등록 실패 {slug}: {e}")
+                _log_registration_failure('tracked_project registration', t, e)
                 continue
         else:
             project_id = proj.data[0]['id']
 
         # Skip if a FOR report is already active for this project.
-        active_for = sb.table('project_reports').select('id, status') \
+        active_for = sb.table('project_reports').select('id, status, is_latest') \
             .eq('project_id', project_id) \
             .eq('report_type', 'forensic') \
-            .filter('status', 'in', '("coming_soon","assigned","in_progress","in_review")') \
+            .eq('is_latest', True) \
+            .in_('status', list(ACTIVE_REPORT_STATUSES)) \
             .execute()
 
         if active_for.data:
-            print(f"  {slug}: active FOR report already exists — skip")
+            existing = active_for.data[0]
+            print(
+                f"  {slug} ({t['symbol']}): active FOR report already exists "
+                f"id={existing.get('id')} status={existing.get('status')} — skip"
+            )
             continue
 
-        # Skip if a recent trigger is already being processed for this project.
-        active_trigger = sb.table('forensic_triggers').select('id, status, scan_timestamp') \
-            .eq('project_id', project_id) \
-            .filter('status', 'in', '("detected","notified","draft_pending","processing")') \
-            .gte('scan_timestamp', cutoff.isoformat()) \
-            .execute()
-
-        if active_trigger.data:
-            print(f"  {slug}: active forensic trigger already exists — skip")
-            continue
-
-        # BCE-481: Check for recent published FOR report within validity period
+        # BCE-481: FOR validity starts when the report is published, not when
+        # a raw price trigger is detected. Unpublished triggers must not start
+        # the 7-day cooldown window.
         recent_published = sb.table('project_reports').select('id, published_at') \
             .eq('project_id', project_id) \
             .eq('report_type', 'forensic') \
@@ -244,84 +314,56 @@ def register_coming_soon(triggers: list[dict], dry_run: bool = False) -> list[di
         if recent_published.data:
             print(f"  {slug}: published FOR report within {validity_days}d — cooldown")
             # Record trigger with cooldown status (no new report)
-            trigger_data = {
-                'project_id': project_id,
-                'slug': slug,
-                'symbol': t['symbol'],
-                'scan_timestamp': scan_ts,
-                'price_usd': t['price_usd'],
-                'price_change_24h': t['price_change_24h'],
-                'market_avg_change_24h': t['market_avg_change_24h'],
-                'relative_deviation': t['relative_deviation'],
-                'volume_24h': t['volume_24h'],
-                'market_cap': t['market_cap'],
-                'triggered': True,
-                'risk_level': 'high' if t['relative_deviation'] >= 20 else 'elevated',
-                'trigger_reasons': json.dumps([
-                    f"relative_deviation_24h: {t['relative_deviation']}% "
-                    f"({'↑' if t['direction'] == 'up' else '↓'} vs market avg {t['market_avg_change_24h']:.1f}%)"
-                ]),
-                'status': 'cooldown',
-            }
+            trigger_data = build_trigger_contract(t, project_id, scan_ts)
+            trigger_data['status'] = 'cooldown'
             try:
                 sb.table('forensic_triggers').insert(trigger_data).execute()
             except Exception as e:
-                print(f"  forensic_trigger (cooldown) 등록 실패 {slug}: {e}")
+                _log_registration_failure('forensic_trigger cooldown registration', t, e)
             continue
 
         # 1. Insert forensic_trigger
-        trigger_data = {
-            'project_id': project_id,
-            'slug': slug,
-            'symbol': t['symbol'],
-            'scan_timestamp': scan_ts,
-            'price_usd': t['price_usd'],
-            'price_change_24h': t['price_change_24h'],
-            'market_avg_change_24h': t['market_avg_change_24h'],
-            'relative_deviation': t['relative_deviation'],
-            'volume_24h': t['volume_24h'],
-            'market_cap': t['market_cap'],
-            'triggered': True,
-            'risk_level': 'high' if t['relative_deviation'] >= 20 else 'elevated',
-            'trigger_reasons': json.dumps([
-                f"relative_deviation_24h: {t['relative_deviation']}% "
-                f"({'↑' if t['direction'] == 'up' else '↓'} vs market avg {t['market_avg_change_24h']:.1f}%)"
-            ]),
-            'status': 'detected',
-        }
+        trigger_data = build_trigger_contract(t, project_id, scan_ts)
+        trigger_data['status'] = 'detected'
         try:
             ft_result = sb.table('forensic_triggers').insert(trigger_data).execute()
             trigger_id = ft_result.data[0]['id'] if ft_result.data else None
         except Exception as e:
-            print(f"  forensic_trigger 등록 실패 {slug}: {e}")
+            _log_registration_failure('forensic_trigger registration', t, e)
             continue
 
         # 2. Insert project_reports with coming_soon + Phase 1 title
-        direction_ko = '급등' if t['direction'] == 'up' else '급락'
-        trigger_reason = (
-            f"24h {direction_ko} {t['price_change_24h']:+.1f}% "
-            f"(시장평균 {t['market_avg_change_24h']:+.1f}%, "
-            f"초과변동 {t['relative_deviation']:.1f}%)"
-        )
+        trigger_reason = build_trigger_reason(t)
 
         # Phase 1 제목: 트리거 사유 기반 자동 생성
         from gen_report_title import generate_trigger_titles
+        report_trigger_data = dict(t)
+        report_trigger_data.update({
+            'project_id': project_id,
+            'trigger_id': trigger_id,
+            'trigger_reason': trigger_reason,
+            'trigger_reasons': trigger_data['trigger_reasons'],
+            'risk_level': trigger_data['risk_level'],
+            'scan_timestamp': scan_ts,
+        })
         trigger_titles = generate_trigger_titles(
             trigger_data={
                 'price_change_24h': t['price_change_24h'],
                 'relative_deviation': t.get('relative_deviation'),
-                'risk_level': t.get('risk_level'),
+                'risk_level': trigger_data['risk_level'],
             },
             symbol=t['symbol'],
         )
 
+        next_version = _next_forensic_report_version(sb, project_id)
+
         report_data = {
             'project_id': project_id,
             'report_type': 'forensic',
-            'version': 1,
+            'version': next_version,
             'status': 'coming_soon',
             'trigger_reason': trigger_reason,
-            'trigger_data': json.dumps(t),
+            'trigger_data': report_trigger_data,
             'triggered_at': scan_ts,
             'title_en': trigger_titles['title_en'],
             'title_ko': trigger_titles['title_ko'],
@@ -333,15 +375,24 @@ def register_coming_soon(triggers: list[dict], dry_run: bool = False) -> list[di
             # Link trigger to report
             if trigger_id and report_id:
                 sb.table('forensic_triggers').update({
-                    'report_id': report_id, 'status': 'notified'
+                    'report_id': report_id,
+                    'status': 'notified',
                 }).eq('id', trigger_id).execute()
 
+            t['trigger_id'] = trigger_id
             t['report_id'] = report_id
             registered.append(t)
             print(f"  ✓ {slug} ({t['symbol']}): coming_soon 등록 | "
                   f"{t['price_change_24h']:+.1f}% (시장 대비 {t['relative_deviation']:.1f}%)")
         except Exception as e:
-            print(f"  project_reports 등록 실패 {slug}: {e}")
+            _log_registration_failure('project_reports coming_soon registration', t, e)
+            if trigger_id:
+                try:
+                    sb.table('forensic_triggers').update({
+                        'status': 'report_failed',
+                    }).eq('id', trigger_id).execute()
+                except Exception as update_error:
+                    _log_registration_failure('forensic_trigger failure status update', t, update_error)
 
     return registered
 
@@ -354,7 +405,7 @@ def send_forensic_alert_email(triggers: list[dict], market_avg: float,
                                scan_time: str, dry_run: bool = False) -> dict:
     """감지된 종목 목록을 이메일로 발송."""
     if not triggers:
-        return {'success': True, 'skipped': 'no triggers'}
+        return {'success': True, 'skipped': 'no triggers', 'required': False}
 
     # Build HTML table
     rows_html = ''
@@ -423,7 +474,7 @@ def send_forensic_alert_email(triggers: list[dict], market_avg: float,
     sys.path.insert(0, str(email_script.parent))
     try:
         from send_email import send_email
-        return send_email(
+        result = send_email(
             to=NOTIFY_EMAIL,
             subject=f"[BCE Lab] ⚠ Forensic Alert — {len(triggers)}개 종목 이상 변동 감지",
             body=html,
@@ -434,21 +485,68 @@ def send_forensic_alert_email(triggers: list[dict], market_avg: float,
             ],
             dry_run=dry_run,
         )
-    except ImportError:
+        if isinstance(result, dict):
+            result.setdefault('required', not dry_run)
+            return result
+        return {'success': bool(result), 'required': not dry_run}
+    except Exception as e:
+        if not isinstance(e, ImportError):
+            return {
+                'success': False,
+                'required': not dry_run,
+                'error': f'{type(e).__name__}: {e}',
+                'sender': 'resend-email skill',
+            }
+
         # Fallback: direct Resend API call
         api_key = os.environ.get('RESEND_API_KEY')
-        if not api_key or dry_run:
-            print(f"[{'DRY RUN' if dry_run else 'WARN'}] Email not sent")
-            return {'success': dry_run, 'skipped': True}
-        r = http_requests.post('https://api.resend.com/emails',
-            headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
-            json={
-                'from': os.environ.get('EMAIL_FROM', 'BCE Lab <onboarding@resend.dev>'),
-                'to': [NOTIFY_EMAIL],
-                'subject': f"[BCE Lab] ⚠ Forensic Alert — {len(triggers)}개 종목 이상 변동 감지",
-                'html': html,
-            }, timeout=30)
-        return {'success': r.status_code in (200, 201)}
+        if dry_run:
+            print("[DRY RUN] Email not sent")
+            return {'success': True, 'skipped': 'dry_run', 'required': False}
+        if not api_key:
+            print("[WARN] Email not sent: RESEND_API_KEY not configured")
+            return {
+                'success': False,
+                'skipped': True,
+                'required': True,
+                'error': 'RESEND_API_KEY not configured',
+                'sender': 'resend fallback',
+            }
+        try:
+            r = http_requests.post('https://api.resend.com/emails',
+                headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
+                json={
+                    'from': os.environ.get('EMAIL_FROM', 'BCE Lab <onboarding@resend.dev>'),
+                    'to': [NOTIFY_EMAIL],
+                    'subject': f"[BCE Lab] ⚠ Forensic Alert — {len(triggers)}개 종목 이상 변동 감지",
+                    'html': html,
+                }, timeout=30)
+        except Exception as post_error:
+            return {
+                'success': False,
+                'required': True,
+                'error': f'{type(post_error).__name__}: {post_error}',
+                'sender': 'resend fallback',
+            }
+        success = r.status_code in (200, 201)
+        result = {
+            'success': success,
+            'required': True,
+            'sender': 'resend fallback',
+            'status_code': r.status_code,
+        }
+        if not success:
+            result['error'] = f'Resend API returned HTTP {r.status_code}'
+            result['response_body'] = r.text[:500]
+        return result
+
+
+def _email_failure_message(email_result: dict) -> str:
+    details = []
+    for key in ('error', 'status_code', 'response_body', 'sender', 'skipped'):
+        if email_result.get(key) is not None:
+            details.append(f"{key}={email_result.get(key)}")
+    return '; '.join(details) if details else 'unknown email failure'
 
 
 # ═══════════════════════════════════════════
@@ -503,10 +601,13 @@ def main():
     registered = register_coming_soon(triggered, dry_run=args.dry_run)
     print(f"  ✓ {len(registered)}개 coming_soon 등록")
 
+    email_result = {'success': True, 'skipped': 'no registered reports', 'required': False}
     if registered:
         email_result = send_forensic_alert_email(
             registered, market_avg, scan_time, dry_run=args.dry_run)
         print(f"  ✓ 이메일: {'발송 완료' if email_result.get('success') else '실패'}")
+        if not email_result.get('success'):
+            print(f"  [ERROR] 이메일 실패 상세: {_email_failure_message(email_result)}")
 
     # Save results
     summary = {
@@ -516,6 +617,8 @@ def main():
         'total_scanned': len(listings),
         'triggered_count': len(triggered),
         'registered_count': len(registered),
+        'email_required': bool(registered) and not args.dry_run,
+        'email_result': email_result,
         'triggers': triggered[:50],  # Cap at 50 for storage
     }
 
@@ -525,6 +628,8 @@ def main():
         json.dump(summary, f, ensure_ascii=False, indent=2)
     print(f"\n결과 저장: {output_path}")
     print(f"\nDONE: {len(triggered)} 감지 / {len(registered)} 등록")
+    if summary['email_required'] and not email_result.get('success'):
+        raise SystemExit(1)
 
 
 if __name__ == '__main__':

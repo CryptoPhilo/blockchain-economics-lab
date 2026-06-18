@@ -193,6 +193,8 @@ KO_NAME_TO_SLUG: dict[str, str] = {
     '렌더': 'render-token', '파일코인': 'filecoin',
     '이더리움클래식': 'ethereum-classic', '이더리움-클래식': 'ethereum-classic',
     '비트겟': 'bitget-token', '페페': 'pepe',
+    '시바이누': 'shiba-inu', '시바-이누': 'shiba-inu',
+    '빗텐서': 'bittensor', '비텐서': 'bittensor',
 }
 
 
@@ -1170,7 +1172,7 @@ def main():
         print(f"FAILED: terminal={terminal_failures}, retriable={retriable_failures}")
     print(f"{'='*60}")
 
-    summary_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
+    summary_dir = OUTPUT_DIR
     os.makedirs(summary_dir, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
     summary_path = os.path.join(summary_dir, f'ingest_{report_type}_{ts}.json')

@@ -58,6 +58,7 @@ from gdrive_drafts import (
     find_or_create_folder,
     scan_markdown_drafts,
 )
+from ingest_report import _resolve_project_slug as _resolve_report_project_slug
 
 TERMINAL_CONTENT_STATUS = 'content_failed_terminal'
 RETRIABLE_PROCESSING_STATUS = 'processing_error'
@@ -616,37 +617,11 @@ def process_for_report(file_info: dict, dry_run: bool = False) -> dict:
 def _resolve_project_slug(sb, raw_slug: str) -> tuple:
     """
     Resolve a filename-derived slug to a tracked_projects entry.
-    Tries: exact slug match → symbol match → name substring match.
+    Reuse the ECON/MAT resolver so FOR drafts share Korean alias, mixed
+    Korean/ASCII, symbol, and prefix fallback behavior.
     Returns (project_id, canonical_slug, project_name, symbol) or (None, None, None, None).
     """
-    _fields = 'id, slug, name, symbol'
-    # Normalize to NFC — GDrive filenames may be NFD on macOS
-    raw_slug = unicodedata.normalize('NFC', raw_slug)
-    # 1. Direct slug match
-    proj = sb.table('tracked_projects').select(_fields).eq('slug', raw_slug).execute()
-    if proj.data:
-        p = proj.data[0]
-        return p['id'], p['slug'], p.get('name'), p.get('symbol')
-
-    # 2. Extract possible symbol from slug (e.g., "rave-포렌식-분석-보고서-20260414" → "rave")
-    symbol_candidate = raw_slug.split('-')[0].upper()
-    if symbol_candidate:
-        proj = sb.table('tracked_projects').select(_fields) \
-            .eq('symbol', symbol_candidate).execute()
-        if proj.data:
-            p = proj.data[0]
-            return p['id'], p['slug'], p.get('name'), p.get('symbol')
-
-    # 3. Search by name substring (case-insensitive via ilike)
-    name_part = raw_slug.split('-')[0]
-    if name_part:
-        proj = sb.table('tracked_projects').select(_fields) \
-            .ilike('name', f'%{name_part}%').execute()
-        if proj.data:
-            p = proj.data[0]
-            return p['id'], p['slug'], p.get('name'), p.get('symbol')
-
-    return None, None, None, None
+    return _resolve_report_project_slug(sb, raw_slug)
 
 
 def _get_supabase_client():

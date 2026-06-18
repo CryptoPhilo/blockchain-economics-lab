@@ -429,20 +429,22 @@ class ProcessReportIntegrationTests(unittest.TestCase):
 
 class MainExitCodeTests(unittest.TestCase):
     def test_main_returns_nonzero_when_processing_fails(self):
-        with patch.object(ingest_report, "scan_drafts", return_value=[{
-            "file_id": "file-1",
-            "name": "broken_for_v1.md",
-            "slug": "broken",
-            "size": 1,
-        }]):
-            with patch.object(ingest_report, "PipelineState", side_effect=RuntimeError("no state")):
-                with patch.object(
-                    ingest_report,
-                    "process_report",
-                    return_value={"status": ingest_report.RETRIABLE_PROCESSING_STATUS},
-                ):
-                    with patch.object(sys, "argv", ["ingest_report.py", "--type", "for"]):
-                        rc = ingest_report.main()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch.object(ingest_report, "OUTPUT_DIR", tmpdir):
+                with patch.object(ingest_report, "scan_drafts", return_value=[{
+                    "file_id": "file-1",
+                    "name": "broken_for_v1.md",
+                    "slug": "broken",
+                    "size": 1,
+                }]):
+                    with patch.object(ingest_report, "PipelineState", side_effect=RuntimeError("no state")):
+                        with patch.object(
+                            ingest_report,
+                            "process_report",
+                            return_value={"status": ingest_report.RETRIABLE_PROCESSING_STATUS},
+                        ):
+                            with patch.object(sys, "argv", ["ingest_report.py", "--type", "for"]):
+                                rc = ingest_report.main()
 
         self.assertEqual(rc, 1)
 
@@ -486,10 +488,9 @@ class MainExitCodeTests(unittest.TestCase):
             self.assertEqual(ingest_report._required_publish_languages(), ["ko", "en"])
 
     def test_main_writes_unique_summary_path_with_seconds_precision(self):
-        summary_dir = Path(ingest_report.__file__).resolve().parent / "output"
-        before = {p.name for p in summary_dir.glob("ingest_for_*.json")}
-
         with tempfile.TemporaryDirectory() as tmpdir:
+            summary_dir = Path(tmpdir)
+            before = {p.name for p in summary_dir.glob("ingest_for_*.json")}
             file_info = {
                 "file_id": "file-1",
                 "name": "ok_for_v1.md",
@@ -507,12 +508,11 @@ class MainExitCodeTests(unittest.TestCase):
                             with patch.object(sys, "argv", ["ingest_report.py", "--type", "for"]):
                                 rc = ingest_report.main()
 
-        self.assertEqual(rc, 0)
-        after = {p.name for p in summary_dir.glob("ingest_for_*.json")}
-        new_files = sorted(after - before)
-        self.assertEqual(len(new_files), 1)
-        self.assertRegex(new_files[0], r"^ingest_for_\d{8}_\d{6}_\d{6}\.json$")
-        (summary_dir / new_files[0]).unlink()
+            self.assertEqual(rc, 0)
+            after = {p.name for p in summary_dir.glob("ingest_for_*.json")}
+            new_files = sorted(after - before)
+            self.assertEqual(len(new_files), 1)
+            self.assertRegex(new_files[0], r"^ingest_for_\d{8}_\d{6}_\d{6}\.json$")
 
 
 class KoreanSlugResolutionTests(unittest.TestCase):
@@ -553,6 +553,27 @@ class KoreanSlugResolutionTests(unittest.TestCase):
             result,
             ("project-bitcoin", "bitcoin", "Bitcoin", "BTC"),
         )
+
+    def test_resolve_bittensor_korean_prefix_matches_canonical_project(self):
+        sb = FakeSupabase(
+            {
+                "tracked_projects": [
+                    {"id": "project-bittensor", "slug": "bittensor",
+                     "name": "Bittensor", "symbol": "TAO"},
+                ],
+            }
+        )
+
+        for raw_slug in (
+            "빗텐서-크립토-이코노미-심층-분석-보고서",
+            "비텐서-크립토-이코노미-심층-분석-보고서",
+        ):
+            with self.subTest(raw_slug=raw_slug):
+                result = ingest_report._resolve_project_slug(sb, raw_slug)
+                self.assertEqual(
+                    result,
+                    ("project-bittensor", "bittensor", "Bittensor", "TAO"),
+                )
 
     def test_resolve_multiword_korean_prefix_prefers_longer_match(self):
         sb = FakeSupabase(
@@ -709,6 +730,22 @@ class KoreanSlugResolutionTests(unittest.TestCase):
         self.assertEqual(
             ingest_report._korean_slug_to_canonical("비트코인-캐시"),
             "bitcoin-cash",
+        )
+        self.assertEqual(
+            ingest_report._korean_slug_to_canonical("시바이누-크립토-이코노미"),
+            "shiba-inu",
+        )
+        self.assertEqual(
+            ingest_report._korean_slug_to_canonical("시바-이누-크립토-이코노미"),
+            "shiba-inu",
+        )
+        self.assertEqual(
+            ingest_report._korean_slug_to_canonical("빗텐서-크립토-이코노미"),
+            "bittensor",
+        )
+        self.assertEqual(
+            ingest_report._korean_slug_to_canonical("비텐서-크립토-이코노미"),
+            "bittensor",
         )
         self.assertIsNone(
             ingest_report._korean_slug_to_canonical("cardano")
