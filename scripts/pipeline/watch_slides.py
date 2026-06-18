@@ -41,6 +41,7 @@ import unicodedata
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
+from urllib.parse import unquote, urlparse
 
 # Add pipeline directory to path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -1963,6 +1964,53 @@ def _convert_and_upload(
     }
 
 
+def _storage_key_from_public_url(public_url: Optional[str], bucket: str = BUCKET_NAME) -> Optional[str]:
+    if not public_url:
+        return None
+    try:
+        path = unquote(urlparse(public_url).path)
+    except Exception:
+        return None
+    marker = f'/storage/v1/object/public/{bucket}/'
+    if marker not in path:
+        return None
+    key = path.split(marker, 1)[1].strip('/')
+    return key or None
+
+
+def _storage_object_exists(storage_client, bucket: str, key: Optional[str]) -> bool:
+    if not key:
+        return False
+    parent, _, name = key.rpartition('/')
+    try:
+        objects = storage_client.storage.from_(bucket).list(parent, {'search': name, 'limit': 100})
+    except TypeError:
+        objects = storage_client.storage.from_(bucket).list(parent)
+    except Exception as e:
+        print(f"    [WARN] Storage existence check failed for {bucket}/{key}: {e}")
+        return True
+
+    for obj in objects or []:
+        obj_name = obj.get('name') if isinstance(obj, dict) else getattr(obj, 'name', None)
+        if obj_name == name:
+            return True
+    return False
+
+
+def _published_manifest_asset_missing(
+    storage_client,
+    *,
+    rtype: str,
+    slug: Optional[str],
+    lang: Optional[str],
+    public_url: Optional[str],
+) -> bool:
+    key = _storage_key_from_public_url(public_url)
+    if not key and slug and lang:
+        key = f'{rtype}/{slug}/latest/{lang}.html'
+    return not _storage_object_exists(storage_client, BUCKET_NAME, key)
+
+
 # ═══════════════════════════════════════════
 # Scan + processing
 # ═══════════════════════════════════════════
@@ -2812,16 +2860,38 @@ def process(
             and prev.get('modifiedTime') == modified
         )
         unchanged_missing_publication_url = unchanged_manifest_published and not prev.get('public_url')
+        unchanged_missing_publication_asset = False
+        if (
+            unchanged_manifest_published
+            and prev.get('public_url')
+            and not dry_run
+            and not force
+        ):
+            unchanged_missing_publication_asset = _published_manifest_asset_missing(
+                storage_client,
+                rtype=rtype,
+                slug=prev.get('slug'),
+                lang=override_lang or prev.get('lang'),
+                public_url=prev.get('public_url'),
+            )
         if unchanged_missing_publication_url and not dry_run and not force:
             print(
                 f"  [REPAIR] {rtype}/{pdf['name']}: unchanged manifest has no public_url; "
                 "reprocessing slide HTML"
             )
+        if unchanged_missing_publication_asset:
+            print(
+                f"  [REPAIR] {rtype}/{pdf['name']}: unchanged manifest public_url is missing "
+                "from Supabase Storage; reprocessing slide HTML"
+            )
         if (
             not force
             and not override_changes_manifest_lang
             and unchanged_manifest_published
-            and (dry_run or not unchanged_missing_publication_url)
+            and (dry_run or (
+                not unchanged_missing_publication_url
+                and not unchanged_missing_publication_asset
+            ))
         ):
             unchanged_slug = prev.get('slug')
             unchanged_lang = override_lang or prev.get('lang')

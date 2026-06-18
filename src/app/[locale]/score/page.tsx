@@ -1,7 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 import { createProjectsRepository } from '@/lib/repositories/projects'
-import { reportSupportsLocale } from '@/lib/report-locale'
+import { reportHasSlideAssetForLocale } from '@/lib/report-locale'
 import { pickLatestReport } from '@/lib/report-versioning'
 import type { ProjectReport } from '@/lib/types'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -295,7 +295,7 @@ export function buildReportAvailabilityByProjectId(
 
   for (const projectTypeReports of reportsByProjectType.values()) {
     const localizedReports = projectTypeReports.filter((report) => (
-      reportSupportsLocale(report as ProjectReport, locale)
+      reportHasSlideAssetForLocale(report as ProjectReport, locale)
     ))
     const report = pickLatestReport(localizedReports)
     if (!report) continue

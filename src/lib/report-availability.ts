@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { reportSupportsLocale } from '@/lib/report-locale'
+import { reportHasSlideAssetForLocale } from '@/lib/report-locale'
 import { pickLatestReport } from '@/lib/report-versioning'
 import type { ProjectReport } from '@/lib/types'
 
@@ -61,15 +61,10 @@ export function buildReportAvailabilityByProjectId(
   }
 
   for (const projectTypeReports of reportsByProjectType.values()) {
-    const latest = pickLatestReport(projectTypeReports)
-    if (!latest) continue
-
-    const latestVersion = latest.version ?? null
-    const localizedLatestVersionReports = projectTypeReports.filter((report) => (
-      (report.version ?? null) === latestVersion
-        && reportSupportsLocale(report as ProjectReport, locale)
+    const localizedReports = projectTypeReports.filter((report) => (
+      reportHasSlideAssetForLocale(report as ProjectReport, locale)
     ))
-    const report = pickLatestReport(localizedLatestVersionReports)
+    const report = pickLatestReport(localizedReports)
     if (!report) continue
     if (!isReportTypeKey(report.report_type)) continue
     const reportType = report.report_type

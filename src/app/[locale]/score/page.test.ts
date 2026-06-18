@@ -696,7 +696,7 @@ describe('score page report availability policy', () => {
     expect(result.reports).toHaveLength(1)
   })
 
-  it('counts PDF-only localized reports as available for scoreboard badges', () => {
+  it('does not count PDF-only localized reports as available for scoreboard badges', () => {
     const availability = buildReportAvailabilityByProjectId([
       {
         project_id: 'dexe-project',
@@ -710,14 +710,7 @@ describe('score page report availability policy', () => {
       },
     ], 'en')
 
-    expect(availability.get('dexe-project')).toEqual({
-      reportTypes: ['econ'],
-      reportDates: {
-        econ: '2026-05-01T00:00:00.000Z',
-        maturity: null,
-        forensic: null,
-      },
-    })
+    expect(availability.get('dexe-project')).toBeUndefined()
   })
 
   it('does not count reports without an asset for the requested locale', () => {
@@ -764,6 +757,9 @@ describe('score page report availability policy', () => {
         gdrive_urls_by_lang: {
           ko: { url: 'https://drive.google.com/file/d/bitcoin-ko/view' },
         },
+        slide_html_urls_by_lang: {
+          ko: 'https://www.bcelab.xyz/slides/econ/bitcoin/latest/ko.html',
+        },
       },
     ], 'ko')
 
@@ -809,6 +805,9 @@ describe('score page report availability policy', () => {
         gdrive_urls_by_lang: {
           en: { url: 'https://drive.google.com/file/d/aave-en/view' },
         },
+        slide_html_urls_by_lang: {
+          en: 'https://www.bcelab.xyz/slides/econ/aave/latest/en.html',
+        },
       },
     ], 'en')
 
@@ -840,6 +839,9 @@ describe('score page report availability policy', () => {
         gdrive_urls_by_lang: {
           en: { url: 'https://drive.google.com/file/d/aave-v1-en/view' },
         },
+        slide_html_urls_by_lang: {
+          en: 'https://www.bcelab.xyz/slides/econ/aave/1/en.html',
+        },
       },
       {
         id: 'aave-econ-v2',
@@ -851,6 +853,9 @@ describe('score page report availability policy', () => {
         published_at: '2026-05-08T00:00:00.000Z',
         gdrive_urls_by_lang: {
           en: { url: 'https://drive.google.com/file/d/aave-v2-en/view' },
+        },
+        slide_html_urls_by_lang: {
+          en: 'https://www.bcelab.xyz/slides/econ/aave/2/en.html',
         },
       },
     ], 'en')
@@ -878,6 +883,9 @@ describe('score page report availability policy', () => {
         gdrive_urls_by_lang: {
           ko: { url: 'https://drive.google.com/file/d/alpha-v1-ko/view' },
         },
+        slide_html_urls_by_lang: {
+          ko: 'https://www.bcelab.xyz/slides/econ/alpha/1/ko.html',
+        },
       },
       {
         id: 'alpha-econ-v2-zh',
@@ -889,6 +897,9 @@ describe('score page report availability policy', () => {
         published_at: '2026-05-11T00:00:00.000Z',
         gdrive_urls_by_lang: {
           zh: { url: 'https://drive.google.com/file/d/alpha-v2-zh/view' },
+        },
+        slide_html_urls_by_lang: {
+          zh: 'https://www.bcelab.xyz/slides/econ/alpha/2/zh.html',
         },
       },
     ], 'ko')
@@ -917,6 +928,9 @@ describe('score page report availability policy', () => {
         gdrive_urls_by_lang: {
           en: { url: 'https://drive.google.com/file/d/stellar-v2-en/view' },
         },
+        slide_html_urls_by_lang: {
+          en: 'https://www.bcelab.xyz/slides/econ/stellar/2/en.html',
+        },
       },
       {
         id: 'stellar-econ-v2-ko',
@@ -929,6 +943,9 @@ describe('score page report availability policy', () => {
         updated_at: '2026-06-11T03:11:08.415344Z',
         gdrive_urls_by_lang: {
           ko: { url: 'https://drive.google.com/file/d/stellar-v2-ko/view' },
+        },
+        slide_html_urls_by_lang: {
+          ko: 'https://www.bcelab.xyz/slides/econ/stellar/2/ko.html',
         },
       },
     ], 'ko')
@@ -969,6 +986,9 @@ describe('score page report availability policy', () => {
         published_at: '2026-05-14T10:00:00.000Z',
         gdrive_urls_by_lang: {
           ko: { url: 'https://drive.google.com/file/d/okx-econ-ko/view' },
+        },
+        slide_html_urls_by_lang: {
+          ko: 'https://www.bcelab.xyz/slides/econ/okx/latest/ko.html',
         },
       },
       {
