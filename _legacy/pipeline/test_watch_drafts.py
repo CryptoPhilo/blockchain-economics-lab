@@ -9,10 +9,23 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import watch_drafts
 
 
-def test_process_type_passes_slug_dry_run_and_force():
-    completed = mock.Mock(returncode=0, stdout="published\n", stderr="")
+class FakeProc:
+    def __init__(self, returncode=0, lines=None):
+        self.returncode = returncode
+        self.stdout = lines or []
+        self.killed = False
 
-    with mock.patch("watch_drafts.subprocess.run", return_value=completed) as run_mock:
+    def wait(self, timeout=None):
+        return self.returncode
+
+    def kill(self):
+        self.killed = True
+
+
+def test_process_type_passes_slug_dry_run_and_force():
+    proc = FakeProc(returncode=0, lines=["published\n"])
+
+    with mock.patch("watch_drafts.subprocess.Popen", return_value=proc) as popen_mock:
         published, failed = watch_drafts.process_type(
             "econ",
             dry_run=True,
@@ -22,7 +35,7 @@ def test_process_type_passes_slug_dry_run_and_force():
 
     assert published == 1
     assert failed == 0
-    args = run_mock.call_args.args[0]
+    args = popen_mock.call_args.args[0]
     assert "--type" in args
     assert "econ" in args
     assert "--slug" in args
@@ -32,19 +45,30 @@ def test_process_type_passes_slug_dry_run_and_force():
 
 
 def test_process_type_marks_nonzero_exit_as_failure():
-    completed = mock.Mock(returncode=1, stdout="DONE: 0/1 published\n", stderr="boom")
+    proc = FakeProc(returncode=1, lines=["DONE: 0/1 published\n"])
 
-    with mock.patch("watch_drafts.subprocess.run", return_value=completed):
+    with mock.patch("watch_drafts.subprocess.Popen", return_value=proc):
         published, failed = watch_drafts.process_type("mat")
 
     assert published == 1
     assert failed == 1
 
 
+def test_main_blocks_default_execution_before_drive_scan():
+    with mock.patch.dict(os.environ, {"GDRIVE_ROOT_FOLDER_ID": "root"}, clear=False):
+        os.environ.pop(watch_drafts.ALLOW_LEGACY_ENV, None)
+        with mock.patch.object(watch_drafts, "scan_type") as scan_mock:
+            with mock.patch.object(sys, "argv", ["watch_drafts.py", "--type", "econ"]):
+                rc = watch_drafts.main()
+
+    assert rc == 2
+    scan_mock.assert_not_called()
+
+
 def test_main_uses_unified_scan_and_force_flag():
     fake_files = [{"file_id": "123", "name": "bitcoin_econ_v1.md", "slug": "bitcoin"}]
 
-    with mock.patch.dict(os.environ, {"GDRIVE_ROOT_FOLDER_ID": "root"}):
+    with mock.patch.dict(os.environ, {"GDRIVE_ROOT_FOLDER_ID": "root", watch_drafts.ALLOW_LEGACY_ENV: "1"}):
         with mock.patch.object(watch_drafts, "scan_type", return_value=fake_files) as scan_mock:
             with mock.patch.object(watch_drafts, "process_type", return_value=(1, 0)) as process_mock:
                 with mock.patch.object(watch_drafts, "write_scan_log", return_value="/tmp/log.md"):
@@ -63,7 +87,7 @@ def test_main_uses_unified_scan_and_force_flag():
 def test_main_still_processes_force_rerun_when_scan_resolves_matching_slug():
     fake_files = [{"file_id": "file-zro", "name": "ZRO 포렌식 분석 보고서.md", "slug": "layerzero"}]
 
-    with mock.patch.dict(os.environ, {"GDRIVE_ROOT_FOLDER_ID": "root"}):
+    with mock.patch.dict(os.environ, {"GDRIVE_ROOT_FOLDER_ID": "root", watch_drafts.ALLOW_LEGACY_ENV: "1"}):
         with mock.patch.object(watch_drafts, "scan_type", return_value=fake_files) as scan_mock:
             with mock.patch.object(watch_drafts, "process_type", return_value=(1, 0)) as process_mock:
                 with mock.patch.object(watch_drafts, "write_scan_log", return_value="/tmp/log.md"):
@@ -83,6 +107,7 @@ def run_all_tests():
     tests = [
         test_process_type_passes_slug_dry_run_and_force,
         test_process_type_marks_nonzero_exit_as_failure,
+        test_main_blocks_default_execution_before_drive_scan,
         test_main_uses_unified_scan_and_force_flag,
         test_main_still_processes_force_rerun_when_scan_resolves_matching_slug,
     ]
