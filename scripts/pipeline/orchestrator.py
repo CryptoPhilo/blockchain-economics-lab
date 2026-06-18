@@ -29,6 +29,7 @@ import argparse
 import json
 import os
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Dict, Any, Tuple, Optional
 
@@ -70,6 +71,24 @@ STAGE1_GENERATORS = {
     'mat': generate_text_mat,
     'for': generate_text_for,
 }
+
+DB_REPORT_TYPE = {
+    'econ': 'econ',
+    'mat': 'maturity',
+    'maturity': 'maturity',
+    'for': 'forensic',
+    'forensic': 'forensic',
+}
+
+CARD_REPORT_TYPE = {
+    'econ': 'econ',
+    'mat': 'mat',
+    'maturity': 'mat',
+    'for': 'for',
+    'forensic': 'for',
+}
+
+SUPPORTED_CARD_SUMMARY_LANGS = {'ko', 'en', 'fr', 'es', 'de', 'ja', 'zh'}
 
 
 def load_project_data(json_path: str) -> Dict[str, Any]:
@@ -251,6 +270,215 @@ def run_stage3_storage(
     return results
 
 
+def _clean_summary(value: Any) -> Optional[str]:
+    if not isinstance(value, str):
+        return None
+    cleaned = ' '.join(value.split())
+    return cleaned or None
+
+
+def _summary_by_lang_from_sources(
+    project_data: Dict[str, Any],
+    metadata: Dict[str, Any],
+) -> Dict[str, str]:
+    summaries: Dict[str, str] = {}
+    sources = [project_data, metadata]
+    for source in sources:
+        card_data = source.get('card_data') if isinstance(source.get('card_data'), dict) else {}
+        for container in (source.get('summary_by_lang'), card_data.get('summary_by_lang')):
+            if not isinstance(container, dict):
+                continue
+            for lang, summary in container.items():
+                if lang in SUPPORTED_CARD_SUMMARY_LANGS:
+                    cleaned = _clean_summary(summary)
+                    if cleaned:
+                        summaries[lang] = cleaned
+        for lang in SUPPORTED_CARD_SUMMARY_LANGS:
+            for key in (f'summary_{lang}', f'card_summary_{lang}'):
+                cleaned = _clean_summary(source.get(key) or card_data.get(key))
+                if cleaned:
+                    summaries[lang] = cleaned
+
+    if summaries:
+        return summaries
+
+    fallback = (
+        project_data.get('executive_summary')
+        or metadata.get('executive_summary')
+        or project_data.get('summary')
+        or metadata.get('summary')
+        or (project_data.get('identity') or {}).get('overview')
+    )
+    cleaned = _clean_summary(fallback)
+    if not cleaned:
+        return {}
+
+    lang = (
+        project_data.get('language')
+        or metadata.get('language')
+        or project_data.get('lang')
+        or metadata.get('lang')
+        or 'en'
+    )
+    if lang not in SUPPORTED_CARD_SUMMARY_LANGS:
+        lang = 'en'
+    return {lang: cleaned}
+
+
+def _build_card_data(
+    report_type: str,
+    project_data: Dict[str, Any],
+    metadata: Dict[str, Any],
+    summaries_by_lang: Dict[str, str],
+    existing: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    card_data = dict(existing or {})
+    short_type = CARD_REPORT_TYPE.get(report_type, report_type)
+    card_data.update({
+        'report_type': short_type,
+        'slug': metadata.get('slug') or project_data.get('slug') or card_data.get('slug'),
+        'project_name': (
+            metadata.get('project_name')
+            or project_data.get('project_name')
+            or project_data.get('name')
+            or card_data.get('project_name')
+        ),
+        'symbol': (
+            metadata.get('token_symbol')
+            or project_data.get('token_symbol')
+            or project_data.get('symbol')
+            or card_data.get('symbol')
+        ),
+        'generated_at': datetime.now(timezone.utc).isoformat(),
+    })
+
+    metric_map = {
+        'rating': ('overall_rating', 'rating'),
+        'risk_level': ('risk_level',),
+        'risk_score': ('risk_score', 'card_risk_score'),
+        'maturity_score': ('total_maturity_score', 'maturity_score'),
+        'maturity_stage': ('maturity_stage',),
+    }
+    for target, keys in metric_map.items():
+        for key in keys:
+            value = metadata.get(key, project_data.get(key))
+            if value is not None:
+                card_data[target] = value
+                break
+
+    existing_summaries = card_data.get('summary_by_lang')
+    if not isinstance(existing_summaries, dict):
+        existing_summaries = {}
+    merged_summaries = {
+        **{
+            lang: text
+            for lang, text in existing_summaries.items()
+            if lang in SUPPORTED_CARD_SUMMARY_LANGS and _clean_summary(text)
+        },
+        **summaries_by_lang,
+    }
+    if merged_summaries:
+        card_data['summary_by_lang'] = merged_summaries
+        for lang, summary in merged_summaries.items():
+            card_data[f'summary_{lang}'] = summary
+
+    return {k: v for k, v in card_data.items() if v is not None}
+
+
+def _get_supabase_client_from_warehouse():
+    if not HAS_COLLECTORS:
+        return None
+    wh = get_warehouse()
+    if not wh.connected:
+        return None
+    return getattr(wh, 'sb', None) or getattr(wh, 'client', None)
+
+
+def _persist_report_summary_metadata(
+    project_slug: str,
+    report_type: str,
+    version: int,
+    languages: List[str],
+    project_data: Dict[str, Any],
+    metadata: Dict[str, Any],
+) -> None:
+    """Persist card/summary metadata to project_reports for slide pipeline output."""
+    sb = _get_supabase_client_from_warehouse()
+    if sb is None:
+        print("\n  [Stage 4] Supabase not available — report summary metadata not persisted")
+        return
+
+    db_type = DB_REPORT_TYPE.get(report_type)
+    if not db_type:
+        print(f"\n  [Stage 4] Unknown report type '{report_type}' — metadata not persisted")
+        return
+
+    summaries_by_lang = _summary_by_lang_from_sources(project_data, metadata)
+    if not summaries_by_lang and not metadata:
+        print("\n  [Stage 4] No report metadata available to persist")
+        return
+
+    print(f"\n{'='*60}")
+    print("  STAGE 4: Report Summary Metadata Persistence")
+    print(f"{'='*60}")
+
+    try:
+        project = sb.table('tracked_projects').select('id').eq('slug', project_slug).single().execute()
+        project_id = (project.data or {}).get('id')
+        if not project_id:
+            print(f"  [SKIP] tracked_projects row not found for slug={project_slug}")
+            return
+    except Exception as e:
+        print(f"  [SKIP] tracked_projects lookup failed for slug={project_slug}: {e}")
+        return
+
+    persisted = 0
+    selected_langs = [lang for lang in languages if lang in SUPPORTED_CARD_SUMMARY_LANGS]
+    if not selected_langs:
+        selected_langs = sorted(summaries_by_lang.keys() or ['en'])
+
+    for lang in selected_langs:
+        try:
+            res = sb.table('project_reports').select(
+                'id, card_data, card_summary_en, card_summary_ko, card_summary_fr, '
+                'card_summary_es, card_summary_de, card_summary_ja, card_summary_zh'
+            ).eq('project_id', project_id) \
+                .eq('report_type', db_type) \
+                .eq('version', version) \
+                .eq('language', lang) \
+                .in_('status', ['published', 'coming_soon']) \
+                .order('published_at', desc=True) \
+                .limit(1) \
+                .execute()
+            rows = res.data or []
+            if not rows:
+                print(f"  [SKIP] No project_reports row for {project_slug}/{db_type}/v{version}/{lang}")
+                continue
+
+            row = rows[0]
+            existing_card_data = row.get('card_data') if isinstance(row.get('card_data'), dict) else {}
+            card_data = _build_card_data(report_type, project_data, metadata, summaries_by_lang, existing_card_data)
+            patch = {
+                'card_data': card_data,
+                'updated_at': datetime.now(timezone.utc).isoformat(),
+            }
+            localized_summary = summaries_by_lang.get(lang)
+            if localized_summary:
+                patch[f'card_summary_{lang}'] = localized_summary
+                card_data['summary'] = localized_summary
+                patch['card_data'] = card_data
+
+            sb.table('project_reports').update(patch).eq('id', row['id']).execute()
+            persisted += 1
+            summary_note = ' with localized summary' if localized_summary else ''
+            print(f"  ✓ project_reports[{row['id']}].card_data merged for {lang}{summary_note}")
+        except Exception as e:
+            print(f"  [WARN] project_reports metadata persistence failed for {lang}: {e}")
+
+    if persisted == 0:
+        print("  [WARN] No project_reports rows were updated with report summary metadata")
+
+
 def _persist_maturity_score(
     project_slug: str,
     metadata: Dict[str, Any],
@@ -384,6 +612,10 @@ def _persist_maturity_score(
         if not wh.connected:
             print("  [SKIP] Warehouse not connected")
             return
+        sb = getattr(wh, 'sb', None) or getattr(wh, 'client', None)
+        if sb is None:
+            print("  [SKIP] Supabase client unavailable")
+            return
 
         import json as _json
         update_data = {
@@ -393,7 +625,7 @@ def _persist_maturity_score(
         if valid_axes:
             update_data['maturity_axes'] = _json.dumps(valid_axes, ensure_ascii=False)
 
-        wh.sb.table('tracked_projects').update(update_data).eq('slug', project_slug).execute()
+        sb.table('tracked_projects').update(update_data).eq('slug', project_slug).execute()
         print(f"  ✓ tracked_projects.maturity_score = {score} ({stage})")
         if valid_axes:
             print(f"  ✓ tracked_projects.maturity_axes = {len(valid_axes)} axes")
@@ -482,6 +714,8 @@ def run_pipeline(
             )
         else:
             print("\n  [Stage 2/3] No --slide-pdf or --slide-dir input; skipping slide stages.")
+
+    _persist_report_summary_metadata(project_slug, report_type, version, languages, project_data, metadata)
 
     if report_type in ('mat', 'maturity') and metadata:
         _persist_maturity_score(project_slug, metadata, md_path)
