@@ -44,6 +44,7 @@ def test_score_drive_source_for_project_prefers_exact_natural_mat_name(mcp):
 
 def test_find_drive_source_for_project_supports_natural_mat_filename(monkeypatch, mcp):
     project = {"slug": "tether", "name": "Tether", "symbol": "USDT", "aliases": []}
+    monkeypatch.setattr(mcp, "MAT_SOURCE_FOLDER_ID", "drive-active-mat-folder")
 
     monkeypatch.setattr(
         mcp,
@@ -72,6 +73,7 @@ def test_find_drive_source_for_project_supports_natural_mat_filename(monkeypatch
 def test_find_drive_source_for_project_uses_econ_folder(monkeypatch, mcp):
     project = {"slug": "pax-gold", "name": "PAX Gold", "symbol": "PAXG", "aliases": []}
     captured = []
+    monkeypatch.setattr(mcp, "ECON_SOURCE_FOLDER_ID", "drive-active-econ-folder")
 
     def fake_list_sources(_service, folder_id):
         captured.append(folder_id)
@@ -162,6 +164,17 @@ def test_score_drive_source_for_project_supports_polygon_alias_for_matic(mcp):
 
     score = mcp.score_drive_source_for_project(
         "폴리곤 네트워크(Polygon 2.0) 크립토 이코노미 심층 분석 보고서.md",
+        project,
+    )
+
+    assert score >= 90
+
+
+def test_score_drive_source_for_project_supports_flare_alias(mcp):
+    project = {"slug": "flare-networks", "name": "Flare Network", "symbol": "FLR", "aliases": []}
+
+    score = mcp.score_drive_source_for_project(
+        "Flare의 크립토 이코노미 발전 단계 및 서사 진화 평가 보고서_ 2023 - 2026.md",
         project,
     )
 
@@ -281,6 +294,334 @@ def test_derive_content_skips_report_boilerplate_for_card_summary(mcp):
     assert "개요 및 개념 정의" not in content.summary_ko
     assert "크립토 이코노미 설계 방법론" not in content.summary_ko
     assert "본 보고서는" not in content.summary_ko
+
+
+def test_derive_content_skips_forensic_source_provenance_for_card_summary(mcp):
+    source = mcp.MarkdownSource(
+        slug="ub",
+        report_type="for",
+        db_report_type="forensic",
+        version=1,
+        lang="ko",
+        name="ub_for_v1_ko.md",
+        text=(
+            "# UB 포렌식 보고서\n\n"
+            "분석 기준은 사용자가 제공한 KuCoin UB/USDT 15분봉 차트 이미지와, "
+            "업로드된 분석 지침 파일의 포렌식 보고서 구조를 따랐습니다. "
+            "UB는 단기 급등 이후 체결 강도가 약화되며 매수 추격 구간의 손실 위험이 커진 상태다. "
+            "거래량은 가격 상승 구간에서 집중됐지만 후속 매수 유입은 제한적이어서 유동성 공백 리스크가 남아 있다. "
+            "핵심 리스크는 고점 부근 변동성 확대와 되돌림 구간의 매도 압력이다."
+        ),
+    )
+
+    content = mcp.derive_content(source, translate=False)
+
+    assert content.summary_ko.startswith("UB는 단기 급등")
+    assert "분석 기준" not in content.summary_ko
+    assert "사용자가 제공한" not in content.summary_ko
+    assert "업로드된 분석 지침" not in content.summary_ko
+    assert "차트 이미지" not in content.summary_ko
+    assert "포렌식 보고서 구조" not in content.summary_ko
+
+
+def test_derive_card_copy_prefers_econ_identity_and_risk_judgment(mcp):
+    source = mcp.MarkdownSource(
+        slug="ethereum",
+        report_type="econ",
+        db_report_type="econ",
+        version=1,
+        lang="ko",
+        name="ethereum_econ_v1_ko.md",
+        text=(
+            "# Ethereum 보고서\n\n"
+            "본 보고서는 투자 조언이 아니며 가격 예측을 제공하지 않는다. "
+            "Ethereum은 스마트컨트랙트와 롤업 생태계 수요를 ETH 수수료 소각 및 스테이킹 보상 구조로 연결하는 범용 결제 레이어다. "
+            "핵심 리스크는 롤업 수수료 하락 이후 기본 레이어 수익성과 검증자 집중도 사이의 균형이다. "
+            "분석 목적은 방법론을 설명하는 것이다."
+        ),
+    )
+
+    card = mcp.derive_card_copy(source, project={"slug": "ethereum", "name": "Ethereum", "symbol": "ETH"})
+
+    assert card.summary.startswith("Ethereum은 스마트컨트랙트")
+    assert "본 보고서는" not in card.summary
+    assert "분석 목적" not in card.summary
+    assert card.quality_reasons == ()
+    assert card.confidence >= 0.9
+
+
+def test_derive_card_copy_prefers_maturity_stage_and_strength_weakness(mcp):
+    source = mcp.MarkdownSource(
+        slug="bitcoin",
+        report_type="mat",
+        db_report_type="maturity",
+        version=1,
+        lang="ko",
+        name="bitcoin_mat_v1_ko.md",
+        text=(
+            "# Bitcoin MAT\n\n"
+            "프로젝트 기본 정보: 항목 상세 내용 프로젝트 이름 Bitcoin. "
+            "Bitcoin은 성숙 단계에 진입한 가치저장 네트워크로 높은 보안성과 브랜드 신뢰를 강점으로 가진다. "
+            "약점은 수수료 시장의 장기 지속성과 채굴 보상 감소 이후의 보안 예산 불확실성이다."
+        ),
+    )
+
+    card = mcp.derive_card_copy(source, project={"slug": "bitcoin", "name": "Bitcoin", "symbol": "BTC"})
+
+    assert "성숙 단계" in card.summary
+    assert "강점" in card.summary
+    assert "약점" in card.summary
+    assert "프로젝트 기본 정보" not in card.summary
+    assert card.quality_reasons == ()
+
+
+def test_card_summary_quality_gate_rejects_forbidden_and_table_fragments(mcp):
+    source = mcp.MarkdownSource(
+        slug="awe-network",
+        report_type="mat",
+        db_report_type="maturity",
+        version=1,
+        lang="ko",
+        name="awe-network_mat_v1_ko.md",
+        text="# AWE\n\n본문",
+    )
+
+    reasons = mcp.validate_card_summary(
+        "본 보고서는 투자 조언이 아니며 | 항목 | 상세 내용 | 을 설명한다.",
+        locale="ko",
+        source=source,
+        project={"slug": "awe-network", "name": "AWE Network", "symbol": "AWE"},
+    )
+
+    assert "forbidden_phrase" in reasons
+    assert "table_or_list_fragment" in reasons
+
+
+def test_card_summary_quality_gate_rejects_latex_formula_fragments(mcp):
+    source = mcp.MarkdownSource(
+        slug="hyperliquid",
+        report_type="mat",
+        db_report_type="maturity",
+        version=1,
+        lang="ko",
+        name="hyperliquid_mat_v1_ko.md",
+        text="# Hyperliquid\n\n본문",
+    )
+
+    reasons = mcp.validate_card_summary(
+        r"$$ px i = round(px {i-1} \times 1.003) $$ 각 level 간격은 약 0.3% 전략은 최소 3초마다 조정된다.",
+        locale="ko",
+        source=source,
+        project={"slug": "hyperliquid", "name": "Hyperliquid", "symbol": "HYPE"},
+    )
+
+    assert "raw_format_fragment" in reasons
+    assert "table_or_list_fragment" in reasons
+
+
+def test_card_summary_quality_gate_rejects_state_mapping_and_numbered_fragments(mcp):
+    source = mcp.MarkdownSource(
+        slug="bitcoin",
+        report_type="econ",
+        db_report_type="econ",
+        version=1,
+        lang="ko",
+        name="bitcoin_econ_v1_ko.md",
+        text="# Bitcoin\n\n본문",
+    )
+
+    state_reasons = mcp.validate_card_summary(
+        "UTXO 온체인 state 매핑 : 존재. Bitcoin은 계정 잔고 대신 출력 집합을 사용한다.",
+        locale="ko",
+        source=source,
+        project={"slug": "bitcoin", "name": "Bitcoin", "symbol": "BTC"},
+    )
+    numbered_reasons = mcp.validate_card_summary(
+        "Bitcoin은 출력 집합으로 소유권을 표현한다. 경제 기능 : 이중지불 방지와 병렬 검증이다. 2.",
+        locale="ko",
+        source=source,
+        project={"slug": "bitcoin", "name": "Bitcoin", "symbol": "BTC"},
+    )
+    ordinal_reasons = mcp.validate_card_summary(
+        "Ethereum은 상태 전이 규칙으로 자원 비용을 계산한다. 둘째, gas 기반 자원 가격화 다.",
+        locale="ko",
+        source=source,
+        project={"slug": "ethereum", "name": "Ethereum", "symbol": "ETH"},
+    )
+
+    assert "forbidden_phrase" in state_reasons
+    assert "forbidden_phrase" in numbered_reasons
+    assert "table_or_list_fragment" in numbered_reasons
+    assert "forbidden_phrase" in ordinal_reasons
+    assert "table_or_list_fragment" in ordinal_reasons
+
+
+def test_dogecoin_bad_card_fragments_fail_semantic_gate(mcp):
+    source = mcp.MarkdownSource(
+        slug="dogecoin",
+        report_type="econ",
+        db_report_type="econ",
+        version=1,
+        lang="ko",
+        name="dogecoin_econ_v1_ko.md",
+        text="# Dogecoin ECON\n\n본문",
+    )
+
+    econ_reasons = mcp.validate_card_summary(
+        "UTXO 잔액, 트랜잭션 출력, 블록 보상. 정의: 온체인 state 매핑 기능: 결제 처리.",
+        locale="ko",
+        source=source,
+        project={"slug": "dogecoin", "name": "Dogecoin", "symbol": "DOGE"},
+    )
+    mat_reasons = mcp.validate_card_summary(
+        "요청 템플릿의 예상 가격 항목은 투자 조언이 아니며 Dogecoin의 가격 예측을 제공하지 않는다.",
+        locale="ko",
+        source=source,
+        project={"slug": "dogecoin", "name": "Dogecoin", "symbol": "DOGE"},
+    )
+
+    assert "forbidden_phrase" in econ_reasons
+    assert "table_or_list_fragment" in econ_reasons
+    assert "forbidden_phrase" in mat_reasons
+
+
+def test_dogecoin_good_card_copy_keeps_actual_investment_insight(mcp):
+    source = mcp.MarkdownSource(
+        slug="dogecoin",
+        report_type="mat",
+        db_report_type="maturity",
+        version=1,
+        lang="ko",
+        name="dogecoin_mat_v1_ko.md",
+        text=(
+            "# Dogecoin MAT\n\n"
+            "Dogecoin은 결제 네트워크와 밈 프리미엄을 결합한 오래된 공개 블록체인이다. "
+            "Dogecoin은 브랜드 인지도와 거래소 유동성을 강점으로 유지하지만, 무제한 발행 구조와 개발 지속성은 실사용 전환을 확인해야 하는 핵심 리스크다. "
+            "요청 템플릿의 예상 가격 항목은 내부 작성 흔적이다."
+        ),
+    )
+
+    content = mcp.derive_content(
+        source,
+        translate=False,
+        project={"slug": "dogecoin", "name": "Dogecoin", "symbol": "DOGE"},
+    )
+
+    assert "밈 프리미엄" in content.summary_ko
+    assert "무제한 발행" in content.summary_ko
+    assert "개발 지속성" in content.summary_ko
+    assert "요청 템플릿" not in content.summary_ko
+    assert "예상 가격" not in " ".join(content.marketing_by_lang.values())
+    assert content.marketing_by_lang["ko"].startswith("Dogecoin은 브랜드 인지도")
+
+
+def test_card_summary_quality_gate_detects_locale_script_mismatch(mcp):
+    source = mcp.MarkdownSource(
+        slug="starknet",
+        report_type="econ",
+        db_report_type="econ",
+        version=1,
+        lang="ko",
+        name="starknet_econ_v1_ko.md",
+        text="# Starknet\n\n본문",
+    )
+
+    reasons = mcp.validate_card_summary(
+        "Starknet is a rollup ecosystem with sequencer decentralization risk.",
+        locale="ko",
+        source=source,
+        project={"slug": "starknet", "name": "Starknet", "symbol": "STRK"},
+    )
+
+    assert "locale_script_mismatch" in reasons
+
+
+def test_derive_card_copy_skips_citation_prefix_and_incomplete_fragments(mcp):
+    source = mcp.MarkdownSource(
+        slug="ethereum",
+        report_type="econ",
+        db_report_type="econ",
+        version=4,
+        lang="ko",
+        name="ethereum_econ_v4_ko.md",
+        text=(
+            "# Ethereum ECON\n\n"
+            "(Bitpanda) Ethereum의 수수료 시장은 롤업 확장 이후 L1 정산 수요와 ETH 소각 구조를 함께 반영한다. "
+            "다만 L2 확장이 L1 실행 수수료를 낮추면, L1 수익은 execution gas보다 "
+            "Ethereum의 핵심 리스크는 롤업 데이터 수요가 약해질 때 ETH 소각과 검증자 보상 간 균형이 흔들릴 수 있다는 점이다."
+        ),
+    )
+
+    card = mcp.derive_card_copy(source, project={"slug": "ethereum", "name": "Ethereum", "symbol": "ETH"})
+
+    assert "Ethereum의 수수료 시장" in card.summary
+    assert not card.summary.startswith("(")
+    assert not card.summary.endswith("보다")
+    assert "execution gas보다" not in card.summary
+    assert card.quality_reasons == ()
+
+
+def test_card_summary_quality_gate_rejects_incomplete_trailing_phrase(mcp):
+    source = mcp.MarkdownSource(
+        slug="ethereum",
+        report_type="econ",
+        db_report_type="econ",
+        version=4,
+        lang="ko",
+        name="ethereum_econ_v4_ko.md",
+        text="# Ethereum\n\n본문",
+    )
+
+    reasons = mcp.validate_card_summary(
+        "Ethereum의 L1 수익은 execution gas보다",
+        locale="ko",
+        source=source,
+        project={"slug": "ethereum", "name": "Ethereum", "symbol": "ETH"},
+    )
+
+    assert "sentence_fragment" in reasons
+
+
+def test_card_summary_quality_gate_counts_cited_sentence_boundaries(mcp):
+    source = mcp.MarkdownSource(
+        slug="ethereum",
+        report_type="econ",
+        db_report_type="econ",
+        version=4,
+        lang="ko",
+        name="ethereum_econ_v4_ko.md",
+        text="# Ethereum\n\n본문",
+    )
+
+    reasons = mcp.validate_card_summary(
+        "Ethereum은 정산 계층으로 작동한다.[1][2] ETH는 수수료와 보상에 쓰인다.[3] 추가 한계도 있다.",
+        locale="ko",
+        source=source,
+        project={"slug": "ethereum", "name": "Ethereum", "symbol": "ETH"},
+    )
+
+    assert "too_many_sentences" in reasons
+
+
+def test_derive_content_omits_invalid_investment_view_formula(mcp):
+    source = mcp.MarkdownSource(
+        slug="hyperliquid",
+        report_type="mat",
+        db_report_type="maturity",
+        version=1,
+        lang="ko",
+        name="hyperliquid_mat_v1_ko.md",
+        text=(
+            "# Hyperliquid MAT\n\n"
+            "Hyperliquid는 자체 L1과 온체인 주문장 구조를 결합한 파생상품 거래 인프라로, 높은 실행 속도와 커뮤니티 중심 운영을 강점으로 가진다. "
+            r"투자 관점: $$ px i = round(px {i-1} \times 1.003) $$ 각 level 간격은 약 0.3% 전략은 최소 3초마다 조정된다."
+        ),
+    )
+
+    content = mcp.derive_content(source, translate=False, project={"slug": "hyperliquid", "name": "Hyperliquid", "symbol": "HYPE"})
+
+    assert content.summary_ko.startswith("Hyperliquid는 자체 L1")
+    assert content.marketing_by_lang == {}
 
 
 def test_derive_content_skips_project_metadata_lists(mcp):
@@ -508,6 +849,88 @@ def test_matching_row_requires_korean_slide_url(mcp):
     assert mcp.find_matching_korean_slide_row(sb, source)["id"] == "r1"
 
 
+def test_matching_row_includes_website_visible_in_review_status(mcp):
+    source = mcp.MarkdownSource(
+        slug="awe-network",
+        report_type="econ",
+        db_report_type="econ",
+        version=1,
+        lang="ko",
+        name="awe-network_econ_v1_ko.md",
+        text="AWE Network 본문",
+    )
+    sb = FakeSupabase({
+        "tracked_projects": [{"id": "p1", "slug": "awe-network"}],
+        "project_reports": [{
+            "id": "r1",
+            "project_id": "p1",
+            "report_type": "econ",
+            "version": 1,
+            "language": "ko",
+            "status": "in_review",
+            "slide_html_urls_by_lang": {"ko": "https://example.com/awe-ko.html"},
+        }],
+    })
+
+    assert mcp.find_matching_korean_slide_row(sb, source)["id"] == "r1"
+
+
+def test_backfill_drive_source_selection_includes_in_review_and_keeps_slug_scope(monkeypatch, mcp):
+    spec = importlib.util.spec_from_file_location(
+        "backfill_card_summaries",
+        Path(__file__).with_name("backfill_card_summaries.py"),
+    )
+    backfill = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(backfill)
+
+    sb = FakeSupabase({
+        "tracked_projects": [
+            {"id": "p-awe", "slug": "awe-network", "name": "AWE Network", "symbol": "AWE"},
+            {"id": "p-btc", "slug": "bitcoin", "name": "Bitcoin", "symbol": "BTC"},
+        ],
+        "project_reports": [
+            {
+                "id": "r-awe",
+                "project_id": "p-awe",
+                "report_type": "econ",
+                "version": 1,
+                "language": "ko",
+                "status": "in_review",
+                "slide_html_urls_by_lang": {"ko": "https://example.com/awe-ko.html"},
+                "updated_at": "2026-06-01T00:00:00Z",
+            },
+            {
+                "id": "r-btc",
+                "project_id": "p-btc",
+                "report_type": "econ",
+                "version": 1,
+                "language": "ko",
+                "status": "in_review",
+                "slide_html_urls_by_lang": {"ko": "https://example.com/btc-ko.html"},
+                "updated_at": "2026-06-01T00:00:00Z",
+            },
+        ],
+    })
+    calls = []
+
+    def fake_find_drive_source_for_project(project, *, report_type, version, source_scope="legacy"):
+        calls.append((project["slug"], report_type, version, source_scope))
+        return SimpleNamespace(slug=project["slug"], report_type=report_type, version=version)
+
+    monkeypatch.setattr(backfill, "_get_supabase_client", lambda: sb)
+    monkeypatch.setattr(backfill, "find_drive_source_for_project", fake_find_drive_source_for_project)
+
+    sources = backfill.load_drive_sources_for_slugs(
+        ["awe-network"],
+        report_type="econ",
+        version=None,
+        limit=None,
+    )
+
+    assert [source.slug for source in sources] == ["awe-network"]
+    assert calls == [("awe-network", "econ", 1, "legacy")]
+
+
 def test_load_local_sources_refuses_generated_output_directory(tmp_path, monkeypatch, capsys, mcp):
     output_dir = tmp_path / "pipeline" / "output"
     output_dir.mkdir(parents=True)
@@ -602,7 +1025,11 @@ def test_persist_dry_run_matches_without_update(monkeypatch, mcp):
         version=1,
         lang="ko",
         name="bitcoin_econ_v1_ko.md",
-        text="# Bitcoin\n\n시장은 성장 기회와 리스크를 함께 보여준다. 투자자는 유동성과 평가 변화를 점검해야 한다.",
+        text=(
+            "# Bitcoin\n\n"
+            "Bitcoin은 가치저장 수요와 수수료 시장을 결합한 성숙한 결제 네트워크다. "
+            "핵심 리스크는 채굴 보상 감소 이후 보안 예산과 유동성 지속성을 함께 점검해야 한다는 점이다."
+        ),
     )
     sb = FakeSupabase({
         "tracked_projects": [{"id": "p1", "slug": "bitcoin"}],
