@@ -12,7 +12,8 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
     'bitcoin-cash': ['bch'],
     'cardano': ['ada'],
     'tether-gold': ['xaut'],
-    'global-dollar': ['usdg', 'global dollar usd'],
+    'usdg': ['global-dollar', 'global dollar', 'global dollar usd'],
+    'hedera-hashgraph': ['hedera', 'hbar', 'hedera hashgraph'],
     'mantle': ['mnt'],
     'uniswap': ['uni'],
     'polkadot': ['dot'],
@@ -23,11 +24,21 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
     'gate': ['gatechain', 'gate chain'],
     'venice-token': ['venice ai', 'venice_ai'],
     'flare-networks': ['flare'],
+    'fabric-foundation': ['fabric'],
+    'theuselesscoin': ['uselesscoin'],
 }
 
 _TOKEN_RE = re.compile(r'[A-Za-z0-9]+')
 _ASCII_ONLY_RE = re.compile(r'^[a-z0-9 ]+$')
 _SIGNAL_SEPARATOR_RE = re.compile(r'[^a-z0-9]+')
+_MIN_NUMERIC_CMC_ID_SIGNAL_LENGTH = 6
+SLUG_CONTENT_GUARD_EXCLUDED_DETECTED_SLUGS = {
+    'ethereum-name-service',
+}
+CANONICAL_SLUG_TIEBREAKERS = {
+    'hedera-hashgraph',
+    'usdg',
+}
 
 
 def _tokenize(text: str) -> List[str]:
@@ -69,10 +80,15 @@ def _score_signal_in_text(sig: str, t: str, normalized_text: str, tokens: Set[st
 def _project_signal(project: Dict[str, Any]) -> List[str]:
     """Return lowercase tokens that identify a project."""
     sigs: List[str] = []
-    for key in ('slug', 'name', 'symbol'):
-        v = (project.get(key) or '').strip().lower()
+    for key in ('slug', 'name', 'symbol', 'coingecko_id'):
+        v = str(project.get(key) or '').strip().lower()
         if v:
             sigs.append(v)
+    cmc_id = str(project.get('cmc_id') or '').strip().lower()
+    if cmc_id and (
+        not cmc_id.isdigit() or len(cmc_id) >= _MIN_NUMERIC_CMC_ID_SIGNAL_LENGTH
+    ):
+        sigs.append(cmc_id)
     aliases = project.get('aliases') or []
     if isinstance(aliases, list):
         sigs.extend(
@@ -91,13 +107,18 @@ def _match_project_by_text(text: str, projects: List[Dict[str, str]]) -> Optiona
     t = text.lower()
     normalized_text = _normalize_signal_text(text)
     tokens = set(_tokenize(text))
-    best: Optional[Tuple[int, Dict[str, str]]] = None
+    best: Optional[Tuple[Tuple[int, int, int], Dict[str, str]]] = None
     for proj in projects:
         score = 0
         for sig in _project_signal(proj):
             score = max(score, _score_signal_in_text(sig, t, normalized_text, tokens))
-        if score and (best is None or score > best[0]):
-            best = (score, proj)
+        if score:
+            status = str(proj.get('status') or '').lower()
+            active_rank = 1 if status != 'archived' else 0
+            canonical_rank = 1 if (proj.get('slug') or '').lower() in CANONICAL_SLUG_TIEBREAKERS else 0
+            rank = (score, active_rank, canonical_rank)
+            if best is None or rank > best[0]:
+                best = (rank, proj)
     return best[1] if best else None
 
 
@@ -149,10 +170,18 @@ def _detect_slug_content_mismatch(
     min_other_score = 12 if has_interpretable_text_layer else 24
     min_score_margin = 1 if has_interpretable_text_layer else 12
     expected_score = _score_project_in_text(body, resolved_project)
+    if not has_interpretable_text_layer and expected_score >= 16:
+        # Raster slide OCR can produce high-scoring false positives from noisy
+        # letters. If the filename-resolved project is also visible in the body,
+        # require a wider gap before blocking the publish.
+        min_score_margin = 24
     expected_slug = (resolved_project.get('slug') or '').lower()
     best_other: Optional[Tuple[int, Dict[str, str]]] = None
     for proj in projects:
-        if (proj.get('slug') or '').lower() == expected_slug:
+        candidate_slug = (proj.get('slug') or '').lower()
+        if candidate_slug == expected_slug:
+            continue
+        if candidate_slug in SLUG_CONTENT_GUARD_EXCLUDED_DETECTED_SLUGS:
             continue
         score = _score_project_in_text(body, proj)
         if score >= min_other_score and (best_other is None or score > best_other[0]):

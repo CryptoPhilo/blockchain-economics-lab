@@ -190,6 +190,33 @@ def _is_han_dominant_zh(counts: Dict[str, int]) -> bool:
     return hangul == 0 and han >= 20 and (kana == 0 or han >= kana * 4)
 
 
+def _high_confidence_ocr_cjk_mismatch(
+    resolved_lang: str,
+    counts: Dict[str, int],
+) -> Optional[str]:
+    """Return a CJK mismatch from OCR when the signal is too strong to be noise.
+
+    Filename language hints are trusted over ordinary OCR because raster slide OCR
+    can hallucinate small CJK fragments. Full-slide wrong-language contamination,
+    however, produces dozens of characters from another script. This helper keeps
+    the noisy-fragment tolerance while still failing closed on obvious locale swaps.
+    """
+    hangul = counts.get('hangul', 0)
+    kana = counts.get('kana', 0)
+    han = counts.get('han', 0)
+
+    if resolved_lang != 'ko':
+        if hangul >= 18:
+            return 'ko'
+    if resolved_lang != 'ja':
+        if kana >= 18 and hangul < 4:
+            return 'ja'
+    if resolved_lang != 'zh':
+        if han >= 40 and hangul < 4 and kana < 4:
+            return 'zh'
+    return None
+
+
 def _lang_from_text(text: str) -> Optional[str]:
     if not text or len(text.strip()) < 30:
         return _cjk_script_signature(text or '')
@@ -241,6 +268,15 @@ def _detect_language_content_mismatch(
 
     for source, text in (('text', pdf_text), ('ocr', ocr_text)):
         if source == 'ocr' and lang_source == 'filename':
+            counts = _cjk_script_counts(text or '')
+            detected = _high_confidence_ocr_cjk_mismatch(resolved_lang, counts)
+            if detected:
+                return {
+                    'resolved_lang': resolved_lang,
+                    'detected_lang': detected,
+                    'source': source,
+                    'reason': 'high_confidence_ocr_cjk_script',
+                }
             continue
         counts = _cjk_script_counts(text or '')
         if resolved_lang == 'ja' and counts['hangul'] >= 4:

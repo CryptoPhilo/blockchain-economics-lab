@@ -1,12 +1,48 @@
 # FOR Draft Watcher Setup Guide
 
+**Status**: Deprecated archive. Do not use for current operations.
 **Task**: BCE-221  
-**Script**: `watch_for_drafts.py`  
-**Purpose**: Automated monitoring of GDrive `drafts/FOR/` folder to detect and process new forensic analysis reports through the shared draft-ingest path.
+**Legacy script**: `_legacy/pipeline/watch_for_drafts.py`
+**Replacement**: `scripts/pipeline/watch_slides.py`
 
-## Overview
+This guide is retained only as historical context for the BCE-221 FOR draft
+watcher. The watcher scanned the obsolete Google Drive `drafts/FOR/` folder and
+is now disabled by default. Do not create Paperclip routines, system cron jobs,
+or manual recovery procedures from this document.
 
-The FOR Draft Watcher uses `ingest_for.scan_for_drafts()` and the shared Drive draft helper to scan the Google Drive `drafts/FOR/` folder for new markdown reports and process them through the full BCE Lab pipeline:
+Current operations use:
+
+- Source material: Google Drive `BCE Research Source Drafts`
+- Published PDFs: Google Drive `Slide/{TYPE}/`
+- Active watcher: `scripts/pipeline/watch_slides.py`
+
+Current smoke command:
+
+```bash
+python scripts/pipeline/watch_slides.py --type for --slug <slug> --dry-run
+```
+
+Current reprocess command after human verification:
+
+```bash
+python scripts/pipeline/watch_slides.py --type for --slug <slug> --force
+```
+
+Direct `--file-id` targeting is disabled in the active watcher. Put the PDF in
+the relevant `Slide/{TYPE}/` folder and use `--type` plus `--slug` filters so
+the run exercises the same path as GitHub Actions.
+
+Historical reproduction only:
+
+```bash
+ALLOW_LEGACY_DRAFT_WATCHER=1 python _legacy/pipeline/watch_for_drafts.py --scan-only
+```
+
+## Archived Overview
+
+The old FOR Draft Watcher used `ingest_for.scan_for_drafts()` and the shared
+Drive draft helper to scan `drafts/FOR/` markdown reports and process them
+through the former PDF pipeline:
 
 1. **Scan** - Detect new .md files in `drafts/FOR/`
 2. **Ingest** - Download and validate the report
@@ -15,23 +51,6 @@ The FOR Draft Watcher uses `ingest_for.scan_for_drafts()` and the shared Drive d
 5. **QA** - Quality assurance checks
 6. **Upload** - Store in Google Drive under appropriate project folders
 7. **Publish** - Update Supabase database with report metadata
-
-## Usage
-
-### Scan Only (No Processing)
-```bash
-python3 watch_for_drafts.py --scan-only
-```
-
-### Dry Run (Test Mode)
-```bash
-python3 watch_for_drafts.py --dry-run
-```
-
-### Full Processing
-```bash
-python3 watch_for_drafts.py
-```
 
 ## Output
 
@@ -44,11 +63,12 @@ All scan results are written to timestamped log files:
 - **Location**: `scripts/pipeline/output/_for_processed.json`
 - **Purpose**: Shared state tracker used by both `ingest_for.py` and `watch_for_drafts.py`
 
-## Scheduling
+## Archived Scheduling
 
-### Option 1: Paperclip Routine (Recommended)
+Do not recreate these schedules. They are listed only to explain what has been
+retired.
 
-Create a Paperclip routine with a 30-minute cron schedule:
+### Retired Paperclip Routine
 
 ```bash
 # Via Paperclip API
@@ -73,12 +93,10 @@ POST /api/routines/{routineId}/triggers
 }
 ```
 
-### Option 2: System Cron
+### Retired System Cron
 
-Add to crontab:
-```bash
-*/30 * * * * cd /Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab/scripts/pipeline && /usr/bin/python3 watch_for_drafts.py >> /tmp/for_watcher.log 2>&1
-```
+The retired cron invoked the FOR draft watcher every 30 minutes. Do not restore
+that crontab entry; use `slide-pipeline-cron.yml` for current publishing.
 
 ## Architecture
 

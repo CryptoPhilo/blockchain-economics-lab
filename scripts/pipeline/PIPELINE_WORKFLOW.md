@@ -1,47 +1,47 @@
 # BCE Lab 보고서 생산 파이프라인 워크플로
 
+> 현재 운영 기준: 프로덕션 발행 경로는 GitHub Actions
+> `.github/workflows/slide-pipeline-cron.yml`에서
+> `scripts/pipeline/watch_slides.py`를 실행하는 slide watcher입니다. 이 문서의
+> phase/orchestrator 흐름은 과거 설계와 재현용 개념 설명으로만 유지하며, 현재
+> 운영 명령으로 사용하지 않습니다.
+
 ## 1. 워크플로 다이어그램
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    Daily Pipeline (Orchestrator)                │
+│              Current Slide Pipeline (watch_slides.py)           │
 └─────────────────────────────────────────────────────────────────┘
                                │
                                ▼
                       ┌─────────────────┐
-                      │  Phase A: Data  │
-                      │  Ingestion      │
+                      │  Drive Scan     │
+                      │  Slide/{TYPE}/  │
                       └────────┬────────┘
                                │
                                ▼
                     ┌──────────────────────┐
-                    │  auto-analysis       │
-                    │  (enriched data)     │
+                    │  PDF identification  │
+                    │  slug/lang/type      │
                     └────────┬─────────────┘
                              │
                              ▼
                     ┌──────────────────────┐
-         Phase B-D  │  report-pipeline     │
-                    │  (7-language PDFs)   │
-         CRO Agent  └────────┬─────────────┘
-         Validation          │
-                             ▼
-                    ┌──────────────────────┐
-                    │  gdrive-upload       │
-                    │  (Drive URLs)        │
+                    │  slide HTML publish  │
+                    │  Supabase Storage    │
                     └────────┬─────────────┘
                              │
                              ▼
                     ┌──────────────────────┐
-                    │  resend-email        │
-                    │  (email delivery)    │
+                    │  project_reports DB  │
+                    │  review/published    │
+                    └────────┬─────────────┘
+                             │
+                             ▼
+                    ┌──────────────────────┐
+                    │  summary/marketing   │
+                    │  derived from source │
                     └──────────────────────┘
-
-    ┌──────────────────────────────────────────────────────────┐
-    │       Independent Slides (Manual or Parallel)            │
-    │  slide-econ  /  slide-mat  /  slide-for                 │
-    │  (각 독립 실행, 메타데이터 JSON 입력)                     │
-    └──────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -164,11 +164,8 @@ resend-email (선택적)
 
 **실행 명령**:
 ```bash
-# Phase B만 실행
-python scripts/orchestrator.py --phase B --manual
-
-# Phase C 실행 (자동 분석 결과 재활용)
-python scripts/orchestrator.py --phase C --manual
+# 현재 운영 경로에서는 Drive의 Slide/{TYPE}/ PDF를 기준으로 dry-run 검증
+python scripts/pipeline/watch_slides.py --type econ --slug <slug> --dry-run
 ```
 
 ### 시나리오 B: 특정 언어 재생성
@@ -186,7 +183,8 @@ resend-email (선택적)
 
 **실행 명령**:
 ```bash
-python scripts/orchestrator.py --phase C --language ko --manual
+# 현재 watcher는 파일/콘텐츠에서 언어를 식별한다. 특정 slug만 재처리한다.
+python scripts/pipeline/watch_slides.py --type econ --slug <slug> --force
 ```
 
 ### 시나리오 C: 슬라이드만 생성
@@ -206,7 +204,7 @@ resend-email (선택적, 슬라이드 링크만 포함)
 
 **실행 명령**:
 ```bash
-python scripts/orchestrator.py --slide econ,mat,for --manual
+python scripts/pipeline/watch_slides.py --type all --dry-run
 ```
 
 ---
@@ -269,23 +267,23 @@ PROJECT_DATA_SOURCE="http://api.example.com/data"
 CRO_VALIDATION_REQUIRED=true  # Phase B 자동 검증 필수 여부
 ```
 
-### Orchestrator 실행 명령어
+### 현재 watcher 실행 명령어
 ```bash
-# 전체 파이프라인 자동 실행
-python scripts/orchestrator.py --full
+# 전체 타입 스캔(dry-run)
+python scripts/pipeline/watch_slides.py --type all --dry-run
 
-# 특정 Phase만 실행
-python scripts/orchestrator.py --phase {A|B|C|D|E|F}
+# 특정 타입만 스캔
+python scripts/pipeline/watch_slides.py --type {econ|mat|for} --dry-run
 
-# 특정 언어만 생성
-python scripts/orchestrator.py --language ko,en,zh
+# 특정 slug만 재처리
+python scripts/pipeline/watch_slides.py --type econ --slug <slug> --force
 
-# 슬라이드 생성 (독립)
-python scripts/orchestrator.py --slide econ,mat,for
-
-# 수동 검증 모드 (CRO 승인 대기)
-python scripts/orchestrator.py --full --manual
+# DB reconcile 생략이 필요한 긴급 진단
+python scripts/pipeline/watch_slides.py --type econ --dry-run --skip-db-reconcile
 ```
+
+`scripts/pipeline/orchestrator.py` 예시는 현재 운영 명령이 아닙니다. 과거
+텍스트->PDF 재현이나 코드 고고학이 필요할 때만 별도 이슈에서 사용하세요.
 
 ### 로그 및 모니터링
 - **로그 경로**: `/logs/pipeline_{YYYYMMDD}.log`

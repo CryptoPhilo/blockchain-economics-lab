@@ -24,38 +24,59 @@ See `doc/runbooks/runtime-pipeline-governance.md` for the full operating rule.
 
 The active publishing watcher is `scripts/pipeline/watch_slides.py`.
 
+- `watch_slides_inspection.py` owns PDF page profiling, text/OCR extraction, and
+  language resolution helpers.
+- `watch_slides_matching.py` owns project signal matching, watcher-only aliases,
+  and slug/content mismatch guards.
+- `watch_slides_telemetry.py` owns optional Paperclip run/node/event payloads and
+  watcher status taxonomy.
+- `watch_slides.py` remains the CLI and orchestration boundary. Keep DB/storage
+  writes there until the repository layer is split behind stable signatures.
+
 - Source drafts for report creation live in GDrive `BCE Research Source Drafts`.
   SHIB example: `BCE Research Source Drafts / shiba-inu_econ_v1_en.md`.
-- Published slide PDFs are watched from the configured `Slide/{TYPE}/` folders
-  in `scripts/pipeline/watch_slides.py`.
+- Published operating slide PDFs are watched from the active `Slide2/{TYPE}/`
+  folders in `scripts/pipeline/watch_slides.py`.
+- Historical `Slide/{TYPE}/` folders are backfill roots only. Use
+  `--drive-root-scope legacy` or `--drive-root-scope all` explicitly when a
+  repair/backfill must inspect them; scheduled/default runs stay on
+  `--drive-root-scope active`.
 - Do not use legacy GDrive `drafts/{ECON,MAT,FOR}` folders for current
   operations. Those folders are only for archived reproduction under
   `_legacy/pipeline/`.
 - Smoke current watcher without publishing:
 
 ```bash
-python scripts/pipeline/watch_slides.py --type econ --slug shiba-inu --dry-run
+python scripts/pipeline/watch_slides.py --type econ --slug shiba-inu --dry-run --drive-root-scope active
 ```
 
 When `--slug` is provided, the watcher uses filename/project/folder hints to
-avoid traversing unrelated Slide folders before full PDF content resolution.
+avoid traversing unrelated Slide2 folders before full PDF content resolution.
 Dry-run logs also include a source-vs-slide diagnostic section: a source draft
 such as `BCE Research Source Drafts / okx_econ_v1_en.md` with no publishable
-PDF in active `Slide/econ` is reported as slide generation pending/missing.
+PDF in active `Slide2/econ` is reported as slide generation pending/missing.
 
 - Reprocess a slug after human verification:
 
 ```bash
-python scripts/pipeline/watch_slides.py --type econ --slug shiba-inu --force
+python scripts/pipeline/watch_slides.py --type econ --slug shiba-inu --force --drive-root-scope active
 ```
 
 Direct Drive file-id targeting is disabled. Put PDFs under the appropriate
-`Slide/{TYPE}` folder and use `--type` plus `--slug` filters so the run follows
-the defined pipeline path.
+`Slide2/{TYPE}` folder for normal operations, or under `Slide/{TYPE}` only for
+explicit backfills, then use `--type`, `--slug`, and `--drive-root-scope`
+filters so the run follows the defined pipeline path.
 
 The active watcher also runs the active-project backlog guard. It flags active
 projects with no `project_reports` row and no report/due timestamp markers so
 newly tracked projects are visible from the current pipeline logs.
+
+Scheduled GitHub Actions runs enumerate the full active `Slide2/{TYPE}` tree
+with `--drive-root-scope active` and let `_slide_processed.json` skip unchanged
+files. Do not put a modified-time lookback on the scheduled path: if the
+workflow is paused, gated, or failing for longer than the lookback, unprocessed
+PDFs can age out and never reach Storage/DB. Use `--modified-since-minutes` only
+for ad hoc diagnostics where a human intentionally accepts that narrower scope.
 
 Audit published slide language consistency after incident repair or before
 closing locale-contamination work:
@@ -87,11 +108,14 @@ slide HTML; the default still catches duplicate latest objects and any text
 layer/fixture mismatch.
 
 Full type scans also run a final Drive-vs-DB availability reconcile. The
-watcher rebuilds the current `(report_type, slug, language)` set from active
-`Slide/{TYPE}` PDFs and cancels website-visible `project_reports` rows outside
-that set, then clears/syncs the matching `tracked_projects.last_*_report_at`
-field. This prevents historical pipeline rows from making the website show a
-report badge for a project that no longer has a readable slide in Drive.
+watcher rebuilds the current `(report_type, slug, language)` set from the
+selected Drive root scope. Default/scheduled runs compare against active
+`Slide2/{TYPE}` PDFs; explicit backfill runs can compare against historical
+`Slide/{TYPE}` PDFs with `--drive-root-scope legacy`. Rows outside the selected
+set are cancelled, then the matching `tracked_projects.last_*_report_at` field
+is cleared/synced. This prevents historical pipeline rows from making the
+website show a report badge for a project that no longer has a readable slide in
+the selected Drive source of truth.
 Slug-targeted runs skip this reconcile by design; use a full type run after
 large Drive folder changes. If an emergency diagnostic run must avoid DB
 reconciliation, pass `--skip-db-reconcile`.
@@ -348,7 +372,14 @@ without `--post` and an exact single approved selection. Do not use previously
 exposed credentials for live posting; rotate them first, then run a dry-run
 again before posting.
 
-This pipeline orchestrates the generation of three types of blockchain research reports for BCE Lab projects:
+## Archived Text Report Generator
+
+The sections below describe the older `orchestrator.py` text-to-PDF generator.
+They are retained for incident reproduction and code archaeology only. Current
+operations use `watch_slides.py` through `slide-pipeline-cron.yml`; do not start
+new production runs from these commands.
+
+This archived pipeline orchestrates the generation of three types of blockchain research reports for BCE Lab projects:
 
 - **Economic Reports** (econ): Market analysis, tokenomics, and economic metrics
 - **Materials Reports** (mat): Whitepaper analysis, technical documentation review
@@ -369,11 +400,11 @@ pipeline/
 └── README.md               # This file
 ```
 
-## Quick Start
+## Archived Quick Start
 
 ### 1. Generate a Single-Language Report
 
-Generate an English economic report for Bitcoin v1:
+Historical reproduction command for an English economic report for Bitcoin v1:
 
 ```bash
 python orchestrator.py --type econ --project btc --version 1 --lang en

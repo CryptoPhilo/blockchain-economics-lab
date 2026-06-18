@@ -88,6 +88,37 @@ def test_flags_bittensor_body_under_bitcoin_filename(ws, projects, bittensor_bod
     assert mismatch['detected_score'] > mismatch['expected_score']
 
 
+def test_raster_ocr_slug_guard_tolerates_visible_expected_project(ws):
+    projects = [
+        {'slug': 'hyperliquid', 'name': 'Hyperliquid', 'symbol': 'HYPE'},
+        {'slug': 'ethereum-name-service', 'name': 'Ethereum Name Service', 'symbol': 'ENS'},
+    ]
+    body = (
+        'Hyperliquid HYPE 한국어 크립토 이코노미 보고서. '
+        'HyperCore HyperEVM HyperBFT HYPE staking. '
+        'OCR noise mentions ethereum name service ENS from artifacts. '
+    ) * 3
+
+    mismatch = ws._detect_slug_content_mismatch(projects[0], '', body, projects)
+
+    assert mismatch is None
+
+
+def test_slug_guard_excludes_ens_as_detected_candidate(ws):
+    projects = [
+        {'slug': 'dogecoin', 'name': 'Dogecoin', 'symbol': 'DOGE'},
+        {'slug': 'ethereum-name-service', 'name': 'Ethereum Name Service', 'symbol': 'ENS'},
+    ]
+    body = (
+        'Ethereum Name Service ENS naming registry identity infrastructure. '
+        'ENS domains resolve addresses and metadata. '
+    ) * 5
+
+    mismatch = ws._detect_slug_content_mismatch(projects[0], '', body, projects)
+
+    assert mismatch is None
+
+
 def test_passes_matching_content(ws, projects, bitcoin_body):
     proj_bitcoin = projects[0]
     assert ws._detect_slug_content_mismatch(proj_bitcoin, bitcoin_body, '', projects) is None
@@ -353,6 +384,8 @@ def test_recovery_target_aliases_resolve_from_slide_filename(ws, slug, name, sym
         ('cosmos-hub', 'Cosmos Hub', 'ATOM', 'cosmos_MAT_ko.pdf'),
         ('worldcoin', 'Worldcoin', 'WLD', 'World_MAT_en.pdf'),
         ('flare-networks', 'Flare Network', 'FLR', 'Flare_MAT_ko.pdf'),
+        ('fabric-foundation', 'Fabric Protocol', 'ROBO', 'Fabric_MAT_jp.pdf'),
+        ('theuselesscoin', 'Useless Coin', 'USELESS', 'UselessCoin_MAT_ko.pdf'),
     ],
 )
 def test_mat_short_filenames_resolve_to_canonical_projects(ws, slug, name, symbol, filename):
@@ -449,6 +482,188 @@ def test_matching_helper_resolves_flare_filename_to_flare_networks(matching_help
     assert source == 'filename'
 
 
+def test_exchange_listed_long_tail_project_resolves_from_coin_ids(ws):
+    projects = [
+        {
+            'id': 'opengradient-id',
+            'slug': 'opengradient',
+            'name': 'OpenGradient',
+            'symbol': 'OG',
+            'coingecko_id': 'open-gradient',
+            'cmc_id': '123456',
+            'aliases': ['Open Gradient'],
+            'exchange_listed': True,
+        },
+        {'id': 'bitcoin-id', 'slug': 'bitcoin', 'name': 'Bitcoin', 'symbol': 'BTC'},
+    ]
+
+    project, source = ws._resolve_slug(
+        'open-gradient_ECON_ko.pdf',
+        '',
+        '',
+        projects,
+    )
+
+    assert project['slug'] == 'opengradient'
+    assert project['exchange_listed'] is True
+    assert source == 'filename'
+
+
+def test_short_numeric_cmc_id_does_not_match_filename_or_body_digits(ws):
+    projects = [
+        {
+            'id': 'bitcoin-id',
+            'slug': 'bitcoin',
+            'name': 'Bitcoin',
+            'symbol': 'BTC',
+            'cmc_id': '1',
+        },
+        {
+            'id': 'ethereum-id',
+            'slug': 'ethereum',
+            'name': 'Ethereum',
+            'symbol': 'ETH',
+            'cmc_id': '1027',
+        },
+    ]
+
+    project, source = ws._resolve_slug(
+        'report_1_ECON_ko.pdf',
+        'Section 1 reviews market data without naming the asset.',
+        '',
+        projects,
+    )
+
+    assert project is None
+    assert source == 'none'
+
+
+def test_long_numeric_cmc_id_still_resolves_exchange_listed_project(ws):
+    projects = [
+        {
+            'id': 'opengradient-id',
+            'slug': 'opengradient',
+            'name': 'OpenGradient',
+            'symbol': 'OG',
+            'cmc_id': '123456',
+            'exchange_listed': True,
+        },
+        {
+            'id': 'bitcoin-id',
+            'slug': 'bitcoin',
+            'name': 'Bitcoin',
+            'symbol': 'BTC',
+            'cmc_id': '1',
+        },
+    ]
+
+    project, source = ws._resolve_slug(
+        'report_123456_ECON_ko.pdf',
+        '',
+        '',
+        projects,
+    )
+
+    assert project['slug'] == 'opengradient'
+    assert project['exchange_listed'] is True
+    assert source == 'filename'
+
+
+def test_load_tracked_projects_marks_exchange_listed_rows(ws):
+    class Query:
+        def __init__(self, rows):
+            self.rows = rows
+
+        def select(self, *_args):
+            return self
+
+        def eq(self, *_args):
+            return self
+
+        def range(self, *_args):
+            return self
+
+        def execute(self):
+            return type('Result', (), {'data': self.rows})()
+
+    class Supabase:
+        def table(self, name):
+            if name == 'exchange_project_listings':
+                return Query([
+                    {'project_id': 'opengradient-id'},
+                    {'project_id': 'okx-tail-id'},
+                    {'project_id': 'bybit-tail-id'},
+                    {'project_id': 'coinbase-tail-id'},
+                ])
+            if name == 'tracked_projects':
+                return Query([
+                    {
+                        'id': 'opengradient-id',
+                        'slug': 'opengradient',
+                        'name': 'OpenGradient',
+                        'symbol': 'OG',
+                        'coingecko_id': 'open-gradient',
+                        'cmc_id': '123456',
+                        'aliases': [],
+                        'status': 'active',
+                    },
+                    {
+                        'id': 'okx-tail-id',
+                        'slug': 'okx-tail-lab',
+                        'name': 'OKX Tail Lab',
+                        'symbol': 'OTL',
+                        'coingecko_id': 'okx-tail-lab',
+                        'cmc_id': '234567',
+                        'aliases': ['OKX Tail'],
+                        'status': 'active',
+                    },
+                    {
+                        'id': 'bybit-tail-id',
+                        'slug': 'bybit-tail-lab',
+                        'name': 'Bybit Tail Lab',
+                        'symbol': 'BTL',
+                        'coingecko_id': 'bybit-tail-lab',
+                        'cmc_id': '345678',
+                        'aliases': ['Bybit Tail'],
+                        'status': 'active',
+                    },
+                    {
+                        'id': 'coinbase-tail-id',
+                        'slug': 'coinbase-tail-lab',
+                        'name': 'Coinbase Tail Lab',
+                        'symbol': 'CTL',
+                        'coingecko_id': 'coinbase-tail-lab',
+                        'cmc_id': '456789',
+                        'aliases': ['Coinbase Tail'],
+                        'status': 'active',
+                    },
+                    {
+                        'id': 'bitcoin-id',
+                        'slug': 'bitcoin',
+                        'name': 'Bitcoin',
+                        'symbol': 'BTC',
+                        'coingecko_id': 'bitcoin',
+                        'cmc_id': '1',
+                        'aliases': [],
+                        'status': 'active',
+                    },
+                ])
+            raise AssertionError(name)
+
+    projects = ws._load_tracked_projects(Supabase())
+
+    exchange_listed_by_slug = {
+        project['slug']: project['exchange_listed']
+        for project in projects
+    }
+
+    assert exchange_listed_by_slug['opengradient'] is True
+    assert exchange_listed_by_slug['okx-tail-lab'] is True
+    assert exchange_listed_by_slug['bybit-tail-lab'] is True
+    assert exchange_listed_by_slug['coinbase-tail-lab'] is True
+    assert exchange_listed_by_slug['bitcoin'] is False
+
+
 def test_non_ascii_substring_alias_matching_is_preserved(ws):
     projects = [
         {'slug': 'bittensor', 'name': 'Bittensor', 'symbol': 'TAO', 'aliases': ['비텐서']},
@@ -470,7 +685,7 @@ def test_filename_language_resolution_ignores_noisy_ocr_script_mismatch(ws):
     mismatch = ws._detect_language_content_mismatch(
         'ko',
         'NotebookLM export metadata ' * 20,
-        'これはOCRが誤認した日本語テキストです' * 5,
+        'OCR 誤認 これは ノイズ',
         'filename',
     )
 
@@ -848,12 +1063,25 @@ def test_allows_chinese_body_with_small_kana_ocr_noise(ws):
 
 
 def test_filename_lang_with_ocr_only_japanese_noise_does_not_block(ws):
-    noisy_ocr = (
-        'ライトコイン 市場 流動性 供給 発行 取引 ネットワーク 決済 '
-        'このスライドはOCRノイズを含みます。'
-    ) * 4
+    noisy_ocr = 'ライトコイン 市場 流動性 供給'
 
     assert ws._detect_language_content_mismatch('ko', '', noisy_ocr, 'filename') is None
+
+
+def test_filename_lang_blocks_high_confidence_chinese_ocr(ws):
+    chinese_slide_ocr = (
+        '本报告分析比特币加密经济设计、稀缺数字资产、工作量证明、'
+        '去中心化发行、链上结算网络、矿工激励以及长期安全预算。'
+    ) * 4
+
+    mismatch = ws._detect_language_content_mismatch('ko', '', chinese_slide_ocr, 'filename')
+
+    assert mismatch == {
+        'resolved_lang': 'ko',
+        'detected_lang': 'zh',
+        'source': 'ocr',
+        'reason': 'high_confidence_ocr_cjk_script',
+    }
 
 
 def test_filename_lang_still_blocks_text_layer_cjk_mismatch(ws):
@@ -974,6 +1202,34 @@ def test_iter_targets_legacy_scope_uses_static_slide_inventory(ws, monkeypatch, 
     assert [(rtype, pdf['id']) for rtype, pdf in first] == [('econ', 'legacy-slide')]
     assert [(rtype, pdf['id']) for rtype, pdf in second] == [('econ', 'legacy-slide')]
     assert child_calls == ['legacy-econ']
+
+
+def test_iter_targets_legacy_scope_keeps_latest_per_slug_lang(ws, monkeypatch, tmp_path, projects):
+    inventory_path = tmp_path / '_legacy_slide_inventory.json'
+    monkeypatch.setattr(ws, 'LEGACY_SLIDE_INVENTORY_PATH', inventory_path)
+    monkeypatch.setattr(ws, 'LEGACY_TYPE_FOLDER_IDS', {'econ': 'legacy-econ'})
+    pdfs_by_parent = {
+        'legacy-econ': [
+            {'id': 'new-ko', 'name': 'bitcoin_ECON_ko.pdf', 'modifiedTime': '2026-05-25T20:44:48.000Z'},
+            {'id': 'old-ko', 'name': 'Bitcoin_ECON_ko.pdf', 'modifiedTime': '2026-05-14T04:26:40.747Z'},
+            {'id': 'new-en', 'name': 'bitcoin_ECON_en.pdf', 'modifiedTime': '2026-05-25T20:54:42.000Z'},
+        ],
+    }
+    monkeypatch.setattr(ws, '_list_pdfs_direct', lambda _service, parent_id: pdfs_by_parent.get(parent_id, []))
+    monkeypatch.setattr(ws, '_list_child_folders', lambda _service, _parent_id: [])
+
+    targets = list(ws._iter_targets(
+        object(),
+        ['econ'],
+        drive_root_scope='legacy',
+        filter_slug='bitcoin',
+        projects=projects,
+    ))
+
+    assert [(rtype, pdf['id']) for rtype, pdf in targets] == [
+        ('econ', 'new-ko'),
+        ('econ', 'new-en'),
+    ]
 
 
 def test_iter_targets_resolves_active_slide2_folders_when_env_ids_missing(ws, monkeypatch):
@@ -3214,6 +3470,46 @@ def test_process_skips_recent_processing_manifest_entry(ws, monkeypatch):
     assert scanned[0]['slug'] == 'bitcoin'
     assert scanned[0]['lang'] == 'en'
     assert scanned[0]['processing_age_minutes'] < ws.STALE_PROCESSING_AFTER_MINUTES
+
+
+def test_process_holds_language_publish_after_retry_limit(ws, monkeypatch):
+    manifest = {
+        'file-failed-ko': {
+            'status': 'failed',
+            'modifiedTime': 't0',
+            'slug': 'bitcoin',
+            'lang': 'ko',
+            'publish_retry_count': ws.MAX_LANGUAGE_PUBLISH_RETRIES,
+            'error': 'previous conversion failure',
+        }
+    }
+    saved = []
+
+    monkeypatch.setitem(
+        sys.modules,
+        'supabase_storage',
+        SimpleNamespace(get_supabase_storage_client=lambda: object()),
+    )
+    monkeypatch.setattr(ws, '_get_drive_service', lambda: object())
+    monkeypatch.setattr(ws, '_load_manifest', lambda: manifest)
+    monkeypatch.setattr(ws, '_save_manifest', lambda value: saved.append(value.copy()))
+    monkeypatch.setattr(ws, '_load_tracked_projects', lambda _sb: [])
+    monkeypatch.setattr(ws, '_iter_targets', lambda _service, _types, **_kwargs: [
+        ('econ', {
+            'id': 'file-failed-ko',
+            'name': 'Bitcoin_ECON_ko.pdf',
+            'modifiedTime': 't0',
+        }),
+    ])
+
+    scanned, processed = ws.process(['econ'], filter_slug=None, dry_run=True, force=False)
+
+    assert processed == []
+    assert scanned[0]['status'] == 'publish_pending_retry_exhausted'
+    assert scanned[0]['slug'] == 'bitcoin'
+    assert scanned[0]['lang'] == 'ko'
+    assert scanned[0]['retry_count'] == ws.MAX_LANGUAGE_PUBLISH_RETRIES
+    assert saved[-1]['file-failed-ko']['status'] == 'publish_pending_retry_exhausted'
 
 
 def test_write_run_log_surfaces_stale_processing_recovery(ws, monkeypatch, tmp_path):

@@ -1,17 +1,19 @@
 import sys
 from pathlib import Path
 from unittest import TestCase
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import fitz
+import pdf_to_html_slides as slides
 
 from pdf_to_html_slides import (
-    COPYRIGHT_OVERLAY_COLOR,
     NOTEBOOKLM_LOGO_BBOX,
     _median_color,
+    assert_no_openai_copyright,
+    detect_openai_copyright_text,
     mask_notebooklm_logo,
-    overlay_copyright_notice,
 )
 
 
@@ -146,47 +148,30 @@ class MaskNotebookLMLogoTests(TestCase):
         self.assertEqual(pix.pixel((lx0 + lx1) // 2, ly0 - 2), rule)
 
 
-class OverlayCopyrightNoticeTests(TestCase):
-    def test_overlay_writes_dark_text_inside_bbox(self):
-        # Render copyright text on a clean light-bg pixmap and verify pixels in
-        # the bbox interior shifted toward the text color (we don't pin exact
-        # glyph positions because they depend on font availability).
-        bg = (245, 245, 240)
-        W, H = 1280, 720
-        pix = _solid_pixmap(W, H, bg)
+class OpenAICopyrightGuardTests(TestCase):
+    def test_detects_openai_copyright_footer_text(self):
+        hits = detect_openai_copyright_text(["Copyright © OpenAI"])
+        self.assertEqual(hits, ["Copyright © OpenAI"])
 
-        overlay_copyright_notice(pix)
+    def test_detects_common_ocr_confusions(self):
+        hits = detect_openai_copyright_text(["Copyr1ght © OpenAl"])
+        self.assertEqual(hits, ["Copyr1ght © OpenAl"])
 
-        fx0, fy0, fx1, fy1 = NOTEBOOKLM_LOGO_BBOX
-        lx0 = int(W * fx0); ly0 = int(H * fy0)
-        lx1 = int(W * fx1); ly1 = int(H * fy1)
-        # Sample the entire bbox; at least one pixel must be appreciably darker
-        # than bg (= a glyph stroke landed there).
-        any_glyph_pixel = False
-        for y in range(ly0, ly1):
-            for x in range(lx0, lx1):
-                px = pix.pixel(x, y)
-                if px != bg:
-                    any_glyph_pixel = True
-                    break
-            if any_glyph_pixel:
-                break
-        self.assertTrue(any_glyph_pixel, "overlay should leave at least one non-bg pixel in bbox")
+    def test_does_not_flag_regular_openai_content_mentions(self):
+        hits = detect_openai_copyright_text(["OpenAI, Anthropic, and Google are sector peers."])
+        self.assertEqual(hits, [])
 
-    def test_overlay_does_not_touch_outside_bbox(self):
-        bg = (245, 245, 240)
-        W, H = 1280, 720
-        pix = _solid_pixmap(W, H, bg)
+    def test_does_not_flag_bcelab_copyright(self):
+        hits = detect_openai_copyright_text(["Copyright © BCELab"])
+        self.assertEqual(hits, [])
 
-        overlay_copyright_notice(pix)
+    def test_assert_no_openai_copyright_raises_on_ocr_hit(self):
+        pix = _solid_pixmap(100, 100, (255, 255, 255))
+        with patch.object(slides, "_ocr_footer_regions", return_value=["Copyright © OpenAI"]):
+            with self.assertRaisesRegex(RuntimeError, "OpenAI copyright footer detected"):
+                assert_no_openai_copyright(pix, 3, "sample.pdf")
 
-        fx0, fy0, fx1, fy1 = NOTEBOOKLM_LOGO_BBOX
-        lx0 = int(W * fx0); ly0 = int(H * fy0)
-        # Sample a few points well outside the bbox.
-        for x, y in [(10, 10), (W // 2, H // 2), (lx0 - 10, ly0 - 10), (10, H - 5)]:
-            self.assertEqual(pix.pixel(x, y), bg)
-
-    def test_overlay_rejects_alpha_pixmap(self):
-        pix = fitz.Pixmap(fitz.csRGB, fitz.IRect(0, 0, 100, 100), True)
-        with self.assertRaises(ValueError):
-            overlay_copyright_notice(pix)
+    def test_assert_no_openai_copyright_allows_bcelab(self):
+        pix = _solid_pixmap(100, 100, (255, 255, 255))
+        with patch.object(slides, "_ocr_footer_regions", return_value=["Copyright © BCELab"]):
+            assert_no_openai_copyright(pix, 1, "sample.pdf")
