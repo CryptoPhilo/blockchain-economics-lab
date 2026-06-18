@@ -22,4 +22,16 @@ describe('exchange page data contract', () => {
     expect(source).toContain('BCE Exchange Score')
     expect(source).not.toContain('averageBceScore')
   })
+
+  it('keeps exchange list and detail headers on the shared image-backed hero treatment', () => {
+    const listSource = readRouteSource('page.tsx')
+    const detailSource = readRouteSource('[slug]/page.tsx')
+
+    expect(listSource).toContain("EXCHANGE_HEADER_BACKGROUND_IMAGE = '/images/exchange-header-bg.png'")
+    expect(detailSource).toContain("EXCHANGE_HEADER_BACKGROUND_IMAGE = '/images/exchange-header-bg.png'")
+    expect(listSource).toContain('data-testid="exchanges-hero"')
+    expect(detailSource).toContain('data-testid="exchange-detail-hero"')
+    expect(listSource).toContain('backgroundImage')
+    expect(detailSource).toContain('backgroundImage')
+  })
 })

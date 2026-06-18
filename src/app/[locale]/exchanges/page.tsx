@@ -5,6 +5,8 @@ import { createExchangesRepository, type ExchangeAggregate } from '@/lib/reposit
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
+const EXCHANGE_HEADER_BACKGROUND_IMAGE = '/images/exchange-header-bg.png'
+
 function formatScore(score: unknown) {
   if (score == null) return '-'
   const numeric = Number(score)
@@ -48,16 +50,25 @@ export default async function ExchangesPage({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
-      <section className="mb-6 rounded-2xl border border-white/10 bg-slate-950 px-6 py-10 shadow-2xl shadow-black/20 sm:px-8">
-        <p className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-300">Exchanges</p>
-        <h1 className="mt-3 text-3xl font-bold text-white sm:text-4xl">
-          {isKo ? '거래소' : 'Exchanges'}
-        </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-          {isKo
-            ? '추적 중인 거래소와 BCE Exchange Score, Top500 매칭 종목 수를 확인하세요.'
-            : 'Track exchanges with BCE Exchange Scores and matched Top500 assets.'}
-        </p>
+      <section
+        data-testid="exchanges-hero"
+        className="relative mb-6 overflow-hidden rounded-2xl border border-white/10 bg-slate-950 bg-cover bg-center px-6 py-10 shadow-2xl shadow-black/20 sm:px-8"
+        style={{
+          backgroundImage: `linear-gradient(90deg, rgba(2, 6, 23, 0.92) 0%, rgba(2, 6, 23, 0.74) 50%, rgba(2, 6, 23, 0.38) 100%), url(${EXCHANGE_HEADER_BACKGROUND_IMAGE})`,
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-slate-950/20" />
+        <div className="relative z-10">
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-300">Exchanges</p>
+          <h1 className="mt-3 text-3xl font-bold text-white sm:text-4xl">
+            {isKo ? '거래소' : 'Exchanges'}
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+            {isKo
+              ? '추적 중인 거래소와 BCE Exchange Score, Top500 매칭 종목 수를 확인하세요.'
+              : 'Track exchanges with BCE Exchange Scores and matched Top500 assets.'}
+          </p>
+        </div>
       </section>
 
       {loadFailed ? (

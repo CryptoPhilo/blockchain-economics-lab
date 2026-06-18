@@ -8,6 +8,8 @@ import { createExchangesRepository, type ExchangeRecord } from '@/lib/repositori
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
+const EXCHANGE_HEADER_BACKGROUND_IMAGE = '/images/exchange-header-bg.png'
+
 function formatScore(score: unknown) {
   if (score == null) return '-'
   const numeric = Number(score)
@@ -73,37 +75,46 @@ export default async function ExchangeDetailPage({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
-      <section className="mb-6 rounded-2xl border border-white/10 bg-slate-950 px-6 py-8 shadow-2xl shadow-black/20 sm:px-8">
-        <Link
-          href={`/${locale}/exchanges`}
-          className="text-sm font-medium text-cyan-300 transition-colors hover:text-cyan-200"
-        >
-          {isKo ? '거래소 목록' : 'Exchanges'}
-        </Link>
-        <div className="mt-5 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <div className="min-w-0">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">
-              {exchange.country || 'Exchange'}
-            </p>
-            <h1 className="mt-2 break-words text-3xl font-bold text-white sm:text-4xl">
-              {exchange.name}
-            </h1>
-          </div>
-          <div className="grid grid-cols-2 gap-3 sm:min-w-72">
-            <div className="rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3">
-              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                {isKo ? '상장 종목 수' : 'Listings'}
-              </div>
-              <div className="mt-1 font-mono text-xl font-semibold text-white">
-                {listingRows.length}
-              </div>
+      <section
+        data-testid="exchange-detail-hero"
+        className="relative mb-6 overflow-hidden rounded-2xl border border-white/10 bg-slate-950 bg-cover bg-center px-6 py-8 shadow-2xl shadow-black/20 sm:px-8"
+        style={{
+          backgroundImage: `linear-gradient(90deg, rgba(2, 6, 23, 0.94) 0%, rgba(2, 6, 23, 0.76) 52%, rgba(2, 6, 23, 0.42) 100%), url(${EXCHANGE_HEADER_BACKGROUND_IMAGE})`,
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-slate-950/20" />
+        <div className="relative z-10">
+          <Link
+            href={`/${locale}/exchanges`}
+            className="text-sm font-medium text-cyan-300 transition-colors hover:text-cyan-200"
+          >
+            {isKo ? '거래소 목록' : 'Exchanges'}
+          </Link>
+          <div className="mt-5 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-400">
+                {exchange.country || 'Exchange'}
+              </p>
+              <h1 className="mt-2 break-words text-3xl font-bold text-white sm:text-4xl">
+                {exchange.name}
+              </h1>
             </div>
-            <div className="rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3">
-              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                BCE Exchange Score
+            <div className="grid grid-cols-2 gap-3 sm:min-w-72">
+              <div className="rounded-lg border border-white/10 bg-black/25 px-4 py-3 backdrop-blur-sm">
+                <div className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                  {isKo ? '상장 종목 수' : 'Listings'}
+                </div>
+                <div className="mt-1 font-mono text-xl font-semibold text-white">
+                  {listingRows.length}
+                </div>
               </div>
-              <div className="mt-1 font-mono text-xl font-semibold text-white">
-                {formatScore(bceExchangeScore)}
+              <div className="rounded-lg border border-white/10 bg-black/25 px-4 py-3 backdrop-blur-sm">
+                <div className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                  BCE Exchange Score
+                </div>
+                <div className="mt-1 font-mono text-xl font-semibold text-white">
+                  {formatScore(bceExchangeScore)}
+                </div>
               </div>
             </div>
           </div>

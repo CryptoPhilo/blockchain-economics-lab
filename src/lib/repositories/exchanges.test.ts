@@ -1,4 +1,5 @@
 import {
+  applyLatestCmcMarketData,
   applyProjectReportAvailabilityAliases,
   buildExchangeAggregates,
   buildExchangeProjectRows,
@@ -300,14 +301,52 @@ describe('exchange repository aggregation helpers', () => {
       expect.objectContaining({
         rank: 1,
         slug: 'bitcoin',
+        cmcRank: 1,
+        marketCap: 100,
         score: 80,
         reportTypes: ['econ'],
       }),
       expect.objectContaining({
         rank: 2,
         slug: 'ethereum',
+        cmcRank: 2,
+        marketCap: 90,
         score: null,
         reportTypes: [],
+      }),
+    ])
+  })
+
+  it('applies latest CMC rank and market cap to exchange listings before building rows', () => {
+    const marketRows = applyLatestCmcMarketData([
+      {
+        listing_status: 'active',
+        exchange: binance,
+        project: project({
+          id: 'optimism',
+          slug: 'optimism-ethereum',
+          name: 'Optimism',
+          symbol: 'OP',
+          market_cap_usd: 0,
+          cmc_rank: null,
+          coingecko_id: 'optimism',
+        }),
+      },
+    ], new Map([
+      ['optimism', {
+        cmcRank: 126,
+        marketCap: 232_000_000,
+        change24h: 0.52,
+      }],
+    ]))
+    const detail = buildExchangeProjectRows(marketRows, 'binance')
+
+    expect(detail.projects).toEqual([
+      expect.objectContaining({
+        slug: 'optimism-ethereum',
+        cmcRank: 126,
+        marketCap: 232_000_000,
+        change24h: 0.52,
       }),
     ])
   })
