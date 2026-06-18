@@ -67,6 +67,18 @@ def test_market_row_persists_canonical_cmc_rank_and_source():
     assert row["market_cap"] == 100
 
 
+def test_dedupe_market_rows_keeps_best_rank_per_upsert_key():
+    sync = load_sync()
+    lower_quality = sync.cmc_to_market_row(token("night-token", "NIGHT", 99999, 4000), slug_override="midnight-3")
+    higher_quality = sync.cmc_to_market_row(token("midnight-network", "NIGHT", 39064, 79), slug_override="midnight-3")
+
+    rows = sync.dedupe_market_rows([lower_quality, higher_quality])
+
+    assert len(rows) == 1
+    assert rows[0]["slug"] == "midnight-3"
+    assert rows[0]["cmc_rank"] == 79
+
+
 def test_slug_map_accepts_slug_and_numeric_cmc_identifiers_without_int_cast():
     sync = load_sync()
     tracked = [
@@ -144,6 +156,31 @@ def test_tracked_mode_matches_tracked_project_aliases():
 
     assert result["matched"] == 1
     assert result["written"] == 1
+    assert db.rows[0]["slug"] == "midnight-3"
+    assert db.rows[0]["cmc_rank"] == 79
+
+
+def test_tracked_mode_dedupes_duplicate_symbol_fallback_rows():
+    sync = load_sync()
+    db = FakeDb([
+        {
+            "slug": "midnight",
+            "symbol": "NIGHT",
+            "coingecko_id": "midnight-3",
+            "cmc_id": None,
+            "aliases": ["midnight-network"],
+        },
+    ])
+    cmc = FakeCmc([
+        token("night-token", "NIGHT", 99999, 4000),
+        token("midnight-network", "NIGHT", 39064, 79),
+    ])
+
+    result = sync.mode_tracked(cmc, db, dry_run=False)
+
+    assert result["matched"] == 1
+    assert result["written"] == 1
+    assert len(db.rows) == 1
     assert db.rows[0]["slug"] == "midnight-3"
     assert db.rows[0]["cmc_rank"] == 79
 

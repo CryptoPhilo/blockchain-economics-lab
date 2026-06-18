@@ -237,6 +237,32 @@ def cmc_to_market_row(token: Dict, slug_override: str = None) -> Dict:
     }
 
 
+def dedupe_market_rows(rows: List[Dict]) -> List[Dict]:
+    """
+    Keep one row per market_data_daily upsert key.
+
+    CMC can contain multiple tokens sharing a symbol, and tracked-mode symbol
+    fallback may map more than one token to the same preferred project slug.
+    Supabase rejects duplicate constrained keys inside one upsert batch, so keep
+    the best-ranked row before writing.
+    """
+    best_by_key: Dict[tuple, Dict] = {}
+
+    for row in rows:
+        key = (row.get('slug'), row.get('recorded_at'), row.get('source'))
+        existing = best_by_key.get(key)
+        if existing is None:
+            best_by_key[key] = row
+            continue
+
+        row_rank = row.get('cmc_rank')
+        existing_rank = existing.get('cmc_rank')
+        if existing_rank is None or (row_rank is not None and row_rank < existing_rank):
+            best_by_key[key] = row
+
+    return list(best_by_key.values())
+
+
 def build_slug_map(tracked_projects: List[Dict], cmc_tokens: List[Dict]) -> Dict[str, str]:
     """
     Build CMC slug → preferred slug mapping.
@@ -440,7 +466,11 @@ def mode_tracked(cmc: CMCClient, db: SupabaseClient, dry_run: bool = False) -> D
     all_tp_slugs = {tp.get('coingecko_id') or tp['slug'] for tp in tracked}
     unmatched = all_tp_slugs - matched_slugs
 
-    print(f"  [CMC] {len(matched_rows)} tracked projects matched from {len(tokens)} CMC tokens")
+    deduped_rows = dedupe_market_rows(matched_rows)
+
+    print(f"  [CMC] {len(matched_rows)} tracked project token matches from {len(tokens)} CMC tokens")
+    if len(deduped_rows) != len(matched_rows):
+        print(f"  [CMC] Deduped tracked rows: {len(matched_rows)} -> {len(deduped_rows)}")
     if unmatched:
         print(f"  [WARN] {len(unmatched)} tracked projects not found in CMC top 5000:")
         for s in sorted(unmatched)[:10]:
@@ -449,12 +479,12 @@ def mode_tracked(cmc: CMCClient, db: SupabaseClient, dry_run: bool = False) -> D
 
     written = 0
     if not dry_run:
-        written = db.upsert_market_data(matched_rows)
+        written = db.upsert_market_data(deduped_rows)
         print(f"  [DB] {written} rows upserted")
     else:
-        print(f"  [DRY] Would upsert {len(matched_rows)} rows")
+        print(f"  [DRY] Would upsert {len(deduped_rows)} rows")
 
-    return {'mode': 'tracked', 'fetched': len(tokens), 'matched': len(matched_rows),
+    return {'mode': 'tracked', 'fetched': len(tokens), 'matched': len(deduped_rows),
             'unmatched': len(unmatched), 'written': written, 'credits': cmc.credits_used}
 
 
