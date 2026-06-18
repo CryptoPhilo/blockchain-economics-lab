@@ -1,12 +1,108 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import type { TrackedProject, ProjectStatus } from '../types'
 
+const RECENT_CMC_SNAPSHOT_LOOKBACK = 5
+
 /**
  * Repository for project-related data access
  * Encapsulates all database queries for tracked projects
  */
 export class ProjectsRepository {
   constructor(private supabase: SupabaseClient) {}
+
+  private async getLatestCmcSnapshotDate(rankLimit: number) {
+    const { data, error } = await this.supabase
+      .from('market_data_daily')
+      .select('recorded_at')
+      .eq('source', 'coinmarketcap')
+      .gte('cmc_rank', 1)
+      .lte('cmc_rank', rankLimit)
+      .order('recorded_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (error) {
+      throw new Error(`Failed to fetch latest CMC snapshot date: ${error.message}`)
+    }
+
+    return data?.recorded_at || null
+  }
+
+  private async getRecentCmcSnapshotDates(rankLimit: number, lookback = RECENT_CMC_SNAPSHOT_LOOKBACK) {
+    const rowLimit = Math.max(rankLimit * lookback, lookback)
+    const { data, error } = await this.supabase
+      .from('market_data_daily')
+      .select('recorded_at')
+      .eq('source', 'coinmarketcap')
+      .gte('cmc_rank', 1)
+      .lte('cmc_rank', rankLimit)
+      .order('recorded_at', { ascending: false })
+      .limit(rowLimit)
+
+    if (error) {
+      throw new Error(`Failed to fetch recent CMC snapshot dates: ${error.message}`)
+    }
+
+    const recordedAts: string[] = []
+    for (const row of data || []) {
+      if (!row.recorded_at || recordedAts.includes(row.recorded_at)) continue
+      recordedAts.push(row.recorded_at)
+      if (recordedAts.length >= lookback) break
+    }
+
+    return recordedAts
+  }
+
+  private hasContiguousCmcRanks(rows: Array<{ cmc_rank: number | string | null }>, rankLimit: number) {
+    if (rows.length !== rankLimit) return false
+
+    const ranks = new Set<number>()
+    for (const row of rows) {
+      const rank = Number(row.cmc_rank)
+      if (!Number.isInteger(rank) || rank < 1 || rank > rankLimit || ranks.has(rank)) {
+        return false
+      }
+      ranks.add(rank)
+    }
+
+    return ranks.size === rankLimit
+  }
+
+  private async getScoreboardMarketSnapshotForDate(recordedAt: string, limit: number) {
+    const { data, error } = await this.supabase
+      .from('market_data_daily')
+      .select('slug, price_usd, market_cap, change_24h, recorded_at, cmc_rank')
+      .eq('recorded_at', recordedAt)
+      .eq('source', 'coinmarketcap')
+      .gte('cmc_rank', 1)
+      .lte('cmc_rank', 500)
+      .order('cmc_rank', { ascending: true, nullsFirst: false })
+      .limit(limit)
+
+    if (error) {
+      throw new Error(`Failed to fetch scoreboard market snapshot: ${error.message}`)
+    }
+
+    return data || []
+  }
+
+  private async getCmcRanksForDate(recordedAt: string, limit: number) {
+    const { data, error } = await this.supabase
+      .from('market_data_daily')
+      .select('slug, cmc_rank')
+      .eq('recorded_at', recordedAt)
+      .eq('source', 'coinmarketcap')
+      .gte('cmc_rank', 1)
+      .lte('cmc_rank', limit)
+      .order('cmc_rank', { ascending: true, nullsFirst: false })
+      .limit(limit)
+
+    if (error) {
+      throw new Error(`Failed to fetch latest CMC ranks: ${error.message}`)
+    }
+
+    return data || []
+  }
 
   async getProjectsForScoreboard() {
     const { data, error } = await this.supabase
@@ -27,39 +123,45 @@ export class ProjectsRepository {
   }
 
   async getLatestScoreboardMarketSnapshot(limit = 500) {
-    const { data: latestSnapshot, error: latestError } = await this.supabase
-      .from('market_data_daily')
-      .select('recorded_at')
-      .eq('source', 'coinmarketcap')
-      .gte('cmc_rank', 1)
-      .lte('cmc_rank', 500)
-      .order('recorded_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+    const latestRecordedAt = await this.getLatestCmcSnapshotDate(500)
+    if (!latestRecordedAt) return []
 
-    if (latestError) {
-      throw new Error(`Failed to fetch latest scoreboard snapshot date: ${latestError.message}`)
+    const latestRows = await this.getScoreboardMarketSnapshotForDate(latestRecordedAt, limit)
+    if (this.hasContiguousCmcRanks(latestRows, 500)) {
+      return latestRows
     }
 
-    if (!latestSnapshot?.recorded_at) {
-      return []
+    const snapshotDates = await this.getRecentCmcSnapshotDates(500)
+    for (const recordedAt of snapshotDates) {
+      if (recordedAt === latestRecordedAt) continue
+      const rows = await this.getScoreboardMarketSnapshotForDate(recordedAt, limit)
+      if (this.hasContiguousCmcRanks(rows, 500)) {
+        return rows
+      }
     }
 
-    const { data, error } = await this.supabase
-      .from('market_data_daily')
-      .select('slug, price_usd, market_cap, change_24h, recorded_at, cmc_rank')
-      .eq('recorded_at', latestSnapshot.recorded_at)
-      .eq('source', 'coinmarketcap')
-      .gte('cmc_rank', 1)
-      .lte('cmc_rank', 500)
-      .order('cmc_rank', { ascending: true, nullsFirst: false })
-      .limit(limit)
+    return latestRows
+  }
 
-    if (error) {
-      throw new Error(`Failed to fetch scoreboard market snapshot: ${error.message}`)
+  async getLatestCmcRanks(limit = 500) {
+    const latestRecordedAt = await this.getLatestCmcSnapshotDate(limit)
+    if (!latestRecordedAt) return []
+
+    const latestRows = await this.getCmcRanksForDate(latestRecordedAt, limit)
+    if (this.hasContiguousCmcRanks(latestRows, limit)) {
+      return latestRows
     }
 
-    return data || []
+    const snapshotDates = await this.getRecentCmcSnapshotDates(limit)
+    for (const recordedAt of snapshotDates) {
+      if (recordedAt === latestRecordedAt) continue
+      const rows = await this.getCmcRanksForDate(recordedAt, limit)
+      if (this.hasContiguousCmcRanks(rows, limit)) {
+        return rows
+      }
+    }
+
+    return latestRows
   }
 
   /**
