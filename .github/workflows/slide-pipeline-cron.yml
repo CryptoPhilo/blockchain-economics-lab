@@ -298,17 +298,18 @@ jobs:
 
           # Push with rebase-on-conflict retry. Tracker file is append-mostly,
           # so an autostash+rebase+push loop is safe.
+          TARGET_REF="${GITHUB_REF_NAME:-main}"
           MAX_ATTEMPTS=5
           attempt=1
           while [ $attempt -le $MAX_ATTEMPTS ]; do
-            if git push origin HEAD:main; then
-              echo "Pushed tracker on attempt $attempt"
+            if git push origin HEAD:"$TARGET_REF"; then
+              echo "Pushed tracker to $TARGET_REF on attempt $attempt"
               exit 0
             fi
 
-            echo "Push attempt $attempt failed; rebasing onto latest origin/main and retrying"
-            git fetch origin main
-            if ! git pull --rebase --autostash origin main; then
+            echo "Push attempt $attempt failed; rebasing onto latest origin/$TARGET_REF and retrying"
+            git fetch origin "$TARGET_REF"
+            if ! git pull --rebase --autostash origin "$TARGET_REF"; then
               echo "Rebase failed on attempt $attempt; aborting"
               git rebase --abort || true
               exit 1
