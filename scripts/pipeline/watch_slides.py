@@ -206,6 +206,9 @@ LOG_DIR = REPO_ROOT / 'logs' / 'slide_pipeline'
 # documents and must not be published as slide HTML.
 STALE_PROCESSING_AFTER_MINUTES = int(os.environ.get('SLIDE_PIPELINE_STALE_PROCESSING_MINUTES', '30'))
 BLOCKED_RECHECK_AFTER_MINUTES = int(os.environ.get('SLIDE_PIPELINE_BLOCKED_RECHECK_MINUTES', '720'))
+SLIDE_LANGUAGE_RETRY_LIMIT = int(os.environ.get('SLIDE_LANGUAGE_RETRY_LIMIT', '3'))
+SLIDE_PUBLICATION_PENDING_STATUS = 'publication_pending'
+SLIDE_PUBLICATION_FAILED_STATUS = 'publication_failed'
 
 TRACKED_PROJECT_GUARD_FIELDS = (
     'id, slug, name, symbol, status, '
@@ -501,6 +504,32 @@ def _parse_manifest_datetime(value: Any) -> Optional[datetime]:
     if parsed.tzinfo is None:
         return parsed.replace(tzinfo=timezone.utc)
     return parsed.astimezone(timezone.utc)
+
+
+def _manifest_retry_count(manifest_entry: Dict[str, Any]) -> int:
+    try:
+        return max(0, int(manifest_entry.get('retry_count') or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _retry_exhausted_manifest_diagnostic(
+    manifest_entry: Dict[str, Any],
+    *,
+    retry_limit: int = SLIDE_LANGUAGE_RETRY_LIMIT,
+) -> Optional[Dict[str, Any]]:
+    status = manifest_entry.get('status')
+    retry_count = _manifest_retry_count(manifest_entry)
+    if status not in {SLIDE_PUBLICATION_PENDING_STATUS, SLIDE_PUBLICATION_FAILED_STATUS, 'failed'}:
+        return None
+    if retry_count < retry_limit and status != SLIDE_PUBLICATION_FAILED_STATUS:
+        return None
+    return {
+        'status': status,
+        'retry_count': retry_count,
+        'retry_limit': retry_limit,
+        'reason': 'retry_limit_reached',
+    }
 
 
 def _processing_manifest_diagnostic(
@@ -1030,6 +1059,156 @@ def _create_report_row_for_slide(
         }).eq('id', project_id).execute()
 
     return report_id, resolved_version
+
+
+def _publication_pending_card_data(
+    card_data: Any,
+    *,
+    slug: str,
+    db_type: str,
+    lang: str,
+    error: str,
+    retry_count: int,
+) -> Dict[str, Any]:
+    if isinstance(card_data, dict):
+        next_card_data = dict(card_data)
+    else:
+        next_card_data = {
+            'report_type': 'econ' if db_type == 'econ' else db_type,
+            'slug': slug,
+        }
+    next_card_data['slide_pipeline'] = {
+        'status': SLIDE_PUBLICATION_PENDING_STATUS,
+        'lang': lang,
+        'retry_count': retry_count,
+        'retry_limit': SLIDE_LANGUAGE_RETRY_LIMIT,
+        'last_error': error[:300],
+        'updated_at': datetime.now(timezone.utc).isoformat(),
+    }
+    return next_card_data
+
+
+def _create_pending_report_row_for_slide(
+    sb,
+    *,
+    project_id: str,
+    db_type: str,
+    slug: str,
+    lang: str,
+    pdf_file_id: str,
+    pdf_name: str,
+    version: Optional[int],
+    error: str,
+    retry_count: int,
+    source_patch: Optional[Dict[str, Any]] = None,
+    previous_report_id: Optional[str] = None,
+) -> Tuple[Optional[str], Optional[int]]:
+    """Create a language-scoped report shell that is waiting for slide publish."""
+    now = datetime.now(timezone.utc).isoformat()
+    resolved_version = version or 1
+    gdrive_url = f"https://drive.google.com/file/d/{pdf_file_id}/view?usp=drivesdk"
+    row = {
+        'project_id': project_id,
+        'report_type': db_type,
+        'version': resolved_version,
+        'language': lang,
+        'status': REVIEW_READY_STATUS,
+        'review_at': None,
+        'published_at': None,
+        'file_url': gdrive_url,
+        'gdrive_url': gdrive_url,
+        'gdrive_file_id': pdf_file_id,
+        'gdrive_urls_by_lang': {lang: gdrive_url},
+        'slide_html_urls_by_lang': {},
+        'translation_status': {lang: REVIEW_READY_STATUS},
+        'card_data': _publication_pending_card_data(
+            None,
+            slug=slug,
+            db_type=db_type,
+            lang=lang,
+            error=error,
+            retry_count=retry_count,
+        ),
+        'previous_report_id': previous_report_id,
+        'is_latest': True,
+        'updated_at': now,
+    }
+    if source_patch:
+        row.update(source_patch)
+    title_col = f"title_{lang}"
+    if lang in SUPPORTED_LANGS and db_type != 'forensic':
+        row[title_col] = Path(pdf_name).stem.replace('_', ' ')
+
+    result = sb.table('project_reports').upsert(
+        row,
+        on_conflict='project_id,report_type,version,language',
+    ).execute()
+    data = result.data or []
+    report_id = data[0].get('id') if data else None
+    return report_id, resolved_version
+
+
+def _mark_slide_language_publication_pending(
+    sb,
+    *,
+    report_id: Optional[str],
+    project_id: str,
+    db_type: str,
+    slug: str,
+    lang: str,
+    pdf_file_id: str,
+    pdf_name: str,
+    version: Optional[int],
+    error: str,
+    retry_count: int,
+    source_patch: Optional[Dict[str, Any]] = None,
+    previous_report_id: Optional[str] = None,
+) -> Tuple[Optional[str], Optional[int]]:
+    """Record a failed language conversion as publish-waiting without touching siblings."""
+    if not sb or not project_id or not lang:
+        return report_id, version
+
+    if not report_id:
+        return _create_pending_report_row_for_slide(
+            sb,
+            project_id=project_id,
+            db_type=db_type,
+            slug=slug,
+            lang=lang,
+            pdf_file_id=pdf_file_id,
+            pdf_name=pdf_name,
+            version=version,
+            error=error,
+            retry_count=retry_count,
+            source_patch=source_patch,
+            previous_report_id=previous_report_id,
+        )
+
+    now = datetime.now(timezone.utc).isoformat()
+    current = sb.table('project_reports').select(
+        'slide_html_urls_by_lang, card_data, status'
+    ).eq('id', report_id).single().execute()
+    row = current.data or {}
+    slide_urls = row.get('slide_html_urls_by_lang') if isinstance(row.get('slide_html_urls_by_lang'), dict) else {}
+    update_payload = {
+        'translation_status': {lang: REVIEW_READY_STATUS},
+        'card_data': _publication_pending_card_data(
+            row.get('card_data'),
+            slug=slug,
+            db_type=db_type,
+            lang=lang,
+            error=error,
+            retry_count=retry_count,
+        ),
+        'updated_at': now,
+    }
+    if not _lang_map_has_value(slide_urls.get(lang)):
+        update_payload.update({
+            'status': REVIEW_READY_STATUS,
+            'published_at': None,
+        })
+    sb.table('project_reports').update(update_payload).eq('id', report_id).execute()
+    return report_id, version
 
 
 def _target_publication_status(current_status: Optional[str]) -> str:
@@ -2853,6 +3032,22 @@ def process(
                 f"threshold={blocked_diag.get('recheck_after_minutes')}min)"
             )
             record['blocked_recheck'] = blocked_diag
+        retry_exhausted_diag = _retry_exhausted_manifest_diagnostic(prev)
+        if retry_exhausted_diag and prev.get('modifiedTime') == modified and not force:
+            print(
+                f"  [SKIP] {rtype}/{pdf['name']}: slide language retry limit reached "
+                f"({retry_exhausted_diag.get('retry_count')}/{retry_exhausted_diag.get('retry_limit')})"
+            )
+            scanned.append({
+                **record,
+                'slug': prev.get('slug'),
+                'lang': prev.get('lang'),
+                'status': 'retry_exhausted',
+                'retry_count': retry_exhausted_diag.get('retry_count'),
+                'retry_limit': retry_exhausted_diag.get('retry_limit'),
+                'error': prev.get('error'),
+            })
+            continue
         override_lang = language_overrides.get(file_id)
         override_changes_manifest_lang = bool(override_lang and prev.get('lang') != override_lang)
         unchanged_manifest_published = (
@@ -3299,7 +3494,8 @@ def process(
                 'page_profile': page_profile,
                 'status': 'processing',
                 'started_at': datetime.now(timezone.utc).isoformat(),
-                'retry_count': prev.get('retry_count', 0) + (1 if prev.get('status') == 'processing' else 0),
+                'retry_count': _manifest_retry_count(prev),
+                'retry_limit': SLIDE_LANGUAGE_RETRY_LIMIT,
             }
             if stale_processing_diag:
                 manifest[file_id].update({
@@ -3422,6 +3618,9 @@ def process(
                     'finished_at': datetime.now(timezone.utc).isoformat(),
                     'updated_at': datetime.now(timezone.utc).isoformat(),
                     'error': None,
+                    'retry_count': 0,
+                    'retry_limit': SLIDE_LANGUAGE_RETRY_LIMIT,
+                    'publication_pending': False,
                 })
                 _save_manifest(manifest)
                 processed.append({
@@ -3433,14 +3632,61 @@ def process(
                 print(f"    ✓ {public_url}")
             except Exception as e:
                 err = str(e)[:300]
+                retry_count = _manifest_retry_count(prev) + 1
+                retry_exhausted = retry_count >= SLIDE_LANGUAGE_RETRY_LIMIT
+                pending_status = (
+                    SLIDE_PUBLICATION_FAILED_STATUS
+                    if retry_exhausted
+                    else SLIDE_PUBLICATION_PENDING_STATUS
+                )
+                try:
+                    report_id, version = _mark_slide_language_publication_pending(
+                        sb,
+                        report_id=report_id,
+                        project_id=project_id,
+                        db_type=db_type,
+                        slug=slug,
+                        lang=lang,
+                        pdf_file_id=file_id,
+                        pdf_name=pdf['name'],
+                        version=version,
+                        error=err,
+                        retry_count=retry_count,
+                        source_patch=source_patch,
+                        previous_report_id=previous_report_id,
+                    )
+                    if report_id:
+                        print(
+                            f"    [PENDING] project_reports[{report_id}] "
+                            f"{slug}/{db_type}/{lang} waiting for slide publish "
+                            f"(retry {retry_count}/{SLIDE_LANGUAGE_RETRY_LIMIT})"
+                        )
+                except Exception as pending_error:
+                    print(f"    [WARN] failed to mark publication pending: {pending_error}")
                 manifest[file_id].update({
-                    'status': 'failed',
+                    'status': pending_status,
                     'error': err,
+                    'retry_count': retry_count,
+                    'retry_limit': SLIDE_LANGUAGE_RETRY_LIMIT,
+                    'publication_pending': True,
+                    'retry_exhausted': retry_exhausted,
+                    'report_id': report_id,
+                    'version': version,
                     'updated_at': datetime.now(timezone.utc).isoformat(),
                 })
                 _save_manifest(manifest)
-                processed.append({**record, 'status': 'failed', 'error': err})
-                print(f"    ✗ failed: {err}")
+                processed.append({
+                    **record,
+                    'status': pending_status,
+                    'error': err,
+                    'retry_count': retry_count,
+                    'retry_limit': SLIDE_LANGUAGE_RETRY_LIMIT,
+                    'report_id': report_id,
+                })
+                print(
+                    f"    ✗ failed; language moved to publication pending "
+                    f"({retry_count}/{SLIDE_LANGUAGE_RETRY_LIMIT}): {err}"
+                )
         finally:
             if downloaded:
                 try:
@@ -3546,6 +3792,9 @@ def _publishable_slide_keys(scanned: List[Dict], processed: List[Dict]) -> Set[T
         'mismatch',
         'language_mismatch',
         'failed',
+        SLIDE_PUBLICATION_PENDING_STATUS,
+        SLIDE_PUBLICATION_FAILED_STATUS,
+        'retry_exhausted',
         'prune_skipped_no_publishable_pdf',
         'prune_skipped_no_project_id',
         'prune_skipped_no_supabase',

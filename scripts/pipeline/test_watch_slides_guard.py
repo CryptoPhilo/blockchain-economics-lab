@@ -2049,6 +2049,119 @@ def test_unchanged_published_missing_storage_html_reprocesses_slide(ws, monkeypa
     assert saved[-1]['file-ko']['public_url'] == 'https://storage/mat/horizen/latest/ko.html'
 
 
+def test_slide_conversion_failure_marks_language_publication_pending(ws, monkeypatch):
+    manifest = {}
+    saved = []
+    pruned = []
+    report = {
+        'status': ws.PUBLICATION_PUBLISHED_STATUS,
+        'slide_html_urls_by_lang': {},
+        'card_data': {'summary': 'Horizen ECON'},
+    }
+    fake_sb = _FakeMergeSupabase(report, {})
+
+    monkeypatch.setitem(
+        sys.modules,
+        'supabase_storage',
+        SimpleNamespace(
+            ensure_bucket=lambda *_args, **_kwargs: None,
+            get_supabase_storage_client=lambda: fake_sb,
+        ),
+    )
+    monkeypatch.setattr(ws, '_get_drive_service', lambda: object())
+    monkeypatch.setattr(ws, '_load_manifest', lambda: manifest)
+    monkeypatch.setattr(ws, '_save_manifest', lambda data: saved.append({k: dict(v) for k, v in data.items()}))
+    monkeypatch.setattr(ws, '_load_tracked_projects', lambda _sb: [
+        {'id': 'project-horizen', 'slug': 'horizen', 'name': 'Horizen', 'symbol': 'ZEN'},
+    ])
+    monkeypatch.setattr(ws, '_iter_targets', lambda _service, _types, **_kwargs: [
+        ('econ', {'id': 'file-ko', 'name': 'Horizen_ECON_ko.pdf', 'modifiedTime': 't0', 'size': '123'}),
+    ])
+    monkeypatch.setattr(ws, '_download_file', lambda *_args: None)
+    monkeypatch.setattr(ws, '_pdf_page_profile', lambda _path: {
+        'page_count': 10,
+        'width': 1376,
+        'height': 768,
+        'aspect_ratio': 1.791,
+        'is_landscape_slide': True,
+    })
+    monkeypatch.setattr(ws, '_extract_pdf_meta_and_text', lambda _path: ({}, 'Horizen ZEN economic model Base L3 ' * 20))
+    monkeypatch.setattr(ws, '_resolve_slug', lambda *_args: (
+        {'id': 'project-horizen', 'slug': 'horizen', 'name': 'Horizen', 'symbol': 'ZEN'},
+        'filename',
+    ))
+    monkeypatch.setattr(ws, '_resolve_lang', lambda *_args: ('ko', 'filename'))
+    monkeypatch.setattr(
+        ws,
+        '_resolve_report_version_target',
+        lambda *_args, **_kwargs: ('report-ko', 1, ws.PUBLICATION_PUBLISHED_STATUS, None, True),
+    )
+    monkeypatch.setattr(ws, '_find_analysis_source_for_slide', lambda *_args, **_kwargs: object())
+    monkeypatch.setattr(ws, '_convert_and_upload', lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError('render failed')))
+    monkeypatch.setattr(ws, '_prune_stale_languages_for_pair', lambda *_args, **kwargs: pruned.append(kwargs) or [])
+
+    _scanned, processed = ws.process(
+        ['econ'],
+        filter_slug='horizen',
+        dry_run=False,
+        force=False,
+    )
+
+    assert processed[-1]['status'] == ws.SLIDE_PUBLICATION_PENDING_STATUS
+    assert processed[-1]['retry_count'] == 1
+    assert saved[-1]['file-ko']['status'] == ws.SLIDE_PUBLICATION_PENDING_STATUS
+    assert saved[-1]['file-ko']['retry_count'] == 1
+    assert saved[-1]['file-ko']['publication_pending'] is True
+    assert report['status'] == ws.REVIEW_READY_STATUS
+    assert report['published_at'] is None
+    assert report['card_data']['slide_pipeline']['status'] == ws.SLIDE_PUBLICATION_PENDING_STATUS
+    assert pruned[0]['current_langs'] == {'ko'}
+
+
+def test_retry_exhausted_manifest_entry_skips_without_force(ws, monkeypatch):
+    manifest = {
+        'file-ko': {
+            'status': ws.SLIDE_PUBLICATION_PENDING_STATUS,
+            'modifiedTime': 't0',
+            'slug': 'horizen',
+            'lang': 'ko',
+            'retry_count': ws.SLIDE_LANGUAGE_RETRY_LIMIT,
+            'error': 'render failed',
+        },
+    }
+
+    monkeypatch.setitem(
+        sys.modules,
+        'supabase_storage',
+        SimpleNamespace(
+            ensure_bucket=lambda *_args, **_kwargs: None,
+            get_supabase_storage_client=lambda: object(),
+        ),
+    )
+    monkeypatch.setattr(ws, '_get_drive_service', lambda: object())
+    monkeypatch.setattr(ws, '_load_manifest', lambda: manifest)
+    monkeypatch.setattr(ws, '_save_manifest', lambda _data: None)
+    monkeypatch.setattr(ws, '_load_tracked_projects', lambda _sb: [
+        {'id': 'project-horizen', 'slug': 'horizen', 'name': 'Horizen', 'symbol': 'ZEN'},
+    ])
+    monkeypatch.setattr(ws, '_iter_targets', lambda _service, _types, **_kwargs: [
+        ('econ', {'id': 'file-ko', 'name': 'Horizen_ECON_ko.pdf', 'modifiedTime': 't0'}),
+    ])
+    monkeypatch.setattr(ws, '_download_file', lambda *_args: pytest.fail('retry-exhausted entry should not download'))
+    monkeypatch.setattr(ws, '_prune_stale_languages_for_pair', lambda *_args, **_kwargs: [])
+
+    scanned, processed = ws.process(
+        ['econ'],
+        filter_slug='horizen',
+        dry_run=False,
+        force=False,
+    )
+
+    assert processed == []
+    assert scanned[-1]['status'] == 'retry_exhausted'
+    assert scanned[-1]['retry_count'] == ws.SLIDE_LANGUAGE_RETRY_LIMIT
+
+
 def test_unchanged_manifest_repair_creates_missing_report_shell(ws, monkeypatch):
     calls = []
     monkeypatch.setattr(ws, '_find_report_for_lang', lambda *_args: (None, None, None))
@@ -2609,6 +2722,69 @@ def test_create_report_row_for_slide_upserts_missing_report_shell(ws):
     }
     assert payload['card_data']['slug'] == 'shiba-inu'
     assert sb.tracked_projects.patch is not None
+
+
+def test_mark_slide_language_publication_pending_creates_in_review_shell(ws):
+    sb = _FakeCreateReportSupabase()
+
+    report_id, version = ws._mark_slide_language_publication_pending(
+        sb,
+        report_id=None,
+        project_id='project-horizen',
+        db_type='econ',
+        slug='horizen',
+        lang='ko',
+        pdf_file_id='drive-ko',
+        pdf_name='Horizen_ECON_ko.pdf',
+        version=1,
+        error='render failed',
+        retry_count=1,
+        source_patch={'source_identity': 'source-id', 'source_file_id': 'drive-ko'},
+        previous_report_id=None,
+    )
+
+    payload = sb.project_reports.upsert_payload
+    assert report_id == 'report-created'
+    assert version == 1
+    assert payload['status'] == ws.REVIEW_READY_STATUS
+    assert payload['published_at'] is None
+    assert payload['slide_html_urls_by_lang'] == {}
+    assert payload['translation_status'] == {'ko': ws.REVIEW_READY_STATUS}
+    assert payload['card_data']['slide_pipeline']['status'] == ws.SLIDE_PUBLICATION_PENDING_STATUS
+    assert payload['card_data']['slide_pipeline']['retry_count'] == 1
+    assert payload['card_data']['slide_pipeline']['retry_limit'] == ws.SLIDE_LANGUAGE_RETRY_LIMIT
+
+
+def test_mark_slide_language_publication_pending_does_not_clear_existing_slide_url(ws):
+    report = {
+        'status': ws.PUBLICATION_PUBLISHED_STATUS,
+        'slide_html_urls_by_lang': {'ko': 'https://storage/econ/horizen/latest/ko.html'},
+        'card_data': {'summary': 'existing'},
+    }
+    sb = _FakeMergeSupabase(report, {})
+
+    report_id, version = ws._mark_slide_language_publication_pending(
+        sb,
+        report_id='report-horizen-ko',
+        project_id='project-horizen',
+        db_type='econ',
+        slug='horizen',
+        lang='ko',
+        pdf_file_id='drive-ko',
+        pdf_name='Horizen_ECON_ko.pdf',
+        version=1,
+        error='upload failed',
+        retry_count=2,
+    )
+
+    assert report_id == 'report-horizen-ko'
+    assert version == 1
+    assert report['status'] == ws.PUBLICATION_PUBLISHED_STATUS
+    assert report['slide_html_urls_by_lang'] == {'ko': 'https://storage/econ/horizen/latest/ko.html'}
+    assert report['translation_status'] == {'ko': ws.REVIEW_READY_STATUS}
+    assert report['card_data']['summary'] == 'existing'
+    assert report['card_data']['slide_pipeline']['status'] == ws.SLIDE_PUBLICATION_PENDING_STATUS
+    assert report['card_data']['slide_pipeline']['retry_count'] == 2
 
 
 def test_merge_slide_url_updates_publish_metadata_and_project_timestamp(ws):
