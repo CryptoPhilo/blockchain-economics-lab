@@ -183,9 +183,12 @@ export interface ReportCardData {
 export interface ProjectReport {
   id: string
   project_id: string
-  product_id?: string
+  product_id?: string | null
   report_type: ReportType
   version: number
+  previous_report_id?: string
+  is_latest?: boolean
+  whitepaper_revision_ref?: string
   status: ReportStatus
   language: SupportedLanguage
   assigned_to?: string
@@ -194,6 +197,7 @@ export interface ProjectReport {
   review_at?: string
   approved_at?: string
   published_at?: string
+  source_modified_time?: string | null
   created_at: string
   updated_at?: string
   trigger_reason?: string
@@ -227,7 +231,7 @@ export interface ProjectReport {
   title_zh?: string
   translation_status?: TranslationStatus
   project?: TrackedProject
-  product?: Product
+  product?: Product | null
 }
 
 export interface ForensicMonitoringLog {

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { createExchangesRepository, type ExchangeAggregate } from '@/lib/repositories/exchanges'
+import { getExchangesHeaderStyle } from '@/lib/exchange-header-art'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -48,16 +49,22 @@ export default async function ExchangesPage({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
-      <section className="mb-6 rounded-2xl border border-white/10 bg-slate-950 px-6 py-10 shadow-2xl shadow-black/20 sm:px-8">
-        <p className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-300">Exchanges</p>
-        <h1 className="mt-3 text-3xl font-bold text-white sm:text-4xl">
-          {isKo ? '거래소' : 'Exchanges'}
-        </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-          {isKo
-            ? '추적 중인 거래소와 BCE Exchange Score, Top500 매칭 종목 수를 확인하세요.'
-            : 'Track exchanges with BCE Exchange Scores and matched Top500 assets.'}
-        </p>
+      <section
+        className="relative mb-6 overflow-hidden rounded-2xl border border-white/10 bg-slate-950 bg-cover bg-center px-6 py-14 shadow-2xl shadow-black/30 sm:px-8 sm:py-16"
+        style={getExchangesHeaderStyle()}
+      >
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08),transparent_38%)]" />
+        <div className="relative max-w-2xl">
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-300">Exchanges</p>
+          <h1 className="mt-3 text-3xl font-bold text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.8)] sm:text-4xl">
+            {isKo ? '거래소' : 'Exchanges'}
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-200 drop-shadow-[0_2px_14px_rgba(0,0,0,0.72)] sm:text-base">
+            {isKo
+              ? '주요 거래소의 상장 종목 수와 BCE Exchange Score를 한눈에 확인하세요.'
+              : 'Review major exchanges with listed-asset counts and BCE Exchange Scores.'}
+          </p>
+        </div>
       </section>
 
       {loadFailed ? (

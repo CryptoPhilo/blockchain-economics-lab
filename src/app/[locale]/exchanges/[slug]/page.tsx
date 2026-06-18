@@ -4,6 +4,7 @@ import ScoreTableGate from '@/components/ScoreTableGate'
 import type { ScoreRow } from '@/lib/score-row'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { createExchangesRepository, type ExchangeRecord } from '@/lib/repositories/exchanges'
+import { getExchangeDetailHeaderStyle } from '@/lib/exchange-header-art'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -73,37 +74,48 @@ export default async function ExchangeDetailPage({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
-      <section className="mb-6 rounded-2xl border border-white/10 bg-slate-950 px-6 py-8 shadow-2xl shadow-black/20 sm:px-8">
-        <Link
-          href={`/${locale}/exchanges`}
-          className="text-sm font-medium text-cyan-300 transition-colors hover:text-cyan-200"
-        >
-          {isKo ? '거래소 목록' : 'Exchanges'}
-        </Link>
-        <div className="mt-5 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <div className="min-w-0">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">
-              {exchange.country || 'Exchange'}
-            </p>
-            <h1 className="mt-2 break-words text-3xl font-bold text-white sm:text-4xl">
-              {exchange.name}
-            </h1>
-          </div>
-          <div className="grid grid-cols-2 gap-3 sm:min-w-72">
-            <div className="rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3">
-              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                {isKo ? '상장 종목 수' : 'Listings'}
-              </div>
-              <div className="mt-1 font-mono text-xl font-semibold text-white">
-                {listingRows.length}
-              </div>
+      <section
+        className="relative mb-6 overflow-hidden rounded-2xl border border-white/10 bg-slate-950 bg-cover bg-center px-6 py-8 shadow-2xl shadow-black/30 sm:px-8 sm:py-10"
+        style={getExchangeDetailHeaderStyle(exchange)}
+      >
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08),transparent_38%)]" />
+        <div className="relative">
+          <Link
+            href={`/${locale}/exchanges`}
+            className="text-sm font-medium text-cyan-300 transition-colors hover:text-cyan-200"
+          >
+            {isKo ? '거래소 상장종목 목록' : 'Exchange Listed Assets'}
+          </Link>
+          <div className="mt-5 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <div className="min-w-0 max-w-2xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-300/80">
+                {exchange.country || 'Exchange'}
+              </p>
+              <h1 className="mt-2 break-words text-3xl font-bold text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.84)] sm:text-4xl">
+                {exchange.name}
+              </h1>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-slate-200/90 drop-shadow-[0_2px_12px_rgba(0,0,0,0.76)]">
+                {isKo
+                  ? '해당 거래소에 상장된 종목과 BCE Score 현황을 같은 목록 UI로 확인하세요.'
+                  : 'Review listed assets and BCE Score coverage for this exchange in the same table UI.'}
+              </p>
             </div>
-            <div className="rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3">
-              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                BCE Exchange Score
+            <div className="grid grid-cols-2 gap-3 sm:min-w-72">
+              <div className="rounded-lg border border-white/10 bg-slate-950/10 px-4 py-3 backdrop-blur-[1px]">
+                <div className="text-xs font-medium uppercase tracking-wide text-slate-300/70">
+                  {isKo ? '상장 종목 수' : 'Listings'}
+                </div>
+                <div className="mt-1 font-mono text-xl font-semibold text-white">
+                  {listingRows.length}
+                </div>
               </div>
-              <div className="mt-1 font-mono text-xl font-semibold text-white">
-                {formatScore(bceExchangeScore)}
+              <div className="rounded-lg border border-white/10 bg-slate-950/10 px-4 py-3 backdrop-blur-[1px]">
+                <div className="text-xs font-medium uppercase tracking-wide text-slate-300/70">
+                  BCE Exchange Score
+                </div>
+                <div className="mt-1 font-mono text-xl font-semibold text-white">
+                  {formatScore(bceExchangeScore)}
+                </div>
               </div>
             </div>
           </div>
@@ -119,8 +131,8 @@ export default async function ExchangeDetailPage({
         />
       ) : (
         <ExchangeDetailState
-          title={isKo ? 'Top500 매칭 종목이 없습니다.' : 'No matched Top500 assets.'}
-          description={isKo ? '이 거래소와 연결된 종목 데이터가 준비되면 기존 Top500 목록 UI로 표시됩니다.' : 'Matched assets for this exchange will appear here using the Top500 table UI.'}
+          title={isKo ? '매칭된 상장 종목이 없습니다.' : 'No matched listed assets.'}
+          description={isKo ? '이 거래소와 연결된 종목 데이터가 준비되면 기존 목록 UI로 표시됩니다.' : 'Matched listed assets for this exchange will appear here using the existing table UI.'}
         />
       )}
     </div>

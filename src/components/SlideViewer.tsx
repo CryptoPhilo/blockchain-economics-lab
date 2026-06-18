@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { Maximize2, Minimize2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react'
 
 import { LoadingSkeleton } from './LoadingSkeleton'
 
@@ -10,6 +10,13 @@ interface SlideViewerProps {
   title: string
   projectName: string
   className?: string
+}
+
+const SLIDE_DATA_URL_PATTERN = /data:image\/(?:png|jpe?g|webp);base64,[^"'`\s)]+/gi
+
+function extractSlideImages(html: string): string[] {
+  const matches = html.match(SLIDE_DATA_URL_PATTERN) ?? []
+  return Array.from(new Set(matches))
 }
 
 export function SlideViewer({
@@ -22,6 +29,8 @@ export function SlideViewer({
   const [isLoaded, setIsLoaded] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
+  const [slideImages, setSlideImages] = useState<string[]>([])
+  const [currentSlide, setCurrentSlide] = useState(0)
   const [fetchError, setFetchError] = useState(false)
 
   // Supabase Storage public endpoint forces Content-Type: text/plain regardless
@@ -30,6 +39,8 @@ export function SlideViewer({
   useEffect(() => {
     if (!htmlUrl) {
       setBlobUrl(null)
+      setSlideImages([])
+      setCurrentSlide(0)
       setFetchError(false)
       return
     }
@@ -39,6 +50,8 @@ export function SlideViewer({
     setIsLoaded(false)
     setFetchError(false)
     setBlobUrl(null)
+    setSlideImages([])
+    setCurrentSlide(0)
 
     ;(async () => {
       try {
@@ -46,11 +59,17 @@ export function SlideViewer({
         if (!res.ok) {
           throw new Error(`fetch failed: ${res.status}`)
         }
-        const buf = await res.arrayBuffer()
+        const html = await res.text()
         if (cancelled) return
-        const blob = new Blob([buf], { type: 'text/html;charset=utf-8' })
-        createdUrl = URL.createObjectURL(blob)
-        setBlobUrl(createdUrl)
+        const images = extractSlideImages(html)
+        if (images.length > 0) {
+          setSlideImages(images)
+          setIsLoaded(true)
+        } else {
+          const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
+          createdUrl = URL.createObjectURL(blob)
+          setBlobUrl(createdUrl)
+        }
       } catch (err) {
         if (cancelled) return
         console.error('[SlideViewer] failed to fetch slide HTML', err)
@@ -65,6 +84,10 @@ export function SlideViewer({
       }
     }
   }, [htmlUrl])
+
+  const goToSlide = useCallback((index: number) => {
+    setCurrentSlide(Math.max(0, Math.min(slideImages.length - 1, index)))
+  }, [slideImages.length])
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -91,6 +114,8 @@ export function SlideViewer({
       console.error('[SlideViewer] fullscreen toggle failed', err)
     }
   }, [])
+
+  const currentImage = slideImages[currentSlide]
 
   return (
     <div
@@ -125,11 +150,48 @@ export function SlideViewer({
           </div>
         )}
 
-        {blobUrl && !fetchError && (
+        {currentImage && !fetchError && (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={currentImage}
+              alt={`${title} slide ${currentSlide + 1}`}
+              className="absolute inset-0 w-full h-full object-contain"
+              draggable={false}
+            />
+
+            {slideImages.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => goToSlide(currentSlide - 1)}
+                  disabled={currentSlide === 0}
+                  aria-label="이전 슬라이드"
+                  className="absolute left-2 top-1/2 z-10 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg border border-white/10 bg-black/60 text-white/90 backdrop-blur-sm transition-colors hover:bg-black/80 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => goToSlide(currentSlide + 1)}
+                  disabled={currentSlide === slideImages.length - 1}
+                  aria-label="다음 슬라이드"
+                  className="absolute right-2 top-1/2 z-10 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg border border-white/10 bg-black/60 text-white/90 backdrop-blur-sm transition-colors hover:bg-black/80 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                </button>
+                <div className="absolute bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-full border border-white/10 bg-black/65 px-3 py-1 text-xs font-medium text-white/90 backdrop-blur-sm">
+                  {currentSlide + 1} / {slideImages.length}
+                </div>
+              </>
+            )}
+          </>
+        )}
+
+        {!currentImage && blobUrl && !fetchError && (
           <iframe
             src={blobUrl}
             title={title}
-            loading="lazy"
             referrerPolicy="no-referrer"
             sandbox="allow-scripts"
             allow="fullscreen"

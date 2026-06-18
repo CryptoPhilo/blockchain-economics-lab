@@ -1,8 +1,10 @@
 import {
   applyProjectReportAvailabilityAliases,
+  applyLatestCmcRanks,
   buildExchangeAggregates,
   buildExchangeProjectRows,
   calculateBceExchangeScore,
+  getMissingProjectMarketDataKeys,
   type ExchangeProjectRecord,
   type ExchangeListingRecord,
 } from './exchanges'
@@ -38,6 +40,15 @@ const bybit = {
   id: 'exchange-bybit',
   slug: 'bybit',
   name: 'Bybit',
+  status: 'active',
+  website_url: null,
+  country: null,
+}
+
+const okx = {
+  id: 'exchange-okx',
+  slug: 'okx',
+  name: 'OKX',
   status: 'active',
   website_url: null,
   country: null,
@@ -292,7 +303,7 @@ describe('exchange repository aggregation helpers', () => {
     expect(aggregates[0].listedProjectCount).toBeLessThan(aggregates[1].listedProjectCount)
   })
 
-  it('returns Top500-compatible project rows for a slug or exact name match', () => {
+  it('returns listed project rows for a slug or exact name match', () => {
     const detail = buildExchangeProjectRows(rows, 'Binance')
 
     expect(detail.exchange?.slug).toBe('binance')
@@ -300,12 +311,14 @@ describe('exchange repository aggregation helpers', () => {
       expect.objectContaining({
         rank: 1,
         slug: 'bitcoin',
+        cmcRank: 1,
         score: 80,
         reportTypes: ['econ'],
       }),
       expect.objectContaining({
         rank: 2,
         slug: 'ethereum',
+        cmcRank: 2,
         score: null,
         reportTypes: [],
       }),
@@ -342,6 +355,268 @@ describe('exchange repository aggregation helpers', () => {
         reportTypes: [],
       }),
     ])
+  })
+
+  it('keeps report badges for exchange-listed projects outside the Top500 universe', () => {
+    const openGradient = project({
+      id: 'opengradient-id',
+      slug: 'opengradient',
+      name: 'OpenGradient',
+      symbol: 'OG',
+      cmc_rank: 577,
+      market_cap_usd: 12,
+      maturity_score: null,
+    })
+    const availabilityByProjectId = new Map([
+      [openGradient.id, {
+        reportTypes: ['econ'],
+        reportDates: {
+          econ: '2026-06-16T00:00:00Z',
+          maturity: null,
+          forensic: null,
+        },
+      }],
+    ])
+
+    const detail = buildExchangeProjectRows([
+      {
+        listing_status: 'active',
+        exchange: binance,
+        project: openGradient,
+      },
+    ], 'binance', availabilityByProjectId)
+
+    expect(detail.projects).toEqual([
+      expect.objectContaining({
+        slug: 'opengradient',
+        rank: 577,
+        cmcRank: 577,
+        reportTypes: ['econ'],
+        reportDates: expect.objectContaining({
+          econ: '2026-06-16T00:00:00Z',
+        }),
+      }),
+    ])
+  })
+
+  it('applies only CMC market data matched by project market-data aliases', () => {
+    const openGradient = project({
+      id: 'opengradient-id',
+      slug: 'opengradient',
+      name: 'OpenGradient',
+      symbol: 'OG',
+      coingecko_id: 'open-gradient',
+      cmc_id: 'opengradient',
+      market_cap_usd: 12,
+      maturity_score: null,
+    })
+    const exchangeRows: ExchangeListingRecord[] = [
+      {
+        listing_status: 'active',
+        exchange: binance,
+        project: openGradient,
+      },
+    ]
+
+    const rankedRows = applyLatestCmcRanks(exchangeRows, new Map([
+      ['open-gradient', { cmcRank: 577, marketCap: 123456789 }],
+    ]))
+    const detail = buildExchangeProjectRows(rankedRows, 'binance')
+
+    expect(detail.projects).toEqual([
+      expect.objectContaining({
+        slug: 'opengradient',
+        rank: 577,
+        cmcRank: 577,
+        marketCap: 123456789,
+      }),
+    ])
+  })
+
+  it('keeps unranked exchange rows unranked instead of assigning row order', () => {
+    const unranked = project({
+      id: 'unranked-id',
+      slug: 'unranked-lab',
+      name: 'Unranked Lab',
+      symbol: 'UNR',
+      cmc_rank: null,
+      market_cap_usd: 999,
+    })
+
+    const detail = buildExchangeProjectRows([
+      {
+        listing_status: 'active',
+        exchange: binance,
+        project: unranked,
+      },
+    ], 'binance')
+
+    expect(detail.projects).toEqual([
+      expect.objectContaining({
+        slug: 'unranked-lab',
+        rank: null,
+        cmcRank: null,
+      }),
+    ])
+  })
+
+  it('identifies exchange listing market-data keys missing from the latest rank snapshot', () => {
+    const openGradient = project({
+      id: 'opengradient-id',
+      slug: 'opengradient',
+      name: 'OpenGradient',
+      symbol: 'OG',
+      coingecko_id: 'open-gradient',
+      cmc_id: 'opengradient-cmc',
+    })
+    const exchangeRows: ExchangeListingRecord[] = [
+      {
+        listing_status: 'active',
+        exchange: binance,
+        project: openGradient,
+      },
+    ]
+
+    expect(getMissingProjectMarketDataKeys(exchangeRows, new Map())).toEqual([
+      'opengradient',
+      'open-gradient',
+      'opengradient-cmc',
+    ])
+
+    expect(getMissingProjectMarketDataKeys(exchangeRows, new Map([
+      ['open-gradient', { cmcRank: 577, marketCap: 123456789 }],
+    ]))).toEqual([])
+  })
+
+  it('keeps long-tail report badges across non-Binance exchange detail rows', () => {
+    const okxTail = project({
+      id: 'okx-tail-id',
+      slug: 'okx-tail-lab',
+      name: 'OKX Tail Lab',
+      symbol: 'OTL',
+      cmc_rank: 1201,
+      market_cap_usd: 30,
+      maturity_score: null,
+    })
+    const bybitTail = project({
+      id: 'bybit-tail-id',
+      slug: 'bybit-tail-lab',
+      name: 'Bybit Tail Lab',
+      symbol: 'BTL',
+      cmc_rank: null,
+      market_cap_usd: 20,
+      maturity_score: null,
+    })
+    const coinbaseTail = project({
+      id: 'coinbase-tail-id',
+      slug: 'coinbase-tail-lab',
+      name: 'Coinbase Tail Lab',
+      symbol: 'CTL',
+      cmc_rank: 777,
+      market_cap_usd: 10,
+      maturity_score: null,
+    })
+    const exchangeRows: ExchangeListingRecord[] = [
+      { listing_status: 'active', exchange: okx, project: okxTail },
+      { listing_status: 'active', exchange: bybit, project: bybitTail },
+      { listing_status: 'active', exchange: coinbase, project: coinbaseTail },
+    ]
+    const availabilityByProjectId = new Map([
+      [okxTail.id, {
+        reportTypes: ['econ'],
+        reportDates: {
+          econ: '2026-06-16T01:00:00Z',
+          maturity: null,
+          forensic: null,
+        },
+      }],
+      [bybitTail.id, {
+        reportTypes: ['maturity'],
+        reportDates: {
+          econ: null,
+          maturity: '2026-06-16T02:00:00Z',
+          forensic: null,
+        },
+      }],
+      [coinbaseTail.id, {
+        reportTypes: ['forensic'],
+        reportDates: {
+          econ: null,
+          maturity: null,
+          forensic: '2026-06-16T03:00:00Z',
+        },
+      }],
+    ])
+
+    expect(buildExchangeProjectRows(exchangeRows, 'okx', availabilityByProjectId).projects).toEqual([
+      expect.objectContaining({
+        name: 'OKX Tail Lab',
+        symbol: 'OTL',
+        slug: 'okx-tail-lab',
+        score: null,
+        reportTypes: ['econ'],
+        reportDates: expect.objectContaining({ econ: '2026-06-16T01:00:00Z' }),
+      }),
+    ])
+    expect(buildExchangeProjectRows(exchangeRows, 'bybit', availabilityByProjectId).projects).toEqual([
+      expect.objectContaining({
+        name: 'Bybit Tail Lab',
+        symbol: 'BTL',
+        slug: 'bybit-tail-lab',
+        score: null,
+        reportTypes: ['maturity'],
+        reportDates: expect.objectContaining({ maturity: '2026-06-16T02:00:00Z' }),
+      }),
+    ])
+    expect(buildExchangeProjectRows(exchangeRows, 'coinbase', availabilityByProjectId).projects).toEqual([
+      expect.objectContaining({
+        name: 'Coinbase Tail Lab',
+        symbol: 'CTL',
+        slug: 'coinbase-tail-lab',
+        score: null,
+        reportTypes: ['forensic'],
+        reportDates: expect.objectContaining({ forensic: '2026-06-16T03:00:00Z' }),
+      }),
+    ])
+  })
+
+  it('shows the same long-tail report availability on every exchange listing for a project', () => {
+    const sharedTail = project({
+      id: 'shared-tail-id',
+      slug: 'shared-tail-lab',
+      name: 'Shared Tail Lab',
+      symbol: 'STL',
+      cmc_rank: 5001,
+      market_cap_usd: 5,
+      maturity_score: null,
+    })
+    const exchangeRows: ExchangeListingRecord[] = [
+      { listing_status: 'active', exchange: binance, project: sharedTail },
+      { listing_status: 'active', exchange: okx, project: sharedTail },
+    ]
+    const availabilityByProjectId = new Map([
+      [sharedTail.id, {
+        reportTypes: ['econ', 'maturity'],
+        reportDates: {
+          econ: '2026-06-16T04:00:00Z',
+          maturity: '2026-06-16T05:00:00Z',
+          forensic: null,
+        },
+      }],
+    ])
+
+    for (const exchangeSlug of ['binance', 'okx']) {
+      expect(buildExchangeProjectRows(exchangeRows, exchangeSlug, availabilityByProjectId).projects).toEqual([
+        expect.objectContaining({
+          slug: 'shared-tail-lab',
+          reportTypes: ['econ', 'maturity'],
+          reportDates: expect.objectContaining({
+            econ: '2026-06-16T04:00:00Z',
+            maturity: '2026-06-16T05:00:00Z',
+          }),
+        }),
+      ])
+    }
   })
 
   it('maps canonical report availability to exchange listing aliases', () => {

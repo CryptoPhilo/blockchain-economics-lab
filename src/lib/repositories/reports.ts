@@ -6,6 +6,7 @@ import type {
   ReportStatus,
   SupportedLanguage
 } from '../types'
+import { reportSupportsLocale } from '../report-locale'
 
 /**
  * Repository for report-related data access
@@ -50,9 +51,10 @@ export class ReportsRepository {
   }
 
   /**
-   * Fetch the latest forensic report for a project by slug
+   * Fetch forensic slide reports for a project by slug using the production
+   * visibility policy shared by project cards and canonical forensic routes.
    */
-  async getLatestForensicReportBySlug(slug: string) {
+  async getForensicReportsBySlug(slug: string) {
     // First get the project
     const { data: project, error: projectError } = await this.supabase
       .from('tracked_projects')
@@ -64,26 +66,42 @@ export class ReportsRepository {
       return null
     }
 
-    // Then get the latest report
-    const { data: report, error: reportError } = await this.supabase
+    // Then get report rows that are visible under the production availability
+    // policy. Drive/PDF-only rows are valid website entries; page components
+    // render slide HTML first and fall back to the PDF asset.
+    const { data: reports, error: reportsError } = await this.supabase
       .from('project_reports')
       .select('*')
       .eq('project_id', project.id)
       .eq('report_type', 'forensic')
       .in('status', ['published', 'coming_soon', 'in_review'])
-      .not('slide_html_urls_by_lang', 'is', null)
       .order('updated_at', { ascending: false })
       .order('published_at', { ascending: false })
-      .limit(1)
-      .single()
 
-    if (reportError) {
+    if (reportsError) {
       return null
     }
 
     return {
-      report: report as ProjectReport,
+      reports: (reports || []) as ProjectReport[],
       project: project as TrackedProject
+    }
+  }
+
+  /**
+   * Fetch the latest forensic report for a project by slug
+   */
+  async getLatestForensicReportBySlug(slug: string) {
+    const result = await this.getForensicReportsBySlug(slug)
+    const report = result?.reports[0]
+
+    if (!result || !report) {
+      return null
+    }
+
+    return {
+      report,
+      project: result.project
     }
   }
 
@@ -94,15 +112,16 @@ export class ReportsRepository {
       .eq('report_type', 'forensic')
       .in('status', ['published', 'in_review'])
       .not('card_data', 'is', null)
-      .not('slide_html_urls_by_lang', 'is', null)
       .order('updated_at', { ascending: false })
-      .limit(limit)
+      .limit(limit * 5)
 
     if (error) {
       throw new Error(`Failed to fetch homepage reports: ${error.message}`)
     }
 
-    return data || []
+    return (data || [])
+      .filter((report) => reportSupportsLocale(report as ProjectReport, 'en'))
+      .slice(0, limit)
   }
 
   /**

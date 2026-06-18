@@ -37,6 +37,16 @@ function hasLocalizedAsset(report: Partial<ProjectReport>, locale: string): bool
     || hasNonEmptyValue(slideUrls?.[locale])
 }
 
+function hasTopLevelAsset(report: Partial<ProjectReport>): boolean {
+  return hasUrlEntry(report.gdrive_url)
+    || hasUrlEntry(report.file_url)
+}
+
+function hasAssetForLocale(report: Partial<ProjectReport>, locale: string): boolean {
+  return hasLocalizedAsset(report, locale)
+    || (report.language === locale && hasTopLevelAsset(report))
+}
+
 function hasLocalizedSlideAsset(report: Partial<ProjectReport>, locale: string): boolean {
   const slideUrls = report.slide_html_urls_by_lang as Record<string, unknown> | undefined
   return hasNonEmptyValue(slideUrls?.[locale])
@@ -62,11 +72,11 @@ export function reportSupportsLocale(report: ProjectReport, locale: string): boo
     return true
   }
 
-  if (hasLocalizedAsset(report, locale)) {
+  if (hasAssetForLocale(report, locale)) {
     return true
   }
 
-  if (ENGLISH_ASSET_FALLBACK_LOCALES.has(locale) && hasLocalizedAsset(report, 'en')) {
+  if (ENGLISH_ASSET_FALLBACK_LOCALES.has(locale) && hasAssetForLocale(report, 'en')) {
     return true
   }
 
@@ -82,9 +92,9 @@ export function pickLocaleReport<T extends Pick<ProjectReport, 'language'> & Par
   locale: string,
 ): T | undefined {
   return reports.find((report) => report.language === locale)
-    || reports.find((report) => hasLocalizedAsset(report, locale))
+    || reports.find((report) => hasAssetForLocale(report, locale))
     || (ENGLISH_ASSET_FALLBACK_LOCALES.has(locale)
-      ? reports.find((report) => hasLocalizedAsset(report, 'en'))
+      ? reports.find((report) => hasAssetForLocale(report, 'en'))
       : undefined)
     || reports.find((report) => !report.language)
 }
