@@ -17,6 +17,9 @@ type MockReportQuery = {
   in: jest.Mock
   eq: jest.Mock
   gte: jest.Mock
+  lte: jest.Mock
+  limit: jest.Mock
+  maybeSingle: jest.Mock
   order: jest.Mock
   then: <TResult1 = { data: unknown[] }, TResult2 = never>(
     onFulfilled?: ((value: { data: unknown[] }) => TResult1 | PromiseLike<TResult1>) | null | undefined,
@@ -30,6 +33,9 @@ function createReportsQuery(data: unknown[]) {
     in: jest.fn(() => query),
     eq: jest.fn(() => query),
     gte: jest.fn(() => query),
+    lte: jest.fn(() => query),
+    limit: jest.fn(() => query),
+    maybeSingle: jest.fn(() => Promise.resolve({ data: null })),
     order: jest.fn(() => query),
     then: (resolve, reject) => Promise.resolve({ data }).then(resolve, reject),
   }
@@ -37,16 +43,25 @@ function createReportsQuery(data: unknown[]) {
   return query
 }
 
-function mockReportsQuery(data: unknown[]) {
+function mockReportsQuery(data: unknown[], cmcRankRows: unknown[] = []) {
   const reportsQuery = createReportsQuery(data)
+  const latestCmcSnapshotQuery = createReportsQuery([{ recorded_at: '2026-05-08T00:00:00.000Z' }])
+  latestCmcSnapshotQuery.maybeSingle = jest.fn(() => Promise.resolve({
+    data: cmcRankRows.length > 0 ? { recorded_at: '2026-05-08T00:00:00.000Z' } : null,
+  }))
+  const cmcRanksQuery = createReportsQuery(cmcRankRows)
+  let marketDataCallCount = 0
 
   mockCreateServerSupabaseClient.mockResolvedValue({
     from: jest.fn((table: string) => {
-      if (table !== 'project_reports') {
-        throw new Error(`Unexpected table: ${table}`)
+      if (table === 'project_reports') {
+        return reportsQuery
       }
-
-      return reportsQuery
+      if (table === 'market_data_daily') {
+        marketDataCallCount += 1
+        return marketDataCallCount === 1 ? latestCmcSnapshotQuery : cmcRanksQuery
+      }
+      throw new Error(`Unexpected table: ${table}`)
     }),
   })
 
@@ -77,6 +92,7 @@ describe('ReportsPage rapid change cards', () => {
           symbol: 'ETH',
           chain: 'Ethereum',
           category: 'L1',
+          cmc_rank: null,
         },
       },
       {
@@ -101,8 +117,12 @@ describe('ReportsPage rapid change cards', () => {
           symbol: 'BTC',
           chain: 'Bitcoin',
           category: 'L1',
+          cmc_rank: null,
         },
       },
+    ], [
+      { slug: 'ethereum', cmc_rank: 2 },
+      { slug: 'bitcoin', cmc_rank: '1' },
     ])
 
     const page = await ReportsPage({
@@ -112,6 +132,9 @@ describe('ReportsPage rapid change cards', () => {
     render(page)
 
     expect(reportsQuery.in).toHaveBeenCalledWith('status', ['published', 'coming_soon', 'in_review'])
+    expect(reportsQuery.select).toHaveBeenCalledWith(
+      '*, project:tracked_projects(id, name, slug, symbol, chain, category, cmc_rank, cmc_id, coingecko_id, aliases)',
+    )
     expect(reportsQuery.eq).toHaveBeenCalledWith('report_type', 'forensic')
     expect(reportsQuery.gte).toHaveBeenCalledWith('created_at', expect.any(String))
 
@@ -120,10 +143,12 @@ describe('ReportsPage rapid change cards', () => {
 
     expect(screen.getByText('Ethereum Forensic Analysis v1')).toBeTruthy()
     expect(screen.getByText('Ethereum (ETH)')).toBeTruthy()
+    expect(screen.getByText('CMC #2')).toBeTruthy()
     expect(screen.getByText(/Coming Soon/).closest('a')).toBeNull()
     expect(screen.getByText('Exchange inflows and whale transfers crossed the alert threshold.')).toBeTruthy()
 
     expect(screen.getByText('Bitcoin Forensic Analysis v2')).toBeTruthy()
+    expect(screen.getByText('CMC #1')).toBeTruthy()
     expect(screen.getByText('Localized summary is used when trigger_reason is not present.')).toBeTruthy()
     expect(screen.getByRole('link', { name: /Report Details/ }).getAttribute('href')).toBe(
       '/en/reports/forensic/bitcoin',

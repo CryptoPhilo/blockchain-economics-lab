@@ -4,6 +4,8 @@ import Link from 'next/link'
 import type { ProjectReport } from '@/lib/types'
 import { getLocalizedMarketingContent } from '@/lib/report-marketing-content'
 import { prepareRapidChangeReports } from './reports-page-utils'
+import CmcRankBadge from '@/components/CmcRankBadge'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 interface Props {
   params: Promise<{ locale: string }>
@@ -77,6 +79,110 @@ function getRapidChangeReason(report: ProjectReport, locale: string): string {
   return getLocalizedSummary(report, locale).trim()
 }
 
+function getCmcRank(value: unknown): number | null {
+  const rank: number | null = typeof value === 'number'
+    ? value
+    : typeof value === 'string'
+      ? Number(value)
+      : null
+
+  if (rank === null) return null
+
+  return Number.isInteger(rank) && rank > 0 ? rank : null
+}
+
+function normalizeCmcLookupKey(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const normalized = value.trim().toLowerCase()
+  return normalized.length > 0 ? normalized : null
+}
+
+function getReportCmcLookupKeys(report: ProjectReport): string[] {
+  const project = report.project
+  if (!project) return []
+
+  const keys = new Set<string>()
+  for (const value of [project.slug, project.cmc_id, project.coingecko_id]) {
+    const normalized = normalizeCmcLookupKey(value)
+    if (normalized) keys.add(normalized)
+  }
+  if (Array.isArray(project.aliases)) {
+    for (const alias of project.aliases) {
+      const normalized = normalizeCmcLookupKey(alias)
+      if (normalized) keys.add(normalized)
+    }
+  }
+
+  return Array.from(keys)
+}
+
+async function loadLatestCmcRanksForReports(
+  supabase: SupabaseClient,
+  reports: ProjectReport[],
+): Promise<Map<string, number>> {
+  const lookupKeys = new Set<string>()
+  for (const report of reports) {
+    for (const key of getReportCmcLookupKeys(report)) {
+      lookupKeys.add(key)
+    }
+  }
+
+  if (lookupKeys.size === 0) {
+    return new Map()
+  }
+
+  const { data: latestSnapshot } = await supabase
+    .from('market_data_daily')
+    .select('recorded_at')
+    .eq('source', 'coinmarketcap')
+    .gte('cmc_rank', 1)
+    .lte('cmc_rank', 5000)
+    .order('recorded_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (!latestSnapshot?.recorded_at) {
+    return new Map()
+  }
+
+  const { data: rankRows } = await supabase
+    .from('market_data_daily')
+    .select('slug, cmc_rank')
+    .eq('recorded_at', latestSnapshot.recorded_at)
+    .eq('source', 'coinmarketcap')
+    .in('slug', Array.from(lookupKeys))
+    .gte('cmc_rank', 1)
+    .lte('cmc_rank', 5000)
+
+  const ranksByKey = new Map<string, number>()
+  for (const row of rankRows ?? []) {
+    const key = normalizeCmcLookupKey(row.slug)
+    const rank = getCmcRank(row.cmc_rank)
+    if (key && rank) {
+      ranksByKey.set(key, rank)
+    }
+  }
+
+  const ranksByReportId = new Map<string, number>()
+  for (const report of reports) {
+    const directRank = getCmcRank(report.project?.cmc_rank)
+    if (directRank) {
+      ranksByReportId.set(report.id, directRank)
+      continue
+    }
+
+    for (const key of getReportCmcLookupKeys(report)) {
+      const rank = ranksByKey.get(key)
+      if (rank) {
+        ranksByReportId.set(report.id, rank)
+        break
+      }
+    }
+  }
+
+  return ranksByReportId
+}
+
 export default async function ReportsPage({ params, searchParams }: Props) {
   const { locale } = await params
   const { page: pageStr, q: searchQuery } = await searchParams
@@ -89,7 +195,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
 
   const dataQuery = supabase
     .from('project_reports')
-    .select('*, project:tracked_projects(id, name, slug, symbol, chain, category)')
+    .select('*, project:tracked_projects(id, name, slug, symbol, chain, category, cmc_rank, cmc_id, coingecko_id, aliases)')
     .in('status', ['published', 'coming_soon', 'in_review'])
     .eq('report_type', 'forensic')
     .gte('created_at', seventyTwoHoursAgo.toISOString())
@@ -104,6 +210,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
     pageSize: PAGE_SIZE,
     searchQuery,
   })
+  const cmcRanksByReportId = await loadLatestCmcRanksForReports(supabase, reports)
 
   function filterUrl(params: { page?: number; q?: string }) {
     const sp = new URLSearchParams()
@@ -187,6 +294,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
         <div className="grid gap-4">
           {reports.map((report: ProjectReport) => {
             const project = report.project
+            const cmcRank = cmcRanksByReportId.get(report.id) ?? getCmcRank(project?.cmc_rank)
             const config = FORENSIC_CONFIG
             const title = getLocalizedTitle(report, locale)
             const summary = getLocalizedSummary(report, locale)
@@ -231,9 +339,10 @@ export default async function ReportsPage({ params, searchParams }: Props) {
                       {project && (
                         <Link
                           href={`/${locale}/projects/${project.slug}`}
-                          className="hover:text-red-400 transition-colors font-medium"
+                          className="inline-flex min-w-0 items-center gap-1.5 hover:text-red-400 transition-colors font-medium"
                         >
-                          {project.name} ({project.symbol})
+                          <span className="truncate">{project.name} ({project.symbol})</span>
+                          {cmcRank ? <CmcRankBadge rank={cmcRank} /> : null}
                         </Link>
                       )}
                       {project?.category && (

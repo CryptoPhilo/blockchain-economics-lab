@@ -137,6 +137,7 @@ export interface TrackedProject {
   tvl_usd?: number
   coingecko_id?: string
   cmc_id?: string
+  cmc_rank?: number | string | null
   aliases?: string[] | null
   website_url?: string
   last_econ_report_at?: string
