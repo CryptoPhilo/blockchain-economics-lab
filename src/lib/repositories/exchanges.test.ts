@@ -434,6 +434,66 @@ describe('exchange repository aggregation helpers', () => {
     }))
   })
 
+  it('merges missing report types from aliases when the listed project already has partial availability', () => {
+    const kaitoListing = project({
+      id: 'kaito-ai-active',
+      slug: 'kaito-ai',
+      name: 'Kaito AI',
+      symbol: 'KAITO',
+      coingecko_id: 'kaito',
+    })
+    const kaitoReportProject = project({
+      id: 'kaito-monitoring',
+      slug: 'kaito',
+      name: 'KAITO',
+      symbol: 'KAITO',
+      status: 'monitoring_only',
+      cmc_id: '35763',
+    })
+    const availabilityByProjectId = new Map([
+      [kaitoListing.id, {
+        reportTypes: ['maturity'],
+        reportDates: {
+          econ: null,
+          maturity: '2026-06-09T08:34:23Z',
+          forensic: null,
+        },
+      }],
+      [kaitoReportProject.id, {
+        reportTypes: ['econ', 'maturity'],
+        reportDates: {
+          econ: '2026-06-11T03:02:59Z',
+          maturity: '2026-06-11T03:05:00Z',
+          forensic: null,
+        },
+      }],
+    ])
+
+    applyProjectReportAvailabilityAliases(
+      availabilityByProjectId,
+      [kaitoListing],
+      [kaitoListing, kaitoReportProject],
+    )
+
+    const detail = buildExchangeProjectRows([
+      {
+        listing_status: 'active',
+        exchange: coinbase,
+        project: kaitoListing,
+      },
+    ], 'coinbase', availabilityByProjectId)
+
+    expect(detail.projects[0]).toEqual(expect.objectContaining({
+      slug: 'kaito-ai',
+      reportTypes: ['maturity', 'econ'],
+      reportDates: {
+        econ: '2026-06-11T03:02:59Z',
+        maturity: '2026-06-09T08:34:23Z',
+        forensic: null,
+      },
+    }))
+  })
+
   it('matches CMC aliases against internal exchange slugs', () => {
     const detail = buildExchangeProjectRows([
       {

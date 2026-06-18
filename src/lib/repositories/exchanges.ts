@@ -338,6 +338,32 @@ function hasReportAvailability(availability: ReportAvailability | undefined): av
   return !!availability && availability.reportTypes.length > 0
 }
 
+function mergeReportAvailability(
+  current: ReportAvailability | undefined,
+  incoming: ReportAvailability,
+): ReportAvailability {
+  const merged = current
+    ? {
+        reportTypes: [...current.reportTypes],
+        reportDates: { ...current.reportDates },
+      }
+    : createEmptyReportAvailability()
+
+  for (const reportType of incoming.reportTypes) {
+    if (!merged.reportTypes.includes(reportType)) {
+      merged.reportTypes.push(reportType)
+    }
+  }
+
+  for (const reportType of ['econ', 'maturity', 'forensic'] as const) {
+    if (!merged.reportDates[reportType] && incoming.reportDates[reportType]) {
+      merged.reportDates[reportType] = incoming.reportDates[reportType]
+    }
+  }
+
+  return merged
+}
+
 function createFallbackReportAvailability(project: ExchangeProjectRecord): ReportAvailability {
   return {
     reportTypes: getReportTypes(project),
@@ -379,20 +405,18 @@ export function applyProjectReportAvailabilityAliases(
     if (!hasReportAvailability(availability)) continue
 
     for (const key of getProjectAvailabilityKeys(project)) {
-      if (!availabilityByKey.has(key)) {
-        availabilityByKey.set(key, availability)
-      }
+      availabilityByKey.set(key, mergeReportAvailability(availabilityByKey.get(key), availability))
     }
   }
 
   for (const project of listedProjects) {
-    if (hasReportAvailability(availabilityByProjectId.get(project.id))) continue
-
     for (const key of getProjectAvailabilityKeys(project)) {
       const availability = availabilityByKey.get(key)
       if (availability) {
-        availabilityByProjectId.set(project.id, availability)
-        break
+        availabilityByProjectId.set(
+          project.id,
+          mergeReportAvailability(availabilityByProjectId.get(project.id), availability),
+        )
       }
     }
   }
