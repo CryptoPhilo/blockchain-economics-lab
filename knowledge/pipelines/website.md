@@ -514,6 +514,16 @@ OpenGradient-like long-tail listings to show ranks such as CMC #481 even when
 they are absent from the Top500 score universe or were populated by a scoped CMC
 lookup/backfill at a different `recorded_at`.
 
+As of BCE-1992 on 2026-06-19, the residual stash deletion of dashboard,
+products, subscribe, newsletter, and commerce-support files is rejected. These
+surfaces remain part of the website contract until a separate product decision
+removes them with navigation, API, test, and documentation updates in the same
+change. `scripts/verify-website-pipeline.mjs` now fails if the retained
+dashboard, products, subscribe, newsletter, ProductCard/ProductFilter,
+ReferralTab, DashboardBetaSignalsSection, or dashboard repository files are
+removed. This prevents unrelated report/CMC/slide recovery work from
+accidentally deleting user-facing routes.
+
 ## BCE-1869 Relationship
 
 BCE-1869 affected the report-publishing watcher boundary, not this website
