@@ -1,228 +1,429 @@
 #!/usr/bin/env node
 /**
- * BCE-352: Sync missing report timestamps
+ * Sync tracked_projects report timestamps from project_reports.
  *
- * This script updates tracked_projects timestamp fields for projects
- * that have published/coming_soon reports but NULL timestamps.
- *
- * Strategy:
- * - Use report's published_at if available
- * - Fall back to report's updated_at or created_at
- * - Only update projects identified in the audit
- *
- * Usage:
- *   npx tsx scripts/sync-report-timestamps.ts [--dry-run]
+ * Default mode is dry-run. Use --apply to write corrections. Unlike the older
+ * BCE-352 script, this corrects stale timestamps as well as NULL values.
  */
 
 import { createClient } from '@supabase/supabase-js'
 import { config } from 'dotenv'
+import { existsSync } from 'fs'
 import { join } from 'path'
 
-// Load .env.local
-config({ path: join(__dirname, '..', '.env.local') })
+export type ReportType = 'econ' | 'maturity' | 'forensic'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY!
-
-if (!supabaseUrl || !supabaseKey) {
-  console.error('❌ Missing Supabase credentials in environment')
-  process.exit(1)
+export interface ReportTimestampRow {
+  id: string
+  project_id: string
+  report_type: ReportType
+  status: string | null
+  published_at: string | null
+  updated_at: string | null
+  created_at: string | null
+  card_data?: unknown
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey)
+export interface TrackedProjectTimestampRow {
+  id: string
+  name: string
+  slug: string
+  last_econ_report_at: string | null
+  last_maturity_report_at: string | null
+  last_forensic_report_at: string | null
+}
 
-interface SyncUpdate {
+export interface SyncUpdate {
   projectId: string
   projectName: string
-  reportType: 'econ' | 'maturity' | 'forensic'
-  timestampField: string
+  projectSlug: string
+  reportId: string
+  reportType: ReportType
+  timestampField: keyof Pick<
+    TrackedProjectTimestampRow,
+    'last_econ_report_at' | 'last_maturity_report_at' | 'last_forensic_report_at'
+  >
+  oldTimestamp: string | null
   newTimestamp: string
   source: string
+  reason: 'missing' | 'stale'
 }
 
-async function syncReportTimestamps(dryRun: boolean = false) {
-  console.log('=== BCE-352: Sync Report Timestamps ===\n')
-  console.log(`Mode: ${dryRun ? '🔍 DRY RUN (no changes will be made)' : '✍️  LIVE UPDATE'}\n`)
+export interface ReportPublishUpdate {
+  reportId: string
+  projectId: string
+  reportType: ReportType
+  oldPublishedAt: string | null
+  newPublishedAt: string
+  source: 'card_data.generated_at'
+}
 
-  // 1. Get all project reports that are published or coming_soon
-  console.log('📊 Fetching reports with published/coming_soon status...')
-  const { data: reports, error: reportsError } = await supabase
-    .from('project_reports')
-    .select('id, project_id, report_type, status, published_at, updated_at, created_at')
-    .in('status', ['published', 'coming_soon'])
-    .order('published_at', { ascending: false })
+export interface SyncOptions {
+  apply: boolean
+  pageSize: number
+}
 
-  if (reportsError) {
-    console.error('❌ Error fetching reports:', reportsError)
-    return
+const REPORT_TYPES: ReportType[] = ['econ', 'maturity', 'forensic']
+const ACTIVE_STATUSES = new Set(['published', 'coming_soon'])
+
+function isReportType(value: unknown): value is ReportType {
+  return typeof value === 'string' && REPORT_TYPES.includes(value as ReportType)
+}
+
+function isValidTimestamp(value: string): boolean {
+  return !Number.isNaN(new Date(value).getTime())
+}
+
+export function timestampFieldForReportType(reportType: ReportType): SyncUpdate['timestampField'] {
+  if (reportType === 'econ') return 'last_econ_report_at'
+  if (reportType === 'maturity') return 'last_maturity_report_at'
+  return 'last_forensic_report_at'
+}
+
+export function resolveReportTimestamp(
+  report: Pick<ReportTimestampRow, 'published_at' | 'updated_at' | 'created_at' | 'card_data'>,
+): { timestamp: string; source: string } | null {
+  const cardData = report.card_data
+  if (cardData && typeof cardData === 'object' && !Array.isArray(cardData)) {
+    const generatedAt = (cardData as Record<string, unknown>).generated_at
+    if (typeof generatedAt === 'string' && generatedAt.trim() && isValidTimestamp(generatedAt)) {
+      return { timestamp: generatedAt, source: 'card_data.generated_at' }
+    }
+  }
+  if (report.published_at && isValidTimestamp(report.published_at)) {
+    return { timestamp: report.published_at, source: 'published_at' }
+  }
+  if (report.updated_at && isValidTimestamp(report.updated_at)) {
+    return { timestamp: report.updated_at, source: 'updated_at' }
+  }
+  if (report.created_at && isValidTimestamp(report.created_at)) {
+    return { timestamp: report.created_at, source: 'created_at' }
+  }
+  return null
+}
+
+export function isNewerTimestamp(left: string, right: string): boolean {
+  return new Date(left).getTime() > new Date(right).getTime()
+}
+
+export function buildTimestampUpdates(
+  reports: ReportTimestampRow[],
+  projects: TrackedProjectTimestampRow[],
+): SyncUpdate[] {
+  const projectMap = new Map(projects.map(project => [project.id, project]))
+  const latestReports = new Map<string, { report: ReportTimestampRow; timestamp: string; source: string }>()
+
+  for (const report of reports) {
+    if (!ACTIVE_STATUSES.has(String(report.status ?? ''))) continue
+    if (!isReportType(report.report_type)) continue
+
+    const resolved = resolveReportTimestamp(report)
+    if (!resolved) continue
+
+    const key = `${report.project_id}:${report.report_type}`
+    const existing = latestReports.get(key)
+    if (!existing || isNewerTimestamp(resolved.timestamp, existing.timestamp)) {
+      latestReports.set(key, { report, ...resolved })
+    }
   }
 
-  console.log(`✅ Found ${reports?.length || 0} published/coming_soon reports\n`)
-
-  // 2. Get all tracked projects
-  const { data: projects, error: projectsError } = await supabase
-    .from('tracked_projects')
-    .select('id, name, slug, last_econ_report_at, last_maturity_report_at, last_forensic_report_at')
-
-  if (projectsError) {
-    console.error('❌ Error fetching projects:', projectsError)
-    return
-  }
-
-  const projectMap = new Map(projects?.map(p => [p.id, p]) || [])
-
-  // 3. Group reports by project and type, keeping only the latest per type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const latestReportsByProject = new Map<string, Map<string, any>>()
-
-  reports?.forEach(report => {
-    if (!latestReportsByProject.has(report.project_id)) {
-      latestReportsByProject.set(report.project_id, new Map())
-    }
-    const projectReports = latestReportsByProject.get(report.project_id)!
-
-    // Only keep the latest report per type
-    const existingReport = projectReports.get(report.report_type)
-    if (!existingReport) {
-      projectReports.set(report.report_type, report)
-    } else {
-      // Compare timestamps to keep the latest
-      const existingTime = existingReport.published_at || existingReport.updated_at || existingReport.created_at
-      const currentTime = report.published_at || report.updated_at || report.created_at
-      if (currentTime > existingTime) {
-        projectReports.set(report.report_type, report)
-      }
-    }
-  })
-
-  // 4. Identify updates needed
   const updates: SyncUpdate[] = []
-  const reportTypes: ('econ' | 'maturity' | 'forensic')[] = ['econ', 'maturity', 'forensic']
 
-  latestReportsByProject.forEach((reportsByType, projectId) => {
-    const project = projectMap.get(projectId)
-    if (!project) return
+  for (const { report, timestamp, source } of latestReports.values()) {
+    const project = projectMap.get(report.project_id)
+    if (!project) continue
 
-    reportTypes.forEach(reportType => {
-      const report = reportsByType.get(reportType)
-      if (!report) return
+    const timestampField = timestampFieldForReportType(report.report_type)
+    const oldTimestamp = project[timestampField]
+    if (oldTimestamp === timestamp) continue
 
-      const timestampField = reportType === 'econ'
-        ? 'last_econ_report_at'
-        : reportType === 'maturity'
-        ? 'last_maturity_report_at'
-        : 'last_forensic_report_at'
+    if (oldTimestamp && !isNewerTimestamp(timestamp, oldTimestamp)) continue
 
-      const trackedTimestamp = project[timestampField]
+    const reason: SyncUpdate['reason'] = !oldTimestamp ? 'missing' : 'stale'
 
-      // Determine the timestamp to use
-      let newTimestamp: string | null = null
-      let source = ''
-
-      if (report.published_at) {
-        newTimestamp = report.published_at
-        source = 'published_at'
-      } else if (report.updated_at) {
-        newTimestamp = report.updated_at
-        source = 'updated_at'
-      } else if (report.created_at) {
-        newTimestamp = report.created_at
-        source = 'created_at'
-      }
-
-      // Only update if tracked timestamp is NULL and we have a new timestamp
-      if (!trackedTimestamp && newTimestamp) {
-        updates.push({
-          projectId,
-          projectName: project.name,
-          reportType,
-          timestampField,
-          newTimestamp,
-          source
-        })
-      }
+    updates.push({
+      projectId: project.id,
+      projectName: project.name,
+      projectSlug: project.slug,
+      reportId: report.id,
+      reportType: report.report_type,
+      timestampField,
+      oldTimestamp,
+      newTimestamp: timestamp,
+      source,
+      reason,
     })
-  })
-
-  // 5. Display planned updates
-  console.log('=== PLANNED UPDATES ===\n')
-  console.log(`Total projects to update: ${updates.length}\n`)
-
-  if (updates.length === 0) {
-    console.log('✅ No updates needed! All timestamps are in sync.')
-    return
   }
 
-  // Group by type
-  const updatesByType = {
-    econ: updates.filter(u => u.reportType === 'econ'),
-    maturity: updates.filter(u => u.reportType === 'maturity'),
-    forensic: updates.filter(u => u.reportType === 'forensic')
-  }
+  return updates.sort((a, b) => (
+    a.reportType.localeCompare(b.reportType)
+    || a.projectSlug.localeCompare(b.projectSlug)
+  ))
+}
 
-  Object.entries(updatesByType).forEach(([type, items]) => {
-    if (items.length === 0) return
+export function buildReportPublishUpdates(reports: ReportTimestampRow[]): ReportPublishUpdate[] {
+  const updates: ReportPublishUpdate[] = []
 
-    console.log(`\n📝 ${type.toUpperCase()} (${items.length} updates):`)
-    console.log('─'.repeat(80))
+  for (const report of reports) {
+    if (!ACTIVE_STATUSES.has(String(report.status ?? ''))) continue
+    if (!isReportType(report.report_type)) continue
+    if (!report.card_data || typeof report.card_data !== 'object' || Array.isArray(report.card_data)) continue
 
-    items.forEach((update, idx) => {
-      console.log(`${idx + 1}. ${update.projectName}`)
-      console.log(`   Field: ${update.timestampField}`)
-      console.log(`   New timestamp: ${update.newTimestamp} (from ${update.source})`)
+    const generatedAt = (report.card_data as Record<string, unknown>).generated_at
+    if (typeof generatedAt !== 'string' || !generatedAt.trim()) continue
+
+    const oldTime = report.published_at ? new Date(report.published_at).getTime() : 0
+    const newTime = new Date(generatedAt).getTime()
+    if (Number.isNaN(newTime) || newTime - oldTime <= 60_000) continue
+
+    updates.push({
+      reportId: report.id,
+      projectId: report.project_id,
+      reportType: report.report_type,
+      oldPublishedAt: report.published_at,
+      newPublishedAt: generatedAt,
+      source: 'card_data.generated_at',
     })
-  })
-
-  console.log('\n')
-  console.log('=== SUMMARY ===')
-  console.log(`ECON updates: ${updatesByType.econ.length}`)
-  console.log(`Maturity updates: ${updatesByType.maturity.length}`)
-  console.log(`Forensic updates: ${updatesByType.forensic.length}`)
-  console.log(`Total: ${updates.length}`)
-
-  // 6. Apply updates (if not dry run)
-  if (dryRun) {
-    console.log('\n🔍 DRY RUN MODE: No changes were made')
-    console.log('Run without --dry-run to apply these updates')
-    return
   }
 
-  console.log('\n✍️  Applying updates...\n')
+  return updates.sort((a, b) => (
+    a.reportType.localeCompare(b.reportType)
+    || String(a.reportId).localeCompare(String(b.reportId))
+  ))
+}
 
-  let successCount = 0
-  let errorCount = 0
+export function parseArgs(argv: string[]): SyncOptions {
+  const options: SyncOptions = { apply: false, pageSize: 1000 }
+
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i]
+    const next = argv[i + 1]
+
+    if (arg === '--apply') {
+      options.apply = true
+    } else if (arg === '--dry-run') {
+      options.apply = false
+    } else if (arg === '--page-size') {
+      options.pageSize = parsePositiveInteger(arg, next)
+      i++
+    } else if (arg.startsWith('--page-size=')) {
+      options.pageSize = parsePositiveInteger('--page-size', arg.slice('--page-size='.length))
+    } else if (arg === '--help' || arg === '-h') {
+      printHelp()
+      process.exit(0)
+    } else {
+      throw new Error(`Unknown argument: ${arg}`)
+    }
+  }
+
+  return options
+}
+
+function parsePositiveInteger(name: string, value: string | undefined): number {
+  if (!value || value.startsWith('--')) throw new Error(`${name} requires a positive integer`)
+  const parsed = Number(value)
+  if (!Number.isInteger(parsed) || parsed <= 0) throw new Error(`${name} must be a positive integer`)
+  return parsed
+}
+
+function loadEnv(): void {
+  for (const envPath of [
+    join(process.cwd(), '.env.local'),
+    join(process.cwd(), '.env.d', 'supabase-service.env'),
+  ]) {
+    if (existsSync(envPath)) config({ path: envPath, override: false, quiet: true })
+  }
+}
+
+function getSupabaseCredentials(): { url: string; key: string } {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) {
+    console.error('Missing Supabase credentials.')
+    console.error(`NEXT_PUBLIC_SUPABASE_URL/SUPABASE_URL: ${url ? 'set' : 'missing'}`)
+    console.error(`SUPABASE_SERVICE_KEY/SUPABASE_SERVICE_ROLE_KEY: ${key ? 'set' : 'missing'}`)
+    process.exit(1)
+  }
+  return { url, key }
+}
+
+async function fetchAllRows<T>(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  queryFactory: () => any,
+  pageSize: number,
+): Promise<T[]> {
+  const rows: T[] = []
+  let from = 0
+
+  while (true) {
+    const to = from + pageSize - 1
+    const { data, error } = await queryFactory().range(from, to)
+    if (error) throw new Error(error.message)
+
+    rows.push(...((data ?? []) as T[]))
+    if ((data ?? []).length < pageSize) break
+    from += pageSize
+  }
+
+  return rows
+}
+
+async function applyUpdates(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  updates: SyncUpdate[],
+): Promise<{ success: number; failed: number }> {
+  let success = 0
+  let failed = 0
 
   for (const update of updates) {
-    try {
-      const { error } = await supabase
-        .from('tracked_projects')
-        .update({ [update.timestampField]: update.newTimestamp })
-        .eq('id', update.projectId)
+    const { error } = await supabase
+      .from('tracked_projects')
+      .update({
+        [update.timestampField]: update.newTimestamp,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', update.projectId)
 
-      if (error) {
-        console.error(`❌ Failed to update ${update.projectName}:`, error.message)
-        errorCount++
-      } else {
-        console.log(`✅ Updated ${update.projectName} (${update.reportType})`)
-        successCount++
-      }
-    } catch (err) {
-      console.error(`❌ Error updating ${update.projectName}:`, err)
-      errorCount++
+    if (error) {
+      failed++
+      console.error(`Failed to update ${update.projectSlug}: ${error.message}`)
+    } else {
+      success++
     }
   }
 
-  console.log('\n=== UPDATE COMPLETE ===')
-  console.log(`✅ Successful updates: ${successCount}`)
-  if (errorCount > 0) {
-    console.log(`❌ Failed updates: ${errorCount}`)
-  }
-  console.log(`\nTotal processed: ${successCount + errorCount} of ${updates.length}`)
+  return { success, failed }
 }
 
-// Parse command line args
-const args = process.argv.slice(2)
-const dryRun = args.includes('--dry-run')
+async function applyReportPublishUpdates(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  updates: ReportPublishUpdate[],
+): Promise<{ success: number; failed: number }> {
+  let success = 0
+  let failed = 0
 
-// Run the sync
-syncReportTimestamps(dryRun).catch(console.error)
+  for (const update of updates) {
+    const { error } = await supabase
+      .from('project_reports')
+      .update({
+        published_at: update.newPublishedAt,
+        updated_at: update.newPublishedAt,
+      })
+      .eq('id', update.reportId)
+
+    if (error) {
+      failed++
+      console.error(`Failed to update report ${update.reportId}: ${error.message}`)
+    } else {
+      success++
+    }
+  }
+
+  return { success, failed }
+}
+
+function printHelp(): void {
+  console.log(`Usage:
+  npx ts-node scripts/sync-report-timestamps.ts [options]
+
+Options:
+  --apply             Apply updates. Default is dry-run.
+  --dry-run           Explicit dry-run mode.
+  --page-size VALUE   Supabase page size. Default: 1000.
+  --help              Show this help.
+`)
+}
+
+function printSummary(updates: SyncUpdate[]): void {
+  const byReason = updates.reduce<Record<string, number>>((acc, update) => {
+    acc[update.reason] = (acc[update.reason] ?? 0) + 1
+    return acc
+  }, {})
+  const byType = updates.reduce<Record<string, number>>((acc, update) => {
+    acc[update.reportType] = (acc[update.reportType] ?? 0) + 1
+    return acc
+  }, {})
+
+  console.log(`Planned corrections: ${updates.length}`)
+  console.log(`By reason: ${JSON.stringify(byReason)}`)
+  console.log(`By report_type: ${JSON.stringify(byType)}`)
+  for (const update of updates.slice(0, 50)) {
+    console.log(
+      `- ${update.projectName} (${update.projectSlug}) ${update.reportType}: `
+      + `${update.oldTimestamp ?? 'NULL'} -> ${update.newTimestamp} `
+      + `(${update.source}, ${update.reason})`,
+    )
+  }
+  if (updates.length > 50) console.log(`... ${updates.length - 50} more`)
+}
+
+function printReportPublishSummary(updates: ReportPublishUpdate[]): void {
+  const byType = updates.reduce<Record<string, number>>((acc, update) => {
+    acc[update.reportType] = (acc[update.reportType] ?? 0) + 1
+    return acc
+  }, {})
+
+  console.log(`Report published_at corrections: ${updates.length}`)
+  console.log(`Report corrections by type: ${JSON.stringify(byType)}`)
+  for (const update of updates.slice(0, 50)) {
+    console.log(
+      `- report ${update.reportId} ${update.reportType}: `
+      + `${update.oldPublishedAt ?? 'NULL'} -> ${update.newPublishedAt} (${update.source})`,
+    )
+  }
+  if (updates.length > 50) console.log(`... ${updates.length - 50} more`)
+}
+
+async function main(): Promise<void> {
+  const options = parseArgs(process.argv.slice(2))
+  loadEnv()
+
+  const { url, key } = getSupabaseCredentials()
+  const supabase = createClient(url, key, { auth: { persistSession: false } })
+
+  const reports = await fetchAllRows<ReportTimestampRow>(
+    () => supabase
+      .from('project_reports')
+      .select('id, project_id, report_type, status, published_at, updated_at, created_at, card_data')
+      .in('status', ['published', 'coming_soon'])
+      .order('updated_at', { ascending: false }),
+    options.pageSize,
+  )
+  const projects = await fetchAllRows<TrackedProjectTimestampRow>(
+    () => supabase
+      .from('tracked_projects')
+      .select('id, name, slug, last_econ_report_at, last_maturity_report_at, last_forensic_report_at')
+      .order('slug', { ascending: true }),
+    options.pageSize,
+  )
+
+  const updates = buildTimestampUpdates(reports, projects)
+  const reportPublishUpdates = buildReportPublishUpdates(reports)
+
+  console.log('=== Report Timestamp Sync ===')
+  console.log(`Mode: ${options.apply ? 'APPLY' : 'DRY-RUN'}`)
+  console.log(`Reports scanned: ${reports.length}`)
+  console.log(`Projects scanned: ${projects.length}`)
+  printSummary(updates)
+  printReportPublishSummary(reportPublishUpdates)
+
+  if (!options.apply) {
+    console.log('\nDry-run complete. Re-run with --apply to write corrections.')
+    return
+  }
+
+  const result = await applyUpdates(supabase, updates)
+  const reportResult = await applyReportPublishUpdates(supabase, reportPublishUpdates)
+  console.log(`\nApplied tracked project corrections: success=${result.success} failed=${result.failed}`)
+  console.log(`Applied report published_at corrections: success=${reportResult.success} failed=${reportResult.failed}`)
+  if (result.failed > 0 || reportResult.failed > 0) process.exitCode = 1
+}
+
+if (process.argv[1]?.endsWith('sync-report-timestamps.ts')) {
+  main().catch(error => {
+    console.error(error instanceof Error ? error.message : error)
+    process.exit(1)
+  })
+}
