@@ -130,6 +130,50 @@ describe('SlideReportPage locale availability', () => {
     expect(screen.queryByText('english-only')).toBeNull()
   })
 
+  it('opens the latest localized slide version when the global/latest localized row has no slide asset', async () => {
+    mockReportQueries(
+      { id: 'horizen', slug: 'horizen', name: 'Horizen', symbol: 'ZEN', maturity_score: 66 },
+      [
+        {
+          id: 'horizen-ko-v2-pdf-only',
+          project_id: 'horizen',
+          language: 'ko',
+          report_type: 'maturity',
+          status: 'published',
+          version: 2,
+          published_at: '2026-06-18T00:00:00.000Z',
+          card_summary_ko: '최신 행은 PDF 메타데이터만 있다.',
+          gdrive_urls_by_lang: {
+            ko: 'https://drive.google.com/file/d/horizen-ko-v2/view',
+          },
+        },
+        {
+          id: 'horizen-ko-v1-slide',
+          project_id: 'horizen',
+          language: 'ko',
+          report_type: 'maturity',
+          status: 'published',
+          version: 1,
+          published_at: '2026-05-30T00:00:00.000Z',
+          card_summary_ko: '과거 행에는 실제 슬라이드가 있다.',
+          slide_html_urls_by_lang: {
+            ko: 'https://example.supabase.co/storage/v1/object/public/slides/maturity/horizen/v1/ko.html',
+          },
+        },
+      ],
+    )
+
+    const page = await SlideReportPage({ locale: 'ko', slug: 'horizen', reportType: 'maturity' })
+    render(page)
+
+    expect(mockNotFound).not.toHaveBeenCalled()
+    expect(screen.getByTestId('slide-viewer').getAttribute('data-url')).toBe(
+      'https://example.supabase.co/storage/v1/object/public/slides/maturity/horizen/v1/ko.html',
+    )
+    expect(screen.queryByText('slideComingSoonTitle')).toBeNull()
+    expect(screen.getByText('과거 행에는 실제 슬라이드가 있다.')).toBeTruthy()
+  })
+
   it('keeps the project-missing path as notFound', async () => {
     mockReportQueries(null, [])
 

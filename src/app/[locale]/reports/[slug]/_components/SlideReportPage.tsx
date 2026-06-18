@@ -18,6 +18,10 @@ type ReportRecord = Record<string, unknown> & {
   card_keywords?: string[] | null
   card_summary_en?: string | null
   language?: string | null
+  version?: number | null
+  gdrive_urls_by_lang?: Record<string, unknown> | null
+  file_urls_by_lang?: Record<string, unknown> | null
+  slide_html_urls_by_lang?: Record<string, unknown> | null
 }
 
 const localeMap: Record<string, string> = {
@@ -111,14 +115,15 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
     .in('status', ['published', 'coming_soon'])
     .order('published_at', { ascending: false })
 
-  const reportState = getLocaleReportState(allRows, locale)
+  const versionRows = pickVersionRowsForLocale((allRows || []) as ReportRecord[], locale)
+  const reportState = getLocaleReportState(versionRows, locale)
   if (reportState.status === 'not_found') notFound()
 
   const report = reportState.status === 'available' ? reportState.report : null
   const isLocalePending = reportState.status === 'locale_pending'
 
   const mergedSlideUrls: Record<string, string> = {}
-  for (const row of allRows ?? []) {
+  for (const row of versionRows ?? []) {
     const urls = row?.slide_html_urls_by_lang as Record<string, unknown> | null | undefined
     if (urls && typeof urls === 'object') {
       for (const [k, v] of Object.entries(urls)) {
@@ -145,7 +150,8 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
         ? (cardData?.economy_score ?? cardData?.score ?? null)
         : null
 
-  const generatedAt = report ? (cardData?.generated_at || report.published_at || report.created_at) : null
+  const generatedAtRaw = report ? (cardData?.generated_at || report.published_at || report.created_at) : null
+  const generatedAt = typeof generatedAtRaw === 'string' ? generatedAtRaw : null
 
   return (
     <div className="min-h-screen">
@@ -291,6 +297,68 @@ export async function SlideReportPage({ locale, slug, reportType }: SlideReportP
       </div>
     </div>
   )
+}
+
+function pickVersionRowsForLocale<T extends {
+  version?: number | null
+  language?: string | null
+  gdrive_urls_by_lang?: Record<string, unknown> | null
+  file_urls_by_lang?: Record<string, unknown> | null
+  slide_html_urls_by_lang?: Record<string, unknown> | null
+}>(
+  rows: T[],
+  locale: string,
+): T[] {
+  if (rows.length === 0) return []
+
+  const localeRows = rows.filter((row) => (
+    getLocaleReportState([row], locale).status === 'available'
+  ))
+  if (localeRows.length === 0) return rows
+
+  const rowsByVersion = new Map<number, T[]>()
+  for (const row of localeRows) {
+    const version = row.version || 0
+    const list = rowsByVersion.get(version) || []
+    list.push(row)
+    rowsByVersion.set(version, list)
+  }
+
+  const versions = [...rowsByVersion.keys()].sort((a, b) => b - a)
+
+  for (const version of versions) {
+    const candidate = rowsByVersion.get(version)
+    if (!candidate) continue
+    if (resolveSlideUrl(mergeSlideUrls(candidate), locale)) {
+      return candidate
+    }
+  }
+
+  for (const version of versions) {
+    const candidate = rowsByVersion.get(version)
+    if (!candidate) continue
+    if (getLocaleReportState(candidate, locale).status === 'available') {
+      return candidate
+    }
+  }
+
+  return rowsByVersion.get(versions[0]) || []
+}
+
+function mergeSlideUrls<T extends {
+  slide_html_urls_by_lang?: Record<string, unknown> | null
+}>(rows: T[]): Record<string, string> {
+  const merged: Record<string, string> = {}
+  for (const row of rows) {
+    const urls = row.slide_html_urls_by_lang
+    if (!urls || typeof urls !== 'object') continue
+    for (const [locale, url] of Object.entries(urls)) {
+      if (typeof url === 'string' && url && !merged[locale]) {
+        merged[locale] = url
+      }
+    }
+  }
+  return merged
 }
 
 export default SlideReportPage
