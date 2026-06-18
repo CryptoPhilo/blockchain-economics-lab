@@ -54,10 +54,10 @@ export default async function ExchangesPage({
         data-testid="exchanges-hero"
         className="relative mb-6 overflow-hidden rounded-2xl border border-white/10 bg-slate-950 bg-cover bg-center px-6 py-10 shadow-2xl shadow-black/20 sm:px-8"
         style={{
-          backgroundImage: `linear-gradient(90deg, rgba(2, 6, 23, 0.92) 0%, rgba(2, 6, 23, 0.74) 50%, rgba(2, 6, 23, 0.38) 100%), url(${EXCHANGE_HEADER_BACKGROUND_IMAGE})`,
+          backgroundImage: `linear-gradient(90deg, rgba(2, 6, 23, 0.62) 0%, rgba(2, 6, 23, 0.38) 50%, rgba(2, 6, 23, 0.10) 100%), url(${EXCHANGE_HEADER_BACKGROUND_IMAGE})`,
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-slate-950/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/25 via-transparent to-slate-950/10" />
         <div className="relative z-10">
           <p className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-300">Exchanges</p>
           <h1 className="mt-3 text-3xl font-bold text-white sm:text-4xl">

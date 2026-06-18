@@ -79,10 +79,10 @@ export default async function ExchangeDetailPage({
         data-testid="exchange-detail-hero"
         className="relative mb-6 overflow-hidden rounded-2xl border border-white/10 bg-slate-950 bg-cover bg-center px-6 py-8 shadow-2xl shadow-black/20 sm:px-8"
         style={{
-          backgroundImage: `linear-gradient(90deg, rgba(2, 6, 23, 0.94) 0%, rgba(2, 6, 23, 0.76) 52%, rgba(2, 6, 23, 0.42) 100%), url(${EXCHANGE_HEADER_BACKGROUND_IMAGE})`,
+          backgroundImage: `linear-gradient(90deg, rgba(2, 6, 23, 0.64) 0%, rgba(2, 6, 23, 0.40) 52%, rgba(2, 6, 23, 0.12) 100%), url(${EXCHANGE_HEADER_BACKGROUND_IMAGE})`,
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-slate-950/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/25 via-transparent to-slate-950/10" />
         <div className="relative z-10">
           <Link
             href={`/${locale}/exchanges`}
