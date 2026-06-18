@@ -294,15 +294,10 @@ export function buildReportAvailabilityByProjectId(
   }
 
   for (const projectTypeReports of reportsByProjectType.values()) {
-    const latest = pickLatestReport(projectTypeReports)
-    if (!latest) continue
-
-    const latestVersion = latest.version ?? null
-    const localizedLatestVersionReports = projectTypeReports.filter((report) => (
-      (report.version ?? null) === latestVersion
-        && reportSupportsLocale(report as ProjectReport, locale)
+    const localizedReports = projectTypeReports.filter((report) => (
+      reportSupportsLocale(report as ProjectReport, locale)
     ))
-    const report = pickLatestReport(localizedLatestVersionReports)
+    const report = pickLatestReport(localizedReports)
     if (!report) continue
     if (!isReportTypeKey(report.report_type)) continue
     const reportType = report.report_type

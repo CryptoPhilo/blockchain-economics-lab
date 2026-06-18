@@ -237,6 +237,54 @@ describe('score page CMC canonical Top 500 snapshot guard', () => {
 
     expect(ids).toEqual(['falcon-usd-project', 'falcon-finance-ff-project'])
   })
+
+  it('keeps MAT visible when the latest localized report is older than the global latest version', () => {
+    const availability = buildReportAvailabilityByProjectId([
+      {
+        id: 'horizen-mat-v3-en',
+        project_id: 'horizen-project',
+        report_type: 'maturity',
+        version: 3,
+        language: 'en',
+        published_at: '2026-06-17T08:42:17.463762+00:00',
+        slide_html_urls_by_lang: { en: 'https://www.bcelab.xyz/slides/mat/horizen/latest/en.html' },
+      },
+      {
+        id: 'horizen-mat-v2-ko',
+        project_id: 'horizen-project',
+        report_type: 'maturity',
+        version: 2,
+        language: 'ko',
+        published_at: '2026-06-17T08:43:27.074239+00:00',
+        slide_html_urls_by_lang: { ko: 'https://www.bcelab.xyz/slides/mat/horizen/latest/ko.html' },
+      },
+    ], 'ko')
+
+    const [row] = snapshotRowsToScoreRows(
+      [makeSnapshotRow(499, 'horizen')],
+      buildTrackedProjectLookup([
+        {
+          id: 'horizen-project',
+          name: 'Horizen',
+          slug: 'horizen',
+          symbol: 'ZEN',
+          category: 'Layer 1',
+          market_cap_usd: 100,
+          coingecko_id: 'horizen',
+          cmc_id: null,
+          aliases: [],
+          maturity_score: null,
+          last_econ_report_at: null,
+          last_maturity_report_at: null,
+          last_forensic_report_at: null,
+        },
+      ]),
+      availability,
+    )
+
+    expect(row.reportTypes).toContain('maturity')
+    expect(row.reportDates.maturity).toBe('2026-06-17T08:43:27.074239+00:00')
+  })
 })
 
 describe('score page tracked project aliases', () => {
@@ -817,7 +865,7 @@ describe('score page report availability policy', () => {
     })
   })
 
-  it('does not fall back to an older localized version when the latest version lacks locale support', () => {
+  it('falls back to the latest localized version when the global latest version lacks locale support', () => {
     const availability = buildReportAvailabilityByProjectId([
       {
         id: 'alpha-econ-v1-ko',
@@ -845,7 +893,14 @@ describe('score page report availability policy', () => {
       },
     ], 'ko')
 
-    expect(availability.has('alpha-project')).toBe(false)
+    expect(availability.get('alpha-project')).toEqual({
+      reportTypes: ['econ'],
+      reportDates: {
+        econ: '2026-05-10T00:00:00.000Z',
+        maturity: null,
+        forensic: null,
+      },
+    })
   })
 
   it('uses a localized row from the latest version when another locale has a newer timestamp', () => {
