@@ -104,7 +104,7 @@ type LatestCmcMarketDataRow = {
   market_cap: number | string | null
 }
 
-type ExchangeProjectMarketDataKey = Pick<ExchangeProjectRecord, 'slug' | 'coingecko_id' | 'cmc_id'>
+type ExchangeProjectMarketDataKey = Pick<ExchangeProjectRecord, 'slug' | 'coingecko_id' | 'cmc_id' | 'aliases'>
 
 type CmcMarketData = {
   cmcRank: number
@@ -237,6 +237,9 @@ function getProjectMarketDataKeys(project: ExchangeProjectMarketDataKey): string
     normalizeNullableKey(project.slug),
     normalizeNullableKey(project.coingecko_id),
     normalizeNullableKey(project.cmc_id),
+    ...(Array.isArray(project.aliases)
+      ? project.aliases.map(normalizeNullableKey)
+      : []),
   ].filter((key): key is string => !!key)))
 }
 
@@ -250,13 +253,6 @@ function getProjectCmcMarketData(
   }
 
   return null
-}
-
-function getProjectCmcRank(
-  project: ExchangeProjectMarketDataKey,
-  cmcMarketDataByKey: Map<string, CmcMarketData>,
-) {
-  return getProjectCmcMarketData(project, cmcMarketDataByKey)?.cmcRank ?? null
 }
 
 export function getMissingProjectMarketDataKeys(

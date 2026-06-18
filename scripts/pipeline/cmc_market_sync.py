@@ -183,7 +183,7 @@ class SupabaseClient:
             resp = self.session.get(
                 f'{self.base_url}/rest/v1/tracked_projects',
                 params={
-                    'select': 'id,slug,symbol,name,coingecko_id,cmc_id,status',
+                    'select': 'id,slug,symbol,name,coingecko_id,cmc_id,aliases,status',
                     'status': 'in.(active,monitoring_only)',
                 },
             )
@@ -259,10 +259,13 @@ def build_slug_map(tracked_projects: List[Dict], cmc_tokens: List[Dict]) -> Dict
     # both numeric CMC IDs and slug-like values.
     cmc_identifier_to_slug: Dict[str, str] = {}
     for tp in tracked_projects:
+        preferred = tp.get('coingecko_id') or tp.get('slug')
         cmc_id = tp.get('cmc_id')
         if cmc_id:
-            preferred = tp.get('coingecko_id') or tp.get('slug')
             cmc_identifier_to_slug[str(cmc_id).strip().lower()] = preferred
+        for alias in tp.get('aliases') or []:
+            if isinstance(alias, str) and alias.strip():
+                cmc_identifier_to_slug[alias.strip().lower()] = preferred
 
     # CoinGecko ID index
     tp_by_cg_id = {tp['coingecko_id']: tp for tp in tracked_projects if tp.get('coingecko_id')}
@@ -398,10 +401,17 @@ def mode_tracked(cmc: CMCClient, db: SupabaseClient, dry_run: bool = False) -> D
     slug_map = build_slug_map(tracked, tokens)
 
     # Build reverse lookup: find which CMC tokens match tracked projects.
-    # Match by: CMC slug/numeric id, CMC slug == coingecko_id, CMC slug == tp.slug, symbol match.
+    # Match by: CMC slug/numeric id, CMC slug == coingecko_id, CMC slug == tp.slug,
+    # tracked aliases, or symbol match.
     tp_cmc_identifiers = {str(tp['cmc_id']).strip().lower() for tp in tracked if tp.get('cmc_id')}
     tp_cg_ids = {tp['coingecko_id'] for tp in tracked if tp.get('coingecko_id')}
     tp_slugs = {tp['slug'] for tp in tracked}
+    tp_aliases = {
+        alias.strip().lower()
+        for tp in tracked
+        for alias in (tp.get('aliases') or [])
+        if isinstance(alias, str) and alias.strip()
+    }
     tp_symbols = {tp['symbol'].lower() for tp in tracked if tp.get('symbol')}
 
     matched_rows = []
@@ -417,6 +427,7 @@ def mode_tracked(cmc: CMCClient, db: SupabaseClient, dry_run: bool = False) -> D
             (cmc_id and cmc_id in tp_cmc_identifiers) or
             cmc_slug in tp_cg_ids or
             cmc_slug in tp_slugs or
+            cmc_slug.lower() in tp_aliases or
             cmc_symbol in tp_symbols
         )
 

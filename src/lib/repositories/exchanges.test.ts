@@ -433,6 +433,49 @@ describe('exchange repository aggregation helpers', () => {
     ])
   })
 
+  it('applies latest CMC ranks through tracked project aliases', () => {
+    const midnight = project({
+      id: 'midnight-id',
+      slug: 'midnight',
+      name: 'Midnight',
+      symbol: 'NIGHT',
+      coingecko_id: 'midnight-3',
+      aliases: ['midnight-network'],
+      market_cap_usd: 618692537,
+      maturity_score: null,
+    })
+    const exchangeRows: ExchangeListingRecord[] = [
+      {
+        listing_status: 'active',
+        exchange: bybit,
+        project: midnight,
+      },
+    ]
+
+    expect(getMissingProjectMarketDataKeys(exchangeRows, new Map())).toEqual([
+      'midnight',
+      'midnight-3',
+      'midnight-network',
+    ])
+
+    const rankedRows = applyLatestCmcRanks(exchangeRows, new Map([
+      ['midnight-network', { cmcRank: 79, marketCap: 506721371 }],
+    ]))
+    const detail = buildExchangeProjectRows(rankedRows, 'bybit')
+
+    expect(detail.projects).toEqual([
+      expect.objectContaining({
+        slug: 'midnight',
+        rank: 79,
+        cmcRank: 79,
+        marketCap: 506721371,
+      }),
+    ])
+    expect(getMissingProjectMarketDataKeys(rankedRows, new Map([
+      ['midnight-network', { cmcRank: 79, marketCap: 506721371 }],
+    ]))).toEqual([])
+  })
+
   it('keeps unranked exchange rows unranked instead of assigning row order', () => {
     const unranked = project({
       id: 'unranked-id',

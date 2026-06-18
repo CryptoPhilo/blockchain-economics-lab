@@ -84,6 +84,23 @@ def test_slug_map_accepts_slug_and_numeric_cmc_identifiers_without_int_cast():
     assert slug_map["ethereum"] == "ethereum"
 
 
+def test_slug_map_accepts_tracked_project_aliases():
+    sync = load_sync()
+    tracked = [
+        {
+            "slug": "midnight",
+            "symbol": "NIGHT",
+            "coingecko_id": "midnight-3",
+            "cmc_id": None,
+            "aliases": ["midnight-network"],
+        },
+    ]
+
+    slug_map = sync.build_slug_map(tracked, [token("midnight-network", "NIGHT", 39064, 79)])
+
+    assert slug_map["midnight-network"] == "midnight-3"
+
+
 def test_slug_map_does_not_match_ambiguous_symbols():
     sync = load_sync()
     tracked = [
@@ -108,6 +125,27 @@ def test_tracked_mode_matches_slug_cmc_id_and_writes_cmc_rank():
     assert result["matched"] == 1
     assert result["written"] == 1
     assert db.rows[0]["cmc_rank"] == 1
+
+
+def test_tracked_mode_matches_tracked_project_aliases():
+    sync = load_sync()
+    db = FakeDb([
+        {
+            "slug": "midnight",
+            "symbol": "NIGHT",
+            "coingecko_id": "midnight-3",
+            "cmc_id": None,
+            "aliases": ["midnight-network"],
+        },
+    ])
+    cmc = FakeCmc([token("midnight-network", "NIGHT", 39064, 79)])
+
+    result = sync.mode_tracked(cmc, db, dry_run=False)
+
+    assert result["matched"] == 1
+    assert result["written"] == 1
+    assert db.rows[0]["slug"] == "midnight-3"
+    assert db.rows[0]["cmc_rank"] == 79
 
 
 def test_top200_mode_filters_noncanonical_ranks_before_writing():
