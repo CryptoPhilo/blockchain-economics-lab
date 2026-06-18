@@ -118,6 +118,25 @@ describe('ReportsPage rapid change cards', () => {
           category: 'L1',
         },
       },
+      {
+        id: 'dogecoin-unranked',
+        project_id: 'dogecoin',
+        report_type: 'forensic',
+        version: 1,
+        status: 'coming_soon',
+        language: 'en',
+        assigned_at: '2026-05-08T00:00:00.000Z',
+        created_at: '2026-05-08T08:00:00.000Z',
+        trigger_reason: 'This report should be hidden because it has no CMC rank in the latest snapshot.',
+        project: {
+          id: 'dogecoin',
+          name: 'Dogecoin',
+          slug: 'dogecoin',
+          symbol: 'DOGE',
+          chain: 'Dogecoin',
+          category: 'Meme',
+        },
+      },
     ], [
       { slug: 'ethereum', cmc_rank: 2 },
       { slug: 'bitcoin', cmc_rank: '1' },
@@ -131,7 +150,7 @@ describe('ReportsPage rapid change cards', () => {
 
     expect(reportsQuery.in).toHaveBeenCalledWith('status', ['published', 'coming_soon', 'in_review'])
     expect(reportsQuery.select).toHaveBeenCalledWith(
-      '*, project:tracked_projects(id, name, slug, symbol, chain, category, coingecko_id, aliases)',
+      '*, project:tracked_projects(id, name, slug, symbol, chain, category, coingecko_id, cmc_id, aliases)',
     )
     expect(reportsQuery.eq).toHaveBeenCalledWith('report_type', 'forensic')
     expect(reportsQuery.gte).toHaveBeenCalledWith('created_at', expect.any(String))
@@ -151,6 +170,9 @@ describe('ReportsPage rapid change cards', () => {
     expect(screen.getByRole('link', { name: /Report Details/ }).getAttribute('href')).toBe(
       '/en/reports/forensic/bitcoin',
     )
+    expect(screen.queryByText('Dogecoin Forensic Analysis v1')).toBeNull()
+    expect(screen.queryByText('This report should be hidden because it has no CMC rank in the latest snapshot.')).toBeNull()
+    expect(screen.getByText('Live Updates • 2 Latest Reports')).toBeTruthy()
   })
 
   it('uses localized summary fallback for coming soon candidate reasons', async () => {
@@ -181,6 +203,8 @@ describe('ReportsPage rapid change cards', () => {
           category: 'L1',
         },
       },
+    ], [
+      { slug: 'solana', cmc_rank: 6 },
     ])
 
     const page = await ReportsPage({
@@ -216,6 +240,8 @@ describe('ReportsPage rapid change cards', () => {
           category: 'DEX',
         },
       },
+    ], [
+      { slug: 'hyperliquid', cmc_rank: 11 },
     ])
 
     const page = await ReportsPage({
@@ -228,5 +254,40 @@ describe('ReportsPage rapid change cards', () => {
     expect(screen.getByText('Hyperliquid (HYPE)')).toBeTruthy()
     expect(screen.getByText('대규모 고래 이체와 거래소 유입이 동시에 감지되었습니다.')).toBeTruthy()
     expect(screen.getByText(/준비 중/).closest('a')).toBeNull()
+  })
+
+  it('filters out rapid change projects without a latest CMC rank', async () => {
+    mockReportsQuery([
+      {
+        id: 'unranked-candidate-ko',
+        project_id: 'unranked-project',
+        report_type: 'forensic',
+        version: 1,
+        status: 'coming_soon',
+        assigned_at: '2026-05-08T00:00:00.000Z',
+        created_at: '2026-05-08T10:00:00.000Z',
+        title_ko: '랭킹 없는 급변동 알림',
+        trigger_reason: 'CMC 랭킹이 없으면 급변동 목록에서 종목 자체가 제외되어야 합니다.',
+        project: {
+          id: 'unranked-project',
+          name: 'Unranked Project',
+          slug: 'unranked-project',
+          symbol: 'UNRANKED',
+          chain: 'Test',
+          category: 'Test',
+        },
+      },
+    ])
+
+    const page = await ReportsPage({
+      params: Promise.resolve({ locale: 'ko' }),
+      searchParams: Promise.resolve({}),
+    })
+    render(page)
+
+    expect(screen.queryByText('랭킹 없는 급변동 알림')).toBeNull()
+    expect(screen.queryByText('Unranked Project (UNRANKED)')).toBeNull()
+    expect(screen.getByText('실시간 업데이트 • 0건의 최신 보고서')).toBeTruthy()
+    expect(screen.getByText('현재 72시간 내 발행된 FOR 보고서가 없습니다')).toBeTruthy()
   })
 })

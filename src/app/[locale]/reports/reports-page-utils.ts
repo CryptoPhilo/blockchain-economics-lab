@@ -83,13 +83,11 @@ export function dedupeLatestReportsByProject(reports: ProjectReport[]): ProjectR
   return Array.from(latestByProject.values()).sort((a, b) => compareRapidChangeReports(b, a))
 }
 
-export function prepareRapidChangeReports(args: {
+export function prepareRapidChangeReportCandidates(args: {
   reports: ProjectReport[]
   locale: string
-  page: number
-  pageSize: number
   searchQuery?: string
-}) {
+}): ProjectReport[] {
   const normalizedQuery = args.searchQuery?.trim().toLowerCase() || ''
   const localizedReports = args.reports.filter((report) => (
     isRapidChangeCandidate(report) || reportSupportsLocale(report, args.locale)
@@ -98,8 +96,15 @@ export function prepareRapidChangeReports(args: {
     ? localizedReports.filter((report) => getSearchableText(report).includes(normalizedQuery))
     : localizedReports
 
-  const dedupedReports = dedupeLatestReportsByProject(filteredReports)
-  const totalCount = dedupedReports.length
+  return dedupeLatestReportsByProject(filteredReports)
+}
+
+export function paginateRapidChangeReports(args: {
+  reports: ProjectReport[]
+  page: number
+  pageSize: number
+}) {
+  const totalCount = args.reports.length
   const totalPages = totalCount > 0 ? Math.ceil(totalCount / args.pageSize) : 0
   const currentPage = totalCount > 0
     ? Math.min(Math.max(1, args.page), totalPages)
@@ -108,9 +113,23 @@ export function prepareRapidChangeReports(args: {
   const to = from + args.pageSize
 
   return {
-    reports: dedupedReports.slice(from, to),
+    reports: args.reports.slice(from, to),
     totalCount,
     totalPages,
     currentPage,
   }
+}
+
+export function prepareRapidChangeReports(args: {
+  reports: ProjectReport[]
+  locale: string
+  page: number
+  pageSize: number
+  searchQuery?: string
+}) {
+  return paginateRapidChangeReports({
+    reports: prepareRapidChangeReportCandidates(args),
+    page: args.page,
+    pageSize: args.pageSize,
+  })
 }

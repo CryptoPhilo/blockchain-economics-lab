@@ -3,7 +3,10 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import Link from 'next/link'
 import type { ProjectReport } from '@/lib/types'
 import { getLocalizedMarketingContent } from '@/lib/report-marketing-content'
-import { prepareRapidChangeReports } from './reports-page-utils'
+import {
+  paginateRapidChangeReports,
+  prepareRapidChangeReportCandidates,
+} from './reports-page-utils'
 import CmcRankBadge from '@/components/CmcRankBadge'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
@@ -102,7 +105,7 @@ function getReportCmcLookupKeys(report: ProjectReport): string[] {
   if (!project) return []
 
   const keys = new Set<string>()
-  for (const value of [project.slug, project.coingecko_id]) {
+  for (const value of [project.slug, project.coingecko_id, project.cmc_id]) {
     const normalized = normalizeCmcLookupKey(value)
     if (normalized) keys.add(normalized)
   }
@@ -189,7 +192,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
 
   const dataQuery = supabase
     .from('project_reports')
-    .select('*, project:tracked_projects(id, name, slug, symbol, chain, category, coingecko_id, aliases)')
+    .select('*, project:tracked_projects(id, name, slug, symbol, chain, category, coingecko_id, cmc_id, aliases)')
     .in('status', ['published', 'coming_soon', 'in_review'])
     .eq('report_type', 'forensic')
     .gte('created_at', seventyTwoHoursAgo.toISOString())
@@ -200,14 +203,18 @@ export default async function ReportsPage({ params, searchParams }: Props) {
   if (reportsError) {
     throw new Error(`Failed to load rapid change reports: ${reportsError.message}`)
   }
-  const { reports, totalCount, totalPages, currentPage: activePage } = prepareRapidChangeReports({
+  const reportCandidates = prepareRapidChangeReportCandidates({
     reports: (rawReports || []) as ProjectReport[],
     locale,
-    page: currentPage,
-    pageSize: PAGE_SIZE,
     searchQuery,
   })
-  const cmcRanksByReportId = await loadLatestCmcRanksForReports(supabase, reports)
+  const cmcRanksByReportId = await loadLatestCmcRanksForReports(supabase, reportCandidates)
+  const rankedReportCandidates = reportCandidates.filter((report) => cmcRanksByReportId.has(report.id))
+  const { reports, totalCount, totalPages, currentPage: activePage } = paginateRapidChangeReports({
+    reports: rankedReportCandidates,
+    page: currentPage,
+    pageSize: PAGE_SIZE,
+  })
 
   function filterUrl(params: { page?: number; q?: string }) {
     const sp = new URLSearchParams()
