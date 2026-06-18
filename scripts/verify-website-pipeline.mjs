@@ -92,6 +92,26 @@ for (const file of [
 }
 
 for (const file of [
+  'src/app/[locale]/dashboard/loading.tsx',
+  'src/app/[locale]/dashboard/page.tsx',
+  'src/app/[locale]/products/loading.tsx',
+  'src/app/[locale]/products/page.tsx',
+  'src/app/[locale]/products/[slug]/loading.tsx',
+  'src/app/[locale]/products/[slug]/page.tsx',
+  'src/app/[locale]/subscribe/page.tsx',
+  'src/app/api/newsletter/send/route.ts',
+  'src/app/api/subscribe/route.ts',
+  'src/app/api/subscribe/unsubscribe/route.ts',
+  'src/components/DashboardBetaSignalsSection.tsx',
+  'src/components/ProductCard.tsx',
+  'src/components/ProductFilter.tsx',
+  'src/components/ReferralTab.tsx',
+  'src/lib/repositories/dashboard.ts',
+]) {
+  requireFile(file, `Retained commerce/dashboard surface ${file}`)
+}
+
+for (const file of [
   'src/app/[locale]/score/page.tsx',
   'src/lib/repositories/reports.ts',
 ]) {
