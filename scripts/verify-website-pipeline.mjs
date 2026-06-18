@@ -73,6 +73,14 @@ requireText('.github/PULL_REQUEST_TEMPLATE.md', 'Paperclip Pipeline Evidence', '
 requireText('.github/PULL_REQUEST_TEMPLATE.md', 'Board approval', 'PR template captures board approval evidence')
 
 for (const file of [
+  'public/images/score-header-bg.png',
+  'public/images/exchanges-header-bg.png',
+  'public/images/exchange-detail-header-base.png',
+]) {
+  requireFile(file, `Header background asset ${file}`)
+}
+
+for (const file of [
   'src/app/[locale]/page.tsx',
   'src/app/[locale]/score/page.tsx',
   'src/app/[locale]/projects/[slug]/page.tsx',
@@ -104,6 +112,12 @@ requireText(
 requireText('src/app/[locale]/projects/[slug]/page.tsx', 'in_review', 'src/app/[locale]/projects/[slug]/page.tsx includes review-ready slide reports')
 requireText('src/app/[locale]/projects/[slug]/page.tsx', 'reportSupportsLocale', 'src/app/[locale]/projects/[slug]/page.tsx delegates locale asset checks')
 requireText('src/lib/report-locale.ts', 'slide_html_urls_by_lang', 'src/lib/report-locale.ts requires slide HTML assets')
+requireText('src/app/[locale]/projects/[slug]/page.tsx', 'getProjectDetailHeaderStyle', 'src/app/[locale]/projects/[slug]/page.tsx renders project header background')
+requireText('src/app/[locale]/projects/[slug]/page.tsx', 'PROJECT_HEADER_FALLBACK_IMAGE', 'src/app/[locale]/projects/[slug]/page.tsx keeps fallback header background')
+requireText('src/app/[locale]/exchanges/page.tsx', 'getExchangesHeaderStyle', 'src/app/[locale]/exchanges/page.tsx renders exchange list header background')
+requireText('src/app/[locale]/exchanges/[slug]/page.tsx', 'getExchangeDetailHeaderStyle', 'src/app/[locale]/exchanges/[slug]/page.tsx renders exchange detail header background')
+requireText('src/lib/exchange-header-art.ts', 'EXCHANGES_HEADER_BACKGROUND_IMAGE', 'src/lib/exchange-header-art.ts defines exchange list background asset')
+requireText('src/lib/exchange-header-art.ts', 'EXCHANGE_DETAIL_HEADER_BASE_IMAGE', 'src/lib/exchange-header-art.ts defines exchange detail background asset')
 
 if (failures.length > 0) {
   console.error('\nWebsite pipeline alignment failed:')
