@@ -31,7 +31,7 @@
             "workflow": ".github/workflows/slide-pipeline-cron.yml",
             "entrypoint": "scripts/pipeline/watch_slides.py",
             "commandContains": "python3 watch_slides.py",
-            "args": ["--type", "econ"],
+            "args": ["--type", "econ", "--drive-root-scope", "active"],
             "localAllowed": ["dry_run", "development"]
           }
         },
@@ -122,6 +122,173 @@
       "owner": "CRO",
       "status": "active",
       "reportType": "for"
+    },
+    {
+      "key": "forensic-rapid-change-scan",
+      "paperclipName": "Forensic Rapid Change Scan",
+      "statePage": "knowledge/pipelines/forensic-rapid-change-scan.md",
+      "owner": "CRO",
+      "status": "active",
+      "cadence": {
+        "kind": "manual_dispatch",
+        "workflow": ".github/workflows/forensic-rapid-change-scan.yml",
+        "defaultDryRun": true
+      },
+      "inputs": {
+        "marketData": "CoinMarketCap listings/latest via COINMARKETCAP_API_KEY",
+        "defaults": {
+          "top": 500,
+          "thresholdSource": "scripts/pipeline/config.py::get_forensic_scan_deviation_threshold",
+          "enableCardAnchor": false,
+          "dryRun": true
+        }
+      },
+      "outputs": {
+        "artifact": "scripts/pipeline/output/sudden_movers_card_anchor_${GITHUB_RUN_ID}.json",
+        "telemetry": "Supabase pipeline_runs, pipeline_node_runs, and pipeline_events rows under pipeline_name=forensic-rapid-change-scan",
+        "stateWhenWriteEnabled": "scripts/pipeline/output/sudden_movers_card_anchor_state.json",
+        "anchorsWhenWriteEnabled": "scripts/pipeline/output/sudden_movers_card_anchors.jsonl"
+      },
+      "boundaries": {
+        "currentRuntime": "scripts/pipeline/sudden_movers_card_anchor.py",
+        "candidateScanner": "scripts/pipeline/candidates/sudden_movers_scanner.py",
+        "legacyRegistrationContract": "_legacy/pipeline/scan_forensic.py",
+        "activation": "Default off; anchor writes require workflow input enable_card_anchor=true and dry_run=false."
+      },
+      "nodes": [
+        {
+          "key": "candidate_scan",
+          "paperclipLabel": "Sudden mover candidate scan",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/forensic-rapid-change-scan.yml",
+            "entrypoint": "scripts/pipeline/candidates/sudden_movers_scanner.py",
+            "invokedBy": "scripts/pipeline/sudden_movers_card_anchor.py",
+            "requiredImport": "run_candidate_scan",
+            "commandContains": "sudden_movers_card_anchor.py",
+            "localAllowed": ["dry_run", "development", "incident_reproduction"]
+          }
+        },
+        {
+          "key": "card_anchor_bridge",
+          "paperclipLabel": "Default-off FOR card anchor bridge",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/forensic-rapid-change-scan.yml",
+            "entrypoint": "scripts/pipeline/sudden_movers_card_anchor.py",
+            "commandContains": "sudden_movers_card_anchor.py",
+            "localAllowed": ["dry_run", "development", "incident_reproduction"]
+          }
+        },
+        {
+          "key": "scan_result_artifact",
+          "paperclipLabel": "Rapid-change scan evidence artifact",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/forensic-rapid-change-scan.yml",
+            "commandContains": "forensic-rapid-change-scan-",
+            "localAllowed": ["development"]
+          }
+        }
+      ]
+    },
+    {
+      "key": "x-promo-manual-post",
+      "paperclipName": "X Promo Manual Post",
+      "statePage": "knowledge/pipelines/x-promo.md",
+      "owner": "CMO",
+      "status": "active",
+      "cadence": {
+        "kind": "manual_dispatch",
+        "workflow": ".github/workflows/x-promo-manual-post.yml",
+        "defaultDryRun": true
+      },
+      "inputs": {
+        "source": "Production Supabase project_reports rows with marketing_content_by_lang or card-summary fallback",
+        "dispatch": {
+          "confirmKey": "workflow_dispatch input confirm_key; exact approved duplicate_key",
+          "confirmSlug": "workflow_dispatch input confirm_slug; exact report slug",
+          "post": "workflow_dispatch input post; false is dry-run, true calls X API",
+          "limit": "workflow_dispatch input limit; maximum production rows to inspect"
+        },
+        "secrets": [
+          "SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL",
+          "SUPABASE_SERVICE_KEY",
+          "X_API_KEY",
+          "X_API_SECRET",
+          "X_ACCESS_TOKEN",
+          "X_ACCESS_TOKEN_SECRET"
+        ]
+      },
+      "outputs": {
+        "approvalQueue": "data/x-approval-queue/x-promo-approval-${RUN_ID}.jsonl and .md",
+        "approvedQueue": "data/x-approval-queue/x-promo-approved-${RUN_ID}.jsonl",
+        "postLog": "data/x-post-attempts.jsonl",
+        "artifact": "x-promo-manual-post-${{ github.run_id }}-${{ github.run_attempt }}"
+      },
+      "boundaries": {
+        "postingDefault": "Dry-run unless workflow input post=true and script receives --post.",
+        "approval": "Workflow approves exactly one row only when confirm_key and confirm_slug match one generated queue row.",
+        "duplicateGuard": "scripts/pipeline/x_promo_pipeline.py skips rows with an existing posted result for the same duplicate_key.",
+        "localPolicy": "Local execution is for dry-run, development, or incident reproduction only; live X posts use the remote workflow.",
+        "secretPolicy": "Do not record X or Supabase secret values in Paperclip comments, GitHub logs, artifacts, or commits.",
+        "incidentBoundary": "Real-post run 25359605164 reached POST https://api.x.com/2/tweets and failed with HTTP 403; treat as X Developer Console tier/permission/OAuth token/App environment blocker until X-side state is confirmed."
+      },
+      "nodes": [
+        {
+          "key": "production_queue_generation",
+          "paperclipLabel": "Production X promo queue generation",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/x-promo-manual-post.yml",
+            "entrypoint": "scripts/pipeline/x_promo_pipeline.py",
+            "commandContains": "x_promo_pipeline.py",
+            "localAllowed": ["dry_run", "development", "incident_reproduction"]
+          }
+        },
+        {
+          "key": "single_row_manual_approval",
+          "paperclipLabel": "Exact single-row manual approval",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/x-promo-manual-post.yml",
+            "commandContains": "Approved exactly one queue row",
+            "localAllowed": ["dry_run", "development", "incident_reproduction"]
+          }
+        },
+        {
+          "key": "dry_run_selected_post",
+          "paperclipLabel": "Selected post dry-run",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/x-promo-manual-post.yml",
+            "entrypoint": "scripts/pipeline/x_promo_pipeline.py",
+            "commandContains": "x_promo_pipeline.py",
+            "localAllowed": ["dry_run", "development", "incident_reproduction"]
+          }
+        },
+        {
+          "key": "post_selected_item",
+          "paperclipLabel": "Selected item X post",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/x-promo-manual-post.yml",
+            "entrypoint": "scripts/pipeline/x_promo_pipeline.py",
+            "commandContains": "x_promo_pipeline.py",
+            "localAllowed": ["incident_reproduction"]
+          }
+        },
+        {
+          "key": "approval_and_post_artifacts",
+          "paperclipLabel": "Approval and post evidence artifact",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/x-promo-manual-post.yml",
+            "commandContains": "x-promo-manual-post-",
+            "localAllowed": ["development"]
+          }
+        }
+      ]
     },
     {
       "key": "bcelab-website-development-and-operations",

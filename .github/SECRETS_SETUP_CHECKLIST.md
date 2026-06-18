@@ -1,6 +1,7 @@
-# GitHub Secrets Setup Checklist for FOR Pipeline
+# GitHub Secrets Setup Checklist for Slide Pipeline
 
-Use this checklist when configuring GitHub Actions secrets for the FOR pipeline workflow.
+Use this checklist when configuring GitHub Actions secrets for the active slide
+pipeline workflow. The retired FOR draft workflow must not be recreated.
 
 ## Setup Location
 **GitHub Repository → Settings → Secrets and variables → Actions → Repository secrets**
@@ -20,7 +21,7 @@ Use this checklist when configuring GitHub Actions secrets for the FOR pipeline 
   - Find in: Supabase project settings → API → service_role (secret!)
   - Format: Long JWT token starting with `eyJ`
 
-### ✅ Google Drive (3 secrets)
+### ✅ Google Drive (4 secrets)
 - [ ] `GDRIVE_ROOT_FOLDER_ID`
   - Find in: Google Drive folder URL
   - Format: Last segment of URL (e.g., `1E87EcasPlrGuet0t6e1CA9kLFO0sTdFq`)
@@ -33,6 +34,10 @@ Use this checklist when configuring GitHub Actions secrets for the FOR pipeline 
   - Source: Service account JSON key file from Google Cloud Console
   - **Important**: Copy the ENTIRE file content (including `{` and `}`)
   - Verify: Should start with `{"type":"service_account"`
+
+- [ ] `BCE_MARKETING_FOR_SOURCE_FOLDER_ID`
+  - Source: Google Drive `analysis/FOR` folder URL
+  - Required for FOR summary and marketing copy extraction
 
 ### ✅ API Keys (4 secrets)
 - [ ] `ANTHROPIC_API_KEY`
@@ -64,6 +69,7 @@ gh secret set SUPABASE_SERVICE_KEY -b "your-service-key"
 gh secret set GDRIVE_ROOT_FOLDER_ID -b "your-folder-id"
 gh secret set GDRIVE_DELEGATE_EMAIL -b "zhang@coinlab.co.kr"
 gh secret set GDRIVE_SERVICE_ACCOUNT_JSON < /path/to/service-account.json
+gh secret set BCE_MARKETING_FOR_SOURCE_FOLDER_ID -b "your-analysis-for-folder-id"
 
 # Set API keys
 gh secret set ANTHROPIC_API_KEY -b "sk-ant-api03-..."
@@ -83,6 +89,7 @@ gh secret set SUPABASE_SERVICE_KEY -b "$SUPABASE_SERVICE_KEY"
 gh secret set GDRIVE_ROOT_FOLDER_ID -b "$GDRIVE_ROOT_FOLDER_ID"
 gh secret set GDRIVE_DELEGATE_EMAIL -b "$GDRIVE_DELEGATE_EMAIL"
 gh secret set GDRIVE_SERVICE_ACCOUNT_JSON < "$GDRIVE_SERVICE_ACCOUNT_FILE"
+gh secret set BCE_MARKETING_FOR_SOURCE_FOLDER_ID -b "$BCE_MARKETING_FOR_SOURCE_FOLDER_ID"
 gh secret set ANTHROPIC_API_KEY -b "$ANTHROPIC_API_KEY"
 gh secret set ETHERSCAN_API_KEY -b "$ETHERSCAN_API_KEY"
 gh secret set COINMARKETCAP_API_KEY -b "$COINMARKETCAP_API_KEY"
@@ -95,11 +102,11 @@ gh secret set RESEND_API_KEY -b "$RESEND_API_KEY"
 ```bash
 gh secret list
 ```
-Expected output: 11 secrets listed
+Expected output: 12 secrets listed
 
 ### 2. Test Workflow (Dry Run)
 1. Go to **Actions** tab
-2. Select **FOR Pipeline - Automated Processing**
+2. Select **Slide Pipeline - Automated Processing**
 3. Click **Run workflow**
 4. Enable **dry_run** checkbox
 5. Click **Run workflow**
@@ -113,7 +120,7 @@ Expected output: 11 secrets listed
 - Error pattern: "Invalid API key" → check service key
 
 #### Google Drive Test
-- Should see: "Found X files in drafts/FOR/"
+- Should see: `Slide/{TYPE}` scan output from `scripts/pipeline/watch_slides.py`
 - Error pattern: "403 Forbidden" → check service account permissions
 - Error pattern: "Folder not found" → check root folder ID
 
