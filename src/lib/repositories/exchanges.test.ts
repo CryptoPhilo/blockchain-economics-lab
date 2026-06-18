@@ -357,6 +357,47 @@ describe('exchange repository aggregation helpers', () => {
     ])
   })
 
+  it('merges live localized availability with tracked report timestamps so partial live rows do not erase badges', () => {
+    const bitcoin = project({
+      id: 'bitcoin',
+      slug: 'bitcoin',
+      name: 'Bitcoin',
+      symbol: 'BTC',
+      cmc_rank: 1,
+      maturity_score: 80,
+      last_econ_report_at: '2026-06-01T00:00:00Z',
+      last_maturity_report_at: '2026-06-02T00:00:00Z',
+    })
+
+    const detail = buildExchangeProjectRows([
+      {
+        listing_status: 'active',
+        exchange: binance,
+        project: bitcoin,
+      },
+    ], 'Binance', new Map([
+      ['bitcoin', {
+        reportTypes: ['econ'],
+        reportDates: {
+          econ: '2026-06-10T00:00:00Z',
+          maturity: null,
+          forensic: null,
+        },
+      }],
+    ]))
+
+    expect(detail.projects).toEqual([
+      expect.objectContaining({
+        slug: 'bitcoin',
+        reportTypes: ['econ', 'maturity'],
+        reportDates: expect.objectContaining({
+          econ: '2026-06-10T00:00:00Z',
+          maturity: '2026-06-02T00:00:00Z',
+        }),
+      }),
+    ])
+  })
+
   it('keeps report badges for exchange-listed projects outside the Top500 universe', () => {
     const openGradient = project({
       id: 'opengradient-id',

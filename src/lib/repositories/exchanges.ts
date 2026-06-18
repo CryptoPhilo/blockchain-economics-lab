@@ -365,6 +365,35 @@ function createFallbackReportAvailability(project: ExchangeProjectRecord): Repor
   }
 }
 
+function pickLatestReportDate(...dates: Array<string | null | undefined>) {
+  const validDates = dates.filter((date): date is string => !!date)
+  if (validDates.length === 0) return null
+
+  return validDates.reduce((latest, candidate) => (
+    new Date(candidate).getTime() > new Date(latest).getTime() ? candidate : latest
+  ))
+}
+
+function mergeReportAvailability(
+  fallback: ReportAvailability,
+  live: ReportAvailability | undefined,
+): ReportAvailability {
+  if (!live) return fallback
+
+  const reportTypes = ['econ', 'maturity', 'forensic'].filter((reportType) => (
+    fallback.reportTypes.includes(reportType) || live.reportTypes.includes(reportType)
+  ))
+
+  return {
+    reportTypes,
+    reportDates: {
+      econ: pickLatestReportDate(live.reportDates.econ, fallback.reportDates.econ),
+      maturity: pickLatestReportDate(live.reportDates.maturity, fallback.reportDates.maturity),
+      forensic: pickLatestReportDate(live.reportDates.forensic, fallback.reportDates.forensic),
+    },
+  }
+}
+
 export function buildExchangeAggregates(
   input: ExchangeListingRecord[] | ExchangeAggregateSource,
 ): ExchangeAggregate[] {
@@ -471,9 +500,13 @@ export function buildExchangeProjectRows(
     })
     .map((project) => {
       const cmcRank = toNullableNumber(project.cmc_rank)
+      const fallbackAvailability = createFallbackReportAvailability(project)
       const reportAvailability = availabilityByProjectId
-        ? (availabilityByProjectId.get(project.id) ?? createEmptyReportAvailability())
-        : createFallbackReportAvailability(project)
+        ? mergeReportAvailability(
+          fallbackAvailability,
+          availabilityByProjectId.get(project.id) ?? createEmptyReportAvailability(),
+        )
+        : fallbackAvailability
 
       return {
         rank: cmcRank,

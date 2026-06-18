@@ -19,24 +19,25 @@ function makeRankRow(rank: number, recordedAt: string) {
   }
 }
 
-function makeLatestDateQuery(recordedAt: string | null) {
+function makeCandidateQuery(rows: Array<{ recorded_at: string; cmc_rank: number }>) {
   return {
     select: jest.fn().mockReturnThis(),
     eq: jest.fn().mockReturnThis(),
     gte: jest.fn().mockReturnThis(),
     lte: jest.fn().mockReturnThis(),
     order: jest.fn().mockReturnThis(),
-    limit: jest.fn().mockReturnThis(),
-    maybeSingle: jest.fn().mockResolvedValue({
-      data: recordedAt ? { recorded_at: recordedAt } : null,
+    limit: jest.fn().mockResolvedValue({
+      data: rows,
       error: null,
     }),
   }
 }
 
 describe('ProjectsRepository.getLatestScoreboardMarketSnapshot', () => {
-  it('uses the two-query fast path when the latest CMC Top 500 snapshot is complete', async () => {
-    const latestDateQuery = makeLatestDateQuery('2026-05-12')
+  it('loads the latest complete CMC Top 500 snapshot without probing partial dates', async () => {
+    const candidateQuery = makeCandidateQuery(
+      Array.from({ length: 500 }, (_, index) => makeRankRow(index + 1, '2026-05-12')),
+    )
     const latestSnapshotQuery = {
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
@@ -50,7 +51,7 @@ describe('ProjectsRepository.getLatestScoreboardMarketSnapshot', () => {
     }
     const supabase = {
       from: jest.fn()
-        .mockReturnValueOnce(latestDateQuery)
+        .mockReturnValueOnce(candidateQuery)
         .mockReturnValueOnce(latestSnapshotQuery),
     }
     const repository = new ProjectsRepository(supabase as never)
@@ -61,38 +62,15 @@ describe('ProjectsRepository.getLatestScoreboardMarketSnapshot', () => {
     expect(rows[0]).toMatchObject({ recorded_at: '2026-05-12', cmc_rank: 1 })
     expect(rows[499]).toMatchObject({ recorded_at: '2026-05-12', cmc_rank: 500 })
     expect(supabase.from).toHaveBeenCalledTimes(2)
-    expect(latestDateQuery.maybeSingle).toHaveBeenCalled()
+    expect(candidateQuery.select).toHaveBeenCalledWith('recorded_at, cmc_rank')
     expect(latestSnapshotQuery.eq).toHaveBeenCalledWith('recorded_at', '2026-05-12')
   })
 
-  it('falls back to the latest complete Top 500 snapshot when the newest CMC date is partial', async () => {
-    const latestDateQuery = makeLatestDateQuery('2026-05-12')
-    const recentDatesQuery = {
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      gte: jest.fn().mockReturnThis(),
-      lte: jest.fn().mockReturnThis(),
-      order: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockResolvedValue({
-        data: [
-          { recorded_at: '2026-05-12' },
-          { recorded_at: '2026-05-12' },
-          { recorded_at: '2026-05-11' },
-        ],
-        error: null,
-      }),
-    }
-    const newestSnapshotQuery = {
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      gte: jest.fn().mockReturnThis(),
-      lte: jest.fn().mockReturnThis(),
-      order: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockResolvedValue({
-        data: [makeMarketSnapshotRow(1, '2026-05-12')],
-        error: null,
-      }),
-    }
+  it('selects the latest complete Top 500 snapshot when the newest CMC date is partial', async () => {
+    const candidateQuery = makeCandidateQuery([
+      makeRankRow(1, '2026-05-12'),
+      ...Array.from({ length: 500 }, (_, index) => makeRankRow(index + 1, '2026-05-11')),
+    ])
     const previousSnapshotQuery = {
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
@@ -106,9 +84,7 @@ describe('ProjectsRepository.getLatestScoreboardMarketSnapshot', () => {
     }
     const supabase = {
       from: jest.fn()
-        .mockReturnValueOnce(latestDateQuery)
-        .mockReturnValueOnce(newestSnapshotQuery)
-        .mockReturnValueOnce(recentDatesQuery)
+        .mockReturnValueOnce(candidateQuery)
         .mockReturnValueOnce(previousSnapshotQuery),
     }
     const repository = new ProjectsRepository(supabase as never)
@@ -118,18 +94,19 @@ describe('ProjectsRepository.getLatestScoreboardMarketSnapshot', () => {
     expect(rows).toHaveLength(500)
     expect(rows[0]).toMatchObject({ recorded_at: '2026-05-11', cmc_rank: 1 })
     expect(rows[499]).toMatchObject({ recorded_at: '2026-05-11', cmc_rank: 500 })
-    expect(supabase.from).toHaveBeenCalledTimes(4)
-    expect(recentDatesQuery.eq).toHaveBeenCalledWith('source', 'coinmarketcap')
-    expect(recentDatesQuery.gte).toHaveBeenCalledWith('cmc_rank', 1)
-    expect(recentDatesQuery.lte).toHaveBeenCalledWith('cmc_rank', 500)
-    expect(newestSnapshotQuery.eq).toHaveBeenCalledWith('recorded_at', '2026-05-12')
+    expect(supabase.from).toHaveBeenCalledTimes(2)
+    expect(candidateQuery.eq).toHaveBeenCalledWith('source', 'coinmarketcap')
+    expect(candidateQuery.gte).toHaveBeenCalledWith('cmc_rank', 1)
+    expect(candidateQuery.lte).toHaveBeenCalledWith('cmc_rank', 500)
     expect(previousSnapshotQuery.eq).toHaveBeenCalledWith('recorded_at', '2026-05-11')
   })
 })
 
 describe('ProjectsRepository.getLatestCmcRanks', () => {
-  it('uses the two-query fast path when the latest rank snapshot is complete', async () => {
-    const latestDateQuery = makeLatestDateQuery('2026-05-12')
+  it('uses the latest complete rank snapshot', async () => {
+    const candidateQuery = makeCandidateQuery(
+      Array.from({ length: 200 }, (_, index) => makeRankRow(index + 1, '2026-05-12')),
+    )
     const latestRankQuery = {
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
@@ -143,7 +120,7 @@ describe('ProjectsRepository.getLatestCmcRanks', () => {
     }
     const supabase = {
       from: jest.fn()
-        .mockReturnValueOnce(latestDateQuery)
+        .mockReturnValueOnce(candidateQuery)
         .mockReturnValueOnce(latestRankQuery),
     }
     const repository = new ProjectsRepository(supabase as never)
@@ -157,34 +134,11 @@ describe('ProjectsRepository.getLatestCmcRanks', () => {
     expect(latestRankQuery.eq).toHaveBeenCalledWith('recorded_at', '2026-05-12')
   })
 
-  it('falls back to the latest complete rank snapshot when the newest CMC date is partial', async () => {
-    const latestDateQuery = makeLatestDateQuery('2026-05-12')
-    const recentDatesQuery = {
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      gte: jest.fn().mockReturnThis(),
-      lte: jest.fn().mockReturnThis(),
-      order: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockResolvedValue({
-        data: [
-          { recorded_at: '2026-05-12' },
-          { recorded_at: '2026-05-12' },
-          { recorded_at: '2026-05-11' },
-        ],
-        error: null,
-      }),
-    }
-    const newestRankQuery = {
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      gte: jest.fn().mockReturnThis(),
-      lte: jest.fn().mockReturnThis(),
-      order: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockResolvedValue({
-        data: [makeRankRow(1, '2026-05-12')],
-        error: null,
-      }),
-    }
+  it('selects the latest complete rank snapshot when the newest CMC date is partial', async () => {
+    const candidateQuery = makeCandidateQuery([
+      makeRankRow(1, '2026-05-12'),
+      ...Array.from({ length: 200 }, (_, index) => makeRankRow(index + 1, '2026-05-11')),
+    ])
     const previousRankQuery = {
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
@@ -198,9 +152,7 @@ describe('ProjectsRepository.getLatestCmcRanks', () => {
     }
     const supabase = {
       from: jest.fn()
-        .mockReturnValueOnce(latestDateQuery)
-        .mockReturnValueOnce(newestRankQuery)
-        .mockReturnValueOnce(recentDatesQuery)
+        .mockReturnValueOnce(candidateQuery)
         .mockReturnValueOnce(previousRankQuery),
     }
     const repository = new ProjectsRepository(supabase as never)
@@ -210,10 +162,9 @@ describe('ProjectsRepository.getLatestCmcRanks', () => {
     expect(rows).toHaveLength(200)
     expect(rows[0]).toEqual(makeRankRow(1, '2026-05-11'))
     expect(rows[199]).toEqual(makeRankRow(200, '2026-05-11'))
-    expect(supabase.from).toHaveBeenCalledTimes(4)
-    expect(recentDatesQuery.lte).toHaveBeenCalledWith('cmc_rank', 200)
-    expect(newestRankQuery.select).toHaveBeenCalledWith('slug, cmc_rank')
-    expect(newestRankQuery.eq).toHaveBeenCalledWith('recorded_at', '2026-05-12')
+    expect(supabase.from).toHaveBeenCalledTimes(2)
+    expect(candidateQuery.lte).toHaveBeenCalledWith('cmc_rank', 200)
+    expect(previousRankQuery.select).toHaveBeenCalledWith('slug, cmc_rank')
     expect(previousRankQuery.eq).toHaveBeenCalledWith('recorded_at', '2026-05-11')
   })
 })
