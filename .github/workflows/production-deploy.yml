@@ -11,6 +11,10 @@ on:
         description: 'Paperclip board approval URL or approval evidence'
         required: true
         type: string
+      expected_branch:
+        description: 'Paperclip work branch/ref that must be selected for this deployment'
+        required: true
+        type: string
       expected_commit:
         description: 'Expected commit SHA to deploy. Leave blank to deploy the selected ref.'
         required: false
@@ -30,7 +34,17 @@ jobs:
       - id: sha
         run: |
           SELECTED_SHA="${{ github.sha }}"
+          SELECTED_REF="${{ github.ref_name }}"
+          EXPECTED_REF="${{ inputs.expected_branch }}"
           EXPECTED_SHA="${{ inputs.expected_commit }}"
+          if [ -z "$EXPECTED_REF" ]; then
+            echo "expected_branch is required so Paperclip agents deploy their actual work branch"
+            exit 1
+          fi
+          if [ "$EXPECTED_REF" != "$SELECTED_REF" ]; then
+            echo "Expected branch/ref $EXPECTED_REF but workflow selected $SELECTED_REF"
+            exit 1
+          fi
           if [ -n "$EXPECTED_SHA" ] && [ "$EXPECTED_SHA" != "$SELECTED_SHA" ]; then
             echo "Expected commit $EXPECTED_SHA but workflow selected $SELECTED_SHA"
             exit 1
@@ -40,6 +54,7 @@ jobs:
         run: |
           test -n "${{ inputs.paperclip_issue }}"
           test -n "${{ inputs.board_approval_url }}"
+          test -n "${{ inputs.expected_branch }}"
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -80,5 +95,10 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "- Paperclip issue: ${{ inputs.paperclip_issue }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Board approval: ${{ inputs.board_approval_url }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Branch/ref: ${{ github.ref_name }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Commit: ${{ needs.verify-deployment-evidence.outputs.deploy_sha }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Vercel URL: ${{ steps.vercel.outputs.preview-url }}" >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify Top500 and exchange regression gates
+        env:
+          BCE_REGRESSION_BASE_URL: ${{ steps.vercel.outputs.preview-url }}
+        run: npm run verify:production-regressions

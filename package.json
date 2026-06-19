@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "jest",
     "verify:pipeline": "node scripts/verify-website-pipeline.mjs",
-    "verify:runtime-pipelines": "node scripts/verify-runtime-pipelines.mjs"
+    "verify:runtime-pipelines": "node scripts/verify-runtime-pipelines.mjs",
+    "verify:production-regressions": "node scripts/verify-production-regression-gates.mjs"
   },
   "dependencies": {
     "@parcel/watcher": "^2.5.6",
