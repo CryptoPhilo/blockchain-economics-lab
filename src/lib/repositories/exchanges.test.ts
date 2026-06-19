@@ -1,4 +1,5 @@
 import {
+  applyLatestCmcRanks,
   applyProjectReportAvailabilityAliases,
   buildExchangeAggregates,
   buildExchangeProjectRows,
@@ -385,6 +386,36 @@ describe('exchange repository aggregation helpers', () => {
         maturity: '2026-05-02T00:00:00Z',
         forensic: null,
       }),
+    }))
+  })
+
+  it('applies latest CMC ranks through project name and alias keys', () => {
+    const polygonListing = project({
+      id: 'polygon-listing',
+      slug: 'matic-network',
+      name: 'Polygon',
+      symbol: 'POL',
+      cmc_rank: null,
+      aliases: ['polygon'],
+    })
+
+    const rankedRows = applyLatestCmcRanks([
+      {
+        listing_status: 'active',
+        exchange: binance,
+        project: polygonListing,
+      },
+    ], new Map([
+      ['polygon', 63],
+      ['polygon:pol', 63],
+    ]))
+
+    const detail = buildExchangeProjectRows(rankedRows, 'Binance')
+
+    expect(detail.projects[0]).toEqual(expect.objectContaining({
+      rank: 63,
+      cmcRank: 63,
+      slug: 'matic-network',
     }))
   })
 

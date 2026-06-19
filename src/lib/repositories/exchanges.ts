@@ -95,6 +95,8 @@ type ProjectReportAvailabilityCandidate = Pick<
 
 type LatestCmcRankRow = {
   slug: string
+  cmc_symbol?: string | null
+  cmc_name?: string | null
   cmc_rank: number | string | null
 }
 
@@ -259,21 +261,48 @@ function isActiveListing(row: ExchangeListingRecord) {
   )
 }
 
-function applyLatestCmcRanks(
+function getProjectCmcRankKeys(project: ExchangeProjectRecord): string[] {
+  const keys = [
+    normalizeNullableKey(project.slug),
+    normalizeNullableKey(project.coingecko_id),
+    normalizeNullableKey(project.cmc_id),
+    normalizeNullableKey(project.name),
+    normalizeNullableKey(`${project.name}:${project.symbol}`),
+  ]
+
+  if (Array.isArray(project.aliases)) {
+    for (const alias of project.aliases) {
+      keys.push(normalizeNullableKey(alias))
+    }
+  }
+
+  return Array.from(new Set(keys.filter((key): key is string => !!key)))
+}
+
+function getLatestCmcRank(project: ExchangeProjectRecord, cmcRankByKey: Map<string, number>) {
+  for (const key of getProjectCmcRankKeys(project)) {
+    const rank = cmcRankByKey.get(key)
+    if (rank !== undefined) return rank
+  }
+
+  return undefined
+}
+
+export function applyLatestCmcRanks(
   rows: ExchangeListingRecord[],
-  cmcRankBySlug: Map<string, number>,
+  cmcRankByKey: Map<string, number>,
 ): ExchangeListingRecord[] {
   return rows.map((row) => {
     const project = first(row.project)
     if (!project) return row
 
-    const rank = cmcRankBySlug.get(project.slug)
+    const rank = getLatestCmcRank(project, cmcRankByKey)
     if (rank === undefined) return row
 
     return {
       ...row,
       project: Array.isArray(row.project)
-        ? row.project.map((candidate) => ({ ...candidate, cmc_rank: cmcRankBySlug.get(candidate.slug) ?? candidate.cmc_rank ?? null }))
+        ? row.project.map((candidate) => ({ ...candidate, cmc_rank: getLatestCmcRank(candidate, cmcRankByKey) ?? candidate.cmc_rank ?? null }))
         : { ...project, cmc_rank: rank },
     }
   })
@@ -616,7 +645,7 @@ export class ExchangesRepository {
     for (let offset = 0; ; offset += PAGE_SIZE) {
       const { data, error } = await this.supabase
         .from('market_data_daily')
-        .select('slug, cmc_rank')
+        .select('slug, cmc_symbol, cmc_name, cmc_rank')
         .eq('recorded_at', latestSnapshot.recorded_at)
         .eq('source', 'coinmarketcap')
         .gte('cmc_rank', 1)
@@ -631,7 +660,17 @@ export class ExchangesRepository {
       const batch = (data || []) as LatestCmcRankRow[]
       for (const row of batch) {
         const rank = toNullableNumber(row.cmc_rank)
-        if (row.slug && rank !== null) ranks.set(row.slug, rank)
+        if (rank === null) continue
+
+        const keys = [
+          normalizeNullableKey(row.slug),
+          normalizeNullableKey(row.cmc_name),
+          normalizeNullableKey(`${row.cmc_name}:${row.cmc_symbol}`),
+        ]
+
+        for (const key of keys) {
+          if (key && !ranks.has(key)) ranks.set(key, rank)
+        }
       }
 
       if (batch.length < PAGE_SIZE) break
