@@ -11,6 +11,9 @@ import {
 
 const PAGE_SIZE = 1000
 const ACTIVE_PROJECT_STATUSES = new Set(['active', 'monitoring_only'])
+const CMC_RANK_ALIAS_KEYS_BY_PROJECT_SLUG: Record<string, readonly string[]> = {
+  'the-open-network': ['toncoin'],
+}
 
 export type ExchangeRecord = {
   id: string
@@ -268,6 +271,7 @@ function getProjectCmcRankKeys(project: ExchangeProjectRecord): string[] {
     normalizeNullableKey(project.cmc_id),
     normalizeNullableKey(project.name),
     normalizeNullableKey(`${project.name}:${project.symbol}`),
+    ...((CMC_RANK_ALIAS_KEYS_BY_PROJECT_SLUG[project.slug] ?? []).map(normalizeNullableKey)),
   ]
 
   if (Array.isArray(project.aliases)) {
