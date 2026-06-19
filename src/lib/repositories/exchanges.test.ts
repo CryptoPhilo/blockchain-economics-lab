@@ -395,6 +395,71 @@ describe('exchange repository aggregation helpers', () => {
     }))
   })
 
+  it('merges report availability from multiple alias-matched report projects', () => {
+    const saharaListing = project({
+      id: 'sahara-market-row',
+      slug: 'sahara-ai',
+      name: 'Sahara AI',
+      symbol: 'SAHARA',
+    })
+    const saharaAnalysisProject = project({
+      id: 'sahara-analysis-row',
+      slug: 'sahara-ai',
+      name: 'Sahara AI',
+      symbol: 'SAHARA',
+      status: 'monitoring_only',
+    })
+    const saharaForensicProject = project({
+      id: 'sahara-forensic-row',
+      slug: 'sahara-ai',
+      name: 'Sahara AI',
+      symbol: 'SAHARA',
+      status: 'monitoring_only',
+    })
+    const availabilityByProjectId = new Map([
+      [saharaAnalysisProject.id, {
+        reportTypes: ['econ', 'maturity'],
+        reportDates: {
+          econ: '2026-05-29T00:00:00Z',
+          maturity: '2026-06-09T00:00:00Z',
+          forensic: null,
+        },
+      }],
+      [saharaForensicProject.id, {
+        reportTypes: ['forensic'],
+        reportDates: {
+          econ: null,
+          maturity: null,
+          forensic: '2026-06-05T00:00:00Z',
+        },
+      }],
+    ])
+
+    applyProjectReportAvailabilityAliases(
+      availabilityByProjectId,
+      [saharaListing],
+      [saharaListing, saharaAnalysisProject, saharaForensicProject],
+    )
+
+    const detail = buildExchangeProjectRows([
+      {
+        listing_status: 'active',
+        exchange: binance,
+        project: saharaListing,
+      },
+    ], 'binance', availabilityByProjectId)
+
+    expect(detail.projects[0]).toEqual(expect.objectContaining({
+      slug: 'sahara-ai',
+      reportTypes: ['econ', 'maturity', 'forensic'],
+      reportDates: expect.objectContaining({
+        econ: '2026-05-29T00:00:00Z',
+        maturity: '2026-06-09T00:00:00Z',
+        forensic: '2026-06-05T00:00:00Z',
+      }),
+    }))
+  })
+
   it('matches CMC aliases against internal exchange slugs', () => {
     const detail = buildExchangeProjectRows([
       {

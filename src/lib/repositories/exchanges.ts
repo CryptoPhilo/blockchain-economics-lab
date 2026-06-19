@@ -302,6 +302,33 @@ function createFallbackReportAvailability(project: ExchangeProjectRecord): Repor
   }
 }
 
+function mergeReportAvailability(
+  current: ReportAvailability | undefined,
+  next: ReportAvailability | undefined,
+): ReportAvailability | undefined {
+  if (!current) return next
+  if (!next) return current
+
+  const merged: ReportAvailability = {
+    reportTypes: [...current.reportTypes],
+    reportDates: { ...current.reportDates },
+  }
+
+  for (const reportType of ['econ', 'maturity', 'forensic'] as const) {
+    if (next.reportTypes.includes(reportType) && !merged.reportTypes.includes(reportType)) {
+      merged.reportTypes.push(reportType)
+    }
+
+    const nextDate = next.reportDates[reportType]
+    const currentDate = merged.reportDates[reportType]
+    if (nextDate && (!currentDate || new Date(nextDate).getTime() > new Date(currentDate).getTime())) {
+      merged.reportDates[reportType] = nextDate
+    }
+  }
+
+  return merged
+}
+
 function getProjectAvailabilityKeys(project: ProjectReportAvailabilityCandidate): string[] {
   const keys = [
     normalizeNullableKey(project.slug),
@@ -332,21 +359,20 @@ export function applyProjectReportAvailabilityAliases(
     if (!hasReportAvailability(availability)) continue
 
     for (const key of getProjectAvailabilityKeys(project)) {
-      if (!availabilityByKey.has(key)) {
-        availabilityByKey.set(key, availability)
-      }
+      availabilityByKey.set(key, mergeReportAvailability(availabilityByKey.get(key), availability) ?? availability)
     }
   }
 
   for (const project of listedProjects) {
-    if (hasReportAvailability(availabilityByProjectId.get(project.id))) continue
+    let mergedAvailability = availabilityByProjectId.get(project.id)
 
     for (const key of getProjectAvailabilityKeys(project)) {
       const availability = availabilityByKey.get(key)
-      if (availability) {
-        availabilityByProjectId.set(project.id, availability)
-        break
-      }
+      mergedAvailability = mergeReportAvailability(mergedAvailability, availability)
+    }
+
+    if (hasReportAvailability(mergedAvailability)) {
+      availabilityByProjectId.set(project.id, mergedAvailability)
     }
   }
 }
