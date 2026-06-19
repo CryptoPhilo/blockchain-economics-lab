@@ -60,10 +60,29 @@ function mockReportsQuery(data: unknown[]) {
   return reportsQuery
 }
 
+function marketSnapshotRow(slug: string, symbol: string, name: string, rank: number) {
+  return {
+    slug,
+    cmc_symbol: symbol,
+    cmc_name: name,
+    cmc_rank: rank,
+    price_usd: null,
+    market_cap: null,
+    change_24h: null,
+    recorded_at: '2026-06-19T00:00:00.000Z',
+  }
+}
+
 describe('ReportsPage rapid change cards', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    mockGetLatestScoreboardMarketSnapshot.mockResolvedValue([])
+    mockGetLatestScoreboardMarketSnapshot.mockResolvedValue([
+      marketSnapshotRow('ethereum', 'ETH', 'Ethereum', 2),
+      marketSnapshotRow('bitcoin', 'BTC', 'Bitcoin', 1),
+      marketSnapshotRow('solana', 'SOL', 'Solana', 7),
+      marketSnapshotRow('hyperliquid', 'HYPE', 'Hyperliquid', 9),
+      marketSnapshotRow('alpha', 'ALPHA', 'Alpha', 101),
+    ])
   })
 
   it('forces dynamic rendering so locale pages cannot cache divergent rapid-change lists', () => {
@@ -270,7 +289,65 @@ describe('ReportsPage rapid change cards', () => {
     render(page)
 
     expect(screen.getByText('Undeads Games (UDS)')).toBeTruthy()
-    expect(screen.getByText('#246')).toBeTruthy()
+    expect(screen.getByText('CMC #246')).toBeTruthy()
+  })
+
+  it('does not render rapid-change cards when the project is missing from the Top 500 rank snapshot', async () => {
+    mockGetLatestScoreboardMarketSnapshot.mockResolvedValue([
+      marketSnapshotRow('redstone', 'RED', 'RedStone', 439),
+    ])
+    mockReportsQuery([
+      {
+        id: 'redstone-ranked',
+        project_id: 'redstone',
+        report_type: 'forensic',
+        version: 1,
+        status: 'coming_soon',
+        language: 'ko',
+        assigned_at: '2026-06-19T00:00:00.000Z',
+        created_at: '2026-06-19T10:00:00.000Z',
+        title_ko: 'RedStone 급변동 알림',
+        trigger_reason: '시장 급변동이 감지되었습니다.',
+        project: {
+          id: 'redstone',
+          name: 'RedStone',
+          slug: 'redstone',
+          symbol: 'RED',
+          chain: 'Ethereum',
+          category: 'Oracle',
+        },
+      },
+      {
+        id: 'jpmx-unranked',
+        project_id: 'jpmorgan-chase-tokenized-stock-xstock',
+        report_type: 'forensic',
+        version: 1,
+        status: 'coming_soon',
+        language: 'ko',
+        assigned_at: '2026-06-19T00:00:00.000Z',
+        created_at: '2026-06-19T11:00:00.000Z',
+        title_ko: 'JPMX 급변동 알림',
+        trigger_reason: '시장 급변동이 감지되었습니다.',
+        project: {
+          id: 'jpmorgan-chase-tokenized-stock-xstock',
+          name: 'JPMorgan Chase tokenized stock (xStock)',
+          slug: 'jpmorgan-chase-tokenized-stock-xstock',
+          symbol: 'JPMX',
+          chain: 'xStock',
+          category: 'Tokenized Stock',
+        },
+      },
+    ])
+
+    const page = await ReportsPage({
+      params: Promise.resolve({ locale: 'ko' }),
+      searchParams: Promise.resolve({}),
+    })
+    render(page)
+
+    expect(screen.getByText('RedStone 급변동 알림')).toBeTruthy()
+    expect(screen.getByText('CMC #439')).toBeTruthy()
+    expect(screen.queryByText('JPMX 급변동 알림')).toBeNull()
   })
 
   it('renders previous version links without same-version language siblings', async () => {

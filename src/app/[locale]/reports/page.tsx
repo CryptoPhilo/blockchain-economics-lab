@@ -115,6 +115,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
     page: currentPage,
     pageSize: PAGE_SIZE,
     searchQuery,
+    marketRankLookup,
   })
 
   function filterUrl(params: { page?: number; q?: string }) {
@@ -252,7 +253,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
                           </Link>
                           {marketRank && (
                             <span className="rounded-md border border-cyan-400/20 bg-cyan-400/10 px-1.5 py-0.5 text-[10px] font-bold text-cyan-300">
-                              #{marketRank}
+                              CMC #{marketRank}
                             </span>
                           )}
                         </span>

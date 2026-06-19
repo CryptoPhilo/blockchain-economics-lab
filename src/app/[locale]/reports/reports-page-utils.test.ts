@@ -619,6 +619,89 @@ describe('rapid change report list helpers', () => {
     expect(result.reports.map((report) => report.id)).toEqual(['alpha-legacy-ko-asset'])
   })
 
+  it('filters rapid-change cards to projects that have a Top 500 CMC rank', () => {
+    const reports = [
+      createReport({
+        id: 'ranked-redstone',
+        project_id: 'redstone',
+        title_en: 'RedStone rapid change',
+        created_at: '2026-06-19T03:00:00.000Z',
+        project: {
+          id: 'redstone',
+          name: 'RedStone',
+          slug: 'redstone',
+          symbol: 'RED',
+          status: 'active',
+          discovered_at: '2026-04-01T00:00:00.000Z',
+          forensic_monitoring: true,
+          created_at: '2026-04-01T00:00:00.000Z',
+        },
+      }),
+      createReport({
+        id: 'unranked-jpmx',
+        project_id: 'jpmorgan-chase-tokenized-stock-xstock',
+        title_en: 'JPMX rapid change',
+        status: 'coming_soon',
+        created_at: '2026-06-19T04:00:00.000Z',
+        project: {
+          id: 'jpmorgan-chase-tokenized-stock-xstock',
+          name: 'JPMorgan Chase tokenized stock (xStock)',
+          slug: 'jpmorgan-chase-tokenized-stock-xstock',
+          symbol: 'JPMX',
+          status: 'active',
+          discovered_at: '2026-04-01T00:00:00.000Z',
+          forensic_monitoring: true,
+          created_at: '2026-04-01T00:00:00.000Z',
+        },
+      }),
+    ]
+    const marketRankLookup = buildMarketRankLookup([
+      {
+        slug: 'redstone',
+        cmc_symbol: 'RED',
+        cmc_name: 'RedStone',
+        cmc_rank: 439,
+        price_usd: null,
+        market_cap: null,
+        change_24h: null,
+        recorded_at: '2026-06-19T00:00:00.000Z',
+      },
+    ])
+
+    const result = prepareRapidChangeReports({
+      reports,
+      locale: 'ko',
+      page: 1,
+      pageSize: 20,
+      marketRankLookup,
+    })
+
+    expect(result.totalCount).toBe(1)
+    expect(result.reports.map((report) => report.id)).toEqual(['ranked-redstone'])
+  })
+
+  it('fails closed when the rapid-change rank lookup cannot be loaded', () => {
+    const reports = [
+      createReport({
+        id: 'alpha-ranked-only-with-snapshot',
+        project_id: 'alpha',
+        title_en: 'Alpha rapid change',
+        created_at: '2026-06-19T03:00:00.000Z',
+      }),
+    ]
+
+    const result = prepareRapidChangeReports({
+      reports,
+      locale: 'ko',
+      page: 1,
+      pageSize: 20,
+      marketRankLookup: new Map(),
+    })
+
+    expect(result.totalCount).toBe(0)
+    expect(result.reports).toEqual([])
+  })
+
   it('maps rapid-change cards to CMC ranks by project identity fields', () => {
     const report = createReport({
       id: 'undeads-forensic',
