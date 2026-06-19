@@ -299,12 +299,14 @@ describe('exchange repository aggregation helpers', () => {
     expect(detail.projects).toEqual([
       expect.objectContaining({
         rank: 1,
+        cmcRank: 1,
         slug: 'bitcoin',
         score: 80,
         reportTypes: ['econ'],
       }),
       expect.objectContaining({
         rank: 2,
+        cmcRank: 2,
         slug: 'ethereum',
         score: null,
         reportTypes: [],
@@ -342,6 +344,48 @@ describe('exchange repository aggregation helpers', () => {
         reportTypes: [],
       }),
     ])
+  })
+
+  it('preserves tracked ECON/MAT fallback when live report availability is partial without reviving FOR fallback', () => {
+    const bitcoin = project({
+      id: 'bitcoin-project',
+      slug: 'bitcoin',
+      name: 'Bitcoin',
+      symbol: 'BTC',
+      market_cap_usd: 100,
+      cmc_rank: 1,
+      last_econ_report_at: '2026-05-01T00:00:00Z',
+      last_maturity_report_at: '2026-05-02T00:00:00Z',
+      last_forensic_report_at: '2026-05-03T00:00:00Z',
+    })
+    const detail = buildExchangeProjectRows([
+      {
+        listing_status: 'active',
+        exchange: binance,
+        project: bitcoin,
+      },
+    ], 'Binance', new Map([
+      ['bitcoin-project', {
+        reportTypes: ['econ'],
+        reportDates: {
+          econ: '2026-06-10T00:00:00Z',
+          maturity: null,
+          forensic: null,
+        },
+      }],
+    ]))
+
+    expect(detail.projects[0]).toEqual(expect.objectContaining({
+      rank: 1,
+      cmcRank: 1,
+      slug: 'bitcoin',
+      reportTypes: ['econ', 'maturity'],
+      reportDates: expect.objectContaining({
+        econ: '2026-06-10T00:00:00Z',
+        maturity: '2026-05-02T00:00:00Z',
+        forensic: null,
+      }),
+    }))
   })
 
   it('maps canonical report availability to exchange listing aliases', () => {

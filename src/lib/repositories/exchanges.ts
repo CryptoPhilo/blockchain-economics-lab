@@ -329,6 +329,31 @@ function mergeReportAvailability(
   return merged
 }
 
+function mergeNonForensicFallback(
+  source: ReportAvailability,
+  fallback: ReportAvailability,
+): ReportAvailability {
+  const merged: ReportAvailability = {
+    reportTypes: [...source.reportTypes],
+    reportDates: { ...source.reportDates },
+  }
+
+  for (const reportType of ['econ', 'maturity'] as const) {
+    if (!fallback.reportTypes.includes(reportType)) continue
+    if (!merged.reportTypes.includes(reportType)) {
+      merged.reportTypes.push(reportType)
+    }
+
+    const fallbackDate = fallback.reportDates[reportType]
+    const currentDate = merged.reportDates[reportType]
+    if (fallbackDate && (!currentDate || new Date(fallbackDate).getTime() > new Date(currentDate).getTime())) {
+      merged.reportDates[reportType] = fallbackDate
+    }
+  }
+
+  return merged
+}
+
 function getProjectAvailabilityKeys(project: ProjectReportAvailabilityCandidate): string[] {
   const keys = [
     normalizeNullableKey(project.slug),
@@ -474,12 +499,18 @@ export function buildExchangeProjectRows(
   const projectRows = Array.from(projects.values())
     .sort((a, b) => toNumber(b.market_cap_usd) - toNumber(a.market_cap_usd) || a.name.localeCompare(b.name))
     .map((project, index) => {
+      const fallbackAvailability = createFallbackReportAvailability(project)
+      const liveAvailability = availabilityByProjectId?.get(project.id)
       const reportAvailability = availabilityByProjectId
-        ? (availabilityByProjectId.get(project.id) ?? createEmptyReportAvailability())
-        : createFallbackReportAvailability(project)
+        ? (liveAvailability
+            ? mergeNonForensicFallback(liveAvailability, fallbackAvailability)
+            : createEmptyReportAvailability())
+        : fallbackAvailability
+      const cmcRank = toNullableNumber(project.cmc_rank)
 
       return {
-        rank: index + 1,
+        rank: cmcRank ?? index + 1,
+        cmcRank,
         name: project.name,
         symbol: project.symbol,
         slug: project.slug,

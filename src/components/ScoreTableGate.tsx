@@ -16,6 +16,7 @@ import { useState, useTransition } from 'react'
 
 interface ScoreRow {
   rank: number
+  cmcRank?: number | null
   name: string
   symbol: string
   slug: string
@@ -190,7 +191,17 @@ export default function ScoreTableGate({
           <div className="flex items-center gap-2">
             {blurred ? (
               <div>
-                <div className="text-sm font-semibold leading-4 text-white">{row.name}</div>
+                <div className="flex items-center gap-1.5">
+                  <div className="text-sm font-semibold leading-4 text-white">{row.name}</div>
+                  {row.cmcRank != null && (
+                    <span
+                      className="rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-slate-400"
+                      title={`CMC #${row.cmcRank}`}
+                    >
+                      CMC #{row.cmcRank}
+                    </span>
+                  )}
+                </div>
                 <div className="text-[10px] font-medium uppercase leading-3 text-gray-500">{row.symbol}</div>
               </div>
             ) : (
@@ -199,8 +210,18 @@ export default function ScoreTableGate({
                 className="group inline-block"
                 title={isKo ? `${row.name} 상세 페이지` : `${row.name} project page`}
               >
-                <div className="text-sm font-semibold leading-4 text-white transition-colors group-hover:text-indigo-400 group-hover:underline">
-                  {row.name}
+                <div className="flex items-center gap-1.5">
+                  <div className="text-sm font-semibold leading-4 text-white transition-colors group-hover:text-indigo-400 group-hover:underline">
+                    {row.name}
+                  </div>
+                  {row.cmcRank != null && (
+                    <span
+                      className="rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-slate-400"
+                      title={`CMC #${row.cmcRank}`}
+                    >
+                      CMC #{row.cmcRank}
+                    </span>
+                  )}
                 </div>
                 <div className="text-[10px] font-medium uppercase leading-3 text-gray-500">{row.symbol}</div>
               </Link>
