@@ -145,13 +145,18 @@ export function prepareRapidChangeReports(args: {
   page: number
   pageSize: number
   searchQuery?: string
+  marketRankLookup?: Map<string, number>
 }) {
   const normalizedQuery = args.searchQuery?.trim().toLowerCase() || ''
   const filteredReports = normalizedQuery
     ? args.reports.filter((report) => getSearchableText(report).includes(normalizedQuery))
     : args.reports
 
-  const rapidChangeReports = filteredReports.filter(isRapidChangeListReport)
+  const rapidChangeReports = filteredReports
+    .filter(isRapidChangeListReport)
+    .filter((report) => (
+      !args.marketRankLookup || getMarketRankForReport(report, args.marketRankLookup) !== null
+    ))
   const publishedAssetKeys = getPublishedForensicAssetKeys(rapidChangeReports)
   const reportsForDedupe = rapidChangeReports.filter((report) => (
     !suppressPlaceholderCoveredByPublishedReport(report, publishedAssetKeys)
