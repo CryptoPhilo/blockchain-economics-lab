@@ -638,6 +638,67 @@ describe('score page CMC canonical Top 500 snapshot guard', () => {
       },
     })
   })
+
+  it('does not restore timestamp fallback for a report type that explicitly lacks locale assets', () => {
+    const trackedProjects = [
+      {
+        id: 'sun-project',
+        name: 'Sun Token',
+        slug: 'sun-token',
+        symbol: 'SUN',
+        category: 'DeFi',
+        market_cap_usd: 100,
+        coingecko_id: 'sun-token',
+        cmc_id: 'sun-token',
+        aliases: [],
+        maturity_score: 56,
+        last_econ_report_at: '2026-05-01T00:00:00.000Z',
+        last_maturity_report_at: '2026-05-02T00:00:00.000Z',
+        last_forensic_report_at: null,
+      },
+    ]
+    const availabilityByProjectSlug = buildReportAvailabilityByProjectSlug([
+      {
+        project_id: 'sun-project',
+        report_type: 'econ',
+        language: 'ko',
+        published_at: '2026-05-01T00:00:00.000Z',
+        gdrive_urls_by_lang: {
+          ko: { url: 'https://drive.google.com/file/d/sun-econ-ko/view' },
+        },
+        tracked_projects: {
+          slug: 'sun-token',
+        },
+      },
+      {
+        project_id: 'sun-project',
+        report_type: 'maturity',
+        language: 'ko',
+        published_at: '2026-05-02T00:00:00.000Z',
+        gdrive_urls_by_lang: {},
+        slide_html_urls_by_lang: {},
+        tracked_projects: {
+          slug: 'sun-token',
+        },
+      },
+    ], 'ko', { includeSuppressedReportTypes: true })
+
+    const [row] = snapshotRowsToScoreRows(
+      [makeSnapshotRow(104, 'sun-token')],
+      buildTrackedProjectLookup(trackedProjects),
+      new Map(),
+      availabilityByProjectSlug,
+    )
+
+    expect(row).toMatchObject({
+      slug: 'sun-token',
+      reportTypes: ['econ'],
+      reportDates: {
+        econ: '2026-05-01T00:00:00.000Z',
+        maturity: null,
+      },
+    })
+  })
 })
 
 describe('score page tracked project aliases', () => {
@@ -1459,6 +1520,49 @@ describe('score page report availability policy', () => {
     ], 'ko')
 
     expect(availability.has('alpha-project')).toBe(false)
+  })
+
+  it('does not count asset-map locale entries when the report row language differs', () => {
+    const availability = buildReportAvailabilityByProjectId([
+      {
+        project_id: 'alpha-project',
+        report_type: 'econ',
+        language: 'ja',
+        published_at: '2026-05-01T00:00:00.000Z',
+        gdrive_urls_by_lang: {
+          ko: { url: 'https://drive.google.com/file/d/alpha-ko-view' },
+        },
+        slide_html_urls_by_lang: {
+          ko: 'https://example.supabase.co/storage/v1/object/public/slides/econ/alpha/latest/ko.html',
+        },
+      },
+    ], 'ko')
+
+    expect(availability.has('alpha-project')).toBe(false)
+  })
+
+  it('keeps English asset fallback for fallback locales when the report row language is English', () => {
+    const availability = buildReportAvailabilityByProjectId([
+      {
+        project_id: 'fallback-project',
+        report_type: 'econ',
+        language: 'en',
+        published_at: '2026-05-01T00:00:00.000Z',
+        slide_html_urls_by_lang: {
+          en: 'https://example.supabase.co/storage/v1/object/public/slides/econ/fallback/latest/en.html',
+        },
+      },
+    ], 'de')
+
+    expect(availability.get('fallback-project')).toEqual({
+      reportTypes: ['econ'],
+      reportDates: {
+        econ: '2026-05-01T00:00:00.000Z',
+        maturity: null,
+        forensic: null,
+      },
+      maturityScore: null,
+    })
   })
 
   it('does not count coming-soon placeholder rows as scoreboard badges', () => {
