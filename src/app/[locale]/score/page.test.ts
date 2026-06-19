@@ -1,3 +1,7 @@
+jest.mock('next/cache', () => ({
+  unstable_cache: (callback: unknown) => callback,
+}))
+
 import {
   buildReportAvailabilityByProjectId,
   buildReportAvailabilityByProjectSlug,
