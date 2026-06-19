@@ -1,5 +1,6 @@
 export interface ScoreRow {
   rank: number
+  cmcRank?: number | null
   name: string
   symbol: string
   slug: string
