@@ -419,6 +419,35 @@ describe('exchange repository aggregation helpers', () => {
     }))
   })
 
+  it('applies canonical CMC rank aliases for renamed projects', () => {
+    const tonListing = project({
+      id: 'ton-listing',
+      slug: 'the-open-network',
+      name: 'TON',
+      symbol: 'TON',
+      cmc_rank: null,
+      aliases: null,
+    })
+
+    const rankedRows = applyLatestCmcRanks([
+      {
+        listing_status: 'active',
+        exchange: binance,
+        project: tonListing,
+      },
+    ], new Map([
+      ['toncoin', 23],
+    ]))
+
+    const detail = buildExchangeProjectRows(rankedRows, 'Binance')
+
+    expect(detail.projects[0]).toEqual(expect.objectContaining({
+      rank: 23,
+      cmcRank: 23,
+      slug: 'the-open-network',
+    }))
+  })
+
   it('maps canonical report availability to exchange listing aliases', () => {
     const nearListing = project({
       id: 'near-market-row',
