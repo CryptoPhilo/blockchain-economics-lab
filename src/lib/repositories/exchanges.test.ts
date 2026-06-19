@@ -169,6 +169,7 @@ describe('exchange repository aggregation helpers', () => {
       listings: rows,
     })
 
+    expect(aggregates).toHaveLength(2)
     expect(aggregates).toEqual([
       expect.objectContaining({
         slug: 'binance',
@@ -196,12 +197,6 @@ describe('exchange repository aggregation helpers', () => {
           longTailRatio: 0.5,
         }),
       }),
-      expect.objectContaining({
-        slug: 'bybit',
-        listedProjectCount: 0,
-        bceExchangeScore: null,
-        scoredProjectCount: 0,
-      }),
     ])
   })
 
@@ -218,20 +213,13 @@ describe('exchange repository aggregation helpers', () => {
     expect(result.bceExchangeScoreComponents.longTailPenalty).toBeGreaterThan(0)
   })
 
-  it('keeps CMC Top 30 exchanges visible when no listing rows match', () => {
+  it('hides seeded CMC Top 30 exchanges when no listing rows match', () => {
     const aggregates = buildExchangeAggregates({
       exchanges: [bybit],
       listings: [],
     })
 
-    expect(aggregates).toEqual([
-      expect.objectContaining({
-        slug: 'bybit',
-        name: 'Bybit',
-        listedProjectCount: 0,
-        bceExchangeScore: null,
-      }),
-    ])
+    expect(aggregates).toEqual([])
   })
 
   it('suppresses legacy CMC alias exchange duplicates in aggregate lists', () => {
