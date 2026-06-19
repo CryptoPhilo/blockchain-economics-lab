@@ -772,6 +772,44 @@ export function canonicalSnapshotRowsToScoreRows(
   )
 }
 
+export function getScoreboardReportScope(
+  snapshotRows: ScoreboardSnapshotRow[],
+  trackedProjects: TrackedScoreboardProject[],
+) {
+  const canonicalRows = snapshotRows
+    .filter((row) => toCmcCanonicalRank(row.cmc_rank) !== null)
+    .sort((a, b) => (toCmcCanonicalRank(a.cmc_rank) ?? 0) - (toCmcCanonicalRank(b.cmc_rank) ?? 0))
+
+  if (!hasCompleteCmcCanonicalTop500Snapshot(canonicalRows)) {
+    return { projectIds: [] as string[], projectSlugs: [] as string[] }
+  }
+
+  const trackedLookup = buildTrackedProjectLookup(trackedProjects, { includeProjectAliases: false })
+  const identityLookup = buildTrackedProjectIdentityLookup(trackedProjects)
+  const projectIds = new Set<string>()
+  const projectSlugs = new Set<string>(SCOREBOARD_CANONICAL_ALIAS_TARGET_SLUGS)
+
+  for (const snapshot of canonicalRows) {
+    const snapshotSlug = normalizeKey(snapshot.slug) || ''
+    const canonicalTargetSlug = getCanonicalScoreboardTargetSlug(
+      snapshotSlug,
+      snapshot.cmc_name,
+      snapshot.cmc_symbol,
+    )
+    const project = findTrackedProjectForSnapshot(snapshot, trackedLookup, identityLookup)
+    if (project?.id) projectIds.add(project.id)
+
+    const projectSlug = normalizeKey(project?.slug)
+    const reportSlug = canonicalTargetSlug || projectSlug || snapshotSlug
+    if (reportSlug) projectSlugs.add(reportSlug)
+  }
+
+  return {
+    projectIds: Array.from(projectIds),
+    projectSlugs: Array.from(projectSlugs),
+  }
+}
+
 export function hasCompleteCmcCanonicalTop500Snapshot(snapshotRows: ScoreboardSnapshotRow[]) {
   if (snapshotRows.length !== MIN_CMC_CANONICAL_TOP_500_SNAPSHOT_ROWS) return false
 
@@ -817,17 +855,13 @@ export default async function ScorePage({
         cmc_name: listing.name,
       })))
   const trackedProjects = mergeScoreboardProjects(baseTrackedProjects, canonicalAliasTargetProjects)
-  const trackedProjectIds = trackedProjects.map((project) => project.id).filter(Boolean)
-  const trackedProjectSlugs = trackedProjects.map((project) => project.slug).filter(Boolean)
+  const reportScope = getScoreboardReportScope(scoreSnapshotRows, trackedProjects)
   let visibleReportResult: Awaited<ReturnType<typeof fetchVisibleReportsForScoreboard>>
   let canonicalAliasReportResult: Awaited<ReturnType<typeof fetchVisibleReportsForScoreboardByProjectSlugs>>
   try {
     ;[visibleReportResult, canonicalAliasReportResult] = await Promise.all([
-      fetchVisibleReportsForScoreboard(trackedProjectIds),
-      fetchVisibleReportsForScoreboardByProjectSlugs([
-        ...SCOREBOARD_CANONICAL_ALIAS_TARGET_SLUGS,
-        ...trackedProjectSlugs,
-      ]),
+      fetchVisibleReportsForScoreboard(reportScope.projectIds),
+      fetchVisibleReportsForScoreboardByProjectSlugs(reportScope.projectSlugs),
     ])
   } catch (error) {
     console.error('Failed to initialize scoreboard report availability boundary', {

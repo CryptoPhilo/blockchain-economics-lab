@@ -4,6 +4,7 @@ import {
   buildTrackedProjectLookup,
   canonicalSnapshotRowsToScoreRows,
   fetchVisibleReportsForScoreboard,
+  getScoreboardReportScope,
   hasCompleteCmcCanonicalTop500Snapshot,
   mergeScoreboardProjects,
   MIN_CMC_CANONICAL_TOP_500_SNAPSHOT_ROWS,
@@ -187,6 +188,52 @@ describe('score page CMC canonical Top 500 snapshot guard', () => {
     expect(rows[499]).toMatchObject({ rank: 500, cmcRank: 500, slug: 'cmc-project-500' })
     expect(rows.map((row) => row.slug)).not.toContain('rain')
     expect(rows.map((row) => row.slug)).not.toContain('htx')
+  })
+
+  it('limits report availability scope to projects represented in the canonical Top 500 snapshot', () => {
+    const trackedProjects = [
+      {
+        id: 'bitcoin-project',
+        name: 'Bitcoin',
+        slug: 'bitcoin',
+        symbol: 'BTC',
+        category: 'Layer 1',
+        market_cap_usd: 100,
+        coingecko_id: 'bitcoin',
+        cmc_id: 'bitcoin',
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+      {
+        id: 'htx-project',
+        name: 'HTX',
+        slug: 'htx',
+        symbol: 'HTX',
+        category: 'Exchange',
+        market_cap_usd: 100,
+        coingecko_id: 'htx',
+        cmc_id: 'htx',
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const snapshotRows = Array.from(
+      { length: 500 },
+      (_, index) => makeSnapshotRow(index + 1, index === 0 ? 'bitcoin' : `cmc-project-${index + 1}`),
+    )
+
+    const scope = getScoreboardReportScope(snapshotRows, trackedProjects)
+
+    expect(scope.projectIds).toContain('bitcoin-project')
+    expect(scope.projectIds).not.toContain('htx-project')
+    expect(scope.projectSlugs).toContain('bitcoin')
+    expect(scope.projectSlugs).not.toContain('htx')
   })
 
   it('does not let operational project aliases replace canonical CMC snapshot identities', () => {
