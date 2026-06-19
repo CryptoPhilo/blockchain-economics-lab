@@ -1,10 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { reportSupportsLocale } from '@/lib/report-locale'
 import { pickLatestReport } from '@/lib/report-versioning'
-import type { ProjectReport } from '@/lib/types'
+import type { ProjectReport, ReportStatus } from '@/lib/types'
 
 const REPORT_AVAILABILITY_QUERY_CHUNK_SIZE = 80
 const REPORT_AVAILABILITY_QUERY_PAGE_SIZE = 1000
+const REPORT_AVAILABILITY_VISIBLE_STATUSES = ['published', 'in_review'] as const
 
 export type ReportTypeKey = 'econ' | 'maturity' | 'forensic'
 
@@ -19,6 +20,7 @@ export type VisibleReportRow = {
   id?: string
   version?: number
   is_latest?: boolean | null
+  status?: ReportStatus | null
   language?: ProjectReport['language'] | null
   published_at?: string | null
   updated_at?: string | null
@@ -30,6 +32,12 @@ export type VisibleReportRow = {
 
 function isReportTypeKey(value: unknown): value is ReportTypeKey {
   return value === 'econ' || value === 'maturity' || value === 'forensic'
+}
+
+function isVisibleReportStatus(status: ReportStatus | null | undefined) {
+  return !status || REPORT_AVAILABILITY_VISIBLE_STATUSES.includes(
+    status as (typeof REPORT_AVAILABILITY_VISIBLE_STATUSES)[number],
+  )
 }
 
 function getReportTimestamp(report: {
@@ -56,6 +64,7 @@ export function buildReportAvailabilityByProjectId(
 
   for (const report of reports) {
     if (!report.project_id) continue
+    if (!isVisibleReportStatus(report.status)) continue
     const key = `${report.project_id}:${report.report_type}`
     reportsByProjectType.set(key, [...(reportsByProjectType.get(key) ?? []), report])
   }
@@ -119,6 +128,7 @@ export async function fetchVisibleReportsForProjectIds(
             'report_type',
             'version',
             'is_latest',
+            'status',
             'language',
             'published_at',
             'updated_at',
@@ -129,7 +139,7 @@ export async function fetchVisibleReportsForProjectIds(
           ].join(', '))
           .in('project_id', chunk)
           .in('report_type', ['econ', 'maturity', 'forensic'])
-          .in('status', ['published', 'coming_soon', 'in_review'])
+          .in('status', REPORT_AVAILABILITY_VISIBLE_STATUSES)
           .range(offset, offset + REPORT_AVAILABILITY_QUERY_PAGE_SIZE - 1)
 
         if (error) {
