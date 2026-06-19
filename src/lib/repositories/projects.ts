@@ -3,6 +3,11 @@ import type { TrackedProject, ProjectStatus } from '../types'
 
 const RECENT_CMC_SNAPSHOT_LOOKBACK = 5
 
+type CmcSnapshotRankCandidate = {
+  recorded_at?: string | null
+  cmc_rank?: number | string | null
+}
+
 /**
  * Repository for project-related data access
  * Encapsulates all database queries for tracked projects
@@ -10,47 +15,61 @@ const RECENT_CMC_SNAPSHOT_LOOKBACK = 5
 export class ProjectsRepository {
   constructor(private supabase: SupabaseClient) {}
 
-  private async getLatestCmcSnapshotDate(rankLimit: number) {
-    const { data, error } = await this.supabase
-      .from('market_data_daily')
-      .select('recorded_at')
-      .eq('source', 'coinmarketcap')
-      .gte('cmc_rank', 1)
-      .lte('cmc_rank', rankLimit)
-      .order('recorded_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    if (error) {
-      throw new Error(`Failed to fetch latest CMC snapshot date: ${error.message}`)
-    }
-
-    return data?.recorded_at || null
-  }
-
-  private async getRecentCmcSnapshotDates(rankLimit: number, lookback = RECENT_CMC_SNAPSHOT_LOOKBACK) {
+  private async getRecentCmcSnapshotRankCandidates(
+    rankLimit: number,
+    lookback = RECENT_CMC_SNAPSHOT_LOOKBACK,
+  ): Promise<CmcSnapshotRankCandidate[]> {
     const rowLimit = Math.max(rankLimit * lookback, lookback)
     const { data, error } = await this.supabase
       .from('market_data_daily')
-      .select('recorded_at')
+      .select('recorded_at, cmc_rank')
       .eq('source', 'coinmarketcap')
       .gte('cmc_rank', 1)
       .lte('cmc_rank', rankLimit)
       .order('recorded_at', { ascending: false })
+      .order('cmc_rank', { ascending: true, nullsFirst: false })
       .limit(rowLimit)
 
     if (error) {
-      throw new Error(`Failed to fetch recent CMC snapshot dates: ${error.message}`)
+      throw new Error(`Failed to fetch recent CMC snapshot rank candidates: ${error.message}`)
     }
 
-    const recordedAts: string[] = []
-    for (const row of data || []) {
-      if (!row.recorded_at || recordedAts.includes(row.recorded_at)) continue
-      recordedAts.push(row.recorded_at)
-      if (recordedAts.length >= lookback) break
+    return (data || []) as CmcSnapshotRankCandidate[]
+  }
+
+  private getLatestCompleteCmcSnapshotDateFromCandidates(
+    candidates: CmcSnapshotRankCandidate[],
+    rankLimit: number,
+  ) {
+    const ranksByRecordedAt = new Map<string, Set<number>>()
+
+    for (const row of candidates) {
+      if (!row.recorded_at) continue
+      const rank = Number(row.cmc_rank)
+      if (!Number.isInteger(rank) || rank < 1 || rank > rankLimit) continue
+      if (!ranksByRecordedAt.has(row.recorded_at)) {
+        ranksByRecordedAt.set(row.recorded_at, new Set())
+      }
+      ranksByRecordedAt.get(row.recorded_at)?.add(rank)
     }
 
-    return recordedAts
+    for (const [recordedAt, ranks] of ranksByRecordedAt) {
+      if (
+        this.hasContiguousCmcRanks(
+          Array.from(ranks).map((rank) => ({ cmc_rank: rank })),
+          rankLimit,
+        )
+      ) {
+        return recordedAt
+      }
+    }
+
+    return ranksByRecordedAt.keys().next().value ?? null
+  }
+
+  private async getLatestCompleteCmcSnapshotDate(rankLimit: number) {
+    const candidates = await this.getRecentCmcSnapshotRankCandidates(rankLimit)
+    return this.getLatestCompleteCmcSnapshotDateFromCandidates(candidates, rankLimit)
   }
 
   private hasContiguousCmcRanks(rows: Array<{ cmc_rank: number | string | null }>, rankLimit: number) {
@@ -162,45 +181,17 @@ export class ProjectsRepository {
   }
 
   async getLatestScoreboardMarketSnapshot(limit = 500) {
-    const latestRecordedAt = await this.getLatestCmcSnapshotDate(500)
+    const latestRecordedAt = await this.getLatestCompleteCmcSnapshotDate(500)
     if (!latestRecordedAt) return []
 
-    const latestRows = await this.getScoreboardMarketSnapshotForDate(latestRecordedAt, limit)
-    if (this.hasContiguousCmcRanks(latestRows, 500)) {
-      return latestRows
-    }
-
-    const snapshotDates = await this.getRecentCmcSnapshotDates(500)
-    for (const recordedAt of snapshotDates) {
-      if (recordedAt === latestRecordedAt) continue
-      const rows = await this.getScoreboardMarketSnapshotForDate(recordedAt, limit)
-      if (this.hasContiguousCmcRanks(rows, 500)) {
-        return rows
-      }
-    }
-
-    return latestRows
+    return this.getScoreboardMarketSnapshotForDate(latestRecordedAt, limit)
   }
 
   async getLatestCmcRanks(limit = 500) {
-    const latestRecordedAt = await this.getLatestCmcSnapshotDate(limit)
+    const latestRecordedAt = await this.getLatestCompleteCmcSnapshotDate(limit)
     if (!latestRecordedAt) return []
 
-    const latestRows = await this.getCmcRanksForDate(latestRecordedAt, limit)
-    if (this.hasContiguousCmcRanks(latestRows, limit)) {
-      return latestRows
-    }
-
-    const snapshotDates = await this.getRecentCmcSnapshotDates(limit)
-    for (const recordedAt of snapshotDates) {
-      if (recordedAt === latestRecordedAt) continue
-      const rows = await this.getCmcRanksForDate(recordedAt, limit)
-      if (this.hasContiguousCmcRanks(rows, limit)) {
-        return rows
-      }
-    }
-
-    return latestRows
+    return this.getCmcRanksForDate(latestRecordedAt, limit)
   }
 
   /**
