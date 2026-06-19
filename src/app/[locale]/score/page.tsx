@@ -20,6 +20,7 @@ export const revalidate = 0
 const ITEMS_PER_PAGE = 100
 const MAX_RANK = 500
 const REPORT_AVAILABILITY_QUERY_CHUNK_SIZE = 80
+const REPORT_AVAILABILITY_SLUG_QUERY_CHUNK_SIZE = 250
 const SCORE_HEADER_BACKGROUND_IMAGE = '/images/score-header-bg.png'
 export const MIN_CMC_CANONICAL_TOP_500_SNAPSHOT_ROWS = 500
 const SCOREBOARD_ENGLISH_ASSET_FALLBACK_LOCALES = new Set(['de', 'es', 'fr'])
@@ -611,8 +612,8 @@ export async function fetchVisibleReportsForScoreboardByProjectSlugs(
     }
   }
 
-  for (let index = 0; index < normalizedSlugs.length; index += REPORT_AVAILABILITY_QUERY_CHUNK_SIZE) {
-    const chunk = normalizedSlugs.slice(index, index + REPORT_AVAILABILITY_QUERY_CHUNK_SIZE)
+  for (let index = 0; index < normalizedSlugs.length; index += REPORT_AVAILABILITY_SLUG_QUERY_CHUNK_SIZE) {
+    const chunk = normalizedSlugs.slice(index, index + REPORT_AVAILABILITY_SLUG_QUERY_CHUNK_SIZE)
     const { data, error } = await supabase
       .from('project_reports')
       .select([
@@ -856,23 +857,15 @@ export default async function ScorePage({
       })))
   const trackedProjects = mergeScoreboardProjects(baseTrackedProjects, canonicalAliasTargetProjects)
   const reportScope = getScoreboardReportScope(scoreSnapshotRows, trackedProjects)
-  let visibleReportResult: Awaited<ReturnType<typeof fetchVisibleReportsForScoreboard>>
   let canonicalAliasReportResult: Awaited<ReturnType<typeof fetchVisibleReportsForScoreboardByProjectSlugs>>
   try {
-    ;[visibleReportResult, canonicalAliasReportResult] = await Promise.all([
-      fetchVisibleReportsForScoreboard(reportScope.projectIds),
-      fetchVisibleReportsForScoreboardByProjectSlugs(reportScope.projectSlugs),
-    ])
+    canonicalAliasReportResult = await fetchVisibleReportsForScoreboardByProjectSlugs(reportScope.projectSlugs)
   } catch (error) {
     console.error('Failed to initialize scoreboard report availability boundary', {
       message: error instanceof Error ? error.message : String(error),
     })
-    visibleReportResult = { reports: [], loaded: false }
     canonicalAliasReportResult = { reports: [], loaded: false }
   }
-  const reportAvailabilityByProjectId = visibleReportResult.loaded
-    ? buildReportAvailabilityByProjectId(visibleReportResult.reports, locale)
-    : undefined
   const reportAvailabilityByProjectSlug = canonicalAliasReportResult.loaded
     ? buildReportAvailabilityByProjectSlug(canonicalAliasReportResult.reports, locale)
     : undefined
@@ -880,7 +873,7 @@ export default async function ScorePage({
   const canonicalRows = canonicalSnapshotRowsToScoreRows(
     scoreSnapshotRows,
     trackedProjects,
-    reportAvailabilityByProjectId,
+    undefined,
     reportAvailabilityByProjectSlug,
   )
   const allRows = canonicalRows
