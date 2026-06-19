@@ -165,6 +165,8 @@ describe('score page CMC canonical Top 500 snapshot guard', () => {
     )
 
     expect(row).toMatchObject({
+      rank: 190,
+      cmcRank: 190,
       name: 'Synthetix',
       symbol: 'SNX',
       slug: 'synthetix',
@@ -181,8 +183,8 @@ describe('score page CMC canonical Top 500 snapshot guard', () => {
     const rows = canonicalSnapshotRowsToScoreRows(snapshotRows, [])
 
     expect(rows).toHaveLength(500)
-    expect(rows[0]).toMatchObject({ rank: 1, slug: 'cmc-project-1' })
-    expect(rows[499]).toMatchObject({ rank: 500, slug: 'cmc-project-500' })
+    expect(rows[0]).toMatchObject({ rank: 1, cmcRank: 1, slug: 'cmc-project-1' })
+    expect(rows[499]).toMatchObject({ rank: 500, cmcRank: 500, slug: 'cmc-project-500' })
     expect(rows.map((row) => row.slug)).not.toContain('rain')
     expect(rows.map((row) => row.slug)).not.toContain('htx')
   })
