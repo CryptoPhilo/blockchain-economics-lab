@@ -7,8 +7,7 @@ import ScoreTableGate from '@/components/ScoreTableGate'
 import { fetchCMCTopListings } from '@/lib/coinmarketcap'
 import { unstable_cache } from 'next/cache'
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+export const revalidate = 300
 
 /**
  * CMC-Style Market Cap Ranking Page + Report Badges (BCE-379)
