@@ -84,6 +84,10 @@ type ReportAvailability = {
   reportTypes: string[]
   reportDates: Record<ReportTypeKey, string | null>
   maturityScore: number | null
+  suppressedReportTypes?: ReportTypeKey[]
+}
+type ReportAvailabilityBuildOptions = {
+  includeSuppressedReportTypes?: boolean
 }
 
 type ScoreboardVisibleReportRow = {
@@ -304,6 +308,34 @@ function createFallbackReportAvailability(project: TrackedScoreboardProject | un
   }
 }
 
+function createEmptyReportAvailability(): ReportAvailability {
+  return {
+    reportTypes: [],
+    reportDates: { econ: null, maturity: null, forensic: null },
+    maturityScore: null,
+  }
+}
+
+function addSuppressedReportType(
+  availability: ReportAvailability,
+  reportType: ReportTypeKey,
+) {
+  const suppressedReportTypes = availability.suppressedReportTypes ?? []
+  if (!suppressedReportTypes.includes(reportType)) {
+    availability.suppressedReportTypes = [...suppressedReportTypes, reportType]
+  }
+}
+
+function addSuppressedReportTypeToMap(
+  map: Map<string, ReportAvailability>,
+  key: string,
+  reportType: ReportTypeKey,
+) {
+  const existing = map.get(key) ?? createEmptyReportAvailability()
+  addSuppressedReportType(existing, reportType)
+  map.set(key, existing)
+}
+
 function mergeNonForensicFallback(
   source: ReportAvailability,
   fallback: ReportAvailability,
@@ -312,9 +344,11 @@ function mergeNonForensicFallback(
     reportTypes: [...source.reportTypes],
     reportDates: { ...source.reportDates },
     maturityScore: source.maturityScore ?? fallback.maturityScore,
+    suppressedReportTypes: source.suppressedReportTypes,
   }
 
   for (const reportType of ['econ', 'maturity'] as const) {
+    if (source.suppressedReportTypes?.includes(reportType)) continue
     if (!fallback.reportTypes.includes(reportType)) continue
     if (!merged.reportTypes.includes(reportType)) {
       merged.reportTypes.push(reportType)
@@ -340,11 +374,7 @@ function getReportAvailability(
   const live = project?.id ? availabilityByProjectId?.get(project.id) : undefined
   if (!availabilityByProjectId) return fallback
   if (!live) {
-    return {
-      reportTypes: [],
-      reportDates: { econ: null, maturity: null, forensic: null },
-      maturityScore: null,
-    }
+    return createEmptyReportAvailability()
   }
 
   return mergeNonForensicFallback(live, fallback)
@@ -387,15 +417,25 @@ function hasScoreboardAssetForLocale(report: ScoreboardVisibleReportRow, locale:
     || hasNonEmptyAssetValue(slideUrls?.[locale])
 }
 
+function reportLanguageMatchesScoreboardLocale(report: ScoreboardVisibleReportRow, locale: string): boolean {
+  const normalizedLocale = normalizeKey(locale)
+  const reportLanguage = normalizeKey(report.language)
+  if (!normalizedLocale || !reportLanguage) return true
+  if (reportLanguage === normalizedLocale) return true
+  return SCOREBOARD_ENGLISH_ASSET_FALLBACK_LOCALES.has(normalizedLocale) && reportLanguage === 'en'
+}
+
 function reportIsVisibleOnScoreboard(report: ScoreboardVisibleReportRow, locale: string): boolean {
+  const normalizedLocale = normalizeKey(locale) ?? locale
   if (
     report.status
     && !SCOREBOARD_VISIBLE_REPORT_STATUSES.includes(
       report.status as (typeof SCOREBOARD_VISIBLE_REPORT_STATUSES)[number],
     )
   ) return false
-  return hasScoreboardAssetForLocale(report, locale)
-    || (SCOREBOARD_ENGLISH_ASSET_FALLBACK_LOCALES.has(locale) && hasScoreboardAssetForLocale(report, 'en'))
+  if (!reportLanguageMatchesScoreboardLocale(report, normalizedLocale)) return false
+  return hasScoreboardAssetForLocale(report, normalizedLocale)
+    || (SCOREBOARD_ENGLISH_ASSET_FALLBACK_LOCALES.has(normalizedLocale) && hasScoreboardAssetForLocale(report, 'en'))
 }
 
 function extractReportMaturityScore(report: ScoreboardVisibleReportRow): number | null {
@@ -450,24 +490,26 @@ function findTrackedProjectForSnapshot(
 export function buildReportAvailabilityByProjectId(
   reports: ScoreboardVisibleReportRow[],
   locale: string,
+  options: ReportAvailabilityBuildOptions = {},
 ) {
   const map = new Map<string, ReportAvailability>()
   const latestByProjectType = new Map<string, ScoreboardVisibleReportRow>()
 
   for (const report of reports) {
     if (!report.project_id) continue
-    if (!reportIsVisibleOnScoreboard(report, locale)) continue
+    if (!reportIsVisibleOnScoreboard(report, locale)) {
+      if (options.includeSuppressedReportTypes) {
+        addSuppressedReportTypeToMap(map, report.project_id, report.report_type)
+      }
+      continue
+    }
     const key = `${report.project_id}:${report.report_type}`
     const latest = pickLatestReport([latestByProjectType.get(key), report].filter(Boolean) as ScoreboardVisibleReportRow[])
     if (latest) latestByProjectType.set(key, latest)
   }
 
   for (const report of latestByProjectType.values()) {
-    const existing = map.get(report.project_id) ?? {
-      reportTypes: [],
-      reportDates: { econ: null, maturity: null, forensic: null },
-      maturityScore: null,
-    }
+    const existing = map.get(report.project_id) ?? createEmptyReportAvailability()
 
     if (!existing.reportTypes.includes(report.report_type)) {
       existing.reportTypes.push(report.report_type)
@@ -493,6 +535,7 @@ export function buildReportAvailabilityByProjectId(
 export function buildReportAvailabilityByProjectSlug(
   reports: ScoreboardVisibleReportRowWithProjectSlug[],
   locale: string,
+  options: ReportAvailabilityBuildOptions = {},
 ) {
   const map = new Map<string, ReportAvailability>()
   const latestByProjectType = new Map<string, ScoreboardVisibleReportRowWithProjectSlug>()
@@ -501,7 +544,12 @@ export function buildReportAvailabilityByProjectSlug(
     const cardData = report.card_data as Record<string, unknown> | null | undefined
     const slug = normalizeKey(report.tracked_projects?.slug) ?? normalizeKey(cardData?.slug)
     if (!slug) continue
-    if (!reportIsVisibleOnScoreboard(report, locale)) continue
+    if (!reportIsVisibleOnScoreboard(report, locale)) {
+      if (options.includeSuppressedReportTypes) {
+        addSuppressedReportTypeToMap(map, slug, report.report_type)
+      }
+      continue
+    }
     const key = `${slug}:${report.report_type}`
     const latest = pickLatestReport(
       [latestByProjectType.get(key), report].filter(Boolean) as ScoreboardVisibleReportRowWithProjectSlug[],
@@ -513,11 +561,7 @@ export function buildReportAvailabilityByProjectSlug(
     const cardData = report.card_data as Record<string, unknown> | null | undefined
     const slug = normalizeKey(report.tracked_projects?.slug) ?? normalizeKey(cardData?.slug)
     if (!slug) continue
-    const existing = map.get(slug) ?? {
-      reportTypes: [],
-      reportDates: { econ: null, maturity: null, forensic: null },
-      maturityScore: null,
-    }
+    const existing = map.get(slug) ?? createEmptyReportAvailability()
 
     if (!existing.reportTypes.includes(report.report_type)) {
       existing.reportTypes.push(report.report_type)
@@ -908,13 +952,15 @@ export default async function ScorePage({
     canonicalAliasReportResult = { reports: [], loaded: false }
   }
   const reportAvailabilityByProjectSlug = canonicalAliasReportResult.loaded
-    ? buildReportAvailabilityByProjectSlug(canonicalAliasReportResult.reports, locale)
+    ? buildReportAvailabilityByProjectSlug(canonicalAliasReportResult.reports, locale, {
+      includeSuppressedReportTypes: true,
+    })
     : undefined
 
   const rows = snapshotRowsToScoreRows(
     pageSnapshotRows,
     buildTrackedProjectLookup(trackedProjects, { includeProjectAliases: false }),
-    undefined,
+    canonicalAliasReportResult.loaded ? new Map() : undefined,
     reportAvailabilityByProjectSlug,
     buildTrackedProjectIdentityLookup(trackedProjects),
   )
