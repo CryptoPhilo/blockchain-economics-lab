@@ -1,5 +1,3 @@
-import { CardSkeleton } from '@/components/LoadingSkeleton'
-
 export default function RootLoading() {
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
@@ -21,12 +19,6 @@ export default function RootLoading() {
               <div key={i} className="h-32 bg-white/5 border border-white/5 rounded-xl" />
             ))}
           </div>
-        </section>
-
-        {/* Featured Products Skeleton */}
-        <section>
-          <div className="h-10 w-56 bg-white/10 rounded-lg mb-6" />
-          <CardSkeleton count={4} />
         </section>
       </div>
     </div>

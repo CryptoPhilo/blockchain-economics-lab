@@ -2,7 +2,6 @@ import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { getLocalizedField, type Locale } from '@/lib/types'
-import ProductCard from '@/components/ProductCard'
 import DisclaimerBanner from '@/components/DisclaimerBanner'
 import LatestReportShowcase from '@/components/LatestReportShowcase'
 
@@ -14,8 +13,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const t = await getTranslations()
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let featuredProducts: any[] = []
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let categories: any[] = []
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let latestReportCoverProducts: any[] = []
@@ -24,14 +21,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   try {
     const supabase = await createServerSupabaseClient()
-    const [productsRes, categoriesRes, latestCoverProductsRes, latestReportCoversRes] = await Promise.all([
-      supabase
-        .from('products')
-        .select('*, category:categories(*)')
-        .eq('status', 'published')
-        .eq('featured', true)
-        .order('published_at', { ascending: false })
-        .limit(4),
+    const [categoriesRes, latestCoverProductsRes, latestReportCoversRes] = await Promise.all([
       supabase
         .from('categories')
         .select('*')
@@ -72,7 +62,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         .order('updated_at', { ascending: false, nullsFirst: false })
         .limit(SHOWCASE_REPORT_BACKFILL_LIMIT),
     ])
-    featuredProducts = productsRes.data || []
     categories = categoriesRes.data || []
     latestReportCoverProducts = latestCoverProductsRes.data || []
     latestReportCovers = latestReportCoversRes.data || []
@@ -157,23 +146,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           ))}
         </div>
       </section>
-
-      {/* Featured Products */}
-      {featuredProducts.length > 0 && (
-        <section className="max-w-6xl mx-auto px-6 pb-20">
-          <div className="flex justify-between items-center mb-10">
-            <h2 className="text-3xl font-bold">{t('products.featured')}</h2>
-            <Link href={`/${locale}/products`} className="text-indigo-400 hover:text-indigo-300 transition-colors">
-              {t('common.viewAll')} →
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} locale={locale as Locale} />
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Disclaimer */}
       <section className="max-w-6xl mx-auto px-6 pb-10">
