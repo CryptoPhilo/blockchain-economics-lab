@@ -759,9 +759,7 @@ export function canonicalSnapshotRowsToScoreRows(
   availabilityByProjectId?: Map<string, ReportAvailability>,
   availabilityByProjectSlug?: Map<string, ReportAvailability>,
 ) {
-  const canonicalRows = snapshotRows
-    .filter((row) => toCmcCanonicalRank(row.cmc_rank) !== null)
-    .sort((a, b) => (toCmcCanonicalRank(a.cmc_rank) ?? 0) - (toCmcCanonicalRank(b.cmc_rank) ?? 0))
+  const canonicalRows = getCanonicalScoreboardSnapshotRows(snapshotRows)
 
   if (!hasCompleteCmcCanonicalTop500Snapshot(canonicalRows)) return []
   return snapshotRowsToScoreRows(
@@ -773,15 +771,20 @@ export function canonicalSnapshotRowsToScoreRows(
   )
 }
 
+export function getCanonicalScoreboardSnapshotRows(snapshotRows: ScoreboardSnapshotRow[]) {
+  return snapshotRows
+    .filter((row) => toCmcCanonicalRank(row.cmc_rank) !== null)
+    .sort((a, b) => (toCmcCanonicalRank(a.cmc_rank) ?? 0) - (toCmcCanonicalRank(b.cmc_rank) ?? 0))
+}
+
 export function getScoreboardReportScope(
   snapshotRows: ScoreboardSnapshotRow[],
   trackedProjects: TrackedScoreboardProject[],
+  options: { requireCompleteCanonicalSnapshot?: boolean } = {},
 ) {
-  const canonicalRows = snapshotRows
-    .filter((row) => toCmcCanonicalRank(row.cmc_rank) !== null)
-    .sort((a, b) => (toCmcCanonicalRank(a.cmc_rank) ?? 0) - (toCmcCanonicalRank(b.cmc_rank) ?? 0))
+  const canonicalRows = getCanonicalScoreboardSnapshotRows(snapshotRows)
 
-  if (!hasCompleteCmcCanonicalTop500Snapshot(canonicalRows)) {
+  if (options.requireCompleteCanonicalSnapshot !== false && !hasCompleteCmcCanonicalTop500Snapshot(canonicalRows)) {
     return { projectIds: [] as string[], projectSlugs: [] as string[] }
   }
 
@@ -856,7 +859,17 @@ export default async function ScorePage({
         cmc_name: listing.name,
       })))
   const trackedProjects = mergeScoreboardProjects(baseTrackedProjects, canonicalAliasTargetProjects)
-  const reportScope = getScoreboardReportScope(scoreSnapshotRows, trackedProjects)
+  const canonicalScoreSnapshotRows = getCanonicalScoreboardSnapshotRows(scoreSnapshotRows)
+  const hasCanonicalScoreSnapshot = hasCompleteCmcCanonicalTop500Snapshot(canonicalScoreSnapshotRows)
+
+  // Paginate before report availability lookup so page 1 does not load badges for all 500 rows.
+  const startIdx = (currentPage - 1) * ITEMS_PER_PAGE
+  const pageSnapshotRows = hasCanonicalScoreSnapshot
+    ? canonicalScoreSnapshotRows.slice(startIdx, startIdx + ITEMS_PER_PAGE)
+    : []
+  const reportScope = getScoreboardReportScope(pageSnapshotRows, trackedProjects, {
+    requireCompleteCanonicalSnapshot: false,
+  })
   let canonicalAliasReportResult: Awaited<ReturnType<typeof fetchVisibleReportsForScoreboardByProjectSlugs>>
   try {
     canonicalAliasReportResult = await fetchVisibleReportsForScoreboardByProjectSlugs(reportScope.projectSlugs)
@@ -870,18 +883,14 @@ export default async function ScorePage({
     ? buildReportAvailabilityByProjectSlug(canonicalAliasReportResult.reports, locale)
     : undefined
 
-  const canonicalRows = canonicalSnapshotRowsToScoreRows(
-    scoreSnapshotRows,
-    trackedProjects,
+  const rows = snapshotRowsToScoreRows(
+    pageSnapshotRows,
+    buildTrackedProjectLookup(trackedProjects, { includeProjectAliases: false }),
     undefined,
     reportAvailabilityByProjectSlug,
+    buildTrackedProjectIdentityLookup(trackedProjects),
   )
-  const allRows = canonicalRows
-
-  // Paginate: 100 per page
-  const startIdx = (currentPage - 1) * ITEMS_PER_PAGE
-  const rows = allRows.slice(startIdx, startIdx + ITEMS_PER_PAGE)
-  const totalPages = Math.ceil(Math.min(allRows.length, MAX_RANK) / ITEMS_PER_PAGE)
+  const totalPages = Math.ceil(Math.min(canonicalScoreSnapshotRows.length, MAX_RANK) / ITEMS_PER_PAGE)
 
   const isKo = locale === 'ko'
 
