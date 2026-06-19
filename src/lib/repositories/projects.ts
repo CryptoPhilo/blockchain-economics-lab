@@ -74,6 +74,10 @@ function latestRowsByCanonicalRank(rows: ScoreboardMarketSnapshotRow[], limit: n
     .sort((a, b) => (toCanonicalRank(a.cmc_rank, limit) ?? 0) - (toCanonicalRank(b.cmc_rank, limit) ?? 0))
 }
 
+function shouldPreferDailySnapshotQuery(snapshotDates: string[], calendarDates: string[]) {
+  return snapshotDates.length >= 10 && calendarDates.length > 0 && calendarDates.length < snapshotDates.length
+}
+
 /**
  * Repository for project-related data access
  * Encapsulates all database queries for tracked projects
@@ -169,6 +173,40 @@ export class ProjectsRepository {
         .limit(limit * SCOREBOARD_DAILY_SNAPSHOT_ROW_LIMIT_MULTIPLIER)
     }
 
+    const findCompleteDailySnapshot = async () => {
+      for (const recordedAtDate of calendarDates) {
+        const dailyQuery = runDailySnapshotQuery(recordedAtDate, MARKET_SNAPSHOT_SELECT_COLUMNS)
+        if (!dailyQuery) continue
+
+        let { data, error } = await dailyQuery
+
+        if (isMissingCmcIdentityColumnError(error)) {
+          const legacyDailyQuery = runDailySnapshotQuery(recordedAtDate, LEGACY_MARKET_SNAPSHOT_SELECT_COLUMNS)
+          if (legacyDailyQuery) {
+            ;({ data, error } = await legacyDailyQuery)
+          }
+        }
+
+        if (error) {
+          throw new Error(`Failed to fetch scoreboard daily market snapshot: ${error.message}`)
+        }
+
+        const rows = latestRowsByCanonicalRank(
+          (data || []) as unknown as ScoreboardMarketSnapshotRow[],
+          limit,
+        )
+        if (isCompleteCanonicalRankSnapshot(rows, limit)) return rows
+      }
+
+      return []
+    }
+
+    const shouldTryDailyFirst = shouldPreferDailySnapshotQuery(snapshotDates, calendarDates)
+    if (shouldTryDailyFirst) {
+      const dailyRows = await findCompleteDailySnapshot()
+      if (dailyRows.length > 0) return dailyRows
+    }
+
     for (const recordedAt of snapshotDates) {
       let { data, error } = await runSnapshotQuery(recordedAt, MARKET_SNAPSHOT_SELECT_COLUMNS)
 
@@ -184,28 +222,9 @@ export class ProjectsRepository {
       if (isCompleteCanonicalRankSnapshot(rows, limit)) return rows
     }
 
-    for (const recordedAtDate of calendarDates) {
-      const dailyQuery = runDailySnapshotQuery(recordedAtDate, MARKET_SNAPSHOT_SELECT_COLUMNS)
-      if (!dailyQuery) continue
-
-      let { data, error } = await dailyQuery
-
-      if (isMissingCmcIdentityColumnError(error)) {
-        const legacyDailyQuery = runDailySnapshotQuery(recordedAtDate, LEGACY_MARKET_SNAPSHOT_SELECT_COLUMNS)
-        if (legacyDailyQuery) {
-          ;({ data, error } = await legacyDailyQuery)
-        }
-      }
-
-      if (error) {
-        throw new Error(`Failed to fetch scoreboard daily market snapshot: ${error.message}`)
-      }
-
-      const rows = latestRowsByCanonicalRank(
-        (data || []) as unknown as ScoreboardMarketSnapshotRow[],
-        limit,
-      )
-      if (isCompleteCanonicalRankSnapshot(rows, limit)) return rows
+    if (!shouldTryDailyFirst) {
+      const dailyRows = await findCompleteDailySnapshot()
+      if (dailyRows.length > 0) return dailyRows
     }
 
     return []

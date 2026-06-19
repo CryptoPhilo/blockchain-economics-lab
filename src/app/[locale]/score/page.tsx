@@ -734,8 +734,11 @@ export function snapshotRowsToScoreRows(
           ?? availabilityByProjectSlug?.get(snapshotSlug)
       const reportAvailability = getReportAvailability(project, availabilityByProjectId, slugAvailability)
 
+      const cmcRank = toCmcCanonicalRank(snapshot.cmc_rank)
+
       return {
-        rank: toCmcCanonicalRank(snapshot.cmc_rank) ?? index + 1,
+        rank: cmcRank ?? index + 1,
+        cmcRank,
         name: getSnapshotDisplayName(snapshot, project),
         symbol: getSnapshotDisplaySymbol(snapshot, project),
         slug: canonicalTargetSlug || project?.slug || snapshot.slug,
