@@ -125,9 +125,74 @@ website publishing contract for `econ-report-publishing`,
   - Failure item: Top500 page includes Bitcoin row, CMC rank, ECON badge, MAT badge
   - Passed item: exchange list API / Binance listing API / Binance exchange page Bitcoin row/rank/ECON/MAT badge
   - Recovery issue opened: `BCE-2007` (Top500 regression gate failure after production deploy)
-- Resolution status:
-  - BCE-2005 remains `blocked` until both `BCE-2006` and `BCE-2007` are resolved.
-  - After recovery, rerun migration + production-equivalent E2E and attach successful run IDs that include migration+deploy completion.
+- Resolution status (2026-06-20 11:42 KST):
+  - BCE-2005 remains `blocked`.
+  - Latest `BCE-2006` update:
+    - Repo-side migration compatibility fix was pushed on branch `codex/fix-exchange-production-regressions` at commit `6bc8302`.
+    - Migration rerun succeeded at: https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27857730221
+      - The original “remote-only version blocker” is cleared.
+      - Supabase now requests an explicit decision for earlier local April migrations before the latest remote migration.
+    - Board approval `35a8e2b7-6813-45ab-af09-4bfb00a2570b` approved the metadata-only
+      `supabase migration repair --status applied` path and rollback guidance.
+    - `BCE-2006` is currently blocked on valid GitHub Actions dispatch/execution
+      credentials for the approved remote repair path; this agent's local `gh`
+      credential returned HTTP 401 on Actions API calls during the 2026-06-20
+      continuation heartbeat.
+  - `BCE-2007` has been resolved:
+    - Root-cause fix commit: `c5dd9fe34df0da1eae4047ed662312150220fc3c`
+    - Deployment branch/SHA: `codex/fix-exchange-production-regressions@6bc83027e19f1336e78de035295f28ab4e77086a`
+    - Production deploy run: https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27857785244
+    - Deploy job: https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27857785244/job/82448388296
+    - Vercel URL: https://blockchain-economics-5e4fztf4h-michael-zhangs-projects-df54ac7d.vercel.app
+    - Direct alias validation passed (`BCE_REGRESSION_BASE_URL=https://bcelab.xyz npm run verify:production-regressions`) and browser DOM check confirms Bitcoin row/CMC #1/ECON/MAT.
+    - Workflow evidence: `Workflow gate passed: Verify Top500 and exchange regression gates`
+- Next step after `BCE-2006` + `BCE-2007` resolution:
+    - rerun remote migration and production-equivalent E2E on deploy path,
+    - attach successful run IDs proving migration success and production gate pass,
+    - then close BCE-2005.
+
+### BCE-2005 additional migration recovery evidence (2026-06-20 13:35 KST, latest)
+
+- Workspace/SHA used: `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab` at `6bc8302`.
+- Remote execution ref: `codex/fix-exchange-production-regressions@e1b3fc8`.
+- Run: https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27860177261
+- `supabase migration repair --status applied 20260409 20260412 20260414 20260417 20260418 20260427 20260428 20260429`
+  - approved and executed successfully
+  - log: `Repaired migration history: [20260409 20260412 20260414 20260417 20260418 20260427 20260428 20260429] => applied`
+- `supabase db push` still fails after repair:
+  - Supabase rejects repaired short-date versions as non-matching local migration files
+  - suggests reverting at least `20260409 20260412 20260414 20260418 20260427`
+- Related concurrent run / regression:
+  - https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27860170061
+  - command path regressed to pre-repair local-insertion blocker
+- New board approval requested for revised metadata repair path:
+  - `7b7ad020-6ac9-430f-bcc0-16da1e386720`
+- Blocker status:
+  - `BCE-2006` remains blocked pending board-approved revised repair/rollback direction and a successful `supabase db push`.
+
+### BCE-2005 follow-up recovery evidence (2026-06-20 13:40 KST)
+
+- Auditable workflow support commit added for Actions-based repair on branch
+  `codex/fix-exchange-production-regressions`:
+  - `7d0be87bae6d53a25e59182649f97ead04014e8c`
+- Revised no-op/include-all attempt:
+  - Run: https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27860351179
+  - `supabase migration repair --status applied 20260409 20260412 20260414 20260417 20260418 20260427 20260428 20260429` succeeded
+    (log: `Repaired migration history: [...] => applied`)
+  - `supabase db push --include-all` still failed:
+    - `Remote migration versions not found in local migrations directory`
+    - suggested reverting `20260409 20260412 20260414 20260418 20260427`
+- Approved rollback execution:
+  - Run: https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27860406003
+  - Rollback evidence:
+    - `Repaired migration history: [20260409 20260412 20260414 20260417 20260418 20260427 20260428 20260429] => reverted`
+- Post-rollback state:
+  - Workflow again fails at the original `supabase db push` blocker (oldest local
+    April migrations still required before last remote migration).
+- Current conclusion:
+  - No successful production migration application for Summary Authority Gate has occurred in these runs.
+  - BCE-2006 and thus BCE-2005 remain blocked pending board-approved revised metadata
+    repair/rollback (approval: `7b7ad020-6ac9-430f-bcc0-16da1e386720`) and a successful `supabase db push`.
 
 ## BCE-2006 Supabase Migration History Recovery
 
@@ -186,9 +251,119 @@ website publishing contract for `econ-report-publishing`,
 - Remaining operating step:
   - Do not rerun with `supabase db push --include-all`; these files include
     non-idempotent schema creation and may duplicate production objects.
-  - Request board approval for a metadata-only repair that marks the listed
-    local April versions as applied in Supabase migration history, with rollback
-    by marking the same versions reverted.
-  - After approval and repair, rerun `.github/workflows/db-migration.yml` from
-    the recovery commit/ref so only genuinely pending migrations, including the
-    Summary Authority Gate, are applied.
+  - Board approval `35a8e2b7-6813-45ab-af09-4bfb00a2570b` approved a
+    metadata-only repair that marks the listed local April versions as applied
+    in Supabase migration history, with rollback by marking the same versions
+    reverted.
+  - A runner/operator with valid GitHub Actions execution credentials must run
+    the approved repair remotely, then rerun `.github/workflows/db-migration.yml`
+    from `codex/fix-exchange-production-regressions@6bc8302` so only genuinely
+    pending migrations, including the Summary Authority Gate, are applied.
+  - 2026-06-20 CTO follow-up:
+    - Current CTO heartbeat verified the same workspace at SHA `6bc8302`.
+    - `gh auth status` now shows a valid `workflow`-scoped GitHub credential,
+      but `.github/workflows/db-migration.yml` still exposes only
+      `supabase db push`; it has no approved `supabase migration repair`
+      execution path.
+    - Remote repair execution has been delegated to DataPlatformEngineer via
+      Paperclip so the repair surface, execution evidence, rerun URL, and wiki
+      update are handled as an auditable production operation.
+  - 2026-06-20 13:28 KST DataPlatformEngineer follow-up:
+    - Workspace verified:
+      `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+      at SHA `6bc8302` before execution; remote execution used approved
+      follow-up SHA `e1b3fc8` on branch `codex/fix-exchange-production-regressions`.
+    - Remote workflow repair surface:
+      `.github/workflows/db-migration.yml` gained manual-dispatch inputs
+      `repair_status` and `repair_versions`, runs under `environment:
+      production`, links Supabase from production secrets, runs
+      `supabase migration repair` before `supabase db push`, and logs the exact
+      command inputs.
+    - Remote repair/db-push run:
+      https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27860177261
+    - Repair step result: success. Log evidence:
+      `Repaired migration history: [20260409 20260412 20260414 20260417 20260418 20260427 20260428 20260429] => applied`.
+    - Apply Migrations result: failed. New Supabase CLI blocker:
+      remote migration versions are now present in history but not accepted as
+      matching local migration files for at least
+      `20260409`, `20260412`, `20260414`, `20260418`, and `20260427`.
+      CLI suggested rollback:
+      `supabase migration repair --status reverted 20260409 20260412 20260414 20260418 20260427`.
+    - A concurrent earlier remote run
+      https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27860170061
+      executed the rollback form for the full approved version set, then failed
+      `supabase db push` with the prior "local migration files to be inserted
+      before the last migration" blocker. The later run above re-applied the
+      approved repair.
+    - No additional repair variant was executed because the approved command
+      succeeded but produced a new reconciliation blocker; any alternative
+      version identifiers or rollback/apply sequence should be explicitly
+      approved before another production migration-history write.
+  - 2026-06-20 board follow-up:
+    - Auditable GitHub Actions repair support is present on
+      `codex/fix-exchange-production-regressions` at commit
+      `7d0be87bae6d53a25e59182649f97ead04014e8c`.
+    - Revised no-op/include-all attempt:
+      https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27860351179
+      - `supabase migration repair --status applied 20260409 20260412 20260414 20260417 20260418 20260427 20260428 20260429`
+        succeeded and logged `=> applied`.
+      - `supabase db push --include-all` still failed with
+        `Remote migration versions not found in local migrations directory` and
+        suggested reverting `20260409`, `20260412`, `20260414`, `20260418`,
+        and `20260427`.
+    - Approved rollback run:
+      https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27860406003
+      - Rollback evidence:
+        `Repaired migration history: [20260409 20260412 20260414 20260417 20260418 20260427 20260428 20260429] => reverted`.
+      - After rollback, the workflow returned to the original blocker: normal
+        `supabase db push` refuses to insert older local April migrations before
+        the last remote migration.
+    - No successful production Summary Authority Gate migration application has
+      occurred in these runs.
+    - Further automatic retries are not safe without revised board approval
+      `7b7ad020-6ac9-430f-bcc0-16da1e386720` or a DB-owner migration-history
+      rebaseline via `supabase db pull` / manual Supabase audit.
+  - 2026-06-20 safety cleanup:
+    - Removed failed experimental workflow inputs `skip_local_versions` and
+      `noop_include_versions` after confirming they did not resolve Supabase
+      history reconciliation and could invite unsafe reuse.
+    - Cleanup commits pushed to `codex/fix-exchange-production-regressions`:
+      - `013fb74` reverts `BCE-2006 no-op legacy migrations for production push`.
+      - `f4b6b41` reverts `BCE-2006 skip obsolete local migrations in production push`.
+    - Current branch HEAD verified locally and remotely:
+      `f4b6b41a519ef83e1da50658e4790e05e52674d3`.
+    - `.github/workflows/db-migration.yml` now retains only the approved repair
+      execution surface: `repair_status` + `repair_versions`, then normal
+      `supabase db push`.
+    - `BCE-2006` remains blocked because normal `db push` still fails after
+      rollback with the April local-migration insertion blocker. Pending
+      decision remains board approval `7b7ad020-6ac9-430f-bcc0-16da1e386720`
+      or a DB-owner migration-history rebaseline / manual Supabase audit.
+  - 2026-06-20 13:50 KST approved recovery completion:
+    - Board approval `7b7ad020-6ac9-430f-bcc0-16da1e386720` approved the
+      revised remote-only repair/rebaseline path.
+    - Repo compatibility commits on `codex/fix-exchange-production-regressions`
+      archived obsolete local migrations that were already represented in
+      production history:
+      - `3d6d225` archives short-date April local migrations.
+      - `fb9d8ef` archives pre-summary migrations already applied in production.
+      - `65880c5` adds a read-only `supabase migration list --linked` audit step
+        before `supabase db push`.
+    - Migration application run:
+      https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27860631382
+      - Ref/SHA: `codex/fix-exchange-production-regressions@fb9d8ef0efd41fbe3432bc30309fce848624e8fb`
+      - Result: success.
+      - `supabase db push` applied:
+        - `20260620111300_add_report_summary_jobs.sql`
+        - `20260620111400_add_summary_authority_gate.sql`
+      - Log evidence: `Finished supabase db push.`
+    - Audit rerun:
+      https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27860660544
+      - Ref/SHA: `codex/fix-exchange-production-regressions@65880c5e918b3e0e6f2f8f22ea46d07947273d1e`
+      - Result: success.
+      - `supabase migration list --linked` shows both local and remote entries
+        for `20260620111300` and `20260620111400`.
+      - `supabase db push` result: `Remote database is up to date.`
+    - `BCE-2006` migration blocker is cleared. Next `BCE-2005` step is to run
+      the production-equivalent deploy/E2E evidence path and close remaining
+      blockers only after that evidence passes.
