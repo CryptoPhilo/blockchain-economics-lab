@@ -218,6 +218,7 @@ website publishing contract for `econ-report-publishing`,
     - Head SHA: `337b080234fc2cf332ca345986be09ab76bc1d47`
     - Merge commit: `d98fc27628bfdd8e3e696d75f9a2049d790bf346`
     - Merged at: `2026-06-20T06:02:25Z`
+    - Merged at: 2026-06-20 15:02 KST
     - CI status: all required checks passed before merge.
     - removes direct GitHub Actions LLM API call / secret dependency in apply mode;
       `--agent-output-json` is now the required input path.
