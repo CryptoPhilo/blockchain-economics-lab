@@ -56,6 +56,10 @@ class FakeTable:
     def limit(self, _value):
         return self
 
+    def order(self, column, desc=False):
+        self.filters.append(("order", column, desc))
+        return self
+
     def execute(self):
         if self.name == "report_summary_promotion_locks" and self.action == "insert":
             key = (
@@ -101,8 +105,12 @@ class FakeTable:
                 if row["project_id"] == project_id
                 and row["report_type"] == report_type
                 and row["language"] == language
+                and row["status"] in set(_filter_value(self.filters, "status") or ())
                 and (version is None or row["version"] == version)
             ]
+            for kind, column, desc in self.filters:
+                if kind == "order":
+                    rows = sorted(rows, key=lambda row: row[column], reverse=desc)
             return FakeExecuteResult(rows[:1])
         if self.name == "project_reports" and self.action == "update":
             report_id = _filter_value(self.filters, "id")
@@ -187,7 +195,7 @@ class FakeRpc:
 
 def _filter_value(filters, column):
     for kind, filter_column, value in filters:
-        if kind == "eq" and filter_column == column:
+        if kind in {"eq", "in"} and filter_column == column:
             return value
     return None
 
@@ -328,6 +336,28 @@ def test_llm_active_valid_candidate_promotes_language_siblings_with_lock():
     assert len(rpc_calls) == 1
     report_updates = [op for op in sb.operations if op[0] == "project_reports" and op[1] == "update"]
     assert len(report_updates) == 1
+
+
+def test_dry_run_uses_latest_visible_target_when_candidate_version_is_stale():
+    module = load_gate()
+    sb = FakeSupabase(valid_job())
+    sb.reports["report-1"]["status"] = "cancelled"
+    sb.reports["report-2"]["status"] = "cancelled"
+    sb.reports["report-3"] = {
+        "id": "report-3",
+        "project_id": "project-1",
+        "report_type": "econ",
+        "version": 3,
+        "language": "ko",
+        "status": "published",
+        "card_data": {"latest": True},
+    }
+
+    decision = module.promote_job(sb, sb.jobs["job-1"], actor="agent", authority_mode="llm_active", dry_run=True)
+
+    assert decision.action == "promote"
+    assert decision.project_report_id == "report-3"
+    assert decision.reason == "dry-run promotion would call atomic DB RPC"
 
 
 def test_duplicate_promotion_lock_blocks_concurrent_active_summary_update():

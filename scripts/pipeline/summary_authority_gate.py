@@ -219,18 +219,22 @@ def find_target_report(sb: Any, job: Dict[str, Any]) -> Dict[str, Any]:
     )
     if not project_rows:
         raise GateError(f"tracked project not found: {job['project_slug']}")
-    query = (
-        sb.table("project_reports")
-        .select("id, project_id, report_type, version, language, status, card_data")
-        .eq("project_id", project_rows[0]["id"])
-        .eq("report_type", job["report_type"])
-        .eq("language", job.get("locale") or "ko")
-        .in_("status", list(WEBSITE_VISIBLE_REPORT_STATUSES))
-    )
+    def target_query() -> Any:
+        return (
+            sb.table("project_reports")
+            .select("id, project_id, report_type, version, language, status, card_data")
+            .eq("project_id", project_rows[0]["id"])
+            .eq("report_type", job["report_type"])
+            .eq("language", job.get("locale") or "ko")
+            .in_("status", list(WEBSITE_VISIBLE_REPORT_STATUSES))
+        )
+
     version = _candidate_version(job)
     if version is not None:
-        query = query.eq("version", version)
-    rows = query.limit(1).execute().data or []
+        rows = target_query().eq("version", version).limit(1).execute().data or []
+        if rows:
+            return rows[0]
+    rows = target_query().order("version", desc=True).limit(1).execute().data or []
     if not rows:
         raise GateError(
             f"website-visible project_reports target not found: "

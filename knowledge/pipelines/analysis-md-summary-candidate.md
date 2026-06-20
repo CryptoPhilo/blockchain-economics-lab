@@ -258,6 +258,7 @@ website publishing contract for `econ-report-publishing`,
   - status: `valid`
   - validation reasons: none
   - upsert result: `updated_existing`
+- Candidate row:
   - job id: `5532671b-87ea-4b6c-a72c-fc7ba6bf1d86`
   - artifact:
     `scripts/pipeline/output/analysis_md_summary_candidate_econ_humanity-protocol.json`
@@ -272,6 +273,73 @@ website publishing contract for `econ-report-publishing`,
 - This satisfies the Paperclip-local JSON ingestion evidence for the candidate
   row and default-off gate dry-run. Production promotion remains separate and
   requires explicit approval before any `--write` gate invocation.
+
+### BCE-2016 CRO Immediate Publication Routine Attempt (2026-06-20 16:40 KST)
+
+- Workspace/SHA used:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `f221488`.
+- Source: Google Drive Markdown
+  `HyperLiquid 크립토이코노미 분석 보고서.md`.
+- Source identity:
+  `drive:10TAvpP5hRWC6SFHoYcfmx433NFJRx3b5:0B8HYgThT3NByVlpZRGdadlgwcFRNTSt3eDNnbG5GWFFoNE9JPQ`.
+- Paperclip CRO local agent JSON:
+  `scripts/pipeline/output/bce-2015-cro-top50/09_hyperliquid_agent_output.json`.
+- Candidate job:
+  `24a4b612-cf09-4bcf-a960-1abd01323fca`.
+- Candidate DB state after ingest:
+  `project_slug=hyperliquid`, `report_type=econ`, `locale=ko`,
+  `validation_status=valid`, `status=candidate_ready`.
+- Promotion command attempted:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id 24a4b612-cf09-4bcf-a960-1abd01323fca --authority-mode llm_active --actor paperclip-routine:CRO:BCE-2016 --write`.
+- Promotion result: blocked. The Summary Authority Gate RPC failed with
+  `website-visible project_reports target not found: hyperliquid/econ/ko`.
+- Operational implication: the immediate publication routine cannot mark the
+  execution issue done for Hyperliquid until website-visible
+  `project_reports` language sibling rows exist for `hyperliquid/econ`, or the
+  gate is changed through a reviewed migration to create missing targets
+  intentionally.
+- Follow-up blocker: `BCE-2017` created and assigned to DataPlatformEngineer to
+  resolve missing `project_reports` target/gate contract; BCE-2016 remains
+  blocked until resolved.
+
+### BCE-2017 Hyperliquid Summary Authority Gate Target Fix (2026-06-20 16:50 KST)
+
+- Workspace/SHA used:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `f221488`.
+- Primary context checked before implementation:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` and
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Live DB diagnosis for candidate job
+  `24a4b612-cf09-4bcf-a960-1abd01323fca`:
+  - candidate state is now terminal `rejected` because the interrupted
+    `BCE-2015` helper run generated generic/default-source summaries;
+  - candidate patch carried `card_data.source_md.version=1`;
+  - Hyperliquid has a website-visible Korean ECON report at version `3`
+    (`project_reports.id=827c5761-13fb-47ba-88ff-041d36bc6e2c`);
+  - version `1` Korean rows are not website-visible, so the previous exact
+    candidate-version anchor lookup raised
+    `website-visible project_reports target not found: hyperliquid/econ/ko`.
+- Hotfix:
+  - `scripts/pipeline/summary_authority_gate.py` dry-run target resolution now
+    prefers exact visible candidate version, then falls back to the latest
+    website-visible locale target.
+  - Migration
+    `supabase/migrations/20260620165000_summary_authority_gate_latest_visible_fallback.sql`
+    replaces `public.promote_report_summary_job(...)` with the same fallback
+    and scopes sibling updates to the selected visible target version.
+  - Promotion audit and pipeline event details record both
+    `candidate_version` and `target_version`.
+- Local verification:
+  - `python3 -m pytest scripts/pipeline/test_summary_authority_gate.py`
+    passed (`8 passed`).
+  - `npm run verify:runtime-pipelines` passed.
+- Operational implication:
+  - The missing-target blocker is fixed at code/migration level.
+  - Because the original Hyperliquid candidate job is terminal `rejected`,
+    `BCE-2016` should rerun candidate ingestion or use a fresh valid candidate
+    after this migration is deployed, then retry `llm_active --write`.
 
 ### BCE-2012 Immediate Publish Gate Attempt (2026-06-20 15:45 KST)
 
