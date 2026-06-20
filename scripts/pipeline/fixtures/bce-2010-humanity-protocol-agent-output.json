@@ -1,0 +1,30 @@
+{
+  "schema_version": "analysis_md_summary_candidate.v1",
+  "prompt_version": "analysis_md_summary_candidate.prompt.v1",
+  "model": "paperclip-local-agent-gpt-5-codex",
+  "summary_by_lang": {
+    "ko": "TAC는 TON과 Telegram 사용자 기반을 EVM 실행 환경에 연결하지만 브릿지 검증과 낮은 수수료 활동이 지속 가능성의 핵심 변수다.",
+    "en": "TAC connects TON and Telegram users to EVM execution, while bridge verification and low fee activity remain the main sustainability variables.",
+    "fr": "TAC relie les utilisateurs TON et Telegram a l execution EVM, mais la verification du bridge et les faibles frais restent decisifs.",
+    "es": "TAC conecta usuarios de TON y Telegram con ejecucion EVM, mientras la verificacion del bridge y bajas comisiones siguen siendo claves.",
+    "de": "TAC verbindet TON und Telegram Nutzer mit EVM Ausfuehrung, doch Bridge Pruefung und geringe Gebuehren bleiben entscheidend.",
+    "ja": "TACはTONとTelegram利用者をEVM実行へ接続するが、ブリッジ検証と低い手数料活動が持続性の焦点だ。",
+    "zh": "TAC把TON和Telegram用户连接到EVM执行环境，但桥验证和较低费用活动仍是可持续性的关键。"
+  },
+  "marketing_by_lang": {
+    "ko": "투자 관점에서는 TON 분배력보다 브릿지 신뢰 회복, 실제 수수료 성장, 토큰 유틸리티 전환을 우선 확인해야 한다.",
+    "en": "Investors should prioritize bridge trust recovery, real fee growth, and token utility conversion over the TON distribution thesis.",
+    "fr": "Les investisseurs doivent prioriser la confiance du bridge, la croissance des frais et la conversion de l utilite du token.",
+    "es": "Los inversores deben priorizar confianza del bridge, crecimiento real de comisiones y conversion de utilidad del token.",
+    "de": "Investoren sollten Bridge Vertrauen, reales Gebuehrenwachstum und Umsetzung der Token Nutzung vor Distribution priorisieren.",
+    "ja": "投資家はTON配布力よりも、ブリッジ信頼回復、実手数料成長、トークン効用の転換を重視すべきだ。",
+    "zh": "投资者应优先确认桥信任恢复、真实费用增长和代币效用转化，而不只看TON分发潜力。"
+  },
+  "source_sentence_ids": [0, 1, 2],
+  "source_sentences": [
+    "TAC가 생산하는 핵심 가치는 “EVM dApp 공급”과 “TON·Telegram 사용자 수요”를 연결하는 시장 조성 기능이다.\\[1\\]\\[2\\]\\[3\\]",
+    "TAC의 가치 창출 경로는 다음 순환 구조로 요약된다.",
+    "현재 TAC의 가장 큰 장점은 Telegram과 TON 사용자 기반에 대한 distribution thesis다.\\[1\\]\\[3\\]\\[41\\]"
+  ],
+  "confidence": 0.82
+}
