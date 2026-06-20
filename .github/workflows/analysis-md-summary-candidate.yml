@@ -1,0 +1,206 @@
+name: Analysis MD Summary Candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Candidate mode'
+        required: true
+        type: choice
+        default: dry_run
+        options:
+          - dry_run
+          - apply
+      report_type:
+        description: 'Report type'
+        required: true
+        type: choice
+        default: econ
+        options:
+          - econ
+          - mat
+          - for
+      slug:
+        description: 'Tracked project slug'
+        required: true
+        type: string
+      drive_root_scope:
+        description: 'Drive source scope'
+        required: true
+        type: choice
+        default: active
+        options:
+          - active
+          - legacy
+          - all
+      limit:
+        description: 'Maximum Drive markdown sources to process'
+        required: false
+        type: string
+        default: '1'
+      gate_authority_mode:
+        description: 'Authority mode for gate dry-run'
+        required: true
+        type: choice
+        default: llm_candidate
+        options:
+          - legacy_script
+          - llm_candidate
+          - llm_active
+
+permissions:
+  contents: read
+
+concurrency:
+  group: analysis-md-summary-candidate-${{ github.event.inputs.slug }}
+  cancel-in-progress: false
+
+jobs:
+  candidate:
+    name: Generate Summary Candidate
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          cd scripts/pipeline
+          pip install -r requirements.txt
+
+      - name: Validate dispatch scope
+        env:
+          MODE: ${{ github.event.inputs.mode }}
+          LIMIT: ${{ github.event.inputs.limit }}
+          SLUG: ${{ github.event.inputs.slug }}
+        run: |
+          set -euo pipefail
+          test -n "$SLUG"
+          case "$MODE" in
+            dry_run|apply) ;;
+            *) echo "::error::mode must be dry_run or apply"; exit 1 ;;
+          esac
+          if [ -n "$LIMIT" ] && ! [[ "$LIMIT" =~ ^[0-9]+$ ]]; then
+            echo "::error::limit must be a positive integer"
+            exit 1
+          fi
+
+      - name: Validate required secrets
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in SUPABASE_URL SUPABASE_SERVICE_KEY GDRIVE_SERVICE_ACCOUNT_JSON; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::required secret ${name} is not configured"
+              missing=1
+            else
+              echo "${name}=present"
+            fi
+          done
+          exit "$missing"
+
+      - name: Create runtime credentials
+        run: |
+          cat > .env.local << EOF
+          NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
+          GDRIVE_DELEGATE_EMAIL=${{ secrets.GDRIVE_DELEGATE_EMAIL }}
+          BCE_MARKETING_ACTIVE_ECON_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_ACTIVE_ECON_SOURCE_FOLDER_ID }}
+          BCE_MARKETING_ACTIVE_MAT_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_ACTIVE_MAT_SOURCE_FOLDER_ID }}
+          BCE_MARKETING_ACTIVE_FOR_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_ACTIVE_FOR_SOURCE_FOLDER_ID }}
+          BCE_MARKETING_ECON_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_ECON_SOURCE_FOLDER_ID }}
+          BCE_MARKETING_MAT_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_MAT_SOURCE_FOLDER_ID }}
+          BCE_MARKETING_FOR_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_FOR_SOURCE_FOLDER_ID }}
+          BCE_ANALYSIS_MD_SUMMARY_MODEL=${{ secrets.BCE_ANALYSIS_MD_SUMMARY_MODEL }}
+          BCE_ANALYSIS_MD_LLM_ENDPOINT=${{ secrets.BCE_ANALYSIS_MD_LLM_ENDPOINT }}
+          BCE_ANALYSIS_MD_LLM_BEARER_TOKEN=${{ secrets.BCE_ANALYSIS_MD_LLM_BEARER_TOKEN }}
+          EOF
+          echo '${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}' > scripts/pipeline/.gdrive_service_account.json
+
+      - name: Generate candidate
+        id: candidate
+        env:
+          GDRIVE_SERVICE_ACCOUNT_FILE: ${{ github.workspace }}/scripts/pipeline/.gdrive_service_account.json
+          MODE: ${{ github.event.inputs.mode }}
+          REPORT_TYPE: ${{ github.event.inputs.report_type }}
+          SLUG: ${{ github.event.inputs.slug }}
+          DRIVE_ROOT_SCOPE: ${{ github.event.inputs.drive_root_scope }}
+          LIMIT: ${{ github.event.inputs.limit }}
+        run: |
+          set -euo pipefail
+          args=(
+            --type "$REPORT_TYPE"
+            --slug "$SLUG"
+            --drive-root-scope "$DRIVE_ROOT_SCOPE"
+            --limit "${LIMIT:-1}"
+          )
+          if [ "$MODE" = "dry_run" ]; then
+            args+=(--dry-run)
+          fi
+          echo "Invoking: python3 scripts/pipeline/analysis_md_summary_candidate.py ${args[*]}"
+          python3 scripts/pipeline/analysis_md_summary_candidate.py "${args[@]}" | tee analysis-md-summary-candidate.log
+          artifact="scripts/pipeline/output/analysis_md_summary_candidate_${REPORT_TYPE}_${SLUG}.json"
+          echo "artifact=$artifact" >> "$GITHUB_OUTPUT"
+
+      - name: Gate dry-run
+        if: ${{ github.event.inputs.mode == 'apply' }}
+        env:
+          GATE_AUTHORITY_MODE: ${{ github.event.inputs.gate_authority_mode }}
+        run: |
+          set -euo pipefail
+          job_id="$(python3 - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path("${{ steps.candidate.outputs.artifact }}")
+          payload = json.loads(path.read_text())
+          rows = payload.get("results") or []
+          for row in rows:
+              if row.get("status") == "valid" and row.get("upsert_result") in {"inserted", "updated_existing", "skipped_existing"}:
+                  print(row.get("job_id") or "")
+                  break
+          PY
+          )"
+          if [ -z "$job_id" ]; then
+            echo "::notice::No candidate job id found for gate dry-run"
+            exit 0
+          fi
+          python3 scripts/pipeline/summary_authority_gate.py \
+            --job-id "$job_id" \
+            --authority-mode "$GATE_AUTHORITY_MODE" \
+            --actor "github-actions:${{ github.run_id }}" \
+            | tee summary-authority-gate-dry-run.log
+
+      - name: Upload candidate artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: analysis-md-summary-candidate-${{ github.run_number }}
+          path: |
+            analysis-md-summary-candidate.log
+            summary-authority-gate-dry-run.log
+            scripts/pipeline/output/analysis_md_summary_candidate_*.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Analysis MD Summary Candidate" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Mode: ${{ github.event.inputs.mode }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Report type: ${{ github.event.inputs.report_type }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Slug: ${{ github.event.inputs.slug }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Drive scope: ${{ github.event.inputs.drive_root_scope }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Gate authority mode: ${{ github.event.inputs.gate_authority_mode }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Run ID: ${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"
