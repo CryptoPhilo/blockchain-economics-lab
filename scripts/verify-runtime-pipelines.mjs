@@ -46,6 +46,11 @@ function assertFile(file, label) {
   else fail(`${label}: missing ${file}`)
 }
 
+function assertAnyFile(files, label) {
+  if (files.some((file) => exists(file))) pass(label)
+  else fail(`${label}: missing one of ${files.join(', ')}`)
+}
+
 function assertContains(file, needle, label) {
   if (!exists(file)) {
     fail(`${label}: missing ${file}`)
@@ -260,8 +265,11 @@ for (const rawPipeline of manifest.pipelines ?? []) {
 assertContains('package.json', '"verify:runtime-pipelines"', 'package script verify:runtime-pipelines is registered')
 assertContains('.github/workflows/ci.yml', 'npm run verify:runtime-pipelines', 'CI runs runtime pipeline verification')
 assertContains('.github/workflows/slide-pipeline-cron.yml', 'npm run verify:runtime-pipelines', 'Slide workflow verifies runtime manifest before execution')
-assertFile(
-  'supabase/migrations/20260515_add_pipeline_telemetry_tables.sql',
+assertAnyFile(
+  [
+    'supabase/migrations/20260515_add_pipeline_telemetry_tables.sql',
+    'supabase/archived-production-skipped-migrations/bce-2006-pre-summary-already-in-production/20260515_add_pipeline_telemetry_tables.sql',
+  ],
   'Remote pipeline state store migration exists',
 )
 assertContains(

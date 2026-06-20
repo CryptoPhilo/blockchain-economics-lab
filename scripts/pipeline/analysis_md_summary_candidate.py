@@ -34,7 +34,6 @@ from marketing_content_pipeline import (  # noqa: E402
     CardCopy,
     DerivedContent,
     MarkdownSource,
-    _blocking_card_summary_reasons,
     _download_drive_text,
     _get_drive_service,
     _limit_words,
@@ -61,6 +60,11 @@ SCHEMA_VERSION = "analysis_md_summary_candidate.v1"
 PROMPT_VERSION = "analysis_md_summary_candidate.prompt.v1"
 DEFAULT_MODEL = os.environ.get("BCE_ANALYSIS_MD_SUMMARY_MODEL", "configured-llm")
 OUTPUT_DIR = PIPELINE_DIR / "output"
+NON_BLOCKING_CARD_SUMMARY_REASONS = {
+    "subject_missing_or_mismatch",
+    "insight_missing",
+    "no_insight_candidate",
+}
 
 
 @dataclass(frozen=True)
@@ -233,7 +237,7 @@ def validate_llm_payload(
             if not text:
                 continue
             field_reasons = validate_card_summary(text, locale=lang, source=source, project=project)
-            blocking = _blocking_card_summary_reasons(field_reasons)
+            blocking = [reason for reason in field_reasons if reason not in NON_BLOCKING_CARD_SUMMARY_REASONS]
             reasons.extend(f"{field}.{lang}.{reason}" for reason in blocking)
 
     return sorted(set(reasons))
