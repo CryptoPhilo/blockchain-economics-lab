@@ -167,8 +167,28 @@ website publishing contract for `econ-report-publishing`,
     remote-only version reported by Supabase CLI.
   - No `supabase migration repair`, `supabase db pull`, or production DB write
     was executed locally.
+- Recovery rerun:
+  - Commit/ref: `a209daf` on `codex/fix-exchange-production-regressions`
+  - Run: https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27857730221
+  - Result: failed after clearing the first remote-only-version blocker.
+  - New Supabase CLI blocker: local migrations would need insertion before the
+    last remote migration:
+    - `20260409_add_tracked_projects_and_project_subscriptions.sql`
+    - `20260412_add_referral_subscriber_newsletter.sql`
+    - `20260412_add_rls_core_tables.sql`
+    - `20260414_add_coming_soon_and_forensic_trigger.sql`
+    - `20260417_add_report_timestamp_trigger.sql`
+    - `20260418_add_cmc_id_to_tracked_projects.sql`
+    - `20260418_fix_rls_for_coming_soon_reports.sql`
+    - `20260427_add_aliases_to_tracked_projects.sql`
+    - `20260428_add_slide_html_urls_by_lang.sql`
+    - `20260429_backfill_project_reports_language_support.sql`
 - Remaining operating step:
-  - Rerun `.github/workflows/db-migration.yml` from the recovery commit/ref.
-  - If `supabase db push` still requires history repair or schema pull, request
-    board approval before any `supabase migration repair` or `supabase db pull`
-    based recovery.
+  - Do not rerun with `supabase db push --include-all`; these files include
+    non-idempotent schema creation and may duplicate production objects.
+  - Request board approval for a metadata-only repair that marks the listed
+    local April versions as applied in Supabase migration history, with rollback
+    by marking the same versions reverted.
+  - After approval and repair, rerun `.github/workflows/db-migration.yml` from
+    the recovery commit/ref so only genuinely pending migrations, including the
+    Summary Authority Gate, are applied.
