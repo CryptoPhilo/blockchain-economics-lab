@@ -1,0 +1,4 @@
+-- Remote Supabase history compatibility marker.
+-- This version is already recorded in production but the original migration
+-- file is not present in this repository history. Keep this no-op so
+-- `supabase db push` can reconcile remote migration history without repair.

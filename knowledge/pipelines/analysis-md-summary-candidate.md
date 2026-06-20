@@ -88,3 +88,87 @@ BCE-2000 adds a change-request/candidate path only. It does not change the activ
 `Slide2/*` PDF operating input, GitHub Actions cadence, approval gate, or
 website publishing contract for `econ-report-publishing`,
 `mat-report-publishing`, or `for-report-publishing`.
+
+## BCE-2005 Remote Migration/Deploy Evidence (Blocked)
+
+- Workspace: `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+- Current branch SHA when analyzed: `2a25add` (`HEAD` on `codex/fix-exchange-production-regressions`)
+- Migration contract added for authority-gate tables/functions:
+  - `supabase/migrations/20260620111400_add_summary_authority_gate.sql`
+    - Adds `report_summary_jobs.authority_state`, `authority_mode`, promotion
+      audit fields, and `report_summary_promotion_locks`
+    - Adds PostgreSQL RPC `public.promote_report_summary_job(...)`
+- Remote migration workflow path:
+  - `.github/workflows/db-migration.yml`
+  - Triggers on `supabase/migrations/**` changes or manual dispatch
+  - Applies migrations with `supabase db push` in `environment: production`
+- Deployment workflow path:
+  - `.github/workflows/production-deploy.yml`
+  - Verifies pipeline manifests/runtime checks before production deploy
+  - Enforces `expected_branch` / optional `expected_commit` evidence in inputs
+- Summary gate write path remains default-off:
+  - `scripts/pipeline/summary_authority_gate.py` only persists on `--write`
+  - Tests assert lock/rejection/promotion transitions in
+    `scripts/pipeline/test_summary_authority_gate.py`
+- 2026-06-20 `local-board` executed required remote steps on branch `codex/fix-exchange-production-regressions` commit `2a25add8416211029725d887ab882ca63e638364` (Board approval `f969099e-589f-4dc6-8e46-49aaac9e1c59`).
+- Remote migration attempt:
+  - Run: https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27857395766
+  - Final result: failed (`Apply Migrations` / `supabase db push`)
+  - Failure reason: remote migration history contains `202604...` versions that are not present in current branch `supabase/migrations` directory, so `supabase db push` aborted.
+  - Recovery issue opened: `BCE-2006` (Supabase migration history mismatch / fix authority gate migration application failure)
+- Production deploy attempt:
+  - Run: https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27857395760
+  - `Verify Deployment Evidence` job: success (`npm ci`, `verify:pipeline`, `verify:runtime-pipelines`, `tsc`, tests, build)
+  - Vercel deploy: success (`https://blockchain-economics-hhllxrvk3-michael-zhangs-projects-df54ac7d.vercel.app`)
+  - Aliased domain: `https://www.bcelab.xyz`
+  - Final result: failed (`Verify Top500 and exchange regression gates`)
+  - Failure item: Top500 page includes Bitcoin row, CMC rank, ECON badge, MAT badge
+  - Passed item: exchange list API / Binance listing API / Binance exchange page Bitcoin row/rank/ECON/MAT badge
+  - Recovery issue opened: `BCE-2007` (Top500 regression gate failure after production deploy)
+- Resolution status:
+  - BCE-2005 remains `blocked` until both `BCE-2006` and `BCE-2007` are resolved.
+  - After recovery, rerun migration + production-equivalent E2E and attach successful run IDs that include migration+deploy completion.
+
+## BCE-2006 Supabase Migration History Recovery
+
+- Workspace: `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+- Diagnosis SHA: `2a25add`
+- Failed run reviewed:
+  - https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27857395766
+  - Failed at `supabase db push` on 2026-06-20 02:25 UTC.
+- Exact Supabase CLI blocker:
+  - Remote migration versions were present in production history but absent from
+    local `supabase/migrations`.
+  - Missing local versions:
+    `20260408162734`, `20260408181632`, `20260408182202`,
+    `20260409015605`, `20260409020123`, `20260409020317`,
+    `20260409020850`, `20260409024008`, `20260409062305`,
+    `20260409062417`, `20260409062817`, `20260412030602`,
+    `20260412030614`, `20260412040231`, `20260412042509`,
+    `20260412053802`, `20260412061311`, `20260412113418`,
+    `20260412114712`, `20260412115731`, `20260412121557`,
+    `20260412130501`, `20260414045616`, `20260414052828`,
+    `20260414053057`, `20260414062525`, `20260414233936`,
+    `20260414235633`, `20260415061008`, `20260415061036`,
+    `20260415092004`, `20260416022513`, `20260416050723`,
+    `20260416062634`, `20260416062714`, `20260416073329`,
+    `20260418101155`, `20260418151054`, `20260422144324`,
+    `20260422234642`, `20260427222305`, `20260430083533`.
+- Root cause:
+  - Production Supabase history contains timestamped April 2026 migrations that
+    are not present in any local branch/ref inspected in this checkout.
+  - The current branch also introduced two new date-only `20260620_*`
+    migrations; those were renamed to timestamped versions so the new Summary
+    Authority Gate migrations have stable ordering and unique versions:
+    - `supabase/migrations/20260620111300_add_report_summary_jobs.sql`
+    - `supabase/migrations/20260620111400_add_summary_authority_gate.sql`
+- Recovery action taken in repo:
+  - Added no-op `*_remote_history_compat.sql` marker migrations for each exact
+    remote-only version reported by Supabase CLI.
+  - No `supabase migration repair`, `supabase db pull`, or production DB write
+    was executed locally.
+- Remaining operating step:
+  - Rerun `.github/workflows/db-migration.yml` from the recovery commit/ref.
+  - If `supabase db push` still requires history repair or schema pull, request
+    board approval before any `supabase migration repair` or `supabase db pull`
+    based recovery.
