@@ -100,6 +100,42 @@ describe('ProjectsRepository.getLatestScoreboardMarketSnapshot', () => {
     expect(candidateQuery.lte).toHaveBeenCalledWith('cmc_rank', 500)
     expect(previousSnapshotQuery.eq).toHaveBeenCalledWith('recorded_at', '2026-05-11')
   })
+
+  it('dedupes duplicate CMC ranks before applying the Top 500 row limit', async () => {
+    const duplicatedSnapshotRows = [
+      makeMarketSnapshotRow(1, '2026-06-19'),
+      { ...makeMarketSnapshotRow(1, '2026-06-19'), slug: 'duplicate-rank-1' },
+      ...Array.from({ length: 499 }, (_, index) => makeMarketSnapshotRow(index + 2, '2026-06-19')),
+    ]
+    const candidateQuery = makeCandidateQuery(
+      duplicatedSnapshotRows.map((row) => makeRankRow(Number(row.cmc_rank), row.recorded_at)),
+    )
+    const snapshotQuery = {
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      gte: jest.fn().mockReturnThis(),
+      lte: jest.fn().mockReturnThis(),
+      order: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockResolvedValue({
+        data: duplicatedSnapshotRows,
+        error: null,
+      }),
+    }
+    const supabase = {
+      from: jest.fn()
+        .mockReturnValueOnce(candidateQuery)
+        .mockReturnValueOnce(snapshotQuery),
+    }
+    const repository = new ProjectsRepository(supabase as never)
+
+    const rows = await repository.getLatestScoreboardMarketSnapshot()
+
+    expect(rows).toHaveLength(500)
+    expect(new Set(rows.map((row) => row.cmc_rank)).size).toBe(500)
+    expect(rows[0]).toMatchObject({ slug: 'cmc-project-1', cmc_rank: 1 })
+    expect(rows[499]).toMatchObject({ slug: 'cmc-project-500', cmc_rank: 500 })
+    expect(snapshotQuery.limit).toHaveBeenCalledWith(1000)
+  })
 })
 
 describe('ProjectsRepository.getLatestCmcRanks', () => {

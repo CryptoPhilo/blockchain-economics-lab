@@ -87,6 +87,23 @@ export class ProjectsRepository {
     return ranks.size === rankLimit
   }
 
+  private dedupeRowsByCmcRank<T extends { cmc_rank: number | string | null }>(
+    rows: T[],
+    rankLimit: number,
+  ) {
+    const rowsByRank = new Map<number, T>()
+
+    for (const row of rows) {
+      const rank = Number(row.cmc_rank)
+      if (!Number.isInteger(rank) || rank < 1 || rank > rankLimit) continue
+      if (!rowsByRank.has(rank)) rowsByRank.set(rank, row)
+    }
+
+    return Array.from(rowsByRank.entries())
+      .sort(([rankA], [rankB]) => rankA - rankB)
+      .map(([, row]) => row)
+  }
+
   private async getScoreboardMarketSnapshotForDate(recordedAt: string, limit: number) {
     const { data, error } = await this.supabase
       .from('market_data_daily')
@@ -96,13 +113,13 @@ export class ProjectsRepository {
       .gte('cmc_rank', 1)
       .lte('cmc_rank', 500)
       .order('cmc_rank', { ascending: true, nullsFirst: false })
-      .limit(limit)
+      .limit(Math.max(limit * 2, limit))
 
     if (error) {
       throw new Error(`Failed to fetch scoreboard market snapshot: ${error.message}`)
     }
 
-    return data || []
+    return this.dedupeRowsByCmcRank(data || [], limit).slice(0, limit)
   }
 
   private async getCmcRanksForDate(recordedAt: string, limit: number) {
@@ -114,13 +131,13 @@ export class ProjectsRepository {
       .gte('cmc_rank', 1)
       .lte('cmc_rank', limit)
       .order('cmc_rank', { ascending: true, nullsFirst: false })
-      .limit(limit)
+      .limit(Math.max(limit * 2, limit))
 
     if (error) {
       throw new Error(`Failed to fetch latest CMC ranks: ${error.message}`)
     }
 
-    return data || []
+    return this.dedupeRowsByCmcRank(data || [], limit).slice(0, limit)
   }
 
   async getProjectsForScoreboard() {

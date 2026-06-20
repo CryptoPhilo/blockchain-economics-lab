@@ -245,6 +245,23 @@ and average-score evidence therefore requires the migration to be applied
 through the approved remote path and a scoped listing backfill before release
 approval can cite representative venue counts.
 
+## BCE-2007 Top500 CMC Snapshot Dedup Boundary
+
+As of 2026-06-20, `/[locale]/score` must treat CMC snapshot completeness as a
+rank-level contract, not a raw row-count contract. The production
+`market_data_daily` snapshot for `2026-06-19` contained 569 rows for CMC ranks
+1-500 because alias/canonical duplicates shared ranks, while the unique rank set
+was complete. The score page must fetch enough rows for the selected snapshot
+date and dedupe by `cmc_rank` before applying the Top500 row limit; otherwise
+`order(cmc_rank).limit(500)` can truncate ranks 435-500 and cause the canonical
+Top500 guard to render an empty page even though Bitcoin rank #1 and report
+badges exist.
+
+This boundary is separate from Summary Authority Gate report-summary changes.
+Regression evidence should continue to include
+`npm run verify:production-regressions` against the production-equivalent URL and
+must confirm Bitcoin row, CMC rank #1, ECON badge, and MAT badge on `/ko/score`.
+
 ## BCE-1963 Exchange Page Contract and Migration No-Go
 
 As of 2026-06-15, the exchange list and detail pages must use
