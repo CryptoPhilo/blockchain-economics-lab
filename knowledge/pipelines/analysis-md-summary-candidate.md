@@ -213,6 +213,22 @@ website publishing contract for `econ-report-publishing`,
     that prevented deterministic fallback writes in apply mode, but its
     endpoint-secret requirement is superseded by the Paperclip agent output
     contract.
+  - PR #244 opened:
+    - https://github.com/CryptoPhilo/blockchain-economics-lab/pull/244
+    - removes direct GitHub Actions LLM API call / secret dependency in apply mode;
+      `--agent-output-json` is now the required input path.
+    - Validation checks passed:
+      - Python pipeline tests: `15 passed`
+      - workflow YAML parse: passed
+      - `npm run verify:runtime-pipelines`: passed
+      - `npm run verify:pipeline`: passed
+    - Remaining before close:
+      - PR #244 must pass checks and merge.
+      - Paperclip local agent must generate schema-conformant summary JSON from
+        Drive analysis markdown and provide it via `--agent-output-json`.
+      - Post-merge run must collect valid `report_summary_jobs` row and
+        `Summary Authority Gate` dry-run evidence (`dry_run=true`, no
+        `project_reports` writes).
   - 2026-06-20 run `27861610008` remains useful as negative evidence: it
     prevented runtime or DB candidate writes when the summary-generation
     boundary was unavailable.
