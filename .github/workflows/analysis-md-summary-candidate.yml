@@ -47,9 +47,14 @@ on:
           - legacy_script
           - llm_candidate
           - llm_active
+      agent_output_json:
+        description: 'Path to Paperclip local agent JSON output available on the runner; required for apply mode'
+        required: false
+        type: string
 
 permissions:
   contents: read
+  models: read
 
 concurrency:
   group: analysis-md-summary-candidate-${{ github.event.inputs.slug }}
@@ -98,6 +103,7 @@ jobs:
           GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
           MODE: ${{ github.event.inputs.mode }}
           BCE_ANALYSIS_MD_LLM_ENDPOINT: ${{ secrets.BCE_ANALYSIS_MD_LLM_ENDPOINT }}
+          AGENT_OUTPUT_JSON: ${{ github.event.inputs.agent_output_json }}
         run: |
           set -euo pipefail
           missing=0
@@ -109,8 +115,8 @@ jobs:
               echo "${name}=present"
             fi
           done
-          if [ "$MODE" = "apply" ] && [ -z "${BCE_ANALYSIS_MD_LLM_ENDPOINT:-}" ]; then
-            echo "::error::BCE_ANALYSIS_MD_LLM_ENDPOINT is required for apply mode"
+          if [ "$MODE" = "apply" ] && [ -z "${BCE_ANALYSIS_MD_LLM_ENDPOINT:-}" ] && [ -z "${AGENT_OUTPUT_JSON:-}" ]; then
+            echo "::error::BCE_ANALYSIS_MD_LLM_ENDPOINT or agent_output_json is required for apply mode"
             missing=1
           fi
           exit "$missing"
@@ -143,6 +149,8 @@ jobs:
           SLUG: ${{ github.event.inputs.slug }}
           DRIVE_ROOT_SCOPE: ${{ github.event.inputs.drive_root_scope }}
           LIMIT: ${{ github.event.inputs.limit }}
+          AGENT_OUTPUT_JSON: ${{ github.event.inputs.agent_output_json }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           args=(
@@ -154,7 +162,10 @@ jobs:
           if [ "$MODE" = "dry_run" ]; then
             args+=(--dry-run)
           else
-            args+=(--require-llm)
+            if [ -n "${AGENT_OUTPUT_JSON:-}" ]; then
+              args+=(--agent-output-json "$AGENT_OUTPUT_JSON")
+            fi
+            args+=(--require-agent-output)
           fi
           echo "Invoking: python3 scripts/pipeline/analysis_md_summary_candidate.py ${args[*]}"
           python3 scripts/pipeline/analysis_md_summary_candidate.py "${args[@]}" | tee analysis-md-summary-candidate.log

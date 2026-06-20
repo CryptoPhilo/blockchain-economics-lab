@@ -19,10 +19,15 @@ replacement for the ECON/MAT/FOR slide publishing pipelines.
 - Runtime entrypoint: `scripts/pipeline/analysis_md_summary_candidate.py`.
 - Operator command shape:
   `python3 scripts/pipeline/analysis_md_summary_candidate.py --type econ --slug solana --drive-root-scope active --dry-run`.
+- Paperclip local agent apply shape:
+  `python3 scripts/pipeline/analysis_md_summary_candidate.py --type econ --slug solana --drive-root-scope active --agent-output-json <paperclip-agent-output.json> --require-agent-output`.
 - Production write policy: default off. The candidate entrypoint must not write
   `project_reports` or publish website-visible content. `report_summary_jobs`
   writes require `--dry-run` to be omitted and still remain candidate records
   until a separate remote approval authorizes promotion.
+- LLM boundary: Paperclip local agents generate the summary JSON. This pipeline
+  validates and persists that agent output; it must not call an LLM provider API
+  directly from GitHub Actions or pipeline scripts.
 - Telemetry state store: Supabase `pipeline_runs`, `pipeline_node_runs`, and
   `pipeline_events` under `pipeline_name=analysis-md-summary-candidate`.
 
@@ -59,8 +64,9 @@ replacement for the ECON/MAT/FOR slide publishing pipelines.
 
 1. `analysis_md_source_scan` / Drive analysis Markdown scan:
    `scripts/pipeline/analysis_md_summary_candidate.py`.
-2. `summary_candidate_generation` / LLM summary candidate generation:
-   configured LLM endpoint or deterministic local dry-run fallback.
+2. `summary_candidate_generation` / Paperclip local agent summary generation:
+   local Paperclip agent run against the selected Drive Markdown source. The
+   agent writes schema-conformant JSON for ingestion via `--agent-output-json`.
 3. `candidate_validation` / Schema, language, quality, and grounding validation:
    shared card quality gates plus candidate-specific evidence checks.
 4. `candidate_job_upsert` / Default-off report summary job upsert:
@@ -174,8 +180,8 @@ website publishing contract for `econ-report-publishing`,
     - Paperclip approval `7b7ad020-6ac9-430f-bcc0-16da1e386720`
     - PR #242 Release Gate records the waiver.
   - Migration/e2e evidence is complete, but `BCE-2005` is still blocked until a
-    real LLM endpoint is configured and the post-merge candidate workflow can
-    produce a valid candidate plus gate dry-run evidence.
+    Paperclip local agent produces schema-conformant summary JSON and candidate
+    ingestion can produce a valid job plus gate dry-run evidence.
   - Post-merge workflow evidence:
     - Run: https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27861381155
     - Mode: `apply`, report type: `econ`, slug: `humanity-protocol`, drive scope: `all`, gate authority mode: `llm_candidate`
@@ -189,18 +195,32 @@ website publishing contract for `econ-report-publishing`,
       valid candidate existed.
   - Runtime secret audit:
     - Repository secrets include Supabase and Google Drive credentials.
-    - `BCE_ANALYSIS_MD_LLM_ENDPOINT`, `BCE_ANALYSIS_MD_LLM_BEARER_TOKEN`, and
-      `BCE_ANALYSIS_MD_SUMMARY_MODEL` are not configured.
-    - Therefore the workflow cannot currently run the intended LLM summary
-      generation path.
-  - Required closeout evidence after LLM secret/runtime setup:
-    - workflow-dispatch with `gate_authority_mode=llm_candidate` on default branch.
+    - The previous design incorrectly required `BCE_ANALYSIS_MD_LLM_ENDPOINT`,
+      `BCE_ANALYSIS_MD_LLM_BEARER_TOKEN`, and
+      `BCE_ANALYSIS_MD_SUMMARY_MODEL`.
+    - That was the wrong boundary for this request: summary generation should
+      be performed by a Paperclip local agent using its local LLM runtime, and
+      this pipeline should only validate and persist the agent output.
+  - Required closeout evidence after Paperclip agent apply setup:
+    - Paperclip local agent run that records the selected Drive source and
+      writes schema-conformant summary JSON.
+    - candidate ingestion with `--agent-output-json` and
+      `--require-agent-output`.
     - candidate `report_summary_jobs` artifacts/logs and
       `Summary Authority Gate` dry-run output showing `dry_run=true` and no
       `project_reports` writes.
-  - Safety patch in progress:
-    - apply mode will require `BCE_ANALYSIS_MD_LLM_ENDPOINT` so future production
-      apply attempts fail before writing deterministic fallback candidates.
+  - PR #243 (`0c2a725137989bd0100333d4e475808e70fef913`) was a safety patch
+    that prevented deterministic fallback writes in apply mode, but its
+    endpoint-secret requirement is superseded by the Paperclip agent output
+    contract.
+  - 2026-06-20 run `27861610008` remains useful as negative evidence: it
+    prevented runtime or DB candidate writes when the summary-generation
+    boundary was unavailable.
+  - BCE-2009 endpoint-secret blocker is superseded. The remaining blocker is a
+    Paperclip-local apply run that produces and ingests agent output JSON, then
+    runs the Summary Authority Gate in dry-run mode.
+  - Keep BCE-2005 blocked until Paperclip agent output ingestion produces valid
+    `report_summary_jobs` rows and gate dry-run evidence.
   - Pipeline state wiki update for this checkpoint was pushed in commit `5db974c`.
 
 ### BCE-2005 additional migration recovery evidence (2026-06-20 13:35 KST, latest)
@@ -433,3 +453,32 @@ website publishing contract for `econ-report-publishing`,
         API/page checks.
     - `BCE-2005` migration/deploy E2E evidence requirement is satisfied by the
       migration runs above plus production deploy run `27860761456`.
+
+### BCE-2010 Paperclip Agent Boundary Correction (2026-06-20)
+
+- Workspace/SHA used for diagnosis:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `b622168` before local runtime-adapter edits.
+- Primary context checked before implementation:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` and
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Boundary correction:
+  - The interim GitHub Models / remote LLM endpoint design was rejected as the
+    wrong boundary for BCE-1999.
+  - Summary generation belongs to the local Paperclip agent and its local LLM
+    runtime.
+  - `scripts/pipeline/analysis_md_summary_candidate.py` validates and persists
+    Paperclip agent JSON output via `--agent-output-json`; it does not call
+    remote LLM endpoints.
+  - `.github/workflows/analysis-md-summary-candidate.yml` no longer injects LLM
+    endpoint/model/token secrets. `apply` mode requires an explicit
+    `agent_output_json` path and otherwise fails before candidate writes.
+- Local verification:
+  - `python3 -m pytest scripts/pipeline/test_analysis_md_summary_candidate.py`
+    covers the Paperclip agent output ingestion contract.
+- Remaining closeout evidence:
+  - Run a Paperclip local agent on a selected Drive analysis Markdown source and
+    capture schema-conformant JSON output.
+  - Ingest that JSON with `--agent-output-json` and `--require-agent-output`.
+  - Capture valid `report_summary_jobs` job evidence and Summary Authority Gate
+    dry-run output showing `dry_run=true` and no `project_reports` write.
