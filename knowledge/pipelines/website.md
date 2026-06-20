@@ -524,6 +524,17 @@ ReferralTab, DashboardBetaSignalsSection, or dashboard repository files are
 removed. This prevents unrelated report/CMC/slide recovery work from
 accidentally deleting user-facing routes.
 
+As of BCE-2003 on 2026-06-20, website and API report summary read paths must
+treat `project_reports` as the only website-visible summary authority. The
+`analysis-md-summary-candidate` pipeline may write candidate records to
+`report_summary_jobs`, but those records are pre-publication state and must not
+be queried by `src/` pages, route handlers, components, or repositories. Active
+or promoted summaries continue to resolve from `project_reports` fields such as
+`card_data.summary_by_lang`, localized `card_summary_*`, and
+`marketing_content_by_lang`; when those fields are absent, existing empty or
+fallback display behavior applies. `scripts/verify-runtime-pipelines.mjs` now
+fails if website/API source files contain a direct `report_summary_jobs` read.
+
 ## BCE-1869 Relationship
 
 BCE-1869 affected the report-publishing watcher boundary, not this website

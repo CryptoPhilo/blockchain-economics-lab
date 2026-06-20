@@ -55,6 +55,38 @@ function assertContains(file, needle, label) {
   else fail(`${label}: ${file} does not contain ${needle}`)
 }
 
+function listFiles(dir) {
+  const absoluteDir = path.join(root, dir)
+  if (!fs.existsSync(absoluteDir)) return []
+
+  const entries = fs.readdirSync(absoluteDir, { withFileTypes: true })
+  const files = []
+
+  for (const entry of entries) {
+    const relativePath = path.join(dir, entry.name)
+    if (entry.isDirectory()) {
+      files.push(...listFiles(relativePath))
+    } else if (entry.isFile()) {
+      files.push(relativePath)
+    }
+  }
+
+  return files
+}
+
+function assertTreeExcludesText(dir, forbiddenText, label) {
+  const offenders = listFiles(dir)
+    .filter((file) => /\.(?:ts|tsx|js|jsx)$/.test(file))
+    .filter((file) => read(file).includes(forbiddenText))
+
+  if (offenders.length === 0) {
+    pass(label)
+    return
+  }
+
+  fail(`${label}: ${forbiddenText} found in ${offenders.join(', ')}`)
+}
+
 function assertEntrypointWorkflowRelationship(execution, prefix) {
   if (!execution.workflow || !execution.entrypoint) return
 
@@ -229,6 +261,11 @@ assertContains('package.json', '"verify:runtime-pipelines"', 'package script ver
 assertContains('.github/workflows/ci.yml', 'npm run verify:runtime-pipelines', 'CI runs runtime pipeline verification')
 assertContains('.github/workflows/slide-pipeline-cron.yml', 'npm run verify:runtime-pipelines', 'Slide workflow verifies runtime manifest before execution')
 assertContains('.github/workflows/production-deploy.yml', 'npm run verify:runtime-pipelines', 'Production deploy verifies runtime manifest before deployment')
+assertTreeExcludesText(
+  'src',
+  'report_summary_jobs',
+  'Website/API read paths do not query candidate summary jobs',
+)
 
 if (failures.length > 0) {
   console.error('\nRuntime pipeline verification failed:')
