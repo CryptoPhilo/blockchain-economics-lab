@@ -46,6 +46,11 @@ function assertFile(file, label) {
   else fail(`${label}: missing ${file}`)
 }
 
+function assertAnyFile(files, label) {
+  if (files.some((file) => exists(file))) pass(label)
+  else fail(`${label}: missing one of ${files.join(', ')}`)
+}
+
 function assertContains(file, needle, label) {
   if (!exists(file)) {
     fail(`${label}: missing ${file}`)
@@ -53,6 +58,38 @@ function assertContains(file, needle, label) {
   }
   if (read(file).includes(needle)) pass(label)
   else fail(`${label}: ${file} does not contain ${needle}`)
+}
+
+function listFiles(dir) {
+  const absoluteDir = path.join(root, dir)
+  if (!fs.existsSync(absoluteDir)) return []
+
+  const entries = fs.readdirSync(absoluteDir, { withFileTypes: true })
+  const files = []
+
+  for (const entry of entries) {
+    const relativePath = path.join(dir, entry.name)
+    if (entry.isDirectory()) {
+      files.push(...listFiles(relativePath))
+    } else if (entry.isFile()) {
+      files.push(relativePath)
+    }
+  }
+
+  return files
+}
+
+function assertTreeExcludesText(dir, forbiddenText, label) {
+  const offenders = listFiles(dir)
+    .filter((file) => /\.(?:ts|tsx|js|jsx)$/.test(file))
+    .filter((file) => read(file).includes(forbiddenText))
+
+  if (offenders.length === 0) {
+    pass(label)
+    return
+  }
+
+  fail(`${label}: ${forbiddenText} found in ${offenders.join(', ')}`)
 }
 
 function assertEntrypointWorkflowRelationship(execution, prefix) {
@@ -228,8 +265,11 @@ for (const rawPipeline of manifest.pipelines ?? []) {
 assertContains('package.json', '"verify:runtime-pipelines"', 'package script verify:runtime-pipelines is registered')
 assertContains('.github/workflows/ci.yml', 'npm run verify:runtime-pipelines', 'CI runs runtime pipeline verification')
 assertContains('.github/workflows/slide-pipeline-cron.yml', 'npm run verify:runtime-pipelines', 'Slide workflow verifies runtime manifest before execution')
-assertFile(
-  'supabase/migrations/20260515_add_pipeline_telemetry_tables.sql',
+assertAnyFile(
+  [
+    'supabase/migrations/20260515_add_pipeline_telemetry_tables.sql',
+    'supabase/archived-production-skipped-migrations/bce-2006-pre-summary-already-in-production/20260515_add_pipeline_telemetry_tables.sql',
+  ],
   'Remote pipeline state store migration exists',
 )
 assertContains(
@@ -262,6 +302,11 @@ if (exists('.github/workflows/production-deploy.yml')) {
     'Production deploy verifies runtime manifest before deployment',
   )
 }
+assertTreeExcludesText(
+  'src',
+  'report_summary_jobs',
+  'Website/API read paths do not query candidate summary jobs',
+)
 
 if (failures.length > 0) {
   console.error('\nRuntime pipeline verification failed:')

@@ -10,7 +10,8 @@
     "test": "jest",
     "verify:runtime-pipelines": "node scripts/verify-runtime-pipelines.mjs",
     "verify:report-publication-policy": "node scripts/verify-report-publication-policy.mjs",
-    "verify:pipeline": "node scripts/verify-website-pipeline.mjs"
+    "verify:pipeline": "node scripts/verify-website-pipeline.mjs",
+    "verify:production-regressions": "node scripts/verify-production-regression-gates.mjs"
   },
   "dependencies": {
     "@parcel/watcher": "^2.5.6",

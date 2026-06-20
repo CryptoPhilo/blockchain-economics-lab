@@ -107,3 +107,36 @@ methodology, table, prompt-template, and raw-format fragments remain rejected.
 This does not change FOR pipeline nodes or placeholder policy; it narrows the
 accepted card-visible text contract inside the existing shared summary and
 marketing localization node.
+## BCE-2000 Analysis Markdown Candidate Path
+
+As of 2026-06-20, FOR has a default-off candidate path for Drive
+`analysis2/FOR` Markdown summaries. The executable manifest key is
+`analysis-md-summary-candidate`; runtime entrypoint is
+`scripts/pipeline/analysis_md_summary_candidate.py`.
+
+This is a change-request/candidate path only. It does not change the active
+`Slide2/FOR` PDF operating input, `.github/workflows/slide-pipeline-cron.yml`
+cadence, approval gate, FOR placeholder policy, or `project_reports` production
+publish contract. Candidate metadata is stored in `report_summary_jobs` after
+the BCE-2000 migration and remains out of `project_reports` until separate
+remote approval.
+
+### BCE-1910 Production DB Evidence
+
+As of 2026-05-15 21:26 KST, the production DB migration
+`supabase/migrations/20260515_add_report_source_identity_and_latest_contract.sql`
+was applied through GitHub Actions run
+`https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/25917698841`
+using board-approved expected commit
+`e33f14e31c0dbab1780615acfade3fb6551b1d70`.
+
+Evidence:
+
+- Preflight production `project_reports`: 920 rows; `source_identity` column was
+  absent; duplicate `is_latest=true` groups: 0.
+- Migration run: `workflow_dispatch` on branch
+  `bce-1909-bce-1906-clean-release`; job `Apply selected SQL migration`
+  completed successfully and executed the selected SQL file.
+- Postflight production `project_reports`: `source_*` columns queryable;
+  `source_identity` non-null rows: 640; `source_file_id` non-null rows: 640;
+  duplicate `source_identity` groups: 0; duplicate `is_latest=true` groups: 0.

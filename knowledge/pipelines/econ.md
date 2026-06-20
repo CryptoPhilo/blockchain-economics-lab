@@ -136,6 +136,19 @@ The card summary provenance contract is `card_summary_v2`, with
 generation in `scripts/pipeline/watch_slides.py` passes project context into the
 same gate used by dry-run/backfill execution.
 
+## BCE-2000 Analysis Markdown Candidate Path
+
+As of 2026-06-20, ECON has a default-off candidate path for Drive
+`analysis2/ECON` Markdown summaries. The executable manifest key is
+`analysis-md-summary-candidate`; runtime entrypoint is
+`scripts/pipeline/analysis_md_summary_candidate.py`.
+
+This is a change-request/candidate path only. It does not change the active
+`Slide2/ECON` PDF operating input, `.github/workflows/slide-pipeline-cron.yml`
+cadence, approval gate, or `project_reports` production publish contract.
+Candidate metadata is stored in `report_summary_jobs` after the BCE-2000
+migration and remains out of `project_reports` until separate remote approval.
+
 ## BCE-1940 AWE ECON Backfill Target Selection
 
 As of 2026-06-02, report card summary backfill target selection uses the same
