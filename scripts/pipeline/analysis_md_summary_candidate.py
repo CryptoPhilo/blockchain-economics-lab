@@ -13,6 +13,7 @@ import json
 import os
 import re
 import sys
+import urllib.request
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -131,6 +132,101 @@ def summary_job_idempotency_key(
 
 def load_llm_payload_from_file(path: str) -> Dict[str, Any]:
     return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+def _extract_json_object(text: str) -> Dict[str, Any]:
+    raw = (text or "").strip()
+    if raw.startswith("```"):
+        raw = re.sub(r"^```(?:json)?\s*", "", raw)
+        raw = re.sub(r"\s*```$", "", raw).strip()
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        start = raw.find("{")
+        end = raw.rfind("}")
+        if start >= 0 and end > start:
+            return json.loads(raw[start : end + 1])
+        raise
+
+
+def _llm_contract_body(source: MarkdownSource, *, project: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    return {
+        "schemaVersion": SCHEMA_VERSION,
+        "promptVersion": PROMPT_VERSION,
+        "reportType": source.report_type,
+        "project": project or {"slug": source.slug},
+        "languages": list(LANGUAGES),
+        "markdown": source.text,
+    }
+
+
+def _openai_compatible_chat_body(
+    contract_body: Dict[str, Any],
+    *,
+    endpoint: str,
+) -> Dict[str, Any]:
+    model = os.environ.get("BCE_ANALYSIS_MD_SUMMARY_MODEL", "").strip()
+    if not model and "models.github.ai" in endpoint:
+        model = "openai/gpt-4.1"
+    if not model:
+        model = DEFAULT_MODEL
+    return {
+        "model": model,
+        "temperature": 0.1,
+        "response_format": {"type": "json_object"},
+        "messages": [
+            {
+                "role": "system",
+                "content": (
+                    "You produce validated BCELab report-card summary JSON only. "
+                    "Return a single JSON object with summary_by_lang and marketing_by_lang "
+                    "for ko,en,fr,es,de,ja,zh; source_sentence_ids or exact source_sentences; "
+                    "confidence; model; schema_version; prompt_version. Do not include markdown fences."
+                ),
+            },
+            {
+                "role": "user",
+                "content": json.dumps(contract_body, ensure_ascii=False),
+            },
+        ],
+    }
+
+
+def call_configured_llm(source: MarkdownSource, *, project: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    endpoint = os.environ.get("BCE_ANALYSIS_MD_LLM_ENDPOINT", "").strip()
+    if not endpoint:
+        return None
+    contract_body = _llm_contract_body(source, project=project)
+    is_chat_completions = endpoint.rstrip("/").endswith("/chat/completions")
+    body = _openai_compatible_chat_body(contract_body, endpoint=endpoint) if is_chat_completions else contract_body
+    token = (
+        os.environ.get("BCE_ANALYSIS_MD_LLM_BEARER_TOKEN", "").strip()
+        or os.environ.get("GITHUB_TOKEN", "").strip()
+    )
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "bce-analysis-md-summary-candidate/1.0",
+    }
+    if "models.github.ai" in endpoint:
+        headers["Accept"] = "application/vnd.github+json"
+        headers["X-GitHub-Api-Version"] = "2022-11-28"
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    request = urllib.request.Request(
+        endpoint,
+        data=json.dumps(body).encode("utf-8"),
+        headers=headers,
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=90) as response:
+        response_payload = json.loads(response.read().decode("utf-8"))
+    if not is_chat_completions:
+        return response_payload
+    choices = response_payload.get("choices") or []
+    content = (((choices[0] or {}).get("message") or {}).get("content") or "") if choices else ""
+    payload = _extract_json_object(content)
+    payload["model"] = payload.get("model") or body.get("model") or DEFAULT_MODEL
+    return payload
 
 
 def deterministic_payload(source: MarkdownSource, *, project: Optional[Dict[str, Any]]) -> Dict[str, Any]:
@@ -527,7 +623,9 @@ def process_candidate(
     *,
     agent_payload: Optional[Dict[str, Any]],
 ) -> CandidateResult:
-    payload = agent_payload or deterministic_payload(candidate.source, project=candidate.project)
+    payload = agent_payload or call_configured_llm(candidate.source, project=candidate.project)
+    if payload is None:
+        payload = deterministic_payload(candidate.source, project=candidate.project)
     payload = {
         **payload,
         "schema_version": payload.get("schema_version") or SCHEMA_VERSION,
@@ -614,8 +712,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     agent_output_json = args.agent_output_json or args.llm_output_json
     agent_payload = load_llm_payload_from_file(agent_output_json) if agent_output_json else None
     require_agent_output = args.require_agent_output or args.require_llm
-    if require_agent_output and agent_payload is None:
-        print("error=require_agent_output_missing_json", file=sys.stderr)
+    if require_agent_output and agent_payload is None and not os.environ.get("BCE_ANALYSIS_MD_LLM_ENDPOINT", "").strip():
+        print("error=require_agent_output_or_llm_endpoint_missing", file=sys.stderr)
         return 2
 
     if args.source_path:
