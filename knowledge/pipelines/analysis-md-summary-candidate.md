@@ -125,8 +125,8 @@ website publishing contract for `econ-report-publishing`,
   - Failure item: Top500 page includes Bitcoin row, CMC rank, ECON badge, MAT badge
   - Passed item: exchange list API / Binance listing API / Binance exchange page Bitcoin row/rank/ECON/MAT badge
   - Recovery issue opened: `BCE-2007` (Top500 regression gate failure after production deploy)
-- Resolution status (2026-06-20 11:42 KST):
-  - BCE-2005 remains `blocked`.
+- Resolution status snapshot:
+  - At 2026-06-20 11:42 KST, BCE-2005 remained `blocked`.
   - Latest `BCE-2006` update:
     - Repo-side migration compatibility fix was pushed on branch `codex/fix-exchange-production-regressions` at commit `6bc8302`.
     - Migration rerun succeeded at: https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27857730221
@@ -134,10 +134,10 @@ website publishing contract for `econ-report-publishing`,
       - Supabase now requests an explicit decision for earlier local April migrations before the latest remote migration.
     - Board approval `35a8e2b7-6813-45ab-af09-4bfb00a2570b` approved the metadata-only
       `supabase migration repair --status applied` path and rollback guidance.
-    - `BCE-2006` is currently blocked on valid GitHub Actions dispatch/execution
-      credentials for the approved remote repair path; this agent's local `gh`
-      credential returned HTTP 401 on Actions API calls during the 2026-06-20
-      continuation heartbeat.
+    - At 11:42 KST, `BCE-2006` was blocked on valid GitHub Actions
+      dispatch/execution credentials for the approved remote repair path; this
+      agent's local `gh` credential returned HTTP 401 on Actions API calls during
+      the continuation heartbeat.
   - `BCE-2007` has been resolved:
     - Root-cause fix commit: `c5dd9fe34df0da1eae4047ed662312150220fc3c`
     - Deployment branch/SHA: `codex/fix-exchange-production-regressions@6bc83027e19f1336e78de035295f28ab4e77086a`
@@ -150,6 +150,19 @@ website publishing contract for `econ-report-publishing`,
     - rerun remote migration and production-equivalent E2E on deploy path,
     - attach successful run IDs proving migration success and production gate pass,
     - then close BCE-2005.
+
+- Current status after approved BCE-2006 recovery:
+  - Migration recovery is now complete and verified (`BCE-2006` blocker cleared
+    in `27860631382` and `27860660544`).
+  - Production-equivalent deploy evidence has been produced:
+    - https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27860761456
+    - Head SHA: `35fa6cfa1129ce0453cd40df9cd6a5ecb600fc9b`
+    - `Verify Deployment Evidence`: success
+    - `Deploy Production`: success
+  - `27860761456` includes successful run and rerun evidence after migration:
+    https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27860688271
+  - This satisfies the missing remote migration + deployment evidence path; BCE-2005
+    can proceed to final closeout.
 
 ### BCE-2005 additional migration recovery evidence (2026-06-20 13:35 KST, latest)
 
@@ -367,3 +380,17 @@ website publishing contract for `econ-report-publishing`,
     - `BCE-2006` migration blocker is cleared. Next `BCE-2005` step is to run
       the production-equivalent deploy/E2E evidence path and close remaining
       blockers only after that evidence passes.
+    - Production-equivalent deploy/E2E run:
+      https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27860761456
+      - Ref/SHA: `codex/fix-exchange-production-regressions@35fa6cfa1129ce0453cd40df9cd6a5ecb600fc9b`
+      - Result: success.
+      - Verification passed: `npm ci`, `npm run verify:pipeline`,
+        `npm run verify:runtime-pipelines`, `npx tsc --noEmit`, `npm test`,
+        and `npm run build`.
+      - Vercel production URL:
+        `https://blockchain-economics-bec9ql0oq-michael-zhangs-projects-df54ac7d.vercel.app`
+      - Production regression gate passed against that URL, including Top500
+        Bitcoin row/CMC rank/ECON badge/MAT badge and Binance exchange/listing
+        API/page checks.
+    - `BCE-2005` migration/deploy E2E evidence requirement is satisfied by the
+      migration runs above plus production deploy run `27860761456`.
