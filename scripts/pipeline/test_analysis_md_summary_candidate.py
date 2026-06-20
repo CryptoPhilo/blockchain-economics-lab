@@ -161,10 +161,16 @@ def test_upsert_job_skips_existing_identity_without_force_and_updates_with_force
     )
     sb = FakeSupabase(existing_jobs={key: {"id": "job-1", "idempotency_key": key, "source_identity": result.candidate.source_identity}})
 
-    assert module.upsert_job(sb, result, force=False, dry_run=False) == "skipped_existing"
+    assert module.upsert_job(sb, result, force=False, dry_run=False) == {
+        "status": "skipped_existing",
+        "job_id": "job-1",
+    }
     assert not any(op[0] == "report_summary_jobs" and op[1] == "update" for op in sb.operations)
 
-    assert module.upsert_job(sb, result, force=True, dry_run=False) == "updated_existing"
+    assert module.upsert_job(sb, result, force=True, dry_run=False) == {
+        "status": "updated_existing",
+        "job_id": "job-1",
+    }
     update = next(op for op in sb.operations if op[0] == "report_summary_jobs" and op[1] == "update")
     assert update[2]["source_identity"] == result.candidate.source_identity
     assert update[2]["idempotency_key"] == key
@@ -192,7 +198,10 @@ def test_upsert_job_allows_same_source_identity_with_new_prompt_version():
         }
     })
 
-    assert module.upsert_job(sb, result, force=False, dry_run=False) == "inserted"
+    assert module.upsert_job(sb, result, force=False, dry_run=False) == {
+        "status": "inserted",
+        "job_id": None,
+    }
     inserts = [op for op in sb.operations if op[0] == "report_summary_jobs" and op[1] == "insert"]
     assert len(inserts) == 1
     assert inserts[0][2]["source_identity"] == result.candidate.source_identity

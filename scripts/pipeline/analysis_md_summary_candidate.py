@@ -409,9 +409,9 @@ def existing_job(sb: Any, idempotency_key: str) -> Optional[Dict[str, Any]]:
     return rows[0] if rows else None
 
 
-def upsert_job(sb: Any, result: CandidateResult, *, force: bool, dry_run: bool) -> str:
+def upsert_job(sb: Any, result: CandidateResult, *, force: bool, dry_run: bool) -> Dict[str, Optional[str]]:
     if dry_run:
-        return "dry_run"
+        return {"status": "dry_run", "job_id": None}
     idempotency_key = summary_job_idempotency_key(
         report_code=result.candidate.source.db_report_type,
         report_slug=result.candidate.source.slug,
@@ -424,7 +424,7 @@ def upsert_job(sb: Any, result: CandidateResult, *, force: bool, dry_run: bool) 
     )
     existing = existing_job(sb, idempotency_key)
     if existing and not force:
-        return "skipped_existing"
+        return {"status": "skipped_existing", "job_id": existing.get("id")}
 
     row = {
         "source_identity": result.candidate.source_identity,
@@ -463,9 +463,11 @@ def upsert_job(sb: Any, result: CandidateResult, *, force: bool, dry_run: bool) 
     }
     if existing:
         sb.table("report_summary_jobs").update(row).eq("id", existing["id"]).execute()
-        return "updated_existing"
-    sb.table("report_summary_jobs").insert(row).execute()
-    return "inserted"
+        return {"status": "updated_existing", "job_id": existing.get("id")}
+    response = sb.table("report_summary_jobs").insert(row).execute()
+    rows = response.data or []
+    job_id = rows[0].get("id") if rows else None
+    return {"status": "inserted", "job_id": job_id}
 
 
 def start_telemetry(sb: Any, *, report_type: str, dry_run: bool, slug: Optional[str]) -> Optional[str]:
@@ -577,15 +579,24 @@ def process_candidate(
     )
 
 
-def write_artifact(results: Sequence[CandidateResult], *, report_type: str, slug: Optional[str]) -> Path:
+def write_artifact(
+    results: Sequence[CandidateResult],
+    *,
+    report_type: str,
+    slug: Optional[str],
+    write_results: Sequence[Dict[str, Optional[str]]] = (),
+) -> Path:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     slug_part = slug or "all"
     path = OUTPUT_DIR / f"analysis_md_summary_candidate_{report_type}_{slug_part}.json"
+    write_results_by_index = list(write_results)
     path.write_text(json.dumps({
         "pipeline": PIPELINE_NAME,
         "generated_at": utc_now(),
         "results": [
             {
+                "job_id": write_results_by_index[index].get("job_id") if index < len(write_results_by_index) else None,
+                "upsert_result": write_results_by_index[index].get("status") if index < len(write_results_by_index) else None,
                 "source_identity": item.candidate.source_identity,
                 "source_name": item.candidate.source.name,
                 "slug": item.candidate.source.slug,
@@ -594,7 +605,7 @@ def write_artifact(results: Sequence[CandidateResult], *, report_type: str, slug
                 "validation_reasons": list(item.validation_reasons),
                 "candidate_patch_keys": sorted(item.patch.keys()),
             }
-            for item in results
+            for index, item in enumerate(results)
         ],
     }, ensure_ascii=False, indent=2), encoding="utf-8")
     return path
@@ -633,21 +644,25 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     run_id = start_telemetry(sb, report_type=args.type, dry_run=args.dry_run, slug=args.slug)
     results: List[CandidateResult] = []
+    write_results: List[Dict[str, Optional[str]]] = []
     for candidate in candidates:
         result = process_candidate(candidate, llm_payload=llm_payload)
         if sb:
-            write_status = upsert_job(sb, result, force=args.force, dry_run=args.dry_run)
+            write_result = upsert_job(sb, result, force=args.force, dry_run=args.dry_run)
         else:
-            write_status = "no_supabase"
+            write_result = {"status": "no_supabase", "job_id": None}
         print(
             f"{candidate.source.slug}/{candidate.source.report_type} "
-            f"{result.status} identity={candidate.source_identity} write={write_status}"
+            f"{result.status} identity={candidate.source_identity} write={write_result['status']}"
         )
+        if write_result.get("job_id"):
+            print(f"job_id={write_result['job_id']}")
         if result.validation_reasons:
             print("validation_reasons=" + ",".join(result.validation_reasons))
         results.append(result)
+        write_results.append(write_result)
 
-    artifact = write_artifact(results, report_type=args.type, slug=args.slug)
+    artifact = write_artifact(results, report_type=args.type, slug=args.slug, write_results=write_results)
     complete_telemetry(sb, run_id, results=results, artifact_path=str(artifact))
     print(f"artifact={artifact}")
     return 0 if all(item.status == "valid" for item in results) else 2
