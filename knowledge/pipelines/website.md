@@ -355,6 +355,50 @@ physical merge/archive of legacy exchange rows remains subject to the
 remote-first production-write policy and the approved
 `.github/workflows/exchange-listing-backfill.yml` path.
 
+As of BCE-1987 on 2026-06-16, Binance remains only the representative example
+for Top500-outside exchange detail report availability. The verified contract is
+all active `exchange_project_listings` rows across exchanges: report badge
+availability is keyed by canonical project identity plus alias/name/coin-id
+matching, and one published report metadata row can surface on every active
+exchange detail page where that project is listed. Regression coverage includes
+non-Binance OKX, Bybit, and Coinbase Exchange long-tail fixtures, plus a project
+listed on both Binance and OKX. Watcher coverage marks multiple active listing
+rows as `exchange_listed` without inspecting exchange slug and preserves the
+numeric `cmc_id` false-positive guard.
+
+As of BCE-1988 on 2026-06-16, exchange detail project rows expose `rank` and
+`cmcRank` as the same CoinMarketCap asset rank when available. The UI displays
+that value next to the asset name as a CMC badge; rows without a CMC rank do not
+receive a synthetic exchange-detail row number. The runtime rank resolver first
+uses the latest CMC Top5000 snapshot and then fills missing exchange-listed
+assets from their own latest `market_data_daily` CMC rows by
+`tracked_projects.slug`, `coingecko_id`, or `cmc_id`. `coingecko_id` is only a
+market-data lookup alias, not the source of rank semantics. This allows
+OpenGradient-like long-tail listings to show ranks such as CMC #481 even when
+they are absent from the Top500 score universe or were populated by a scoped CMC
+lookup/backfill at a different `recorded_at`.
+
+As of BCE-1992 on 2026-06-19, the residual stash deletion of dashboard,
+products, subscribe, newsletter, and commerce-support files is rejected. These
+surfaces remain part of the website contract until a separate product decision
+removes them with navigation, API, test, and documentation updates in the same
+change. `scripts/verify-website-pipeline.mjs` now fails if the retained
+dashboard, products, subscribe, newsletter, ProductCard/ProductFilter,
+ReferralTab, DashboardBetaSignalsSection, or dashboard repository files are
+removed. This prevents unrelated report/CMC/slide recovery work from
+accidentally deleting user-facing routes.
+
+As of BCE-2003 on 2026-06-20, website and API report summary read paths must
+treat `project_reports` as the only website-visible summary authority. The
+`analysis-md-summary-candidate` pipeline may write candidate records to
+`report_summary_jobs`, but those records are pre-publication state and must not
+be queried by `src/` pages, route handlers, components, or repositories. Active
+or promoted summaries continue to resolve from `project_reports` fields such as
+`card_data.summary_by_lang`, localized `card_summary_*`, and
+`marketing_content_by_lang`; when those fields are absent, existing empty or
+fallback display behavior applies. `scripts/verify-runtime-pipelines.mjs` now
+fails if website/API source files contain a direct `report_summary_jobs` read.
+
 ## BCE-1869 Relationship
 
 BCE-1869 affected the report-publishing watcher boundary, not this website
