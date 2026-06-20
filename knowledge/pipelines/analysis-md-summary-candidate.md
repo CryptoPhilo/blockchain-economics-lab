@@ -341,6 +341,48 @@ website publishing contract for `econ-report-publishing`,
     `BCE-2016` should rerun candidate ingestion or use a fresh valid candidate
     after this migration is deployed, then retry `llm_active --write`.
 
+### BCE-2018 Remote Migration Apply Evidence (2026-06-20 17:00 KST)
+
+- Workspace/SHA used:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at starting SHA `f221488`.
+- Fix/evidence commit pushed:
+  `ad6b66768a71d8b2f9008c5cafbc1846f595becc` on branch
+  `codex/bce-2012-immediate-summary-publish`.
+- Remote selected-SQL migration apply:
+  https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27864998298
+  - Workflow: `.github/workflows/db-migration.yml`
+  - Event: `workflow_dispatch`
+  - Head SHA:
+    `ad6b66768a71d8b2f9008c5cafbc1846f595becc`
+  - Job: `🗃️ Apply Migrations`
+    (`https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27864998298/job/82467469407`)
+  - Result: `success`
+  - Selected migration:
+    `supabase/migrations/20260620165000_summary_authority_gate_latest_visible_fallback.sql`
+  - Apply step used Supabase database query API and returned success (`[]`).
+- Local verification before dispatch:
+  - `python3 -m pytest scripts/pipeline/test_summary_authority_gate.py`
+    passed (`8 passed`).
+  - `npm run verify:runtime-pipelines` passed.
+  - `npm run verify:pipeline` passed.
+- Production read-only target lookup after remote apply:
+  - Existing Hyperliquid candidate job:
+    `24a4b612-cf09-4bcf-a960-1abd01323fca`
+  - Job state: `authority_state=rejected`, `validation_status=valid`.
+  - Candidate source version: `1`.
+  - Latest website-visible fallback target selected by the gate lookup:
+    `project_reports.id=827c5761-13fb-47ba-88ff-041d36bc6e2c`,
+    `version=3`, `language=ko`, `status=published`.
+  - `write_performed=false`; no write-mode promotion was invoked.
+- Operational implication:
+  - The migration deploy/apply evidence for the latest-visible fallback is
+    complete.
+  - `BCE-2017` can be unblocked.
+  - `BCE-2016` must use a fresh valid Hyperliquid candidate or rerun ingestion;
+    the old job is terminal `rejected` and must not be retried for write-mode
+    promotion.
+
 ### BCE-2012 Immediate Publish Gate Attempt (2026-06-20 15:45 KST)
 
 - Workspace/SHA used:
