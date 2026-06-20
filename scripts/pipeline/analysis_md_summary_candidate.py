@@ -624,6 +624,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--force", action="store_true", default=False)
     parser.add_argument("--source-path", help="Local Korean analysis Markdown for development dry-runs")
     parser.add_argument("--llm-output-json", help="Fixture or captured LLM JSON output to validate")
+    parser.add_argument("--require-llm", action="store_true", help="Fail if no configured LLM endpoint or fixture output is available")
     parser.add_argument("--limit", type=int, default=1)
     return parser.parse_args(argv)
 
@@ -633,6 +634,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     source_scope = _normalize_source_scope(args.drive_root_scope)
     sb = get_supabase_client()
     llm_payload = load_llm_payload_from_file(args.llm_output_json) if args.llm_output_json else None
+    if args.require_llm and llm_payload is None and not os.environ.get("BCE_ANALYSIS_MD_LLM_ENDPOINT", "").strip():
+        print("error=require_llm_missing_endpoint", file=sys.stderr)
+        return 2
 
     if args.source_path:
         candidates = [load_local_candidate(args.source_path, report_type=args.type, slug=args.slug)]

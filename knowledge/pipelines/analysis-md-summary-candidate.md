@@ -164,9 +164,44 @@ website publishing contract for `econ-report-publishing`,
   - Migration/deploy evidence path is now satisfied:
     - migration: `27860631382`, `27860660544`
     - deploy/E2E: `27860761456`
-  - `BCE-2005` is ready for final closeout.
-  - Pipeline state wiki update for this checkpoint was pushed in commit
-    `5db974c`.
+  - PR for the production changes was merged:
+    - https://github.com/CryptoPhilo/blockchain-economics-lab/pull/242
+    - branch `codex/analysis-summary-gate-main` @ `288784acd231ad36c6bbc5f8083bdf49caa1abbe`
+    - merge commit `06406aba7ad039718659fd0c66fcccd1ad170c2a`
+    - superseded PR #241 was closed.
+  - Merge was performed with CEO/operator waiver evidence because no non-author
+    GitHub reviewer was available:
+    - Paperclip approval `7b7ad020-6ac9-430f-bcc0-16da1e386720`
+    - PR #242 Release Gate records the waiver.
+  - Migration/e2e evidence is complete, but `BCE-2005` is still blocked until a
+    real LLM endpoint is configured and the post-merge candidate workflow can
+    produce a valid candidate plus gate dry-run evidence.
+  - Post-merge workflow evidence:
+    - Run: https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27861381155
+    - Mode: `apply`, report type: `econ`, slug: `humanity-protocol`, drive scope: `all`, gate authority mode: `llm_candidate`
+    - Result: failed in `Generate candidate` with exit code 2 because the candidate was invalid.
+    - Candidate job row was inserted as validation-failed only:
+      `5532671b-87ea-4b6c-a72c-fc7ba6bf1d86`.
+    - Artifact:
+      https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27861381155/artifacts/7762372421
+    - Validation failures included missing `marketing_by_lang` languages and
+      overlong/raw-format summaries. Gate dry-run did not execute because no
+      valid candidate existed.
+  - Runtime secret audit:
+    - Repository secrets include Supabase and Google Drive credentials.
+    - `BCE_ANALYSIS_MD_LLM_ENDPOINT`, `BCE_ANALYSIS_MD_LLM_BEARER_TOKEN`, and
+      `BCE_ANALYSIS_MD_SUMMARY_MODEL` are not configured.
+    - Therefore the workflow cannot currently run the intended LLM summary
+      generation path.
+  - Required closeout evidence after LLM secret/runtime setup:
+    - workflow-dispatch with `gate_authority_mode=llm_candidate` on default branch.
+    - candidate `report_summary_jobs` artifacts/logs and
+      `Summary Authority Gate` dry-run output showing `dry_run=true` and no
+      `project_reports` writes.
+  - Safety patch in progress:
+    - apply mode will require `BCE_ANALYSIS_MD_LLM_ENDPOINT` so future production
+      apply attempts fail before writing deterministic fallback candidates.
+  - Pipeline state wiki update for this checkpoint was pushed in commit `5db974c`.
 
 ### BCE-2005 additional migration recovery evidence (2026-06-20 13:35 KST, latest)
 
