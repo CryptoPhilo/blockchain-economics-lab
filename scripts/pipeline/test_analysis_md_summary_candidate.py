@@ -259,3 +259,43 @@ def test_agent_output_json_file_is_used_without_remote_llm(tmp_path):
     assert result.status == "valid"
     assert result.payload["model"] == "test-model"
     assert result.patch["card_data"]["summary_quality"]["model"] == "test-model"
+
+
+def test_slug_filtered_drive_scan_excludes_unrelated_natural_language_names(monkeypatch):
+    module = load_candidate_pipeline()
+    monkeypatch.setattr(module, "get_supabase_client", lambda: object())
+    monkeypatch.setattr(
+        module,
+        "fetch_project",
+        lambda _sb, _slug: {"slug": "re-protocol", "name": "Re", "symbol": "RE"},
+    )
+    monkeypatch.setattr(module, "_source_folder_ids_for_report_type", lambda *args, **kwargs: ["folder"])
+    monkeypatch.setattr(
+        module,
+        "_list_drive_markdown_sources_with_revision",
+        lambda _service, _folder: [
+            {
+                "id": "blur-file",
+                "name": "BLUR 시장 무결성 및 심층 포렌식 리스크 보고서.md",
+                "headRevisionId": "blur-rev",
+                "modifiedTime": "2026-06-19T04:01:00.000Z",
+            },
+            {
+                "id": "re-file",
+                "name": "RE 시장 무결성 및 심층 포렌식 리스크 보고서.md",
+                "headRevisionId": "re-rev",
+                "modifiedTime": "2026-06-19T03:57:12.000Z",
+            },
+        ],
+    )
+    monkeypatch.setattr(module, "_download_drive_text", lambda _service, file_id: f"# source for {file_id}\n")
+
+    candidates = module.list_drive_candidates(
+        report_type="for",
+        slug="re-protocol",
+        source_scope="all",
+        service=object(),
+    )
+
+    assert [candidate.source.drive_file_id for candidate in candidates] == ["re-file"]
+    assert candidates[0].source.slug == "re-protocol"

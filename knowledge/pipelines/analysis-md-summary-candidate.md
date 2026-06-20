@@ -352,6 +352,76 @@ website publishing contract for `econ-report-publishing`,
   - The Summary Authority Gate RPC report_type cast blocker is cleared.
   - BCE-2012 can proceed using the promoted project report evidence above.
 
+### BCE-2014 CRO Analysis MD Summary JSON Ingestion Routine (2026-06-20 16:11 KST)
+
+- Workspace/SHA used:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `fb1f7e8`.
+- Branch: `codex/bce-2012-immediate-summary-publish`.
+- Primary context checked before execution:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` and
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Latest Drive metadata scan across `analysis2/{ECON,MAT,FOR}` and legacy
+  `analysis/{ECON,MAT,FOR}` found the newest already-ingested item was BLUR FOR
+  (`job 9efa8ca2-0dc4-4ab8-99c7-91695599976e`), and the newest unprocessed
+  changed item was RE FOR:
+  `RE 시장 무결성 및 심층 포렌식 리스크 보고서.md`.
+- Source identity:
+  `drive:1zZLs0v-aGowcf6I7OyuLXiKQNJeWNxUm:0B8HYgThT3NByMXVrMlpiT3l6c2o4OVVyTEUrUStscCtHclE4PQ`.
+- The first ingest attempt exposed a candidate selection bug for natural-language
+  filenames: when `--slug re-protocol` was supplied, unparsed filenames were
+  accepted without a project score filter and BLUR was selected. The invalid
+  candidate row was inserted as validation-failed only
+  (`edb3ba7a-8108-47bf-9357-305ce3b9c3df`) and did not write
+  `project_reports`.
+- Hotfix applied locally:
+  - `scripts/pipeline/analysis_md_summary_candidate.py` now fetches project
+    metadata for slug-filtered Drive scans and excludes unparsed natural-language
+    filenames whose `score_drive_source_for_project(...)` score is below 60.
+  - Regression coverage added in
+    `scripts/pipeline/test_analysis_md_summary_candidate.py`.
+  - Hotfix committed on the active BCE-2014 work branch.
+- Verification:
+  `python3 -m pytest scripts/pipeline/test_analysis_md_summary_candidate.py scripts/pipeline/test_summary_authority_gate.py`
+  passed (`16 passed`).
+- Agent output JSON:
+  `scripts/pipeline/output/paperclip_cro_summary_for_re-protocol.json`.
+- Candidate ingest command:
+  `python3 scripts/pipeline/analysis_md_summary_candidate.py --type for --slug re-protocol --drive-root-scope all --agent-output-json scripts/pipeline/output/paperclip_cro_summary_for_re-protocol.json --require-agent-output --limit 1 --force`.
+- Candidate ingest result:
+  - status: `valid`
+  - validation reasons: none
+  - upsert result: `inserted`
+  - job id: `338e0065-2824-45fd-bbff-a1302a44240a`
+  - artifact:
+    `scripts/pipeline/output/analysis_md_summary_candidate_for_re-protocol.json`
+- Summary Authority Gate write command:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id 338e0065-2824-45fd-bbff-a1302a44240a --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2014" --write`.
+- Gate result:
+  - `dry_run=false`
+  - action: `promote`
+  - state: `promoted`
+  - `wrote_project_report=true`
+  - `project_report_id=1dc110b6-d90b-4b65-82ba-6cc7e4e209f8`
+- DB verification:
+  - `report_summary_jobs.id=338e0065-2824-45fd-bbff-a1302a44240a`
+  - `validation_status=valid`
+  - `authority_state=promoted`
+  - `authority_mode=llm_active`
+  - `promotion_decision=promote`
+  - `promoted_at=2026-06-20T07:11:05.100005+00:00`
+  - `project_reports.id=1dc110b6-d90b-4b65-82ba-6cc7e4e209f8`
+  - `report_type=forensic`
+  - `language=ko`
+  - `status=published`
+  - `summary_source_md_file_id=1zZLs0v-aGowcf6I7OyuLXiKQNJeWNxUm`
+  - `card_data.summary_authority.mode=llm_active`
+- Website/cache check:
+  `https://www.bcelab.xyz/ko/reports/re-protocol/forensic` returned HTTP 200
+  with `x-vercel-cache: MISS` and `cache-control: private, no-cache, no-store,
+  max-age=0, must-revalidate`; no deployment was required for the DB-backed
+  summary write path.
+
 ### BCE-2005 additional migration recovery evidence (2026-06-20 13:35 KST, latest)
 
 - Workspace/SHA used: `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab` at `6bc8302`.

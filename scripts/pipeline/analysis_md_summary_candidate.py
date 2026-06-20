@@ -258,25 +258,30 @@ def list_drive_candidates(
     for folder_id in folder_ids:
         items.extend(_list_drive_markdown_sources_with_revision(service, folder_id))
 
-    project = fetch_project(None, slug) if slug else None
+    project = fetch_project(get_supabase_client(), slug) if slug else None
     candidates: List[Tuple[int, AnalysisMdCandidate]] = []
     for item in items:
         name = str(item.get("name") or "")
         parsed = _parse_markdown_name(name)
         inferred_slug = slug or ""
         version = 1
+        score = 0
         if parsed:
             parsed_slug, parsed_type, parsed_version, lang = parsed
             if parsed_type != report_type or lang != "ko":
                 continue
             inferred_slug = parsed_slug
             version = parsed_version
-        if slug and inferred_slug and inferred_slug != slug:
+            score = score_drive_source_for_project(name, project or {"slug": slug})
+            if slug and inferred_slug != slug and score < 60:
+                continue
+        elif slug:
             score = score_drive_source_for_project(name, project or {"slug": slug})
             if score < 60:
                 continue
-        if slug and not inferred_slug:
             inferred_slug = slug
+        else:
+            continue
 
         text = _download_drive_text(service, item["id"])
         source_hash = markdown_sha256(text)
@@ -304,7 +309,7 @@ def list_drive_candidates(
             web_view_link=item.get("webViewLink"),
             project=project,
         )
-        candidates.append((score_drive_source_for_project(name, project or {"slug": inferred_slug}), candidate))
+        candidates.append((score, candidate))
 
     return [candidate for _score, candidate in sorted(candidates, key=lambda pair: pair[0], reverse=True)]
 
