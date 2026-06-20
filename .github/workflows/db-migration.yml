@@ -18,10 +18,6 @@ on:
         description: 'Optional space-separated migration versions to repair before db push'
         required: false
         default: ''
-      skip_local_versions:
-        description: 'Optional space-separated local migration versions to hide during this production push'
-        required: false
-        default: ''
 
 jobs:
   migrate:
@@ -42,24 +38,6 @@ jobs:
         run: supabase link --project-ref ${{ steps.extract-ref.outputs.project_ref }}
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      - name: Hide Legacy Local Migrations
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_local_versions != '' }}
-        run: |
-          mkdir -p /tmp/supabase-skipped-migrations
-          for VERSION in ${{ inputs.skip_local_versions }}; do
-            MATCHED=0
-            for FILE in supabase/migrations/${VERSION}_*.sql; do
-              if [ -e "$FILE" ]; then
-                mv "$FILE" /tmp/supabase-skipped-migrations/
-                MATCHED=1
-              fi
-            done
-            if [ "$MATCHED" = "0" ]; then
-              echo "No local migration files matched version $VERSION"
-            fi
-          done
-          echo "Skipped legacy local migrations:"
-          ls -1 /tmp/supabase-skipped-migrations || true
       - name: Repair Migration History
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.repair_versions != '' }}
         run: |
