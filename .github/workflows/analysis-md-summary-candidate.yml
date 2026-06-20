@@ -47,6 +47,10 @@ on:
           - legacy_script
           - llm_candidate
           - llm_active
+      agent_output_json:
+        description: 'Path to Paperclip local agent JSON output available on the runner; required for apply mode'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -97,7 +101,7 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
           MODE: ${{ github.event.inputs.mode }}
-          BCE_ANALYSIS_MD_LLM_ENDPOINT: ${{ secrets.BCE_ANALYSIS_MD_LLM_ENDPOINT }}
+          AGENT_OUTPUT_JSON: ${{ github.event.inputs.agent_output_json }}
         run: |
           set -euo pipefail
           missing=0
@@ -109,8 +113,8 @@ jobs:
               echo "${name}=present"
             fi
           done
-          if [ "$MODE" = "apply" ] && [ -z "${BCE_ANALYSIS_MD_LLM_ENDPOINT:-}" ]; then
-            echo "::error::BCE_ANALYSIS_MD_LLM_ENDPOINT is required for apply mode"
+          if [ "$MODE" = "apply" ] && [ -z "${AGENT_OUTPUT_JSON:-}" ]; then
+            echo "::error::agent_output_json is required for apply mode; summary generation must be performed by a Paperclip local agent, not by GitHub Actions calling an LLM API"
             missing=1
           fi
           exit "$missing"
@@ -128,9 +132,6 @@ jobs:
           BCE_MARKETING_ECON_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_ECON_SOURCE_FOLDER_ID }}
           BCE_MARKETING_MAT_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_MAT_SOURCE_FOLDER_ID }}
           BCE_MARKETING_FOR_SOURCE_FOLDER_ID=${{ secrets.BCE_MARKETING_FOR_SOURCE_FOLDER_ID }}
-          BCE_ANALYSIS_MD_SUMMARY_MODEL=${{ secrets.BCE_ANALYSIS_MD_SUMMARY_MODEL }}
-          BCE_ANALYSIS_MD_LLM_ENDPOINT=${{ secrets.BCE_ANALYSIS_MD_LLM_ENDPOINT }}
-          BCE_ANALYSIS_MD_LLM_BEARER_TOKEN=${{ secrets.BCE_ANALYSIS_MD_LLM_BEARER_TOKEN }}
           EOF
           echo '${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}' > scripts/pipeline/.gdrive_service_account.json
 
@@ -143,6 +144,7 @@ jobs:
           SLUG: ${{ github.event.inputs.slug }}
           DRIVE_ROOT_SCOPE: ${{ github.event.inputs.drive_root_scope }}
           LIMIT: ${{ github.event.inputs.limit }}
+          AGENT_OUTPUT_JSON: ${{ github.event.inputs.agent_output_json }}
         run: |
           set -euo pipefail
           args=(
@@ -154,7 +156,10 @@ jobs:
           if [ "$MODE" = "dry_run" ]; then
             args+=(--dry-run)
           else
-            args+=(--require-llm)
+            if [ -n "${AGENT_OUTPUT_JSON:-}" ]; then
+              args+=(--agent-output-json "$AGENT_OUTPUT_JSON")
+            fi
+            args+=(--require-agent-output)
           fi
           echo "Invoking: python3 scripts/pipeline/analysis_md_summary_candidate.py ${args[*]}"
           python3 scripts/pipeline/analysis_md_summary_candidate.py "${args[@]}" | tee analysis-md-summary-candidate.log

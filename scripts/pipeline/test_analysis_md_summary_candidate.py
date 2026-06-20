@@ -1,4 +1,5 @@
 import importlib.util
+import json
 import sys
 import tempfile
 from pathlib import Path
@@ -123,7 +124,7 @@ def test_source_identity_prefers_drive_revision_then_hash():
 
 def test_valid_payload_builds_candidate_patch_with_summary_quality_metadata():
     module = load_candidate_pipeline()
-    result = module.process_candidate(local_candidate(module), llm_payload=valid_payload())
+    result = module.process_candidate(local_candidate(module), agent_payload=valid_payload())
 
     assert result.status == "valid"
     assert result.validation_reasons == ()
@@ -148,7 +149,7 @@ def test_validation_fails_missing_languages_and_ungrounded_source_sentence():
 
 def test_upsert_job_skips_existing_identity_without_force_and_updates_with_force():
     module = load_candidate_pipeline()
-    result = module.process_candidate(local_candidate(module), llm_payload=valid_payload())
+    result = module.process_candidate(local_candidate(module), agent_payload=valid_payload())
     key = module.summary_job_idempotency_key(
         report_code=result.candidate.source.db_report_type,
         report_slug=result.candidate.source.slug,
@@ -179,7 +180,7 @@ def test_upsert_job_skips_existing_identity_without_force_and_updates_with_force
 
 def test_upsert_job_allows_same_source_identity_with_new_prompt_version():
     module = load_candidate_pipeline()
-    result = module.process_candidate(local_candidate(module), llm_payload=valid_payload())
+    result = module.process_candidate(local_candidate(module), agent_payload=valid_payload())
     old_key = module.summary_job_idempotency_key(
         report_code=result.candidate.source.db_report_type,
         report_slug=result.candidate.source.slug,
@@ -210,7 +211,7 @@ def test_upsert_job_allows_same_source_identity_with_new_prompt_version():
 
 def test_telemetry_uses_existing_supabase_column_contract(tmp_path):
     module = load_candidate_pipeline()
-    result = module.process_candidate(local_candidate(module), llm_payload=valid_payload())
+    result = module.process_candidate(local_candidate(module), agent_payload=valid_payload())
     sb = FakeSupabase()
 
     run_id = module.start_telemetry(sb, report_type="econ", dry_run=True, slug="solana")
@@ -228,3 +229,33 @@ def test_telemetry_uses_existing_supabase_column_contract(tmp_path):
     event_insert = next(op for op in sb.operations if op[0] == "pipeline_events")
     assert "details" in event_insert[2]
     assert "metadata" not in event_insert[2]
+
+
+def test_require_agent_output_fails_without_paperclip_agent_json(monkeypatch):
+    module = load_candidate_pipeline()
+    monkeypatch.setattr(module, "get_supabase_client", lambda: None)
+
+    assert module.main([
+        "--type",
+        "econ",
+        "--slug",
+        "solana",
+        "--source-path",
+        str(Path(tempfile.gettempdir()) / "missing_agent_output_fixture.md"),
+        "--require-agent-output",
+        "--dry-run",
+    ]) == 2
+
+
+def test_agent_output_json_file_is_used_without_remote_llm(tmp_path):
+    module = load_candidate_pipeline()
+    candidate = local_candidate(module)
+    payload_path = tmp_path / "paperclip-agent-output.json"
+    payload_path.write_text(json.dumps(valid_payload(), ensure_ascii=False), encoding="utf-8")
+
+    payload = module.load_llm_payload_from_file(str(payload_path))
+    result = module.process_candidate(candidate, agent_payload=payload)
+
+    assert result.status == "valid"
+    assert result.payload["model"] == "test-model"
+    assert result.patch["card_data"]["summary_quality"]["model"] == "test-model"

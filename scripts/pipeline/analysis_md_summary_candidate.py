@@ -13,7 +13,6 @@ import json
 import os
 import re
 import sys
-import urllib.request
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -132,41 +131,6 @@ def summary_job_idempotency_key(
 
 def load_llm_payload_from_file(path: str) -> Dict[str, Any]:
     return json.loads(Path(path).read_text(encoding="utf-8"))
-
-
-def call_configured_llm(source: MarkdownSource, *, project: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
-    """Call a generic JSON LLM endpoint when explicitly configured.
-
-    The endpoint is intentionally provider-neutral. Operators can set
-    ``BCE_ANALYSIS_MD_LLM_ENDPOINT`` and optional bearer token env vars for a
-    remote dry-run. Tests and local dry-runs should use ``--llm-output-json``.
-    """
-    endpoint = os.environ.get("BCE_ANALYSIS_MD_LLM_ENDPOINT", "").strip()
-    if not endpoint:
-        return None
-    token = os.environ.get("BCE_ANALYSIS_MD_LLM_BEARER_TOKEN", "").strip()
-    body = {
-        "schemaVersion": SCHEMA_VERSION,
-        "promptVersion": PROMPT_VERSION,
-        "reportType": source.report_type,
-        "project": project or {"slug": source.slug},
-        "languages": list(LANGUAGES),
-        "markdown": source.text,
-    }
-    headers = {
-        "Content-Type": "application/json",
-        "User-Agent": "bce-analysis-md-summary-candidate/1.0",
-    }
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-    request = urllib.request.Request(
-        endpoint,
-        data=json.dumps(body).encode("utf-8"),
-        headers=headers,
-        method="POST",
-    )
-    with urllib.request.urlopen(request, timeout=60) as response:
-        return json.loads(response.read().decode("utf-8"))
 
 
 def deterministic_payload(source: MarkdownSource, *, project: Optional[Dict[str, Any]]) -> Dict[str, Any]:
@@ -561,11 +525,9 @@ def get_supabase_client() -> Any:
 def process_candidate(
     candidate: AnalysisMdCandidate,
     *,
-    llm_payload: Optional[Dict[str, Any]],
+    agent_payload: Optional[Dict[str, Any]],
 ) -> CandidateResult:
-    payload = llm_payload or call_configured_llm(candidate.source, project=candidate.project)
-    if payload is None:
-        payload = deterministic_payload(candidate.source, project=candidate.project)
+    payload = agent_payload or deterministic_payload(candidate.source, project=candidate.project)
     payload = {
         **payload,
         "schema_version": payload.get("schema_version") or SCHEMA_VERSION,
@@ -623,8 +585,24 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--dry-run", action="store_true", default=False)
     parser.add_argument("--force", action="store_true", default=False)
     parser.add_argument("--source-path", help="Local Korean analysis Markdown for development dry-runs")
-    parser.add_argument("--llm-output-json", help="Fixture or captured LLM JSON output to validate")
-    parser.add_argument("--require-llm", action="store_true", help="Fail if no configured LLM endpoint or fixture output is available")
+    parser.add_argument(
+        "--agent-output-json",
+        help="Paperclip local agent JSON output to validate and persist as a summary candidate",
+    )
+    parser.add_argument(
+        "--llm-output-json",
+        help="Deprecated alias for --agent-output-json, retained for older fixtures",
+    )
+    parser.add_argument(
+        "--require-agent-output",
+        action="store_true",
+        help="Fail if no Paperclip agent JSON output is available",
+    )
+    parser.add_argument(
+        "--require-llm",
+        action="store_true",
+        help="Deprecated alias for --require-agent-output",
+    )
     parser.add_argument("--limit", type=int, default=1)
     return parser.parse_args(argv)
 
@@ -633,9 +611,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
     source_scope = _normalize_source_scope(args.drive_root_scope)
     sb = get_supabase_client()
-    llm_payload = load_llm_payload_from_file(args.llm_output_json) if args.llm_output_json else None
-    if args.require_llm and llm_payload is None and not os.environ.get("BCE_ANALYSIS_MD_LLM_ENDPOINT", "").strip():
-        print("error=require_llm_missing_endpoint", file=sys.stderr)
+    agent_output_json = args.agent_output_json or args.llm_output_json
+    agent_payload = load_llm_payload_from_file(agent_output_json) if agent_output_json else None
+    require_agent_output = args.require_agent_output or args.require_llm
+    if require_agent_output and agent_payload is None:
+        print("error=require_agent_output_missing_json", file=sys.stderr)
         return 2
 
     if args.source_path:
@@ -654,7 +634,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     results: List[CandidateResult] = []
     write_results: List[Dict[str, Optional[str]]] = []
     for candidate in candidates:
-        result = process_candidate(candidate, llm_payload=llm_payload)
+        result = process_candidate(candidate, agent_payload=agent_payload)
         if sb:
             write_result = upsert_job(sb, result, force=args.force, dry_run=args.dry_run)
         else:
