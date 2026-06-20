@@ -138,6 +138,20 @@ This does not change FOR pipeline nodes or placeholder policy; it narrows the
 accepted card-visible text contract inside the existing shared summary and
 marketing localization node.
 
+## BCE-2000 Analysis Markdown Candidate Path
+
+As of 2026-06-20, FOR has a default-off candidate path for Drive
+`analysis2/FOR` Markdown summaries. The executable manifest key is
+`analysis-md-summary-candidate`; runtime entrypoint is
+`scripts/pipeline/analysis_md_summary_candidate.py`.
+
+This is a change-request/candidate path only. It does not change the active
+`Slide2/FOR` PDF operating input, `.github/workflows/slide-pipeline-cron.yml`
+cadence, approval gate, FOR placeholder policy, or `project_reports` production
+publish contract. Candidate metadata is stored in `report_summary_jobs` after
+the BCE-2000 migration and remains out of `project_reports` until separate
+remote approval.
+
 ### BCE-1910 Production DB Evidence
 
 As of 2026-05-15 21:26 KST, the production DB migration

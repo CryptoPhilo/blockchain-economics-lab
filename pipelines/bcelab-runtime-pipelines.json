@@ -124,6 +124,89 @@
       "reportType": "for"
     },
     {
+      "key": "analysis-md-summary-candidate",
+      "paperclipName": "Drive Analysis Markdown Summary Candidate",
+      "statePage": "knowledge/pipelines/analysis-md-summary-candidate.md",
+      "owner": "DataPlatformEngineer",
+      "status": "candidate",
+      "activation": "Default off. Candidate/dry-run only until remote production-write approval.",
+      "inputs": {
+        "active": "Google Drive analysis2/{ECON,MAT,FOR} Markdown or an explicit local --source-path for development dry-runs",
+        "legacy": "Google Drive analysis/{ECON,MAT,FOR} Markdown when --drive-root-scope legacy or all is explicitly selected"
+      },
+      "outputs": {
+        "artifact": "scripts/pipeline/output/analysis_md_summary_candidate_${type}_${slug}.json",
+        "candidateJobs": "Supabase report_summary_jobs rows keyed by idempotency_key when dry_run=false; source_identity is retained as provenance",
+        "authorityGate": "Default-off promotion through report_summary_jobs authority_state/authority_mode and report_summary_promotion_locks",
+        "telemetry": "Supabase pipeline_runs, pipeline_node_runs, and pipeline_events rows under pipeline_name=analysis-md-summary-candidate"
+      },
+      "boundaries": {
+        "productionPublish": "Does not write project_reports or publish website-visible content.",
+        "idempotency": "reportCode + reportSlug + locale + driveFileId + revision/hash + promptVersion + schemaVersion.",
+        "approval": "Promotion from report_summary_jobs to project_reports requires a separate remote approval.",
+        "authorityModes": "legacy_script and llm_candidate retain legacy active summaries; llm_active may promote only validation-passed candidates through the Summary Authority Gate."
+      },
+      "nodes": [
+        {
+          "key": "analysis_md_source_scan",
+          "paperclipLabel": "Drive analysis Markdown scan",
+          "execution": {
+            "mode": "paperclip_agent",
+            "entrypoint": "scripts/pipeline/analysis_md_summary_candidate.py",
+            "commandContains": "analysis_md_summary_candidate.py",
+            "args": ["--type", "econ|mat|for", "--slug", "<slug>", "--drive-root-scope", "active", "--dry-run"],
+            "localAllowed": ["dry_run", "development", "incident_reproduction"]
+          }
+        },
+        {
+          "key": "summary_candidate_generation",
+          "paperclipLabel": "LLM summary candidate generation",
+          "execution": {
+            "mode": "paperclip_agent",
+            "entrypoint": "scripts/pipeline/analysis_md_summary_candidate.py",
+            "commandContains": "analysis_md_summary_candidate.py",
+            "localAllowed": ["dry_run", "development", "incident_reproduction"]
+          }
+        },
+        {
+          "key": "candidate_validation",
+          "paperclipLabel": "Schema, language, quality, and grounding validation",
+          "execution": {
+            "mode": "paperclip_agent",
+            "entrypoint": "scripts/pipeline/analysis_md_summary_candidate.py",
+            "commandContains": "analysis_md_summary_candidate.py",
+            "localAllowed": ["dry_run", "development", "incident_reproduction"]
+          }
+        },
+        {
+          "key": "candidate_job_upsert",
+          "paperclipLabel": "Default-off report summary job upsert",
+          "execution": {
+            "mode": "paperclip_agent",
+            "entrypoint": "scripts/pipeline/analysis_md_summary_candidate.py",
+            "commandContains": "analysis_md_summary_candidate.py",
+            "localAllowed": ["dry_run", "development"]
+          }
+        },
+        {
+          "key": "summary_authority_gate",
+          "paperclipLabel": "Default-off candidate promotion authority gate",
+          "execution": {
+            "mode": "paperclip_agent",
+            "entrypoint": "scripts/pipeline/summary_authority_gate.py",
+            "commandContains": "summary_authority_gate.py",
+            "args": ["--job-id", "<uuid>", "--authority-mode", "legacy_script|llm_candidate|llm_active"],
+            "localAllowed": ["dry_run", "development"]
+          },
+          "approvalGate": {
+            "system": "Paperclip",
+            "required": true,
+            "owner": "COO"
+          }
+        }
+      ]
+    },
+    {
       "key": "forensic-rapid-change-scan",
       "paperclipName": "Forensic Rapid Change Scan",
       "statePage": "knowledge/pipelines/forensic-rapid-change-scan.md",

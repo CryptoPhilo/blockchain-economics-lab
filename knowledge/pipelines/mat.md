@@ -125,6 +125,19 @@ Dogecoin MAT is covered as a regression fixture: template metadata must fail,
 while copy about meme premium, unlimited issuance, real-use conversion risk,
 and development continuity must pass.
 
+## BCE-2000 Analysis Markdown Candidate Path
+
+As of 2026-06-20, MAT has a default-off candidate path for Drive
+`analysis2/MAT` Markdown summaries. The executable manifest key is
+`analysis-md-summary-candidate`; runtime entrypoint is
+`scripts/pipeline/analysis_md_summary_candidate.py`.
+
+This is a change-request/candidate path only. It does not change the active
+`Slide2/MAT` PDF operating input, `.github/workflows/slide-pipeline-cron.yml`
+cadence, approval gate, or `project_reports` production publish contract.
+Candidate metadata is stored in `report_summary_jobs` after the BCE-2000
+migration and remains out of `project_reports` until separate remote approval.
+
 ### BCE-1910 Production DB Evidence
 
 As of 2026-05-15 21:26 KST, the production DB migration
