@@ -22,10 +22,6 @@ on:
         description: 'Optional space-separated local migration versions to hide during this production push'
         required: false
         default: ''
-      noop_include_versions:
-        description: 'Optional space-separated local migration versions to replace with no-op files before --include-all'
-        required: false
-        default: ''
 
 jobs:
   migrate:
@@ -64,25 +60,6 @@ jobs:
           done
           echo "Skipped legacy local migrations:"
           ls -1 /tmp/supabase-skipped-migrations || true
-      - name: Replace Legacy Local Migrations With No-Ops
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.noop_include_versions != '' }}
-        run: |
-          mkdir -p /tmp/supabase-noop-replaced-migrations
-          for VERSION in ${{ inputs.noop_include_versions }}; do
-            for FILE in supabase/migrations/${VERSION}_*.sql; do
-              if [ -e "$FILE" ]; then
-                mv "$FILE" /tmp/supabase-noop-replaced-migrations/
-              fi
-            done
-            cat > "supabase/migrations/${VERSION}_bce2006_metadata_noop.sql" <<EOF
-          -- BCE-2006 metadata-only migration history alignment.
-          -- The original local SQL for version ${VERSION} is intentionally not
-          -- executed in production because it predates the current remote history
-          -- and contains non-idempotent schema changes.
-          EOF
-          done
-          echo "Replaced legacy local migrations with no-op metadata markers:"
-          ls -1 /tmp/supabase-noop-replaced-migrations || true
       - name: Repair Migration History
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.repair_versions != '' }}
         run: |
@@ -98,11 +75,6 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       - name: Apply Migrations
-        run: |
-          if [ -n "${{ inputs.noop_include_versions }}" ]; then
-            supabase db push --include-all
-          else
-            supabase db push
-          fi
+        run: supabase db push
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
