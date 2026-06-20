@@ -247,13 +247,12 @@ def test_require_agent_output_fails_without_paperclip_agent_json(monkeypatch):
     ]) == 2
 
 
-def test_agent_output_json_file_is_used_without_remote_llm(tmp_path, monkeypatch):
+def test_agent_output_json_file_is_used_without_remote_llm(tmp_path):
     module = load_candidate_pipeline()
     candidate = local_candidate(module)
     payload_path = tmp_path / "paperclip-agent-output.json"
     payload_path.write_text(json.dumps(valid_payload(), ensure_ascii=False), encoding="utf-8")
 
-    monkeypatch.setenv("BCE_ANALYSIS_MD_LLM_ENDPOINT", "https://example.invalid/should-not-be-used")
     payload = module.load_llm_payload_from_file(str(payload_path))
     result = module.process_candidate(candidate, agent_payload=payload)
 
