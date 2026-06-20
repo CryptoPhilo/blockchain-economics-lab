@@ -161,8 +161,12 @@ website publishing contract for `econ-report-publishing`,
     - `Deploy Production`: success
   - `27860761456` includes successful run and rerun evidence after migration:
     https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27860688271
-  - This satisfies the missing remote migration + deployment evidence path; BCE-2005
-    can proceed to final closeout.
+  - Migration/deploy evidence path is now satisfied:
+    - migration: `27860631382`, `27860660544`
+    - deploy/E2E: `27860761456`
+  - `BCE-2005` is ready for final closeout.
+  - Pipeline state wiki update for this checkpoint was pushed in commit
+    `5db974c`.
 
 ### BCE-2005 additional migration recovery evidence (2026-06-20 13:35 KST, latest)
 
