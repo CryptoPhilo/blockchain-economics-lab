@@ -179,9 +179,9 @@ website publishing contract for `econ-report-publishing`,
     GitHub reviewer was available:
     - Paperclip approval `7b7ad020-6ac9-430f-bcc0-16da1e386720`
     - PR #242 Release Gate records the waiver.
-  - Migration/e2e evidence is complete, but `BCE-2005` is still blocked until a
-    Paperclip local agent produces schema-conformant summary JSON and candidate
-    ingestion can produce a valid job plus gate dry-run evidence.
+  - Migration/e2e evidence is complete. `BCE-2011` paperclip-agent ingestion and dry-run evidence has now been collected (job `5532671b-87ea-4b6c-a72c-fc7ba6bf1d86`, `dry_run=true`, `wrote_project_report=false`).
+  - `BCE-2005` currently remains blocked pending explicit workflow execution/approval
+    for write-mode promotion.
   - Post-merge workflow evidence:
     - Run: https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27861381155
     - Mode: `apply`, report type: `econ`, slug: `humanity-protocol`, drive scope: `all`, gate authority mode: `llm_candidate`
@@ -213,8 +213,10 @@ website publishing contract for `econ-report-publishing`,
     that prevented deterministic fallback writes in apply mode, but its
     endpoint-secret requirement is superseded by the Paperclip agent output
     contract.
-  - PR #244 opened:
+  - PR #244 merged:
     - https://github.com/CryptoPhilo/blockchain-economics-lab/pull/244
+    - Head SHA: `337b080234fc2cf332ca345986be09ab76bc1d47`
+    - CI status: all required checks passed before merge.
     - removes direct GitHub Actions LLM API call / secret dependency in apply mode;
       `--agent-output-json` is now the required input path.
     - Validation checks passed:
@@ -222,22 +224,51 @@ website publishing contract for `econ-report-publishing`,
       - workflow YAML parse: passed
       - `npm run verify:runtime-pipelines`: passed
       - `npm run verify:pipeline`: passed
-    - Remaining before close:
-      - PR #244 must pass checks and merge.
-      - Paperclip local agent must generate schema-conformant summary JSON from
-        Drive analysis markdown and provide it via `--agent-output-json`.
-      - Post-merge run must collect valid `report_summary_jobs` row and
-        `Summary Authority Gate` dry-run evidence (`dry_run=true`, no
-        `project_reports` writes).
+  - Remaining before close:
+    - Paperclip local agent + `--agent-output-json` evidence is completed in `BCE-2011`.
+    - Production promotion remains pending separate explicit approval before any
+      `--write` gate invocation.
   - 2026-06-20 run `27861610008` remains useful as negative evidence: it
     prevented runtime or DB candidate writes when the summary-generation
     boundary was unavailable.
-  - BCE-2009 endpoint-secret blocker is superseded. The remaining blocker is a
-    Paperclip-local apply run that produces and ingests agent output JSON, then
-    runs the Summary Authority Gate in dry-run mode.
-  - Keep BCE-2005 blocked until Paperclip agent output ingestion produces valid
-    `report_summary_jobs` rows and gate dry-run evidence.
+  - BCE-2009 endpoint-secret blocker is superseded by the Paperclip-local
+    agent output contract and BCE-2011 ingestion evidence.
+  - Keep BCE-2005 blocked until explicit workflow execution/approval for
+    write-mode promotion is completed.
   - Pipeline state wiki update for this checkpoint was pushed in commit `5db974c`.
+
+### BCE-2011 Paperclip Local Agent Ingestion Evidence (2026-06-20 15:09 KST)
+
+- Workspace/SHA used: `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab` at `337b080`.
+- Branch: `codex/paperclip-agent-summary-source`.
+- Routine: `CRO Analysis MD Summary JSON Ingestion Routine`
+  (`50aff64a-3178-4af7-b67b-49bf4521aedb`).
+- Linked issue status: BCE-2011 `done`.
+- Source: Google Drive Markdown `TAC 크립토이코노미 설계 분석 보고서.md`.
+- Source identity:
+  `drive:1_beEKEvrOiCCcdtnXndJ3to6eiQ2pjZl:0B8HYgThT3NByeThlRHAwajFSaWZQdFNnQjJZREZ5MUdKN1FzPQ`.
+- Agent output JSON:
+  `scripts/pipeline/fixtures/bce-2010-humanity-protocol-agent-output.json`.
+- Candidate ingest command:
+  `python3 scripts/pipeline/analysis_md_summary_candidate.py --type econ --slug humanity-protocol --drive-root-scope all --agent-output-json scripts/pipeline/fixtures/bce-2010-humanity-protocol-agent-output.json --require-agent-output --limit 1 --force`.
+- Candidate ingest result:
+  - status: `valid`
+  - validation reasons: none
+  - upsert result: `updated_existing`
+  - job id: `5532671b-87ea-4b6c-a72c-fc7ba6bf1d86`
+  - artifact:
+    `scripts/pipeline/output/analysis_md_summary_candidate_econ_humanity-protocol.json`
+- Summary Authority Gate dry-run command:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id 5532671b-87ea-4b6c-a72c-fc7ba6bf1d86 --authority-mode llm_candidate --actor "paperclip-routine:CRO:BCE-2011"`.
+- Gate dry-run result:
+  - `dry_run=true`
+  - action: `fallback`
+  - state: `fallback_script`
+  - reason: `legacy active summary retained`
+  - `wrote_project_report=false`
+- This satisfies the Paperclip-local JSON ingestion evidence for the candidate
+  row and default-off gate dry-run. Production promotion remains separate and
+  requires explicit approval before any `--write` gate invocation.
 
 ### BCE-2005 additional migration recovery evidence (2026-06-20 13:35 KST, latest)
 
