@@ -273,6 +273,85 @@ website publishing contract for `econ-report-publishing`,
   row and default-off gate dry-run. Production promotion remains separate and
   requires explicit approval before any `--write` gate invocation.
 
+### BCE-2012 Immediate Publish Gate Attempt (2026-06-20 15:45 KST)
+
+- Workspace/SHA used:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `61b0ae6`.
+- Board instruction update:
+  `BCE-2012` should ignore the stale 06:30 dry-run wording and use the immediate
+  publish path once candidate ingest is `valid` and a `job_id` is available.
+- Candidate job reused from `BCE-2011`:
+  `5532671b-87ea-4b6c-a72c-fc7ba6bf1d86`.
+- Write gate command executed:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id 5532671b-87ea-4b6c-a72c-fc7ba6bf1d86 --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2012" --write`.
+- Result:
+  - exit code: `1`
+  - no `promote` result returned
+  - no `wrote_project_report=true` evidence
+  - no `project_report_id` returned
+- Blocker:
+  - Supabase RPC `public.promote_report_summary_job(...)` failed with
+    PostgreSQL error `42883`: `operator does not exist: report_type = text`.
+  - The deployed function compares `project_reports.report_type` to
+    `v_job.report_type`; current production types require an explicit cast or a
+    function signature/body fix before the authority gate can promote.
+- Operational status:
+  - `BCE-2012` must not be marked done under the board condition.
+  - A DataPlatformEngineer/CTO hotfix is required for the promotion RPC, followed
+    by rerunning the same `llm_active --write` command and verifying
+    `action=promote`, `wrote_project_report=true`, and `project_report_id`.
+
+### BCE-2013 Summary Authority Gate RPC Cast Hotfix (2026-06-20 15:48 KST)
+
+- Workspace/SHA used:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `d89bdc2` for diagnosis, then branch
+  `codex/paperclip-agent-summary-source` hotfix commits.
+- Primary context checked before implementation:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` and
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Hotfix:
+  - Migration `supabase/migrations/20260620114500_fix_summary_authority_gate_report_type_cast.sql`
+    replaces `public.promote_report_summary_job(...)`.
+  - The target lookup now compares `project_reports.report_type::text` to
+    `report_summary_jobs.report_type`, clearing PostgreSQL `42883`
+    `operator does not exist: report_type = text`.
+- Local verification:
+  - `python3 -m pytest scripts/pipeline/test_summary_authority_gate.py`
+    passed (`7 passed`).
+- Remote DB application:
+  - Initial selected-migration dispatch on hotfix SHA `702fe15` failed because
+    the workflow entered a Supabase CLI history step while CLI setup was skipped.
+  - Workflow guard fix pushed at `f053209`.
+  - Selected SQL migration rerun succeeded:
+    https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27863351352
+  - A preceding selected-migration run also succeeded on the same branch:
+    https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27863338650
+- Promotion evidence:
+  - Candidate job:
+    `5532671b-87ea-4b6c-a72c-fc7ba6bf1d86`.
+  - Promotion actor:
+    `paperclip-routine:CRO:BCE-2012`.
+  - DB state after hotfix:
+    `authority_state=promoted`, `authority_mode=llm_active`,
+    `promotion_decision=promote`, `promoted_project_report_id=87fcaaed-41d2-4fec-a907-1c8ba59e6767`.
+  - Promotion timestamp:
+    `2026-06-20T06:48:43.315601+00:00`.
+  - Project report state:
+    `project_reports.id=87fcaaed-41d2-4fec-a907-1c8ba59e6767`,
+    `report_type=econ`, `language=ko`, `status=published`.
+  - `card_data.summary_authority` records `mode=llm_active`, the candidate job
+    id, idempotency key, source identity, and the same promotion timestamp.
+  - Idempotent verification command:
+    `python3 scripts/pipeline/summary_authority_gate.py --job-id 5532671b-87ea-4b6c-a72c-fc7ba6bf1d86 --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2012" --write`
+    returned `decision.action=noop`, `decision.state=promoted`,
+    `project_report_id=87fcaaed-41d2-4fec-a907-1c8ba59e6767` because the job was
+    already terminal after the successful promotion.
+- Current status:
+  - The Summary Authority Gate RPC report_type cast blocker is cleared.
+  - BCE-2012 can proceed using the promoted project report evidence above.
+
 ### BCE-2005 additional migration recovery evidence (2026-06-20 13:35 KST, latest)
 
 - Workspace/SHA used: `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab` at `6bc8302`.
