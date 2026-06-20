@@ -41,6 +41,7 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       - name: List Migration History
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.migration_name == '' }}
         run: supabase migration list --linked
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
