@@ -216,6 +216,8 @@ website publishing contract for `econ-report-publishing`,
   - PR #244 merged:
     - https://github.com/CryptoPhilo/blockchain-economics-lab/pull/244
     - Head SHA: `337b080234fc2cf332ca345986be09ab76bc1d47`
+    - Merge commit: `d98fc27628bfdd8e3e696d75f9a2049d790bf346`
+    - Merged at: `2026-06-20T06:02:25Z`
     - CI status: all required checks passed before merge.
     - removes direct GitHub Actions LLM API call / secret dependency in apply mode;
       `--agent-output-json` is now the required input path.
