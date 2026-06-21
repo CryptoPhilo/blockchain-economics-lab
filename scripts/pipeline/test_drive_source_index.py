@@ -346,3 +346,24 @@ def test_full_rescan_bypasses_sync_state_checkpoint(monkeypatch):
     assert metrics["sync_state_used"] is False
     assert len(service.queries) == 1
     assert "modifiedTime >" not in service.queries[0]
+
+
+def test_empty_incremental_scan_reports_no_op(monkeypatch):
+    module = load_module()
+    service = FakeDriveService([])
+    monkeypatch.setattr(module, "_folder_keys_for_scope", lambda *args, **kwargs: [("active", "analysis2", "folder")])
+    sb = FakeSupabase()
+
+    metrics = module.sync_index(
+        sb,
+        service,
+        report_type="econ",
+        drive_root_scope="active",
+        slug=None,
+        dry_run=True,
+        modified_after="2099-01-01T00:00:00Z",
+    )
+
+    assert metrics["seen"] == 0
+    assert metrics["changed"] == 0
+    assert metrics["no_op"] is True

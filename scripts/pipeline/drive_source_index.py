@@ -436,7 +436,7 @@ def sync_index(
                 changed_count=changed_by_folder.get(key, 0),
             )
             metrics["sync_state_upserts"] += 1
-    metrics["no_op"] = metrics["seen"] > 0 and metrics["changed"] == 0
+    metrics["no_op"] = metrics["changed"] == 0
     return metrics
 
 
