@@ -8,6 +8,7 @@ import {
   buildTrackedProjectLookup,
   canonicalSnapshotRowsToScoreRows,
   fetchVisibleReportsForScoreboard,
+  fetchVisibleReportsForScoreboardByProjectSlugs,
   getScoreboardReportScope,
   hasCompleteCmcCanonicalTop500Snapshot,
   mergeScoreboardProjects,
@@ -840,6 +841,63 @@ describe('score page tracked project aliases', () => {
     })
   })
 
+  it('maps UNUS SED LEO market rows to the report-bearing LEO token project', () => {
+    const trackedProjects = [
+      {
+        id: 'leo-empty-row',
+        name: 'UNUS SED LEO',
+        slug: 'unus-sed-leo',
+        symbol: 'LEO',
+        category: '',
+        market_cap_usd: 500,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+      {
+        id: 'leo-token-project',
+        name: 'UNUS SED LEO',
+        slug: 'leo-token',
+        symbol: 'LEO',
+        category: 'Exchange',
+        market_cap_usd: 100,
+        coingecko_id: 'leo-token',
+        cmc_id: null,
+        aliases: [],
+        maturity_score: 58,
+        last_econ_report_at: '2026-05-28T00:00:00.000Z',
+        last_maturity_report_at: '2026-06-17T00:00:00.000Z',
+        last_forensic_report_at: null,
+      },
+    ]
+    const snapshotRows = [
+      {
+        slug: 'unus-sed-leo',
+        price_usd: 9,
+        market_cap: 8_800_000_000,
+        change_24h: -0.32,
+        recorded_at: '2026-06-21',
+        cmc_rank: 11,
+        cmc_name: 'UNUS SED LEO',
+        cmc_symbol: 'LEO',
+      },
+    ]
+
+    const [row] = snapshotRowsToScoreRows(snapshotRows, buildTrackedProjectLookup(trackedProjects))
+
+    expect(row).toMatchObject({
+      name: 'UNUS SED LEO',
+      symbol: 'LEO',
+      slug: 'leo-token',
+      score: 58,
+      reportTypes: ['econ', 'maturity'],
+    })
+  })
+
   it('maps CMC market slugs to report-bearing canonical projects for ECON badges', () => {
     const trackedProjects = [
       {
@@ -1417,12 +1475,7 @@ describe('score page report availability policy', () => {
     const query = {
       select: jest.fn().mockReturnThis(),
       in: jest.fn().mockReturnThis(),
-      then: undefined,
-    }
-    query.in
-      .mockReturnValueOnce(query)
-      .mockReturnValueOnce(query)
-      .mockResolvedValueOnce({
+      range: jest.fn().mockResolvedValueOnce({
         data: [
           {
             project_id: 'bitcoin-project',
@@ -1436,7 +1489,9 @@ describe('score page report availability policy', () => {
           },
         ],
         error: null,
-      })
+      }),
+      then: undefined,
+    }
     const reportSupabase = {
       from: jest.fn().mockReturnValue(query),
     }
@@ -1450,8 +1505,69 @@ describe('score page report availability policy', () => {
     expect(query.in).toHaveBeenNthCalledWith(1, 'project_id', ['bitcoin-project'])
     expect(query.in).toHaveBeenNthCalledWith(2, 'report_type', ['econ', 'maturity', 'forensic'])
     expect(query.in).toHaveBeenNthCalledWith(3, 'status', ['published', 'in_review'])
+    expect(query.range).toHaveBeenCalledWith(0, 999)
     expect(result.loaded).toBe(true)
     expect(result.reports).toHaveLength(1)
+  })
+
+  it('paginates slug-based report availability beyond the Supabase 1000 row default', async () => {
+    const firstPage = Array.from({ length: 1000 }, (_, index) => ({
+      id: `report-${index}`,
+      project_id: `project-${index}`,
+      report_type: 'econ',
+      status: 'published',
+      language: 'zh',
+      tracked_projects: { slug: `project-${index}` },
+      slide_html_urls_by_lang: {
+        zh: `https://example.com/project-${index}.html`,
+      },
+    }))
+    const lastReport = {
+      id: 'report-1000',
+      project_id: 'project-1000',
+      report_type: 'econ',
+      status: 'published',
+      language: 'zh',
+      tracked_projects: { slug: 'project-1000' },
+      slide_html_urls_by_lang: {
+        zh: 'https://example.com/project-1000.html',
+      },
+    }
+    const queries = [
+      {
+        select: jest.fn().mockReturnThis(),
+        in: jest.fn().mockReturnThis(),
+        range: jest.fn().mockResolvedValueOnce({ data: firstPage, error: null }),
+      },
+      {
+        select: jest.fn().mockReturnThis(),
+        in: jest.fn().mockReturnThis(),
+        range: jest.fn().mockResolvedValueOnce({ data: [lastReport], error: null }),
+      },
+      {
+        select: jest.fn().mockReturnThis(),
+        in: jest.fn().mockReturnThis(),
+        range: jest.fn().mockResolvedValueOnce({ data: [], error: null }),
+      },
+    ]
+    const reportSupabase = {
+      from: jest.fn()
+        .mockReturnValueOnce(queries[0])
+        .mockReturnValueOnce(queries[1])
+        .mockReturnValueOnce(queries[2]),
+    }
+
+    const result = await fetchVisibleReportsForScoreboardByProjectSlugs(
+      ['bitcoin'],
+      reportSupabase as never,
+    )
+
+    expect(result.loaded).toBe(true)
+    expect(result.reports).toHaveLength(1001)
+    expect(result.reports.at(-1)).toMatchObject({ id: 'report-1000' })
+    expect(queries[0].range).toHaveBeenCalledWith(0, 999)
+    expect(queries[1].range).toHaveBeenCalledWith(1000, 1999)
+    expect(queries[2].range).toHaveBeenCalledWith(0, 999)
   })
 
   it('includes review-ready reports when they have localized assets', () => {
