@@ -41,11 +41,12 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       - name: List Migration History
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.migration_name == '' }}
         run: supabase migration list --linked
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       - name: Repair Migration History
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.repair_versions != '' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.migration_name == '' && inputs.repair_versions != '' }}
         run: |
           REPAIR_STATUS="${{ inputs.repair_status }}"
           if [ -z "$REPAIR_STATUS" ]; then

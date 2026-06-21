@@ -258,6 +258,7 @@ website publishing contract for `econ-report-publishing`,
   - status: `valid`
   - validation reasons: none
   - upsert result: `updated_existing`
+- Candidate row:
   - job id: `5532671b-87ea-4b6c-a72c-fc7ba6bf1d86`
   - artifact:
     `scripts/pipeline/output/analysis_md_summary_candidate_econ_humanity-protocol.json`
@@ -272,6 +273,264 @@ website publishing contract for `econ-report-publishing`,
 - This satisfies the Paperclip-local JSON ingestion evidence for the candidate
   row and default-off gate dry-run. Production promotion remains separate and
   requires explicit approval before any `--write` gate invocation.
+
+### BCE-2016 CRO Immediate Publication Routine Attempt (2026-06-20 16:40 KST)
+
+- Workspace/SHA used:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `f221488`.
+- Source: Google Drive Markdown
+  `HyperLiquid 크립토이코노미 분석 보고서.md`.
+- Source identity:
+  `drive:10TAvpP5hRWC6SFHoYcfmx433NFJRx3b5:0B8HYgThT3NByVlpZRGdadlgwcFRNTSt3eDNnbG5GWFFoNE9JPQ`.
+- Paperclip CRO local agent JSON:
+  `scripts/pipeline/output/bce-2015-cro-top50/09_hyperliquid_agent_output.json`.
+- Candidate job:
+  `24a4b612-cf09-4bcf-a960-1abd01323fca`.
+- Candidate DB state after ingest:
+  `project_slug=hyperliquid`, `report_type=econ`, `locale=ko`,
+  `validation_status=valid`, `status=candidate_ready`.
+- Promotion command attempted:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id 24a4b612-cf09-4bcf-a960-1abd01323fca --authority-mode llm_active --actor paperclip-routine:CRO:BCE-2016 --write`.
+- Promotion result: blocked. The Summary Authority Gate RPC failed with
+  `website-visible project_reports target not found: hyperliquid/econ/ko`.
+- Operational implication: the immediate publication routine cannot mark the
+  execution issue done for Hyperliquid until website-visible
+  `project_reports` language sibling rows exist for `hyperliquid/econ`, or the
+  gate is changed through a reviewed migration to create missing targets
+  intentionally.
+- Follow-up blocker: `BCE-2017` created and assigned to DataPlatformEngineer to
+  resolve missing `project_reports` target/gate contract; BCE-2016 remains
+  blocked until resolved.
+
+### BCE-2017 Hyperliquid Summary Authority Gate Target Fix (2026-06-20 16:50 KST)
+
+- Workspace/SHA used:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `f221488`.
+- Primary context checked before implementation:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` and
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Live DB diagnosis for candidate job
+  `24a4b612-cf09-4bcf-a960-1abd01323fca`:
+  - candidate state is now terminal `rejected` because the interrupted
+    `BCE-2015` helper run generated generic/default-source summaries;
+  - candidate patch carried `card_data.source_md.version=1`;
+  - Hyperliquid has a website-visible Korean ECON report at version `3`
+    (`project_reports.id=827c5761-13fb-47ba-88ff-041d36bc6e2c`);
+  - version `1` Korean rows are not website-visible, so the previous exact
+    candidate-version anchor lookup raised
+    `website-visible project_reports target not found: hyperliquid/econ/ko`.
+- Hotfix:
+  - `scripts/pipeline/summary_authority_gate.py` dry-run target resolution now
+    prefers exact visible candidate version, then falls back to the latest
+    website-visible locale target.
+  - Migration
+    `supabase/migrations/20260620165000_summary_authority_gate_latest_visible_fallback.sql`
+    replaces `public.promote_report_summary_job(...)` with the same fallback
+    and scopes sibling updates to the selected visible target version.
+  - Promotion audit and pipeline event details record both
+    `candidate_version` and `target_version`.
+- Local verification:
+  - `python3 -m pytest scripts/pipeline/test_summary_authority_gate.py`
+    passed (`8 passed`).
+  - `npm run verify:runtime-pipelines` passed.
+- Operational implication:
+  - The missing-target blocker is fixed at code/migration level.
+  - Because the original Hyperliquid candidate job is terminal `rejected`,
+    `BCE-2016` should rerun candidate ingestion or use a fresh valid candidate
+    after this migration is deployed, then retry `llm_active --write`.
+
+### BCE-2018 Remote Migration Apply Evidence (2026-06-20 17:00 KST)
+
+- Workspace/SHA used:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at starting SHA `f221488`.
+- Fix/evidence commit pushed:
+  `ad6b66768a71d8b2f9008c5cafbc1846f595becc` on branch
+  `codex/bce-2012-immediate-summary-publish`.
+- Remote selected-SQL migration apply:
+  https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27864998298
+  - Workflow: `.github/workflows/db-migration.yml`
+  - Event: `workflow_dispatch`
+  - Head SHA:
+    `ad6b66768a71d8b2f9008c5cafbc1846f595becc`
+  - Job: `🗃️ Apply Migrations`
+    (`https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27864998298/job/82467469407`)
+  - Result: `success`
+  - Selected migration:
+    `supabase/migrations/20260620165000_summary_authority_gate_latest_visible_fallback.sql`
+  - Apply step used Supabase database query API and returned success (`[]`).
+- Local verification before dispatch:
+  - `python3 -m pytest scripts/pipeline/test_summary_authority_gate.py`
+    passed (`8 passed`).
+  - `npm run verify:runtime-pipelines` passed.
+  - `npm run verify:pipeline` passed.
+- Production read-only target lookup after remote apply:
+  - Existing Hyperliquid candidate job:
+    `24a4b612-cf09-4bcf-a960-1abd01323fca`
+  - Job state: `authority_state=rejected`, `validation_status=valid`.
+  - Candidate source version: `1`.
+  - Latest website-visible fallback target selected by the gate lookup:
+    `project_reports.id=827c5761-13fb-47ba-88ff-041d36bc6e2c`,
+    `version=3`, `language=ko`, `status=published`.
+  - `write_performed=false`; no write-mode promotion was invoked.
+- Operational implication:
+  - The migration deploy/apply evidence for the latest-visible fallback is
+    complete.
+  - `BCE-2017` can be unblocked.
+  - `BCE-2016` must use a fresh valid Hyperliquid candidate or rerun ingestion;
+    the old job is terminal `rejected` and must not be retried for write-mode
+    promotion.
+
+### BCE-2012 Immediate Publish Gate Attempt (2026-06-20 15:45 KST)
+
+- Workspace/SHA used:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `61b0ae6`.
+- Board instruction update:
+  `BCE-2012` should ignore the stale 06:30 dry-run wording and use the immediate
+  publish path once candidate ingest is `valid` and a `job_id` is available.
+- Candidate job reused from `BCE-2011`:
+  `5532671b-87ea-4b6c-a72c-fc7ba6bf1d86`.
+- Write gate command executed:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id 5532671b-87ea-4b6c-a72c-fc7ba6bf1d86 --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2012" --write`.
+- Result:
+  - exit code: `1`
+  - no `promote` result returned
+  - no `wrote_project_report=true` evidence
+  - no `project_report_id` returned
+- Blocker:
+  - Supabase RPC `public.promote_report_summary_job(...)` failed with
+    PostgreSQL error `42883`: `operator does not exist: report_type = text`.
+  - The deployed function compares `project_reports.report_type` to
+    `v_job.report_type`; current production types require an explicit cast or a
+    function signature/body fix before the authority gate can promote.
+- Operational status:
+  - `BCE-2012` must not be marked done under the board condition.
+  - A DataPlatformEngineer/CTO hotfix is required for the promotion RPC, followed
+    by rerunning the same `llm_active --write` command and verifying
+    `action=promote`, `wrote_project_report=true`, and `project_report_id`.
+
+### BCE-2013 Summary Authority Gate RPC Cast Hotfix (2026-06-20 15:48 KST)
+
+- Workspace/SHA used:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `d89bdc2` for diagnosis, then branch
+  `codex/paperclip-agent-summary-source` hotfix commits.
+- Primary context checked before implementation:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` and
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Hotfix:
+  - Migration `supabase/migrations/20260620114500_fix_summary_authority_gate_report_type_cast.sql`
+    replaces `public.promote_report_summary_job(...)`.
+  - The target lookup now compares `project_reports.report_type::text` to
+    `report_summary_jobs.report_type`, clearing PostgreSQL `42883`
+    `operator does not exist: report_type = text`.
+- Local verification:
+  - `python3 -m pytest scripts/pipeline/test_summary_authority_gate.py`
+    passed (`7 passed`).
+- Remote DB application:
+  - Initial selected-migration dispatch on hotfix SHA `702fe15` failed because
+    the workflow entered a Supabase CLI history step while CLI setup was skipped.
+  - Workflow guard fix pushed at `f053209`.
+  - Selected SQL migration rerun succeeded:
+    https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27863351352
+  - A preceding selected-migration run also succeeded on the same branch:
+    https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/27863338650
+- Promotion evidence:
+  - Candidate job:
+    `5532671b-87ea-4b6c-a72c-fc7ba6bf1d86`.
+  - Promotion actor:
+    `paperclip-routine:CRO:BCE-2012`.
+  - DB state after hotfix:
+    `authority_state=promoted`, `authority_mode=llm_active`,
+    `promotion_decision=promote`, `promoted_project_report_id=87fcaaed-41d2-4fec-a907-1c8ba59e6767`.
+  - Promotion timestamp:
+    `2026-06-20T06:48:43.315601+00:00`.
+  - Project report state:
+    `project_reports.id=87fcaaed-41d2-4fec-a907-1c8ba59e6767`,
+    `report_type=econ`, `language=ko`, `status=published`.
+  - `card_data.summary_authority` records `mode=llm_active`, the candidate job
+    id, idempotency key, source identity, and the same promotion timestamp.
+  - Idempotent verification command:
+    `python3 scripts/pipeline/summary_authority_gate.py --job-id 5532671b-87ea-4b6c-a72c-fc7ba6bf1d86 --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2012" --write`
+    returned `decision.action=noop`, `decision.state=promoted`,
+    `project_report_id=87fcaaed-41d2-4fec-a907-1c8ba59e6767` because the job was
+    already terminal after the successful promotion.
+- Current status:
+  - The Summary Authority Gate RPC report_type cast blocker is cleared.
+  - BCE-2012 can proceed using the promoted project report evidence above.
+
+### BCE-2014 CRO Analysis MD Summary JSON Ingestion Routine (2026-06-20 16:11 KST)
+
+- Workspace/SHA used:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `fb1f7e8`.
+- Branch: `codex/bce-2012-immediate-summary-publish`.
+- Primary context checked before execution:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` and
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Latest Drive metadata scan across `analysis2/{ECON,MAT,FOR}` and legacy
+  `analysis/{ECON,MAT,FOR}` found the newest already-ingested item was BLUR FOR
+  (`job 9efa8ca2-0dc4-4ab8-99c7-91695599976e`), and the newest unprocessed
+  changed item was RE FOR:
+  `RE 시장 무결성 및 심층 포렌식 리스크 보고서.md`.
+- Source identity:
+  `drive:1zZLs0v-aGowcf6I7OyuLXiKQNJeWNxUm:0B8HYgThT3NByMXVrMlpiT3l6c2o4OVVyTEUrUStscCtHclE4PQ`.
+- The first ingest attempt exposed a candidate selection bug for natural-language
+  filenames: when `--slug re-protocol` was supplied, unparsed filenames were
+  accepted without a project score filter and BLUR was selected. The invalid
+  candidate row was inserted as validation-failed only
+  (`edb3ba7a-8108-47bf-9357-305ce3b9c3df`) and did not write
+  `project_reports`.
+- Hotfix applied locally:
+  - `scripts/pipeline/analysis_md_summary_candidate.py` now fetches project
+    metadata for slug-filtered Drive scans and excludes unparsed natural-language
+    filenames whose `score_drive_source_for_project(...)` score is below 60.
+  - Regression coverage added in
+    `scripts/pipeline/test_analysis_md_summary_candidate.py`.
+  - Hotfix committed on the active BCE-2014 work branch.
+- Verification:
+  `python3 -m pytest scripts/pipeline/test_analysis_md_summary_candidate.py scripts/pipeline/test_summary_authority_gate.py`
+  passed (`16 passed`).
+- Agent output JSON:
+  `scripts/pipeline/output/paperclip_cro_summary_for_re-protocol.json`.
+- Candidate ingest command:
+  `python3 scripts/pipeline/analysis_md_summary_candidate.py --type for --slug re-protocol --drive-root-scope all --agent-output-json scripts/pipeline/output/paperclip_cro_summary_for_re-protocol.json --require-agent-output --limit 1 --force`.
+- Candidate ingest result:
+  - status: `valid`
+  - validation reasons: none
+  - upsert result: `inserted`
+  - job id: `338e0065-2824-45fd-bbff-a1302a44240a`
+  - artifact:
+    `scripts/pipeline/output/analysis_md_summary_candidate_for_re-protocol.json`
+- Summary Authority Gate write command:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id 338e0065-2824-45fd-bbff-a1302a44240a --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2014" --write`.
+- Gate result:
+  - `dry_run=false`
+  - action: `promote`
+  - state: `promoted`
+  - `wrote_project_report=true`
+  - `project_report_id=1dc110b6-d90b-4b65-82ba-6cc7e4e209f8`
+- DB verification:
+  - `report_summary_jobs.id=338e0065-2824-45fd-bbff-a1302a44240a`
+  - `validation_status=valid`
+  - `authority_state=promoted`
+  - `authority_mode=llm_active`
+  - `promotion_decision=promote`
+  - `promoted_at=2026-06-20T07:11:05.100005+00:00`
+  - `project_reports.id=1dc110b6-d90b-4b65-82ba-6cc7e4e209f8`
+  - `report_type=forensic`
+  - `language=ko`
+  - `status=published`
+  - `summary_source_md_file_id=1zZLs0v-aGowcf6I7OyuLXiKQNJeWNxUm`
+  - `card_data.summary_authority.mode=llm_active`
+- Website/cache check:
+  `https://www.bcelab.xyz/ko/reports/re-protocol/forensic` returned HTTP 200
+  with `x-vercel-cache: MISS` and `cache-control: private, no-cache, no-store,
+  max-age=0, must-revalidate`; no deployment was required for the DB-backed
+  summary write path.
 
 ### BCE-2005 additional migration recovery evidence (2026-06-20 13:35 KST, latest)
 

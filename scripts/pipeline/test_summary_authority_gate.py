@@ -56,6 +56,10 @@ class FakeTable:
     def limit(self, _value):
         return self
 
+    def order(self, column, desc=False):
+        self.filters.append(("order", column, desc))
+        return self
+
     def execute(self):
         if self.name == "report_summary_promotion_locks" and self.action == "insert":
             key = (
@@ -101,8 +105,12 @@ class FakeTable:
                 if row["project_id"] == project_id
                 and row["report_type"] == report_type
                 and row["language"] == language
+                and row["status"] in set(_filter_value(self.filters, "status") or ())
                 and (version is None or row["version"] == version)
             ]
+            for kind, column, desc in self.filters:
+                if kind == "order":
+                    rows = sorted(rows, key=lambda row: row[column], reverse=desc)
             return FakeExecuteResult(rows[:1])
         if self.name == "project_reports" and self.action == "update":
             report_id = _filter_value(self.filters, "id")
@@ -136,18 +144,9 @@ class FakeRpc:
             and row["language"] == job.get("locale", "ko")
         )
         report_patch = {
-            "card_summary_ko": job["candidate_patch"]["card_summary_ko"],
+            "card_summary_ko": job["candidate_patch"].get("card_summary_ko"),
+            "card_summary_en": job["candidate_patch"].get("card_summary_en"),
             "marketing_content_by_lang": job["candidate_patch"]["marketing_content_by_lang"],
-            "card_data": {
-                **target.get("card_data", {}),
-                **job["candidate_patch"]["card_data"],
-                "summary_authority": {
-                    "mode": self.params["p_authority_mode"],
-                    "job_id": job_id,
-                    "source_identity": job["source_identity"],
-                    "idempotency_key": job["idempotency_key"],
-                },
-            },
         }
         job_patch = {
             "authority_state": "promoted",
@@ -155,20 +154,48 @@ class FakeRpc:
             "promotion_decision": "promote",
             "promotion_decision_reason": self.params["p_reason"],
             "promoted_project_report_id": target["id"],
+            "promotion_audit": {"updated_project_report_count": 0},
         }
         if self.supabase.fail_after_report_patch:
             raise RuntimeError("injected transaction failure after project report patch")
-        self.supabase.reports[target["id"]].update(report_patch)
+        updated = 0
+        for report in self.supabase.reports.values():
+            if (
+                report["project_id"] == self.supabase.projects[job["project_slug"]]["id"]
+                and report["report_type"] == job["report_type"]
+                and report["version"] == target["version"]
+                and report["status"] in {"published", "coming_soon", "in_review"}
+            ):
+                report.update({
+                    **report_patch,
+                    "card_data": {
+                        **report.get("card_data", {}),
+                        **job["candidate_patch"]["card_data"],
+                        "summary_authority": {
+                            "mode": self.params["p_authority_mode"],
+                            "job_id": job_id,
+                            "source_identity": job["source_identity"],
+                            "idempotency_key": job["idempotency_key"],
+                        },
+                    },
+                })
+                updated += 1
+        job_patch["promotion_audit"]["updated_project_report_count"] = updated
         self.supabase.jobs[job_id].update(job_patch)
         self.supabase.operations.append(("project_reports", "update", report_patch))
         self.supabase.operations.append(("report_summary_jobs", "update", job_patch))
         self.supabase.operations.append(("pipeline_events", "insert", {"event_type": "summary_authority_gate.promoted"}))
-        return FakeExecuteResult([{"job_id": job_id, "project_report_id": target["id"], "authority_state": "promoted"}])
+        return FakeExecuteResult([{
+            "job_id": job_id,
+            "project_report_id": target["id"],
+            "updated_project_report_count": updated,
+            "authority_state": "promoted",
+        }])
 
 
 def _filter_value(filters, column):
     for kind, filter_column, value in filters:
-        if kind == "eq" and filter_column == column:
+        if kind in {"eq", "in"} and filter_column == column:
             return value
     return None
 
@@ -187,6 +214,15 @@ class FakeSupabase:
                 "language": "ko",
                 "status": "published",
                 "card_data": {"legacy": True},
+            },
+            "report-2": {
+                "id": "report-2",
+                "project_id": "project-1",
+                "report_type": "econ",
+                "version": 1,
+                "language": "en",
+                "status": "published",
+                "card_data": {"legacy_en": True},
             }
         }
         self.active_locks = set()
@@ -223,9 +259,11 @@ def valid_job(**overrides):
         "validator_result": {"validation_status": "valid"},
         "candidate_patch": {
             "card_summary_ko": "검증된 요약",
-            "marketing_content_by_lang": {"ko": "투자 관점"},
+            "card_summary_en": "Validated summary",
+            "marketing_content_by_lang": {"ko": "투자 관점", "en": "Investment view"},
             "card_data": {
                 "source_md": {"version": 1},
+                "summary_by_lang": {"ko": "검증된 요약", "en": "Validated summary"},
                 "summary_quality": {"contract": "card_summary_v2"},
             },
         },
@@ -278,7 +316,7 @@ def test_validation_failed_candidate_never_promotes_to_project_reports():
     assert sb.jobs["job-1"]["authority_state"] == "validation_failed"
 
 
-def test_llm_active_valid_candidate_promotes_one_active_summary_with_lock():
+def test_llm_active_valid_candidate_promotes_language_siblings_with_lock():
     module = load_gate()
     sb = FakeSupabase(valid_job())
 
@@ -290,10 +328,36 @@ def test_llm_active_valid_candidate_promotes_one_active_summary_with_lock():
     assert sb.reports["report-1"]["card_summary_ko"] == "검증된 요약"
     assert sb.reports["report-1"]["card_data"]["legacy"] is True
     assert sb.reports["report-1"]["card_data"]["summary_authority"]["job_id"] == "job-1"
+    assert sb.reports["report-2"]["card_summary_en"] == "Validated summary"
+    assert sb.reports["report-2"]["card_data"]["legacy_en"] is True
+    assert sb.reports["report-2"]["card_data"]["summary_by_lang"]["en"] == "Validated summary"
+    assert sb.jobs["job-1"]["promotion_audit"]["updated_project_report_count"] == 2
     rpc_calls = [op for op in sb.operations if op[0] == "rpc" and op[1] == "promote_report_summary_job"]
     assert len(rpc_calls) == 1
     report_updates = [op for op in sb.operations if op[0] == "project_reports" and op[1] == "update"]
     assert len(report_updates) == 1
+
+
+def test_dry_run_uses_latest_visible_target_when_candidate_version_is_stale():
+    module = load_gate()
+    sb = FakeSupabase(valid_job())
+    sb.reports["report-1"]["status"] = "cancelled"
+    sb.reports["report-2"]["status"] = "cancelled"
+    sb.reports["report-3"] = {
+        "id": "report-3",
+        "project_id": "project-1",
+        "report_type": "econ",
+        "version": 3,
+        "language": "ko",
+        "status": "published",
+        "card_data": {"latest": True},
+    }
+
+    decision = module.promote_job(sb, sb.jobs["job-1"], actor="agent", authority_mode="llm_active", dry_run=True)
+
+    assert decision.action == "promote"
+    assert decision.project_report_id == "report-3"
+    assert decision.reason == "dry-run promotion would call atomic DB RPC"
 
 
 def test_duplicate_promotion_lock_blocks_concurrent_active_summary_update():

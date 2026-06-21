@@ -131,10 +131,13 @@
       "status": "candidate",
       "activation": "Default off. Candidate/dry-run only until remote production-write approval.",
       "inputs": {
-        "active": "Google Drive analysis2/{ECON,MAT,FOR} Markdown or an explicit local --source-path for development dry-runs",
-        "legacy": "Google Drive analysis/{ECON,MAT,FOR} Markdown when --drive-root-scope legacy or all is explicitly selected"
+        "active": "Google Drive analysis2/{ECON,MAT,FOR} Markdown/PDF or an explicit local --source-path for development dry-runs",
+        "legacy": "Google Drive analysis/{ECON,MAT,FOR} Markdown/PDF when --drive-root-scope legacy or all is explicitly selected",
+        "sourceIndex": "Optional default-off Supabase drive_file_index, drive_file_content_index, and analysis_source_map selection path"
       },
       "outputs": {
+        "sourceIndexArtifact": "scripts/pipeline/output/drive_source_index/drive_source_index_${type}_${slug|all}.json",
+        "sourceIndexTables": "Supabase drive_file_index, drive_file_content_index, analysis_source_map, and drive_source_sync_state when dry_run=false",
         "artifact": "scripts/pipeline/output/analysis_md_summary_candidate_${type}_${slug}.json",
         "candidateJobs": "Supabase report_summary_jobs rows keyed by idempotency_key when dry_run=false; source_identity is retained as provenance",
         "authorityGate": "Default-off promotion through report_summary_jobs authority_state/authority_mode and report_summary_promotion_locks",
@@ -148,8 +151,19 @@
       },
       "nodes": [
         {
+          "key": "drive_source_index",
+          "paperclipLabel": "Durable Drive PDF/Markdown source index",
+          "execution": {
+            "mode": "paperclip_agent",
+            "entrypoint": "scripts/pipeline/drive_source_index.py",
+            "commandContains": "drive_source_index.py",
+            "args": ["--type", "econ|mat|for", "--drive-root-scope", "active", "--dry-run"],
+            "localAllowed": ["dry_run", "development", "incident_reproduction"]
+          }
+        },
+        {
           "key": "analysis_md_source_scan",
-          "paperclipLabel": "Drive analysis Markdown scan",
+          "paperclipLabel": "Drive analysis Markdown scan or source-index selection",
           "execution": {
             "mode": "paperclip_agent",
             "entrypoint": "scripts/pipeline/analysis_md_summary_candidate.py",
