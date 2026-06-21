@@ -46,6 +46,7 @@ from marketing_content_pipeline import (  # noqa: E402
     score_drive_source_for_project,
     validate_card_summary,
 )
+from drive_source_index import select_index_candidates  # noqa: E402
 
 
 PIPELINE_NAME = "analysis-md-summary-candidate"
@@ -74,6 +75,7 @@ class AnalysisMdCandidate:
     revision_id: Optional[str]
     web_view_link: Optional[str]
     project: Optional[Dict[str, Any]]
+    source_folder: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -179,12 +181,14 @@ def validate_llm_payload(
         if missing:
             reasons.append(f"{field}_missing_languages:{','.join(missing)}")
 
-    if not payload.get("source_sentence_ids") and not payload.get("source_sentences"):
+    source_sentence_ids = payload.get("source_sentence_ids") or ()
+    source_sentences_value = payload.get("source_sentences")
+    if not source_sentence_ids and not source_sentences_value:
         reasons.append("source_evidence_missing")
 
     source_text = normalize_markdown(source.text).lower()
-    source_sentences = payload.get("source_sentences") or ()
-    if not isinstance(source_sentences, list):
+    source_sentences = source_sentences_value or []
+    if source_sentences and not isinstance(source_sentences, list):
         reasons.append("source_sentences_not_array")
         source_sentences = ()
     for index, sentence in enumerate(source_sentences):
@@ -231,7 +235,10 @@ def build_candidate_patch(
             "source_sha256": candidate.source_sha256,
             "revision_id": candidate.revision_id,
             "web_view_link": candidate.web_view_link,
-            "source_folder": f"analysis2/{candidate.source.report_type.upper()}",
+            "source_folder": candidate.source_folder or (
+                f"{os.environ.get('BCE_ACTIVE_ANALYSIS_ROOT_FOLDER_NAME', 'analysis2')}/"
+                f"{candidate.source.report_type.upper()}"
+            ),
         },
         "summary_quality": {
             **summary_quality,
@@ -258,7 +265,9 @@ def list_drive_candidates(
     for folder_id in folder_ids:
         items.extend(_list_drive_markdown_sources_with_revision(service, folder_id))
 
-    project = fetch_project(get_supabase_client(), slug) if slug else None
+    project = fetch_project(get_supabase_client(), slug, require_existing=True) if slug else None
+    if slug and not project:
+        return []
     candidates: List[Tuple[int, AnalysisMdCandidate]] = []
     for item in items:
         name = str(item.get("name") or "")
@@ -311,7 +320,64 @@ def list_drive_candidates(
         )
         candidates.append((score, candidate))
 
-    return [candidate for _score, candidate in sorted(candidates, key=lambda pair: pair[0], reverse=True)]
+    return [
+        candidate
+        for _score, candidate in sorted(
+            candidates,
+            key=lambda pair: (pair[0], pair[1].source.modified_time or ""),
+            reverse=True,
+        )
+    ]
+
+
+def list_indexed_drive_candidates(
+    *,
+    sb: Any,
+    report_type: str,
+    slug: Optional[str],
+    limit: int,
+) -> List[AnalysisMdCandidate]:
+    if not sb:
+        return []
+    rows = select_index_candidates(sb, report_type=report_type, slug=slug, limit=limit)
+    project = fetch_project(sb, slug, require_existing=True) if slug else None
+    candidates: List[AnalysisMdCandidate] = []
+    for row in rows:
+        file_row = row.get("file") or {}
+        content_row = row.get("content") or {}
+        mapping = row.get("mapping") or {}
+        text_path = content_row.get("extracted_text_path")
+        if not text_path or not Path(str(text_path)).exists():
+            continue
+        source_slug = str(mapping.get("project_slug") or slug or "")
+        if not source_slug:
+            continue
+        text = Path(str(text_path)).read_text(encoding="utf-8")
+        source_hash = str(content_row.get("text_sha256") or markdown_sha256(text))
+        revision_id = str(mapping.get("revision_id") or file_row.get("revision_id") or content_row.get("revision_id") or "")
+        file_id = str(mapping.get("file_id") or file_row.get("file_id") or "")
+        source = MarkdownSource(
+            slug=source_slug,
+            report_type=report_type,
+            db_report_type=REPORT_TYPE_TO_DB[report_type],
+            version=1,
+            lang="ko",
+            name=str(file_row.get("name") or ""),
+            text=text,
+            drive_file_id=file_id,
+            modified_time=file_row.get("modified_time"),
+        )
+        metadata = file_row.get("metadata") if isinstance(file_row.get("metadata"), dict) else {}
+        candidates.append(AnalysisMdCandidate(
+            source=source,
+            source_identity=source_identity(drive_file_id=file_id, revision_id=revision_id, source_hash=source_hash),
+            source_sha256=source_hash,
+            revision_id=revision_id,
+            web_view_link=metadata.get("webViewLink") or file_row.get("web_view_link"),
+            project=project or fetch_project(sb, source_slug),
+            source_folder=f"{file_row.get('source_root')}/{report_type.upper()}",
+        ))
+    return candidates
 
 
 def _list_drive_markdown_sources_with_revision(service: Any, folder_id: str) -> List[Dict[str, Any]]:
@@ -362,12 +428,21 @@ def load_local_candidate(path: str, *, report_type: str, slug: str) -> AnalysisM
     )
 
 
-def fetch_project(sb: Any, slug: Optional[str]) -> Optional[Dict[str, Any]]:
+def fetch_project(sb: Any, slug: Optional[str], *, require_existing: bool = False) -> Optional[Dict[str, Any]]:
     if not sb or not slug:
         return {"slug": slug} if slug else None
     res = sb.table("tracked_projects").select("id, slug, name, symbol, aliases").eq("slug", slug).limit(1).execute()
     rows = res.data or []
-    return rows[0] if rows else {"slug": slug}
+    if rows:
+        return rows[0]
+    return None if require_existing else {"slug": slug}
+
+
+def is_tracked_project_slug(sb: Any, slug: Optional[str]) -> bool:
+    if not sb or not slug:
+        return False
+    res = sb.table("tracked_projects").select("id").eq("slug", slug).limit(1).execute()
+    return bool(res.data or [])
 
 
 def existing_job(sb: Any, idempotency_key: str) -> Optional[Dict[str, Any]]:
@@ -385,6 +460,8 @@ def existing_job(sb: Any, idempotency_key: str) -> Optional[Dict[str, Any]]:
 def upsert_job(sb: Any, result: CandidateResult, *, force: bool, dry_run: bool) -> Dict[str, Optional[str]]:
     if dry_run:
         return {"status": "dry_run", "job_id": None}
+    if not is_tracked_project_slug(sb, result.candidate.source.slug):
+        return {"status": "project_slug_not_tracked", "job_id": None}
     idempotency_key = summary_job_idempotency_key(
         report_code=result.candidate.source.db_report_type,
         report_slug=result.candidate.source.slug,
@@ -609,6 +686,12 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         help="Deprecated alias for --require-agent-output",
     )
     parser.add_argument("--limit", type=int, default=1)
+    parser.add_argument(
+        "--source-index",
+        default="off",
+        choices=("off", "prefer", "only"),
+        help="Use drive_file_index/analysis_source_map selection instead of folder-wide Drive scan.",
+    )
     return parser.parse_args(argv)
 
 
@@ -626,14 +709,29 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.source_path:
         candidates = [load_local_candidate(args.source_path, report_type=args.type, slug=args.slug)]
     else:
-        service = _get_drive_service()
-        candidates = list_drive_candidates(
-            report_type=args.type,
-            slug=args.slug,
-            source_scope=source_scope,
-            service=service,
-        )
+        candidates = []
+        if args.source_index in {"prefer", "only"}:
+            candidates = list_indexed_drive_candidates(
+                sb=sb,
+                report_type=args.type,
+                slug=args.slug,
+                limit=args.limit,
+            )
+            if args.source_index == "only" and not candidates:
+                print(f"error=no_safe_index_candidate slug={args.slug}", file=sys.stderr)
+                return 2
+        if not candidates:
+            service = _get_drive_service()
+            candidates = list_drive_candidates(
+                report_type=args.type,
+                slug=args.slug,
+                source_scope=source_scope,
+                service=service,
+            )
     candidates = candidates[: max(1, args.limit)]
+    if not candidates:
+        print(f"error=no_candidate_for_tracked_project slug={args.slug}", file=sys.stderr)
+        return 2
 
     run_id = start_telemetry(sb, report_type=args.type, dry_run=args.dry_run, slug=args.slug)
     results: List[CandidateResult] = []
@@ -658,7 +756,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     artifact = write_artifact(results, report_type=args.type, slug=args.slug, write_results=write_results)
     complete_telemetry(sb, run_id, results=results, artifact_path=str(artifact))
     print(f"artifact={artifact}")
-    return 0 if all(item.status == "valid" for item in results) else 2
+    write_failures = {"project_slug_not_tracked"}
+    return 0 if all(item.status == "valid" for item in results) and not any(
+        item.get("status") in write_failures for item in write_results
+    ) else 2
 
 
 if __name__ == "__main__":
