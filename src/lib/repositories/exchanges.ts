@@ -101,6 +101,12 @@ type LatestCmcRankRow = {
   cmc_symbol?: string | null
   cmc_name?: string | null
   cmc_rank: number | string | null
+  market_cap?: number | string | null
+}
+
+export type LatestCmcMarketSnapshot = {
+  cmcRank: number
+  marketCap: number | null
 }
 
 function first<T>(value: T | T[] | null | undefined): T | null {
@@ -292,6 +298,18 @@ function getLatestCmcRank(project: ExchangeProjectRecord, cmcRankByKey: Map<stri
   return undefined
 }
 
+function getLatestCmcMarketSnapshot(
+  project: ExchangeProjectRecord,
+  cmcMarketSnapshotByKey: Map<string, LatestCmcMarketSnapshot>,
+) {
+  for (const key of getProjectCmcRankKeys(project)) {
+    const snapshot = cmcMarketSnapshotByKey.get(key)
+    if (snapshot) return snapshot
+  }
+
+  return undefined
+}
+
 export function applyLatestCmcRanks(
   rows: ExchangeListingRecord[],
   cmcRankByKey: Map<string, number>,
@@ -308,6 +326,38 @@ export function applyLatestCmcRanks(
       project: Array.isArray(row.project)
         ? row.project.map((candidate) => ({ ...candidate, cmc_rank: getLatestCmcRank(candidate, cmcRankByKey) ?? candidate.cmc_rank ?? null }))
         : { ...project, cmc_rank: rank },
+    }
+  })
+}
+
+export function applyLatestCmcMarketSnapshots(
+  rows: ExchangeListingRecord[],
+  cmcMarketSnapshotByKey: Map<string, LatestCmcMarketSnapshot>,
+): ExchangeListingRecord[] {
+  return rows.map((row) => {
+    const project = first(row.project)
+    if (!project) return row
+
+    const enrichProject = (candidate: ExchangeProjectRecord): ExchangeProjectRecord => {
+      const snapshot = getLatestCmcMarketSnapshot(candidate, cmcMarketSnapshotByKey)
+      if (!snapshot) return candidate
+
+      const marketCap = snapshot.marketCap !== null && snapshot.marketCap > 0
+        ? snapshot.marketCap
+        : candidate.market_cap_usd
+
+      return {
+        ...candidate,
+        cmc_rank: snapshot.cmcRank,
+        market_cap_usd: marketCap,
+      }
+    }
+
+    return {
+      ...row,
+      project: Array.isArray(row.project)
+        ? row.project.map(enrichProject)
+        : enrichProject(project),
     }
   })
 }
@@ -625,7 +675,7 @@ export class ExchangesRepository {
     return { rows }
   }
 
-  private async loadLatestCmcRanks(): Promise<Map<string, number>> {
+  private async loadLatestCmcMarketSnapshots(): Promise<Map<string, LatestCmcMarketSnapshot>> {
     const { data: latestSnapshot, error: latestError } = await this.supabase
       .from('market_data_daily')
       .select('recorded_at')
@@ -644,12 +694,12 @@ export class ExchangesRepository {
       return new Map()
     }
 
-    const ranks = new Map<string, number>()
+    const snapshots = new Map<string, LatestCmcMarketSnapshot>()
 
     for (let offset = 0; ; offset += PAGE_SIZE) {
       const { data, error } = await this.supabase
         .from('market_data_daily')
-        .select('slug, cmc_symbol, cmc_name, cmc_rank')
+        .select('slug, cmc_symbol, cmc_name, cmc_rank, market_cap')
         .eq('recorded_at', latestSnapshot.recorded_at)
         .eq('source', 'coinmarketcap')
         .gte('cmc_rank', 1)
@@ -665,6 +715,11 @@ export class ExchangesRepository {
       for (const row of batch) {
         const rank = toNullableNumber(row.cmc_rank)
         if (rank === null) continue
+        const marketCap = toNullableNumber(row.market_cap)
+        const snapshot: LatestCmcMarketSnapshot = {
+          cmcRank: rank,
+          marketCap,
+        }
 
         const keys = [
           normalizeNullableKey(row.slug),
@@ -673,14 +728,14 @@ export class ExchangesRepository {
         ]
 
         for (const key of keys) {
-          if (key && !ranks.has(key)) ranks.set(key, rank)
+          if (key && !snapshots.has(key)) snapshots.set(key, snapshot)
         }
       }
 
       if (batch.length < PAGE_SIZE) break
     }
 
-    return ranks
+    return snapshots
   }
 
   private async loadReportAvailabilityAliasCandidates(): Promise<ProjectReportAvailabilityCandidate[]> {
@@ -707,22 +762,22 @@ export class ExchangesRepository {
   }
 
   async getExchangeAggregates() {
-    const [exchanges, { rows }, cmcRankBySlug] = await Promise.all([
+    const [exchanges, { rows }, cmcMarketSnapshotByKey] = await Promise.all([
       this.loadActiveExchanges(),
       this.loadActiveListingRows(),
-      this.loadLatestCmcRanks(),
+      this.loadLatestCmcMarketSnapshots(),
     ])
-    return buildExchangeAggregates({ exchanges, listings: applyLatestCmcRanks(rows, cmcRankBySlug) })
+    return buildExchangeAggregates({ exchanges, listings: applyLatestCmcMarketSnapshots(rows, cmcMarketSnapshotByKey) })
   }
 
   async getExchangeProjects(exchangeKey: string, locale?: string) {
     const normalizedExchangeKey = normalizeKey(exchangeKey)
-    const [exchanges, { rows }, cmcRankBySlug] = await Promise.all([
+    const [exchanges, { rows }, cmcMarketSnapshotByKey] = await Promise.all([
       this.loadActiveExchanges(),
       this.loadActiveListingRows(),
-      this.loadLatestCmcRanks(),
+      this.loadLatestCmcMarketSnapshots(),
     ])
-    const rankedRows = applyLatestCmcRanks(rows, cmcRankBySlug)
+    const rankedRows = applyLatestCmcMarketSnapshots(rows, cmcMarketSnapshotByKey)
     const exchange = exchanges.find((candidate) => exchangeMatches(candidate, normalizedExchangeKey)) ?? null
     let result = buildExchangeProjectRows(rankedRows, normalizedExchangeKey)
 

@@ -1,5 +1,6 @@
 import {
   applyLatestCmcRanks,
+  applyLatestCmcMarketSnapshots,
   applyProjectReportAvailabilityAliases,
   buildExchangeAggregates,
   buildExchangeProjectRows,
@@ -416,6 +417,36 @@ describe('exchange repository aggregation helpers', () => {
       rank: 63,
       cmcRank: 63,
       slug: 'matic-network',
+    }))
+  })
+
+  it('applies latest CMC market caps when tracked project market caps are empty', () => {
+    const akashListing = project({
+      id: 'akash-listing',
+      slug: 'akash-network',
+      name: 'Akash Network',
+      symbol: 'AKT',
+      market_cap_usd: 0,
+      cmc_rank: null,
+    })
+
+    const enrichedRows = applyLatestCmcMarketSnapshots([
+      {
+        listing_status: 'active',
+        exchange: binance,
+        project: akashListing,
+      },
+    ], new Map([
+      ['akash-network', { cmcRank: 128, marketCap: 321_000_000 }],
+    ]))
+
+    const detail = buildExchangeProjectRows(enrichedRows, 'Binance')
+
+    expect(detail.projects[0]).toEqual(expect.objectContaining({
+      rank: 128,
+      cmcRank: 128,
+      slug: 'akash-network',
+      marketCap: 321_000_000,
     }))
   })
 
