@@ -21,6 +21,7 @@ const ITEMS_PER_PAGE = 100
 const MAX_RANK = 500
 const REPORT_AVAILABILITY_QUERY_CHUNK_SIZE = 80
 const REPORT_AVAILABILITY_SLUG_QUERY_CHUNK_SIZE = 250
+const SCOREBOARD_REPORT_QUERY_PAGE_SIZE = 1000
 const SCOREBOARD_DATA_CACHE_SECONDS = 300
 const SCORE_HEADER_BACKGROUND_IMAGE = '/images/score-header-bg.png'
 export const MIN_CMC_CANONICAL_TOP_500_SNAPSHOT_ROWS = 500
@@ -46,7 +47,10 @@ const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'world-liberty-financial-wlfi', slug: 'world-liberty-financial' },
   { alias: 'world-liberty-financial-usd', slug: 'usd1' },
   { alias: 'bnb', slug: 'binancecoin' },
+  { alias: 'unus-sed-leo', slug: 'leo-token' },
+  { alias: 'gram', slug: 'the-open-network' },
   { alias: 'toncoin', slug: 'the-open-network' },
+  { alias: 'avalanche', slug: 'avalanche-2' },
   { alias: 'hedera', slug: 'hedera-hashgraph' },
   { alias: 'pi', slug: 'pi-network' },
   { alias: 'worldcoin-org', slug: 'worldcoin' },
@@ -63,6 +67,9 @@ const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'nxpc', slug: 'maplestory-universe' },
   { alias: 'msu', slug: 'maplestory-universe' },
   { alias: 'soon', slug: 'soon-network' },
+  { alias: 'falcon-finance', slug: 'falcon-usd' },
+  { alias: 'falcon-usd', slug: 'falcon-usd' },
+  { alias: 'falcon usd', slug: 'falcon-usd' },
 ] as const
 const SCOREBOARD_CANONICAL_ALIAS_TARGET_SLUGS = Array.from(
   new Set(SCOREBOARD_CANONICAL_ALIASES.map(({ slug }) => slug)),
@@ -109,6 +116,38 @@ type ScoreboardVisibleReportRow = {
 
 type ScoreboardVisibleReportRowWithProjectSlug = ScoreboardVisibleReportRow & {
   tracked_projects?: { slug?: string | null } | null
+}
+
+type ScoreboardReportQueryResult = {
+  data?: unknown[] | null
+  error?: { message?: string } | null
+}
+
+async function fetchScoreboardReportPages<T>(
+  makeQuery: () => { range: (from: number, to: number) => PromiseLike<ScoreboardReportQueryResult> },
+  errorContext: Record<string, unknown>,
+): Promise<{ rows: T[]; loaded: boolean }> {
+  const rows: T[] = []
+
+  for (let start = 0; ; start += SCOREBOARD_REPORT_QUERY_PAGE_SIZE) {
+    const { data, error } = await makeQuery().range(start, start + SCOREBOARD_REPORT_QUERY_PAGE_SIZE - 1)
+
+    if (error) {
+      console.error('Failed to fetch scoreboard report availability', {
+        ...errorContext,
+        message: error.message,
+        rangeStart: start,
+        rangeSize: SCOREBOARD_REPORT_QUERY_PAGE_SIZE,
+      })
+      return { rows: [], loaded: false }
+    }
+
+    const pageRows = (data || []) as T[]
+    rows.push(...pageRows)
+    if (pageRows.length < SCOREBOARD_REPORT_QUERY_PAGE_SIZE) {
+      return { rows, loaded: true }
+    }
+  }
 }
 
 function normalizeKey(value: unknown): string | null {
@@ -597,38 +636,38 @@ export async function fetchVisibleReportsForScoreboard(
 
   for (let index = 0; index < projectIds.length; index += REPORT_AVAILABILITY_QUERY_CHUNK_SIZE) {
     const chunk = projectIds.slice(index, index + REPORT_AVAILABILITY_QUERY_CHUNK_SIZE)
-    const { data, error } = await supabase
-      .from('project_reports')
-      .select([
-        'project_id',
-        'id',
-        'report_type',
-        'version',
-        'is_latest',
-        'status',
-        'language',
-        'published_at',
-        'updated_at',
-        'created_at',
-        'gdrive_urls_by_lang',
-        'file_urls_by_lang',
-        'slide_html_urls_by_lang',
-        'card_data',
-      ].join(', '))
-      .in('project_id', chunk)
-      .in('report_type', ['econ', 'maturity', 'forensic'])
-      .in('status', SCOREBOARD_VISIBLE_REPORT_STATUSES)
-
-    if (error) {
-      console.error('Failed to fetch scoreboard report availability', {
-        message: error.message,
+    const result = await fetchScoreboardReportPages<ScoreboardVisibleReportRow>(
+      () => supabase
+        .from('project_reports')
+        .select([
+          'project_id',
+          'id',
+          'report_type',
+          'version',
+          'is_latest',
+          'status',
+          'language',
+          'published_at',
+          'updated_at',
+          'created_at',
+          'gdrive_urls_by_lang',
+          'file_urls_by_lang',
+          'slide_html_urls_by_lang',
+          'card_data',
+        ].join(', '))
+        .in('project_id', chunk)
+        .in('report_type', ['econ', 'maturity', 'forensic'])
+        .in('status', SCOREBOARD_VISIBLE_REPORT_STATUSES),
+      {
         chunkStart: index,
         chunkSize: chunk.length,
-      })
+      },
+    )
+    if (!result.loaded) {
       return { reports: [], loaded: false }
     }
 
-    reports.push(...((data || []) as unknown as ScoreboardVisibleReportRow[]))
+    reports.push(...result.rows)
   }
 
   return { reports, loaded: true }
@@ -659,73 +698,75 @@ export async function fetchVisibleReportsForScoreboardByProjectSlugs(
 
   for (let index = 0; index < normalizedSlugs.length; index += REPORT_AVAILABILITY_SLUG_QUERY_CHUNK_SIZE) {
     const chunk = normalizedSlugs.slice(index, index + REPORT_AVAILABILITY_SLUG_QUERY_CHUNK_SIZE)
-    const { data, error } = await supabase
-      .from('project_reports')
-      .select([
-        'project_id',
-        'id',
-        'report_type',
-        'version',
-        'is_latest',
-        'status',
-        'language',
-        'published_at',
-        'updated_at',
-        'created_at',
-        'gdrive_urls_by_lang',
-        'file_urls_by_lang',
-        'slide_html_urls_by_lang',
-        'card_data',
-        'tracked_projects!inner(slug)',
-      ].join(', '))
-      .in('tracked_projects.slug', chunk)
-      .in('report_type', ['econ', 'maturity', 'forensic'])
-      .in('status', SCOREBOARD_VISIBLE_REPORT_STATUSES)
-
-    if (error) {
-      console.error('Failed to fetch scoreboard canonical alias report availability', {
-        message: error.message,
+    const slugResult = await fetchScoreboardReportPages<ScoreboardVisibleReportRowWithProjectSlug>(
+      () => supabase
+        .from('project_reports')
+        .select([
+          'project_id',
+          'id',
+          'report_type',
+          'version',
+          'is_latest',
+          'status',
+          'language',
+          'published_at',
+          'updated_at',
+          'created_at',
+          'gdrive_urls_by_lang',
+          'file_urls_by_lang',
+          'slide_html_urls_by_lang',
+          'card_data',
+          'tracked_projects!inner(slug)',
+        ].join(', '))
+        .in('tracked_projects.slug', chunk)
+        .in('report_type', ['econ', 'maturity', 'forensic'])
+        .in('status', SCOREBOARD_VISIBLE_REPORT_STATUSES),
+      {
+        query: 'tracked_projects.slug',
         chunkStart: index,
         chunkSize: chunk.length,
-      })
+      },
+    )
+    if (!slugResult.loaded) {
       return { reports: [], loaded: false }
     }
 
-    pushReports((data || []) as unknown as ScoreboardVisibleReportRowWithProjectSlug[])
+    pushReports(slugResult.rows)
 
-    const { data: cardSlugData, error: cardSlugError } = await supabase
-      .from('project_reports')
-      .select([
-        'project_id',
-        'id',
-        'report_type',
-        'version',
-        'is_latest',
-        'status',
-        'language',
-        'published_at',
-        'updated_at',
-        'created_at',
-        'gdrive_urls_by_lang',
-        'file_urls_by_lang',
-        'slide_html_urls_by_lang',
-        'card_data',
-        'tracked_projects(slug)',
-      ].join(', '))
-      .in('card_data->>slug', chunk)
-      .in('report_type', ['econ', 'maturity', 'forensic'])
-      .in('status', SCOREBOARD_VISIBLE_REPORT_STATUSES)
-
-    if (cardSlugError) {
-      console.error('Failed to fetch scoreboard card slug report availability', {
-        message: cardSlugError.message,
+    const cardSlugResult = await fetchScoreboardReportPages<ScoreboardVisibleReportRowWithProjectSlug>(
+      () => supabase
+        .from('project_reports')
+        .select([
+          'project_id',
+          'id',
+          'report_type',
+          'version',
+          'is_latest',
+          'status',
+          'language',
+          'published_at',
+          'updated_at',
+          'created_at',
+          'gdrive_urls_by_lang',
+          'file_urls_by_lang',
+          'slide_html_urls_by_lang',
+          'card_data',
+          'tracked_projects(slug)',
+        ].join(', '))
+        .in('card_data->>slug', chunk)
+        .in('report_type', ['econ', 'maturity', 'forensic'])
+        .in('status', SCOREBOARD_VISIBLE_REPORT_STATUSES),
+      {
+        query: 'card_data->>slug',
         chunkStart: index,
         chunkSize: chunk.length,
-      })
+      },
+    )
+    if (!cardSlugResult.loaded) {
       return { reports: [], loaded: false }
     }
 
-    pushReports((cardSlugData || []) as unknown as ScoreboardVisibleReportRowWithProjectSlug[])
+    pushReports(cardSlugResult.rows)
   }
 
   return { reports, loaded: true }

@@ -23,6 +23,8 @@ Usage:
     python watch_slides.py                      # all types (econ, mat, for)
     python watch_slides.py --type econ          # one report type only
     python watch_slides.py --slug bitcoin       # targeted filename/folder hint filter
+    python watch_slides.py --slug bitcoin --lang ko  # process only matching language PDFs
+    python watch_slides.py --target-json /tmp/targets.json  # process only listed slug/type/lang targets
     python watch_slides.py --dry-run            # scan-only, no uploads
     python watch_slides.py --force              # ignore manifest, reprocess all
     python watch_slides.py --all-versions       # process every matching Drive PDF as version history
@@ -157,7 +159,7 @@ REPORT_GAP_PROJECT_SEEDS: Dict[str, Dict[str, Any]] = {
         'category': 'Stablecoin',
         'coingecko_id': None,
     },
-    'falcon-finance': {
+    'falcon-usd': {
         'name': 'Falcon USD',
         'symbol': 'USDF',
         'category': 'Stablecoin',
@@ -873,7 +875,20 @@ def _ensure_runtime_project_seed_for_filename(
 
     seed_project = _match_project_by_explicit_prefix(prefix, _known_runtime_project_seed_candidates())
     if not seed_project:
-        return projects
+        seed = _runtime_market_snapshot_seed_for_filename_prefix(sb, prefix)
+        if not seed:
+            return projects
+        seed_slug = (seed.get('slug') or '').lower()
+        if not seed_slug or _project_by_slug(projects, seed_slug):
+            return projects
+        if dry_run:
+            return projects + [{**seed, 'id': f"dry-run-{seed_slug}"}]
+        result = sb.table('tracked_projects').upsert(
+            seed,
+            on_conflict='slug',
+        ).execute()
+        rows = result.data or []
+        return projects + rows[:1] if rows else projects
 
     seed_slug = (seed_project.get('slug') or '').lower()
     if not seed_slug or _project_by_slug(projects, seed_slug):
@@ -913,6 +928,20 @@ def _runtime_market_snapshot_seed_for_slug(sb, slug: Optional[str]) -> Optional[
         'coingecko_id': None,
         'aliases': aliases,
     }
+
+
+def _slug_candidate_from_explicit_prefix(prefix: Optional[str]) -> Optional[str]:
+    normalized = _normalize_signal_text(prefix or '').strip()
+    if not normalized:
+        return None
+    return re.sub(r'-+', '-', re.sub(r'\s+', '-', normalized)).strip('-') or None
+
+
+def _runtime_market_snapshot_seed_for_filename_prefix(sb, prefix: Optional[str]) -> Optional[Dict[str, Any]]:
+    slug_candidate = _slug_candidate_from_explicit_prefix(prefix)
+    if not slug_candidate:
+        return None
+    return _runtime_market_snapshot_seed_for_slug(sb, slug_candidate)
 
 
 def _ensure_runtime_project_seed(
@@ -2080,12 +2109,13 @@ RECONCILE_FILENAME_PREFIX_ALIASES: Dict[str, str] = {
     'starknet': 'starknet',
     'strk': 'starknet',
     'synthetix': 'synthetix',
+    'gram': 'the-open-network',
     'theopennetwork': 'the-open-network',
     'ton': 'the-open-network',
     'toncoin': 'the-open-network',
     'falconfinance': 'falcon-finance',
-    'falconusd': 'falcon-finance',
-    'usdf': 'falcon-finance',
+    'falconusd': 'falcon-usd',
+    'usdf': 'falcon-usd',
     'usdon': 'us-dollar-tokenized-currency-ondo',
     'usdontokenizedcurrency': 'us-dollar-tokenized-currency-ondo',
     'usdollartokenizedcurrency': 'us-dollar-tokenized-currency-ondo',
@@ -2877,6 +2907,13 @@ def _slug_hint_tokens(filter_slug: Optional[str], projects: List[Dict[str, Any]]
     return {token.lower() for token in tokens if token}
 
 
+def _slug_hint_tokens_for_slugs(slugs: Iterable[str], projects: List[Dict[str, Any]]) -> Set[str]:
+    tokens: Set[str] = set()
+    for slug in slugs:
+        tokens.update(_slug_hint_tokens(slug, projects))
+    return tokens
+
+
 def _name_matches_slug_hint(
     name: str,
     hint_tokens: Set[str],
@@ -2955,6 +2992,7 @@ def _iter_active_slide_targets(
     types: Iterable[str],
     *,
     filter_slug: Optional[str] = None,
+    filter_slugs: Optional[Set[str]] = None,
     projects: Optional[List[Dict[str, Any]]] = None,
     modified_since: Optional[datetime] = None,
     drive_root_scope: str = 'active',
@@ -2962,6 +3000,8 @@ def _iter_active_slide_targets(
     """Yield (rtype, pdf_info) for configured Slide ingest roots."""
     requested_types = set(types)
     hint_tokens = _slug_hint_tokens(filter_slug, projects or [])
+    if not filter_slug and filter_slugs:
+        hint_tokens.update(_slug_hint_tokens_for_slugs(filter_slugs, projects or []))
     seen_file_ids: Set[str] = set()
     for root_scope, folder_ids in _slide_type_folder_sets_for_scope(drive_root_scope, service=service):
         root_count = len([folder_id for folder_id in folder_ids.values() if folder_id])
@@ -3149,6 +3189,7 @@ def _iter_targets(
     types: Iterable[str],
     *,
     filter_slug: Optional[str] = None,
+    filter_slugs: Optional[Set[str]] = None,
     projects: Optional[List[Dict[str, Any]]] = None,
     modified_since: Optional[datetime] = None,
     drive_root_scope: str = 'active',
@@ -3158,6 +3199,7 @@ def _iter_targets(
         service,
         types,
         filter_slug=filter_slug,
+        filter_slugs=filter_slugs,
         projects=projects,
         modified_since=modified_since,
         drive_root_scope=drive_root_scope,
@@ -3193,6 +3235,51 @@ def _parse_language_overrides(values: Iterable[str]) -> Dict[str, str]:
     return overrides
 
 
+def _normalize_cli_report_type(value: str) -> str:
+    normalized = (value or '').strip().lower()
+    return {
+        'maturity': 'mat',
+        'forensic': 'for',
+    }.get(normalized, normalized)
+
+
+def _load_target_filters(path: Optional[str]) -> Tuple[Dict[Tuple[str, str], Set[str]], Set[str], Set[str]]:
+    """Load [{slug,type,langs}] target filters for bounded backfill runs."""
+    if not path:
+        return {}, set(), set()
+    rows = json.loads(Path(path).read_text())
+    if not isinstance(rows, list):
+        raise ValueError('--target-json must contain a JSON array')
+
+    filters: Dict[Tuple[str, str], Set[str]] = {}
+    slugs: Set[str] = set()
+    types: Set[str] = set()
+    supported_langs = set(SUPPORTED_LANGS)
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            raise ValueError(f'--target-json row {index} is not an object')
+        slug = str(row.get('slug') or '').strip().lower()
+        rtype = _normalize_cli_report_type(str(row.get('type') or ''))
+        langs = row.get('langs') or []
+        if isinstance(langs, str):
+            langs = [langs]
+        if not slug:
+            raise ValueError(f'--target-json row {index} missing slug')
+        if rtype not in {'econ', 'mat', 'for'}:
+            raise ValueError(f'--target-json row {index} has invalid type {rtype!r}')
+        lang_set = {str(lang).strip().lower() for lang in langs if str(lang).strip()}
+        invalid_langs = sorted(lang_set - supported_langs)
+        if invalid_langs:
+            raise ValueError(f'--target-json row {index} has invalid languages {invalid_langs}')
+        if not lang_set:
+            raise ValueError(f'--target-json row {index} missing langs')
+        filters.setdefault((rtype, slug), set()).update(lang_set)
+        slugs.add(slug)
+        types.add(rtype)
+
+    return filters, slugs, types
+
+
 def _has_verified_landscape_profile(manifest_entry: Dict[str, Any]) -> bool:
     page_profile = manifest_entry.get('page_profile')
     return isinstance(page_profile, dict) and page_profile.get('is_landscape_slide') is True
@@ -3202,6 +3289,9 @@ def process(
     types: List[str],
     *,
     filter_slug: Optional[str],
+    filter_langs: Optional[Set[str]] = None,
+    target_filters: Optional[Dict[Tuple[str, str], Set[str]]] = None,
+    target_slugs: Optional[Set[str]] = None,
     filter_file_ids: Optional[set[str]] = None,
     dry_run: bool,
     force: bool,
@@ -3215,6 +3305,9 @@ def process(
 ) -> Tuple[List[Dict], List[Dict]]:
     if filter_file_ids:
         raise ValueError('--file-id targets are disabled; place PDFs under Slide/{TYPE} and use --slug/--type filters')
+    filter_langs = set(filter_langs or set())
+    target_filters = target_filters or {}
+    target_slugs = set(target_slugs or set())
 
     service = _get_drive_service()
     manifest = _load_manifest()
@@ -3261,6 +3354,7 @@ def process(
         service,
         types,
         filter_slug=filter_slug,
+        filter_slugs=target_slugs,
         projects=projects,
         modified_since=modified_since,
         drive_root_scope=drive_root_scope,
@@ -3274,6 +3368,7 @@ def process(
         )
 
     targets_seen = 0
+    budget_exhausted = False
     for rtype, pdf in target_iterable:
         if deadline_at is not None and datetime.now(timezone.utc) >= deadline_at:
             msg = f"runtime budget exhausted at {deadline_at.isoformat()}"
@@ -3286,6 +3381,7 @@ def process(
                 'error': msg,
                 'targets_seen': targets_seen,
             })
+            budget_exhausted = True
             break
         if max_targets is not None and targets_seen >= max_targets:
             msg = f"target budget exhausted after {targets_seen} Drive candidates"
@@ -3298,6 +3394,7 @@ def process(
                 'error': msg,
                 'targets_seen': targets_seen,
             })
+            budget_exhausted = True
             break
         targets_seen += 1
         file_id = pdf['id']
@@ -3555,7 +3652,18 @@ def process(
                 slug = unchanged_slug
                 report_id = prev.get('report_id')
                 version = prev.get('version')
+                allowed_target_langs = (
+                    target_filters.get((rtype, slug))
+                    if target_filters and slug
+                    else None
+                )
                 should_repair = not filter_slug or slug == filter_slug
+                if target_filters and not allowed_target_langs:
+                    should_repair = False
+                if allowed_target_langs and lang not in allowed_target_langs:
+                    should_repair = False
+                if filter_langs and lang not in filter_langs:
+                    should_repair = False
                 if should_repair and public_url and lang:
                     try:
                         project = _project_by_slug(projects, slug or '')
@@ -3611,6 +3719,47 @@ def process(
                 }
                 _save_manifest(manifest)
             if unchanged_slug and (not filter_slug or unchanged_slug == filter_slug):
+                allowed_target_langs = (
+                    target_filters.get((rtype, unchanged_slug))
+                    if target_filters
+                    else None
+                )
+                if target_filters and not allowed_target_langs:
+                    scanned.append({
+                        **record,
+                        'slug': unchanged_slug,
+                        'lang': unchanged_lang,
+                        'status': 'target_filtered',
+                    })
+                    print(
+                        f"  [SKIP] {rtype}/{pdf['name']}: "
+                        f"target '{rtype}/{unchanged_slug}' not in target filter"
+                    )
+                    continue
+                if allowed_target_langs and unchanged_lang not in allowed_target_langs:
+                    scanned.append({
+                        **record,
+                        'slug': unchanged_slug,
+                        'lang': unchanged_lang,
+                        'status': 'language_filtered',
+                    })
+                    print(
+                        f"  [SKIP] {rtype}/{pdf['name']}: "
+                        f"lang='{unchanged_lang}' not in target filter {sorted(allowed_target_langs)}"
+                    )
+                    continue
+                if filter_langs and unchanged_lang not in filter_langs:
+                    scanned.append({
+                        **record,
+                        'slug': unchanged_slug,
+                        'lang': unchanged_lang,
+                        'status': 'language_filtered',
+                    })
+                    print(
+                        f"  [SKIP] {rtype}/{pdf['name']}: "
+                        f"lang='{unchanged_lang}' not in filter {sorted(filter_langs)}"
+                    )
+                    continue
                 prune_candidate_pairs.add((rtype, unchanged_slug))
                 if unchanged_lang and prev.get('status') == 'published':
                     current_langs_by_pair.setdefault((rtype, unchanged_slug), set()).add(unchanged_lang)
@@ -3749,6 +3898,35 @@ def process(
 
             if filter_slug and slug != filter_slug:
                 print(f"  [SKIP] {rtype}/{pdf['name']}: slug='{slug}' != filter '{filter_slug}'")
+                continue
+
+            allowed_target_langs = (
+                target_filters.get((rtype, slug))
+                if target_filters and slug
+                else None
+            )
+            if target_filters and not allowed_target_langs:
+                print(
+                    f"  [SKIP] {rtype}/{pdf['name']}: "
+                    f"target '{rtype}/{slug}' not in target filter"
+                )
+                processed.append({**record, 'status': 'target_filtered'})
+                continue
+
+            if allowed_target_langs and lang not in allowed_target_langs:
+                print(
+                    f"  [SKIP] {rtype}/{pdf['name']}: "
+                    f"lang='{lang}' not in target filter {sorted(allowed_target_langs)}"
+                )
+                processed.append({**record, 'status': 'language_filtered'})
+                continue
+
+            if filter_langs and lang not in filter_langs:
+                print(
+                    f"  [SKIP] {rtype}/{pdf['name']}: "
+                    f"lang='{lang}' not in filter {sorted(filter_langs)}"
+                )
+                processed.append({**record, 'status': 'language_filtered'})
                 continue
 
             if slug:
@@ -4038,6 +4216,13 @@ def process(
                 except OSError:
                     pass
 
+    if budget_exhausted:
+        if prune_candidate_pairs or current_langs_by_pair:
+            print("  [SKIP] stale language prune skipped during budget-exhausted run")
+        if reconcile_db:
+            print("  [SKIP] DB availability reconcile skipped during budget-exhausted run")
+        return scanned, processed
+
     if filter_slug and not filter_file_ids:
         for rtype in types:
             if rtype in active_slide_seen_types or rtype in active_slide_missing_diag_types:
@@ -4060,6 +4245,16 @@ def process(
     if filter_file_ids:
         if prune_candidate_pairs or current_langs_by_pair:
             print("  [SKIP] stale language prune skipped during file-id filtered run")
+        return scanned, processed
+
+    if filter_langs:
+        if prune_candidate_pairs or current_langs_by_pair:
+            print("  [SKIP] stale language prune skipped during language-filtered run")
+        return scanned, processed
+
+    if target_filters:
+        if prune_candidate_pairs or current_langs_by_pair:
+            print("  [SKIP] stale language prune skipped during target-filtered run")
         return scanned, processed
 
     prune_pairs = sorted(prune_candidate_pairs | set(current_langs_by_pair.keys()))
@@ -4434,6 +4629,18 @@ def main() -> int:
                         help='Report type to process (default: all)')
     parser.add_argument('--slug', default=None,
                         help='Process only files resolving to this slug (post-resolution filter)')
+    parser.add_argument(
+        '--lang',
+        action='append',
+        choices=sorted(SUPPORTED_LANGS),
+        default=[],
+        help='Process only PDFs resolving to this language; repeatable',
+    )
+    parser.add_argument(
+        '--target-json',
+        default=None,
+        help='JSON array of {slug,type,langs}; process only matching targets',
+    )
     parser.add_argument('--dry-run', action='store_true', help='Scan only — no download/upload/DB')
     parser.add_argument('--force', action='store_true', help='Reprocess even if manifest is up-to-date')
     parser.add_argument(
@@ -4490,6 +4697,14 @@ def main() -> int:
     args = parser.parse_args()
 
     types = ['econ', 'mat', 'for'] if args.type == 'all' else [args.type]
+    filter_langs = set(args.lang or [])
+    try:
+        target_filters, target_slugs, target_types = _load_target_filters(args.target_json)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 2
+    if args.type == 'all' and target_types:
+        types = sorted(target_types)
     try:
         drive_root_scope = _normalize_drive_root_scope(args.drive_root_scope)
     except ValueError as e:
@@ -4525,6 +4740,8 @@ def main() -> int:
     print(f'Scan Time: {scan_time}')
     print(f'Types: {types}  Slug filter: {args.slug or "(none)"}  '
           f'Dry-run: {args.dry_run}  Force: {args.force}  '
+          f'Language filter: {sorted(filter_langs) if filter_langs else "(none)"}  '
+          f'Target filter: {len(target_filters) if target_filters else "(none)"}  '
           f'Language overrides: {len(language_overrides)}  '
           f'Modified since: {modified_since.isoformat() if modified_since else "(none)"}  '
           f'Drive root scope: {drive_root_scope}  '
@@ -4565,6 +4782,9 @@ def main() -> int:
         scanned, processed = process(
             types,
             filter_slug=args.slug,
+            filter_langs=filter_langs,
+            target_filters=target_filters,
+            target_slugs=target_slugs,
             filter_file_ids=None,
             dry_run=args.dry_run,
             force=args.force,

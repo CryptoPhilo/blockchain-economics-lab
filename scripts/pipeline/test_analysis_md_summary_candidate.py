@@ -55,6 +55,10 @@ class FakeTable:
     def execute(self):
         if self.name == "pipeline_runs" and self.action == "insert":
             return FakeExecuteResult([{"id": "run-123"}])
+        if self.name == "tracked_projects" and self.action == "select":
+            slug = next((value for column, value in self.filters if column == "slug"), None)
+            row = self.supabase.tracked_projects.get(slug)
+            return FakeExecuteResult([row] if row else [])
         if self.name == "report_summary_jobs" and self.action == "select":
             key = next((value for column, value in self.filters if column == "idempotency_key"), None)
             row = self.supabase.existing_jobs.get(key)
@@ -63,9 +67,14 @@ class FakeTable:
 
 
 class FakeSupabase:
-    def __init__(self, existing_jobs=None):
+    def __init__(self, existing_jobs=None, tracked_projects=None):
         self.operations = []
         self.existing_jobs = existing_jobs or {}
+        self.tracked_projects = (
+            {"solana": {"id": "project-solana", "slug": "solana"}}
+            if tracked_projects is None
+            else tracked_projects
+        )
 
     def table(self, name):
         return FakeTable(self, name)
@@ -209,6 +218,18 @@ def test_upsert_job_allows_same_source_identity_with_new_prompt_version():
     assert inserts[0][2]["idempotency_key"] != old_key
 
 
+def test_upsert_job_rejects_untracked_project_slug_without_writing():
+    module = load_candidate_pipeline()
+    result = module.process_candidate(local_candidate(module), agent_payload=valid_payload())
+    sb = FakeSupabase(tracked_projects={})
+
+    assert module.upsert_job(sb, result, force=True, dry_run=False) == {
+        "status": "project_slug_not_tracked",
+        "job_id": None,
+    }
+    assert not any(op[0] == "report_summary_jobs" and op[1] in {"insert", "update"} for op in sb.operations)
+
+
 def test_telemetry_uses_existing_supabase_column_contract(tmp_path):
     module = load_candidate_pipeline()
     result = module.process_candidate(local_candidate(module), agent_payload=valid_payload())
@@ -267,7 +288,7 @@ def test_slug_filtered_drive_scan_excludes_unrelated_natural_language_names(monk
     monkeypatch.setattr(
         module,
         "fetch_project",
-        lambda _sb, _slug: {"slug": "re-protocol", "name": "Re", "symbol": "RE"},
+        lambda _sb, _slug, **_kwargs: {"slug": "re-protocol", "name": "Re", "symbol": "RE"},
     )
     monkeypatch.setattr(module, "_source_folder_ids_for_report_type", lambda *args, **kwargs: ["folder"])
     monkeypatch.setattr(
@@ -299,3 +320,91 @@ def test_slug_filtered_drive_scan_excludes_unrelated_natural_language_names(monk
 
     assert [candidate.source.drive_file_id for candidate in candidates] == ["re-file"]
     assert candidates[0].source.slug == "re-protocol"
+
+
+def test_drive_scan_prioritizes_latest_changed_candidate_for_slug(monkeypatch):
+    module = load_candidate_pipeline()
+    monkeypatch.setattr(module, "get_supabase_client", lambda: object())
+    monkeypatch.setattr(
+        module,
+        "fetch_project",
+        lambda _sb, _slug, **_kwargs: {"slug": "banana-for-scale", "name": "Banana For Scale", "symbol": "BANANAS31"},
+    )
+    monkeypatch.setattr(module, "_source_folder_ids_for_report_type", lambda *args, **kwargs: ["folder"])
+    monkeypatch.setattr(
+        module,
+        "_list_drive_markdown_sources_with_revision",
+        lambda _service, _folder: [
+            {
+                "id": "older-high-score",
+                "name": "Banana For Scale 크립토이코노미 설계 분석 보고서.md",
+                "headRevisionId": "older-rev",
+                "modifiedTime": "2026-06-14T09:00:00.000Z",
+            },
+            {
+                "id": "newer-lower-score",
+                "name": "banana-for-scale(BANANAS31)_v1_MAT.md",
+                "headRevisionId": "newer-rev",
+                "modifiedTime": "2026-06-14T10:32:18.113Z",
+            },
+        ],
+    )
+    monkeypatch.setattr(module, "_download_drive_text", lambda _service, file_id: f"# source for {file_id}\n")
+
+    candidates = module.list_drive_candidates(
+        report_type="mat",
+        slug="banana-for-scale",
+        source_scope="all",
+        service=object(),
+    )
+
+    assert [candidate.source.drive_file_id for candidate in candidates] == ["newer-lower-score", "older-high-score"]
+
+
+def test_indexed_candidate_selection_builds_candidate_from_safe_cached_text(monkeypatch, tmp_path):
+    module = load_candidate_pipeline()
+    text_path = tmp_path / "solana.txt"
+    text_path.write_text(
+        "# Solana ECON\n\n"
+        "Solana는 수수료 수요와 검증자 보상 구조가 결합되어 네트워크 활동 증가 시 "
+        "토큰 가치 포착 가능성이 커지지만, 유동성 사이클 둔화는 지속성 리스크로 남는다.\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        module,
+        "select_index_candidates",
+        lambda *args, **kwargs: [
+            {
+                "file": {
+                    "file_id": "drive-1",
+                    "name": "Solana ECON.md",
+                    "modified_time": "2026-06-21T00:00:00Z",
+                    "source_root": "analysis2",
+                    "metadata": {"webViewLink": "https://drive.example/drive-1"},
+                },
+                "content": {
+                    "file_id": "drive-1",
+                    "revision_id": "rev-1",
+                    "text_sha256": "hash-1",
+                    "extracted_text_path": str(text_path),
+                },
+                "mapping": {
+                    "file_id": "drive-1",
+                    "revision_id": "rev-1",
+                    "project_slug": "solana",
+                },
+            }
+        ],
+    )
+
+    candidates = module.list_indexed_drive_candidates(
+        sb=FakeSupabase(),
+        report_type="econ",
+        slug="solana",
+        limit=1,
+    )
+
+    assert len(candidates) == 1
+    assert candidates[0].source_identity == "drive:drive-1:rev-1"
+    assert candidates[0].source_folder == "analysis2/ECON"
+    assert candidates[0].source.text.startswith("# Solana ECON")

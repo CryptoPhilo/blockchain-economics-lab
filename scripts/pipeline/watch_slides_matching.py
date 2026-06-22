@@ -20,7 +20,7 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
     'tether-gold': ['xaut'],
     'global-dollar': ['usdg', 'global dollar usd'],
     'binancecoin': ['bnb', 'bnb chain', 'binance coin'],
-    'the-open-network': ['ton', 'toncoin', 'the open network'],
+    'the-open-network': ['gram', 'ton', 'toncoin', 'the open network'],
     'hedera-hashgraph': ['hedera', 'hbar'],
     'flare-networks': ['flare', 'flare network', 'flr'],
     'mantle': ['mnt'],
@@ -70,14 +70,16 @@ PROJECT_ALIAS_REGISTRY: Dict[str, List[str]] = {
         'usual_usd',
         'usd0',
     ],
-    'falcon-finance': [
+    'falcon-usd': [
         'falcon usd',
         'falcon-usd',
         'falcon_usd',
+        'usdf',
+    ],
+    'falcon-finance': [
         'falcon finance',
         'falcon-finance',
         'falcon_finance',
-        'usdf',
     ],
     'river': ['river protocol', 'river_protocol', 'river-protocol'],
     'river-protocol': ['rvr'],

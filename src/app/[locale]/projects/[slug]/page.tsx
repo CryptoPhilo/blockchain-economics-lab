@@ -189,6 +189,16 @@ function pickLocalizedSummary(report: ProjectReport, locale: string): string | n
   return getLocalizedCardSummary(report, locale) || null
 }
 
+function getPreviewSummaryVersion(report: ProjectReport): number | null {
+  const value = report.card_data?.summary_authority?.preview_summary_version
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null
+}
+
+function getPreviewSummaryPublishedAt(report: ProjectReport): string | null {
+  const value = report.card_data?.summary_authority?.preview_summary_published_at
+  return typeof value === 'string' && value.trim() ? value : null
+}
+
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0
 }
@@ -500,8 +510,10 @@ export default async function ProjectDetailPage({ params }: Props) {
               const marketingContent = getLocalizedMarketingContent(report, locale, summary)
               const href = buildReportHref(locale, project.slug, report.report_type)
               const history = historyByType.get(report.report_type) || []
-              const publishedAt = report.published_at
-                ? new Date(report.published_at).toLocaleDateString(dateLocale, {
+              const displayVersion = getPreviewSummaryVersion(report) ?? report.version
+              const displayPublishedAt = getPreviewSummaryPublishedAt(report) ?? report.published_at
+              const publishedAt = displayPublishedAt
+                ? new Date(displayPublishedAt).toLocaleDateString(dateLocale, {
                     year: 'numeric', month: 'short', day: 'numeric',
                   })
                 : null
@@ -546,7 +558,7 @@ export default async function ProjectDetailPage({ params }: Props) {
                   {/* Footer */}
                   <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-white/5 mt-auto">
                     <span>{publishedAt || '—'}</span>
-                    <span className="font-mono">v{report.version}</span>
+                    <span className="font-mono">v{displayVersion}</span>
                   </div>
 
                   {history.length > 0 && (

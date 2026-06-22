@@ -175,6 +175,11 @@ export interface ReportCardData {
   summary_en?: string
   summary_ko?: string
   summary_by_lang?: Record<string, string>
+  summary_authority?: {
+    preview_summary_version?: number
+    preview_summary_published_at?: string
+    [key: string]: unknown
+  }
   price_change_24h?: number
   change_24h?: number
   direction?: 'up' | 'down'

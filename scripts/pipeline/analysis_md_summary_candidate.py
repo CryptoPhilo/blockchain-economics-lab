@@ -324,7 +324,7 @@ def list_drive_candidates(
         candidate
         for _score, candidate in sorted(
             candidates,
-            key=lambda pair: (pair[0], pair[1].source.modified_time or ""),
+            key=lambda pair: (pair[1].source.modified_time or "", pair[0]),
             reverse=True,
         )
     ]
