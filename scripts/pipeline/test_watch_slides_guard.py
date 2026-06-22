@@ -3564,6 +3564,37 @@ def test_extract_maturity_score_from_korean_summary_forms(ws):
     assert ws._extract_maturity_score_from_text('**최종 판정:** 전개 서사 단계, 종합 성숙도 57.4 / 100') == 57.4
 
 
+def test_extract_maturity_score_prefers_overall_score_over_submetric(ws):
+    text = """
+    ### 개발자 성숙도 점수: 42/100
+
+    계약 주소와 일부 문서는 공개되어 있으나 개발자 생태계는 아직 제한적이다.
+
+    ## 단계 8: 발전 단계 및 서사 고갈 진단
+
+    USD1의 종합 성숙도는 **65.9%**로 평가된다. 이는 전개 서사 후기 단계에 해당한다.
+    """
+
+    assert ws._extract_maturity_score_from_text(text) == 65.9
+    assert ws._extract_maturity_stage_from_text(text, 65.9) == 'mature'
+
+
+def test_extract_maturity_score_accepts_escaped_markdown_over_submetric(ws):
+    text = """
+    ### 개발자 성숙도 점수: 42/100
+
+    USD1의 종합 성숙도는 \\*\\*65.9%\\*\\*로 평가된다.
+    """
+
+    assert ws._extract_maturity_score_from_text(text) == 65.9
+
+
+def test_extract_maturity_score_rejects_submetric_without_overall_score(ws):
+    text = '### 개발자 성숙도 점수: 42/100\n\n하위 개발자 축에 대한 평가만 존재한다.'
+
+    assert ws._extract_maturity_score_from_text(text) is None
+
+
 def test_persist_maturity_score_from_source_updates_tracked_project(ws):
     class Source:
         name = 'hyperliquid_mat_v1_en.md'

@@ -1569,16 +1569,46 @@ def _generate_summary_after_slide_publish(
         return False
 
 
-MATURITY_SCORE_PATTERNS = (
-    re.compile(r'(?:Overall|Final)?\s*Maturity\s*Score\s*:?\s*\**\s*(\d+(?:\.\d+)?)\s*(?:/100|%)?', re.I),
-    re.compile(r'성숙도\s*점수\s*:?\s*\**\s*(\d+(?:\.\d+)?)\s*(?:/100|%)?', re.I),
-    re.compile(r'종합\s*성숙도\s*:?\s*\**\s*(\d+(?:\.\d+)?)\s*(?:/\s*100|%)?', re.I),
-    re.compile(r'종합\s*점수\s*:?\s*\**\s*(\d+(?:\.\d+)?)\s*(?:/\s*100|%)?', re.I),
-    re.compile(r'최종\s*점수\s*:?\s*\**\s*(\d+(?:\.\d+)?)\s*(?:/\s*100|%)?', re.I),
+MATURITY_SCORE_AUTHORITATIVE_PATTERNS = (
+    re.compile(r'(?:Overall|Final)\s*Maturity\s*Score\s*:?\s*(?:\\?\*)*\s*(\d+(?:\.\d+)?)\s*(?:/100|%)?', re.I),
+    re.compile(r'(?:종합|최종)\s*(?:성숙도|점수)\s*(?:점수)?\s*(?:는|은|가|:|=)?\s*(?:\\?\*)*\s*(\d+(?:\.\d+)?)\s*(?:/\s*100|%)?', re.I),
     re.compile(r'합계\s*달성률.*?(\d+(?:\.\d+)?)\s*%', re.I | re.S),
     re.compile(r'종합\s*진행률.*?(\d+(?:\.\d+)?)\s*%', re.I | re.S),
     re.compile(r'최종\s*합계.*?(\d+(?:\.\d+)?)\s*%', re.I | re.S),
-    re.compile(r'\*\*(\d+(?:\.\d+)?)%\*\*로\s*(?:평가|산출)', re.I),
+    re.compile(r'(?:\\?\*){2}(\d+(?:\.\d+)?)%(?:\\?\*){2}로\s*(?:평가|산출)', re.I),
+)
+
+MATURITY_SCORE_FALLBACK_PATTERNS = (
+    re.compile(r'Maturity\s*Score\s*:?\s*(?:\\?\*)*\s*(\d+(?:\.\d+)?)\s*(?:/100|%)?', re.I),
+    re.compile(r'성숙도\s*점수\s*:?\s*(?:\\?\*)*\s*(\d+(?:\.\d+)?)\s*(?:/100|%)?', re.I),
+)
+
+MATURITY_SCORE_PATTERNS = MATURITY_SCORE_AUTHORITATIVE_PATTERNS + MATURITY_SCORE_FALLBACK_PATTERNS
+
+MATURITY_SCORE_SUBMETRIC_CONTEXT_MARKERS = (
+    '개발자',
+    '커뮤니티',
+    '기술',
+    '채택',
+    '거버넌스',
+    '유동성',
+    '리스크',
+    '위험',
+    'developer',
+    'community',
+    'technical',
+    'technology',
+    'adoption',
+    'governance',
+    'liquidity',
+    'risk',
+)
+
+MATURITY_SCORE_AUTHORITATIVE_CONTEXT_MARKERS = (
+    'overall',
+    'final',
+    '종합',
+    '최종',
 )
 
 MATURITY_STAGE_PATTERNS = (
@@ -1614,17 +1644,38 @@ def _classify_maturity_stage(score: float) -> str:
 def _extract_maturity_score_from_text(text: str) -> Optional[float]:
     if not text:
         return None
-    for pattern in MATURITY_SCORE_PATTERNS:
-        match = pattern.search(text)
-        if not match:
-            continue
-        try:
-            score = float(match.group(1))
-        except (TypeError, ValueError):
-            continue
-        if 0 <= score <= 100:
+
+    for pattern in MATURITY_SCORE_AUTHORITATIVE_PATTERNS:
+        for match in pattern.finditer(text):
+            score = _maturity_score_from_match(match)
+            if score is not None:
+                return score
+
+    for pattern in MATURITY_SCORE_FALLBACK_PATTERNS:
+        for match in pattern.finditer(text):
+            score = _maturity_score_from_match(match)
+            if score is None:
+                continue
+            if _is_maturity_score_submetric_context(text, match.start(), match.end()):
+                continue
             return score
+
     return None
+
+
+def _maturity_score_from_match(match: re.Match) -> Optional[float]:
+    try:
+        score = float(match.group(1))
+    except (TypeError, ValueError):
+        return None
+    return score if 0 <= score <= 100 else None
+
+
+def _is_maturity_score_submetric_context(text: str, start: int, end: int) -> bool:
+    window = text[max(0, start - 64):min(len(text), end + 24)].lower()
+    if any(marker in window for marker in MATURITY_SCORE_AUTHORITATIVE_CONTEXT_MARKERS):
+        return False
+    return any(marker in window for marker in MATURITY_SCORE_SUBMETRIC_CONTEXT_MARKERS)
 
 
 def _extract_maturity_stage_from_text(text: str, score: float) -> str:
