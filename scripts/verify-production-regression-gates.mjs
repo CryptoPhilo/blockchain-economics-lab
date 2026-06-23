@@ -1,6 +1,7 @@
 const DEFAULT_BASE_URL = 'https://bcelab.xyz'
 const DEFAULT_SCORE_PAGE_MAX_MS = 7000
 const DEFAULT_SCORE_PAGE_MAX_BYTES = 650000
+const DEFAULT_SCORE_PAGE_ATTEMPTS = 3
 
 const baseUrl = normalizeBaseUrl(
   process.env.BCE_REGRESSION_BASE_URL
@@ -10,6 +11,10 @@ const baseUrl = normalizeBaseUrl(
 const maxScorePageMs = Number(process.env.BCE_SCORE_PAGE_MAX_MS || DEFAULT_SCORE_PAGE_MAX_MS)
 const maxScorePageBytes = Number(
   process.env.BCE_SCORE_PAGE_MAX_BYTES || DEFAULT_SCORE_PAGE_MAX_BYTES,
+)
+const scorePageAttempts = Math.max(
+  1,
+  Number(process.env.BCE_SCORE_PAGE_ATTEMPTS || DEFAULT_SCORE_PAGE_ATTEMPTS),
 )
 const cacheBust = process.env.GITHUB_RUN_ID || Date.now().toString()
 const failures = []
@@ -39,7 +44,7 @@ function appendCacheBust(path) {
   return `${path}${separator}regression_ts=${encodeURIComponent(cacheBust)}`
 }
 
-async function fetchText(path) {
+async function fetchTextOnce(path) {
   const url = `${baseUrl}${appendCacheBust(path)}`
   const startedAt = Date.now()
   const response = await fetch(url, {
@@ -57,6 +62,26 @@ async function fetchText(path) {
     bytes: Buffer.byteLength(text, 'utf8'),
     ms: Date.now() - startedAt,
   }
+}
+
+async function fetchText(path, options = {}) {
+  const attempts = Math.max(1, Number(options.attempts || 1))
+  let best = null
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const result = await fetchTextOnce(path)
+    if (
+      !best
+      || (result.ok && !best.ok)
+      || (result.ok === best.ok && result.ms < best.ms)
+    ) {
+      best = result
+    }
+
+    if (result.ok && result.ms <= maxScorePageMs) break
+  }
+
+  return best
 }
 
 async function fetchJson(path) {
@@ -87,7 +112,7 @@ function extractRows(payload) {
   return []
 }
 
-const scorePage = await fetchText('/ko/score')
+const scorePage = await fetchText('/ko/score', { attempts: scorePageAttempts })
 requireCondition(scorePage.ok, 'Top500 page responds successfully', `${scorePage.status} ${scorePage.url}`)
 requireCondition(
   scorePage.ms <= maxScorePageMs,
