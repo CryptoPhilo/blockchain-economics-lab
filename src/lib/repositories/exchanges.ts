@@ -545,6 +545,7 @@ export function buildExchangeAggregates(
         scoredProjectCount: bceExchangeScore.bceExchangeScoreComponents.scoredProjectCount,
       }
     })
+    .filter((exchange) => exchange.listedProjectCount > 0)
     .sort((a, b) => (
       getCmcRank(a) - getCmcRank(b)
       || (b.bceExchangeScore ?? -1) - (a.bceExchangeScore ?? -1)
