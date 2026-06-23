@@ -13,6 +13,23 @@ function getEffectiveTimestamp(report: Pick<ProjectReport, 'published_at' | 'cre
   return Number.isNaN(timestamp) ? Number.NEGATIVE_INFINITY : timestamp
 }
 
+function getRapidChangeWindowTimestamp(report: Pick<ProjectReport, 'published_at' | 'created_at'>): number {
+  const source = report.published_at || report.created_at
+
+  if (!source) {
+    return Number.NEGATIVE_INFINITY
+  }
+
+  const timestamp = new Date(source).getTime()
+  return Number.isNaN(timestamp) ? Number.NEGATIVE_INFINITY : timestamp
+}
+
+function normalizeCutoffTimestamp(cutoff?: Date | string): number | null {
+  if (!cutoff) return null
+  const timestamp = cutoff instanceof Date ? cutoff.getTime() : new Date(cutoff).getTime()
+  return Number.isNaN(timestamp) ? null : timestamp
+}
+
 function getStatusRank(report: Pick<ProjectReport, 'status'>): number {
   if (report.status === 'published') return 2
   if (report.status === 'in_review') return 1
@@ -146,14 +163,19 @@ export function prepareRapidChangeReports(args: {
   pageSize: number
   searchQuery?: string
   marketRankLookup?: Map<string, number>
+  recencyCutoff?: Date | string
 }) {
   const normalizedQuery = args.searchQuery?.trim().toLowerCase() || ''
+  const cutoffTimestamp = normalizeCutoffTimestamp(args.recencyCutoff)
   const filteredReports = normalizedQuery
     ? args.reports.filter((report) => getSearchableText(report).includes(normalizedQuery))
     : args.reports
 
   const rapidChangeReports = filteredReports
     .filter(isRapidChangeListReport)
+    .filter((report) => (
+      cutoffTimestamp === null || getRapidChangeWindowTimestamp(report) >= cutoffTimestamp
+    ))
     .filter((report) => (
       !args.marketRankLookup || getMarketRankForReport(report, args.marketRankLookup) !== null
     ))

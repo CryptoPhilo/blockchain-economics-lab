@@ -17,6 +17,7 @@ interface Props {
 }
 
 const PAGE_SIZE = 20
+const RAPID_CHANGE_WINDOW_HOURS = 72
 
 const LANG_NAMES: Record<string, string> = {
   en: 'English', ko: '한국어', ja: '日本語', zh: '中文',
@@ -83,15 +84,16 @@ export default async function ReportsPage({ params, searchParams }: Props) {
   const t = await getTranslations('reports')
   const currentPage = Math.max(1, parseInt(pageStr || '1', 10))
 
-  const seventyTwoHoursAgo = new Date()
-  seventyTwoHoursAgo.setHours(seventyTwoHoursAgo.getHours() - 72)
+  const rapidChangeWindowStart = new Date()
+  rapidChangeWindowStart.setHours(rapidChangeWindowStart.getHours() - RAPID_CHANGE_WINDOW_HOURS)
+  const rapidChangeWindowStartIso = rapidChangeWindowStart.toISOString()
 
   const dataQuery = supabase
     .from('project_reports')
     .select('*, project:tracked_projects(id, name, slug, symbol, chain, category, coingecko_id, cmc_id, aliases)')
     .in('status', ['published', 'coming_soon', 'in_review'])
     .eq('report_type', 'forensic')
-    .gte('created_at', seventyTwoHoursAgo.toISOString())
+    .or(`published_at.gte.${rapidChangeWindowStartIso},and(published_at.is.null,created_at.gte.${rapidChangeWindowStartIso})`)
     .order('is_latest', { ascending: false })
     .order('updated_at', { ascending: false })
     .order('created_at', { ascending: false })
@@ -116,6 +118,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
     pageSize: PAGE_SIZE,
     searchQuery,
     marketRankLookup,
+    recencyCutoff: rapidChangeWindowStart,
   })
 
   function filterUrl(params: { page?: number; q?: string }) {

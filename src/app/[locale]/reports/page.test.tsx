@@ -24,6 +24,7 @@ type MockReportQuery = {
   in: jest.Mock
   eq: jest.Mock
   gte: jest.Mock
+  or: jest.Mock
   order: jest.Mock
   then: <TResult1 = { data: unknown[] }, TResult2 = never>(
     onFulfilled?: ((value: { data: unknown[] }) => TResult1 | PromiseLike<TResult1>) | null | undefined,
@@ -37,6 +38,7 @@ function createReportsQuery(data: unknown[]) {
     in: jest.fn(() => query),
     eq: jest.fn(() => query),
     gte: jest.fn(() => query),
+    or: jest.fn(() => query),
     order: jest.fn(() => query),
     then: (resolve, reject) => Promise.resolve({ data }).then(resolve, reject),
   }
@@ -75,6 +77,8 @@ function marketSnapshotRow(slug: string, symbol: string, name: string, rank: num
 
 describe('ReportsPage rapid change cards', () => {
   beforeEach(() => {
+    jest.useFakeTimers()
+    jest.setSystemTime(new Date('2026-05-09T12:00:00.000Z'))
     jest.clearAllMocks()
     mockGetLatestScoreboardMarketSnapshot.mockResolvedValue([
       marketSnapshotRow('ethereum', 'ETH', 'Ethereum', 2),
@@ -85,12 +89,16 @@ describe('ReportsPage rapid change cards', () => {
     ])
   })
 
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
   it('forces dynamic rendering so locale pages cannot cache divergent rapid-change lists', () => {
     expect(dynamic).toBe('force-dynamic')
     expect(revalidate).toBe(0)
   })
 
-  it('queries forensic reports from the last 72 hours and renders candidate card contract fields', async () => {
+  it('queries forensic reports from the last 72 hours by published time and renders candidate card contract fields', async () => {
     const reportsQuery = mockReportsQuery([
       {
         id: 'eth-candidate',
@@ -145,10 +153,13 @@ describe('ReportsPage rapid change cards', () => {
 
     expect(reportsQuery.in).toHaveBeenCalledWith('status', ['published', 'coming_soon', 'in_review'])
     expect(reportsQuery.eq).toHaveBeenCalledWith('report_type', 'forensic')
-    expect(reportsQuery.gte).toHaveBeenCalledWith('created_at', expect.any(String))
+    expect(reportsQuery.or).toHaveBeenCalledWith(expect.stringContaining('published_at.gte.'))
+    expect(reportsQuery.or).toHaveBeenCalledWith(expect.stringContaining('published_at.is.null,created_at.gte.'))
 
-    const gteIso = reportsQuery.gte.mock.calls[0][1] as string
-    expect(Number.isNaN(Date.parse(gteIso))).toBe(false)
+    const filter = reportsQuery.or.mock.calls[0][0] as string
+    const isoMatch = /published_at\.gte\.([^,]+)/.exec(filter)
+    expect(isoMatch).toBeTruthy()
+    expect(Number.isNaN(Date.parse(isoMatch?.[1] || ''))).toBe(false)
 
     expect(screen.getByText('Ethereum Forensic Analysis v1')).toBeTruthy()
     expect(screen.getByText('Ethereum (ETH)')).toBeTruthy()

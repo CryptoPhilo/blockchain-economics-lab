@@ -702,6 +702,43 @@ describe('rapid change report list helpers', () => {
     expect(result.reports).toEqual([])
   })
 
+  it('filters rapid-change reports by published_at before falling back to created_at', () => {
+    const reports = [
+      createReport({
+        id: 'old-published-rebackfilled',
+        project_id: 'old-published-rebackfilled',
+        published_at: '2026-06-10T00:00:00.000Z',
+        created_at: '2026-06-20T00:00:00.000Z',
+      }),
+      createReport({
+        id: 'recent-published',
+        project_id: 'recent-published',
+        published_at: '2026-06-20T00:00:00.000Z',
+        created_at: '2026-06-01T00:00:00.000Z',
+      }),
+      createReport({
+        id: 'recent-placeholder',
+        project_id: 'recent-placeholder',
+        status: 'coming_soon',
+        published_at: undefined,
+        created_at: '2026-06-20T00:00:00.000Z',
+      }),
+    ]
+
+    const result = prepareRapidChangeReports({
+      reports,
+      locale: 'ko',
+      page: 1,
+      pageSize: 20,
+      recencyCutoff: '2026-06-17T00:00:00.000Z',
+    })
+
+    expect(result.reports.map((report) => report.id)).toEqual([
+      'recent-published',
+      'recent-placeholder',
+    ])
+  })
+
   it('maps rapid-change cards to CMC ranks by project identity fields', () => {
     const report = createReport({
       id: 'undeads-forensic',
