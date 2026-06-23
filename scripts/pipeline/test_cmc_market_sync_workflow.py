@@ -12,11 +12,12 @@ cmc_to_market_row = cmc_market_sync.cmc_to_market_row
 build_slug_map = cmc_market_sync.build_slug_map
 CMCClient = cmc_market_sync.CMCClient
 mode_top500 = cmc_market_sync.mode_top500
+mode_tracked = cmc_market_sync.mode_tracked
 
 
-def make_token(rank, slug, symbol=None):
+def make_token(rank, slug, symbol=None, token_id=None):
     return {
-        'id': rank,
+        'id': token_id or rank,
         'name': slug.title(),
         'symbol': symbol or slug[:4].upper(),
         'slug': slug,
@@ -44,6 +45,9 @@ class FakeCMC:
         self.tokens = tokens
 
     def get_listings(self, start=1, limit=500):
+        return self.tokens
+
+    def get_listings_paginated(self, total_limit=5000):
         return self.tokens
 
 
@@ -142,6 +146,43 @@ def test_build_slug_map_does_not_match_by_symbol_only():
     tokens = [make_token(120, 'unrelated-top-token', 'MEGA')]
 
     assert build_slug_map(tracked_projects, tokens) == {}
+
+
+def test_build_slug_map_matches_numeric_cmc_id_without_symbol_guessing():
+    tracked_projects = [
+        {
+            'slug': 'myx-finance',
+            'name': 'MYX Finance',
+            'symbol': 'MYX',
+            'coingecko_id': None,
+            'cmc_id': '36410',
+        },
+    ]
+    tokens = [make_token(530, 'myx-finance', 'MYX', token_id=36410)]
+
+    assert build_slug_map(tracked_projects, tokens) == {'myx-finance': 'myx-finance'}
+
+
+def test_mode_tracked_writes_project_slug_for_numeric_cmc_id_match():
+    tracked_projects = [
+        {
+            'slug': 'opengradient',
+            'name': 'OpenGradient',
+            'symbol': 'OPG',
+            'coingecko_id': None,
+            'cmc_id': '39800',
+        },
+    ]
+    db = FakeDB(tracked_projects)
+
+    result = mode_tracked(FakeCMC([
+        make_token(564, 'open-gradient', 'OPG', token_id=39800),
+    ]), db)
+
+    assert result['matched'] == 1
+    assert result['unmatched'] == 0
+    assert db.rows[0]['slug'] == 'opengradient'
+    assert db.rows[0]['cmc_rank'] == 564
 
 
 def test_mode_top500_preserves_cmc_slug_when_tracked_symbol_collides():
