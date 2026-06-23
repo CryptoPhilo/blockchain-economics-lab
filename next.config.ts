@@ -4,6 +4,15 @@ import type { NextConfig } from 'next'
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: '/:locale/reports/:slug/forensic',
+        destination: '/:locale/reports/forensic/:slug',
+        permanent: false,
+      },
+    ]
+  },
   images: {
     remotePatterns: [
       {
