@@ -2800,7 +2800,7 @@ website publishing contract for `econ-report-publishing`,
 - Workspace/SHA:
   `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
   at `c0b2167`; repair branch
-  `codex/bce-2129-latest-language-siblings` currently at `f1d83f6`.
+  `codex/bce-2129-latest-language-siblings` currently at `42b68ad`.
 - Issue:
   `BCE-2129` (`Apply latest-language sibling RPC migration and repair
   Decentraland FOR`).
@@ -2824,36 +2824,42 @@ website publishing contract for `econ-report-publishing`,
   Result: `Apply selected SQL migration` succeeded.
 - Job repaired:
   `fabcc35f-0397-41fa-8621-432437d68441`.
-  The job remains `authority_state=promoted`, `authority_mode=llm_active`,
+  Follow-up reconciliation
+  `supabase/migrations/20260623204000_reconcile_decentraland_for_job_state.sql`
+  was applied remotely in
+  https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/28055638164.
+  The job is now `status=candidate_ready`, `validation_status=valid`,
+  `authority_state=promoted`, `authority_mode=llm_active`,
+  `promotion_decision=promote`, and
   `promoted_project_report_id=83cdd187-4203-44d9-b86e-117f3e16f6e3`.
 - DB verification:
   production `promotion_audit` now records
   `repair_issue=BCE-2129`,
   `repair_updated_project_report_count=4`,
   `updated_project_report_count=4`, and
-  `sibling_update_scope=latest_visible_per_language`.
+  `sibling_update_scope=latest_visible_per_language`. The follow-up job-state
+  reconciliation records `state_reconcile_issue=BCE-2129`.
   Latest visible English row
   `4d654e68-5355-4e56-8c24-99362e08338f` is `language=en`,
   `version=2`, `status=published`, `is_latest=true`, and now has
   `summary_authority.job_id=fabcc35f-0397-41fa-8621-432437d68441` plus the CRO
   summary:
-  `Decentraland MANA still carries spot distribution risk after a surge driven
-  by derivatives, so confirmation above $0.0744 matters before adding exposure.`
+  `Decentraland MANA has elevated manipulation risk and futures driven flow,
+  leaving distribution pressure high until the 0.0744 area breaks.`
 - Website verification:
-  `https://www.bcelab.xyz/en/projects/decentraland` returned HTTP 200
-  (`x-vercel-cache: MISS`) and rendered the repaired FOR v2 card summary and
-  investment-view copy.
-  `https://www.bcelab.xyz/en/reports/forensic/decentraland` returned HTTP 200
-  (`x-vercel-cache: MISS`) and rendered the repaired v2 report summary and
-  investment-view copy.
-- Remaining deploy gate:
-  the requested legacy URL
-  `https://www.bcelab.xyz/en/reports/decentraland/forensic` returned HTTP 200
-  but did not render the repaired summary in production. Repository code at
-  `c0b2167` already redirects this legacy route to the canonical
-  `/en/reports/forensic/decentraland` route, so closing BCE-2129 requires an
-  approved production deploy of the current branch/ref or equivalent deploy
-  evidence before claiming the requested legacy URL is repaired.
+  approved production deploy
+  https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/28055665968
+  deployed commit `42b68ad5e1ac8e5846ff37393b1c3b87a78d1286`;
+  `Verify Deployment Evidence`, Vercel production deploy, and
+  `Verify Top500 and exchange regression gates` all passed. Vercel URL:
+  `https://blockchain-economics-ofml3yx4f-michael-zhangs-projects-df54ac7d.vercel.app`.
+  `https://www.bcelab.xyz/en/reports/decentraland/forensic` now returns HTTP
+  `307` to `/en/reports/forensic/decentraland`; following the redirect returns
+  HTTP 200 and renders English FOR v2 with the CRO summary above.
+  `https://www.bcelab.xyz/en/projects/decentraland` returns HTTP 200 and
+  renders the same repaired FOR v2 card summary plus investment-view copy.
+  The final route fix is a `next.config.ts` redirect, because the page-level
+  App Router redirect did not apply before filesystem routing in production.
 
 ### BCE-2127 Summary Authority Gate Language Sibling Promotion Fix (2026-06-23 KST)
 
