@@ -293,7 +293,9 @@ website publishing contract for `econ-report-publishing`,
       `BCE-2078`, `BCE-2079`, `BCE-2080`, `BCE-2082`, `BCE-2083`,
       `BCE-2084`, `BCE-2085`, `BCE-2086`, `BCE-2087`, `BCE-2088`, `BCE-2089`,
       `BCE-2090`, `BCE-2091`, `BCE-2092`, `BCE-2093`, `BCE-2095`, `BCE-2096`,
-      `BCE-2101`, `BCE-2102`, `BCE-2103`, `BCE-2104`, `BCE-2112`, and `BCE-2114`.
+      `BCE-2101`, `BCE-2102`, `BCE-2103`, `BCE-2104`, `BCE-2112`, `BCE-2114`,
+      `BCE-2115`, `BCE-2117`, `BCE-2118`, `BCE-2119`, `BCE-2121`,
+      `BCE-2122`, `BCE-2123`, `BCE-2124`, and `BCE-2125`.
 
   - 2026-06-20 run `27861610008` remains useful as negative evidence: it
     prevented runtime or DB candidate writes when the summary-generation
@@ -2789,6 +2791,600 @@ website publishing contract for `econ-report-publishing`,
   `https://www.bcelab.xyz/en/projects/re-protocol` returned HTTP 200 with
   `cache-control: private, no-cache, no-store, max-age=0, must-revalidate` and
   `x-vercel-cache: MISS`. The KO page rendered the new RE summary text.
+- Deployment/migration:
+  N/A. This routine used the already deployed DB-backed ingest and Summary
+  Authority Gate RPC path only.
+
+### BCE-2127 Summary Authority Gate Language Sibling Promotion Fix (2026-06-23 KST)
+
+- Workspace/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `c0b2167`.
+- Issue:
+  `BCE-2127` (`Fix Summary Authority Gate language sibling promotion for
+  version-skewed project_reports`).
+- Pipeline-state precheck:
+  confirmed the issue is attached to the Crypto Market Analysis Platform
+  workspace, read this state page and
+  `pipelines/bcelab-runtime-pipelines.json` before diagnosis and code changes.
+- Diagnosis:
+  the deployed `promote_report_summary_job` RPC selected the locale target with
+  exact-version fallback but updated language siblings using
+  `version = v_target.version`. For Decentraland FOR job
+  `fabcc35f-0397-41fa-8621-432437d68441`, the Korean locale target was version
+  `1`, so the RPC updated version `1` siblings while the website-visible English
+  published row was version `2`; English therefore remained stale even though
+  the job reached `authority_state=promoted`.
+- Code fix:
+  added migration
+  `supabase/migrations/20260623072000_summary_authority_gate_latest_language_siblings.sql`.
+  The replacement RPC keeps `promoted_project_report_id` anchored to the chosen
+  locale target, but updates the latest website-visible row per language sibling
+  (`published`, `coming_soon`, or `in_review`) and records
+  `sibling_update_scope=latest_visible_per_language` in the promotion audit,
+  pipeline event, and RPC result.
+- Regression coverage:
+  `scripts/pipeline/test_summary_authority_gate.py` now includes a
+  version-skew case with Korean version `1`, stale English version `1`, and
+  published English version `2`; write-mode promotion must update English
+  version `2` and leave stale English version `1` untouched.
+- Verification:
+  `python3 -m pytest scripts/pipeline/test_summary_authority_gate.py` passed
+  (`9 passed`), and `npm run verify:runtime-pipelines` passed.
+- Operational status:
+  production still requires the new migration to be applied before rerunning or
+  operationally repairing the Decentraland FOR promotion. No runtime manifest
+  change was needed because the `summary_authority_gate` executable node and
+  default-off write policy are unchanged.
+
+### BCE-2126 CRO Analysis MD Summary JSON Ingestion Routine (2026-06-23 KST)
+
+- Workspace/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `c0b2167`.
+- Issue:
+  `BCE-2126` (`CRO Analysis MD Summary JSON Ingestion Routine`).
+- Pipeline-state precheck:
+  confirmed the issue is attached to the Crypto Market Analysis Platform
+  workspace, read this state page and
+  `pipelines/bcelab-runtime-pipelines.json` before running the routine.
+- Selection:
+  Drive folder scan across ECON, MAT, and FOR identified the newest Markdown
+  source without an existing summary job as Decentraland FOR.
+- Drive source:
+  `Decentraland MANA 시장 무결성 및 심층 포렌식 리스크 보고서.md`.
+- Source identity:
+  `drive:1FDc-FNV0PeMYoP4nFGKKkGCQZN4bRSNb:0B8HYgThT3NByTU9SSWZhZHpWMFBvTVpDSlArRUxlVlMrWU9ZPQ`.
+- CRO local-agent JSON:
+  `scripts/pipeline/output/paperclip_cro_summary_for_decentraland_bce2126.json`.
+- Candidate artifact:
+  `scripts/pipeline/output/analysis_md_summary_candidate_for_decentraland.json`.
+- Candidate ingest:
+  first ingest inserted `job_id=fabcc35f-0397-41fa-8621-432437d68441` as
+  invalid because English/French/German hyphenated phrases tripped the
+  raw-format validator. After replacing those phrases, the same Drive-provenance
+  candidate was force-updated to valid.
+- Candidate result:
+  valid, validation errors none, `job_id=fabcc35f-0397-41fa-8621-432437d68441`,
+  upsert `updated_existing`.
+- Summary Authority Gate:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id fabcc35f-0397-41fa-8621-432437d68441 --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2126" --write`.
+- Promotion result:
+  `dry_run=false`, `action=promote`, `state=promoted`,
+  `wrote_project_report=true`,
+  `project_report_id=83cdd187-4203-44d9-b86e-117f3e16f6e3`.
+- DB verification:
+  the job has `validation_status=valid`, `status=candidate_ready`,
+  `authority_state=promoted`, `authority_mode=llm_active`,
+  `promotion_decision=promote`, no validation errors, and
+  `promoted_project_report_id=83cdd187-4203-44d9-b86e-117f3e16f6e3`.
+- Website/cache verification:
+  `https://www.bcelab.xyz/ko/reports/decentraland/forensic` returned HTTP 200
+  with `cache-control: private, no-cache, no-store, max-age=0,
+  must-revalidate`, and the Korean project page contains the promoted CRO
+  summary.
+- Blocker:
+  English remains stale because the existing published English row is
+  `version=2` while the gate promoted/updated `version=1` language siblings.
+  DB evidence shows English `version=2` still contains older generated copy,
+  while English `version=1` was updated as `coming_soon`. This leaves global
+  website publication incomplete even though the gate returned terminal
+  `promoted`.
+- Deployment/migration:
+  N/A. This routine used the already deployed DB-backed ingest and Summary
+  Authority Gate RPC path only.
+
+### BCE-2125 CRO Analysis MD Summary JSON Ingestion Routine (2026-06-23 KST)
+
+- Workspace/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `c0b2167`.
+- Issue:
+  `BCE-2125` (`CRO Analysis MD Summary JSON Ingestion Routine`).
+- Wake context:
+  `process_lost_retry` for assigned critical in-progress routine with no
+  pending comments; the harness had already checked out the issue.
+- Pipeline-state precheck:
+  confirmed the issue is attached to the Crypto Market Analysis Platform
+  workspace, read this state page and
+  `pipelines/bcelab-runtime-pipelines.json` before running the routine.
+- Selection:
+  ordinary Drive folder scan returned no Markdown candidates, so the routine
+  used the state-page backfill/source-index path. Source-index candidate
+  selection across ECON, MAT, and FOR identified the newest safe source without
+  an existing successful summary job as Zano MAT.
+- Drive source:
+  `Zano의 크립토 이코노미 발전 단계 및 서사 진화 평가 보고서_ 2019 - 2026.md`.
+- Source identity:
+  `drive:14bE3Ta2TjxZPWfkPKCvi5-I5rBKihg-x:0B8HYgThT3NByQ0N2R1VCdjZFMDNKdlFVZlFSZTRQMG9jMDNnPQ`.
+- CRO local-agent JSON:
+  `scripts/pipeline/output/paperclip_cro_summary_mat_zano_bce2125.json`.
+- Candidate artifact:
+  `scripts/pipeline/output/analysis_md_summary_candidate_mat_zano.json`.
+- Candidate ingest:
+  first ingest inserted `job_id=d31f0fd8-a2ce-4a2c-be43-9277b773b544` as
+  invalid because a German marketing phrase tripped the raw-format validator.
+  After replacing the phrase, the same Drive-provenance candidate was rebuilt
+  from `drive_file_index` / `drive_file_content_index` and force-updated.
+- Candidate result:
+  valid, validation errors none, `job_id=d31f0fd8-a2ce-4a2c-be43-9277b773b544`,
+  upsert `updated_existing`.
+- Summary Authority Gate:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id d31f0fd8-a2ce-4a2c-be43-9277b773b544 --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2125" --write`.
+- Promotion result:
+  `dry_run=false`, `action=promote`, `state=promoted`,
+  `wrote_project_report=true`,
+  `project_report_id=729fb08d-8cd5-4904-94f0-d1dd465be362`.
+- DB verification:
+  the job has `validation_status=valid`, `status=candidate_ready`,
+  `authority_state=promoted`, `authority_mode=llm_active`, no validation
+  errors, and
+  `promoted_project_report_id=729fb08d-8cd5-4904-94f0-d1dd465be362`.
+  The project report is `published`, `report_type=maturity`, `language=ko`,
+  `version=1`, `is_latest=true`, and
+  `summary_source_md_file_id=14bE3Ta2TjxZPWfkPKCvi5-I5rBKihg-x`.
+- Website/cache verification:
+  `https://www.bcelab.xyz/ko/reports/zano/maturity` returned HTTP 200 with
+  `cache-control: private, no-cache, no-store, max-age=0, must-revalidate`.
+  `https://www.bcelab.xyz/ko/projects/zano` and
+  `https://www.bcelab.xyz/en/projects/zano` HTML checks confirmed the promoted
+  Korean and English card copy plus investment-view copy are present.
+- Deployment/migration:
+  N/A. This routine used the already deployed DB-backed ingest and Summary
+  Authority Gate RPC path only.
+
+### BCE-2124 CRO Analysis MD Summary JSON Ingestion Routine (2026-06-23 KST)
+
+- Workspace/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `c0b2167`.
+- Issue:
+  `BCE-2124` (`CRO Analysis MD Summary JSON Ingestion Routine`).
+- Wake context:
+  assigned critical in-progress routine with no pending comments; the harness
+  had already checked out the issue.
+- Pipeline-state precheck:
+  confirmed the issue is attached to the Crypto Market Analysis Platform
+  workspace, read this state page and
+  `pipelines/bcelab-runtime-pipelines.json` before running the routine.
+- Index refresh:
+  `python3 scripts/pipeline/drive_source_index.py --type <econ|mat|for> --drive-root-scope all`
+  returned `seen=0`, `no_op=true` for all three report types using sync-state
+  checkpoints.
+- Selection:
+  source-index candidate selection across ECON, MAT, and FOR identified the
+  newest safe source without an existing `report_summary_jobs.source_identity`
+  row: AUSD ECON.
+- Drive source:
+  `AUSD 크립토 이코노미 설계 분석 보고서.md`.
+- Source identity:
+  `drive:1YEnGm7XTpzFqtYPMqPMkZNN9FEecQBvb:0B8HYgThT3NByVlZ1M0xlVHo2TW1sZmJzaUd4TUZ3dGpMSmY4PQ`.
+- CRO local-agent JSON:
+  `scripts/pipeline/output/paperclip_cro_summary_econ_ausd_bce2124.json`.
+- Candidate artifact:
+  `scripts/pipeline/output/analysis_md_summary_candidate_econ_ausd.json`.
+- Candidate dry-run:
+  `python3 scripts/pipeline/analysis_md_summary_candidate.py --type econ --slug ausd --drive-root-scope all --source-index only --agent-output-json scripts/pipeline/output/paperclip_cro_summary_econ_ausd_bce2124.json --require-agent-output --limit 1 --dry-run`
+  returned valid with no validation reasons.
+- Candidate ingest:
+  `python3 scripts/pipeline/analysis_md_summary_candidate.py --type econ --slug ausd --drive-root-scope all --source-index only --agent-output-json scripts/pipeline/output/paperclip_cro_summary_econ_ausd_bce2124.json --require-agent-output --limit 1 --force`.
+- Candidate result:
+  valid, validation errors none, `job_id=5ad43c88-b318-48d4-9ab5-b5307968d92c`,
+  upsert `inserted`.
+- Summary Authority Gate:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id 5ad43c88-b318-48d4-9ab5-b5307968d92c --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2124" --write`.
+- Promotion result:
+  `dry_run=false`, `action=promote`, `state=promoted`,
+  `wrote_project_report=true`,
+  `project_report_id=aa709796-2431-411e-a373-4ae180a12d18`.
+- DB verification:
+  the job has `validation_status=valid`, `status=candidate_ready`,
+  `authority_state=promoted`, `authority_mode=llm_active`,
+  `promotion_decision=promote`, `promotion_actor=paperclip-routine:CRO:BCE-2124`,
+  no validation errors, and
+  `promoted_project_report_id=aa709796-2431-411e-a373-4ae180a12d18`.
+  The project report is `published`, `report_type=econ`, `language=ko`,
+  `version=1`, `summary_source_md_file_id=1YEnGm7XTpzFqtYPMqPMkZNN9FEecQBvb`,
+  and `card_summary_ko` / `card_summary_en` match the CRO local-agent JSON.
+- Website/cache verification:
+  `https://www.bcelab.xyz/ko/reports/ausd/econ`,
+  `https://www.bcelab.xyz/ko/projects/ausd`, and
+  `https://www.bcelab.xyz/en/projects/ausd`
+  returned HTTP 200 with `cache-control: private, no-cache, no-store,
+  max-age=0, must-revalidate`. Project-page HTML checks confirmed the promoted
+  Korean and English card copy is present. The `/economy` alias returned 404;
+  the active report route is `/econ`.
+- Deployment/migration:
+  N/A. This routine used the already deployed DB-backed ingest and Summary
+  Authority Gate RPC path only.
+
+### BCE-2123 CRO Analysis MD Summary JSON Ingestion Routine (2026-06-23 KST)
+
+- Workspace/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `c0b2167`.
+- Issue:
+  `BCE-2123` (`CRO Analysis MD Summary JSON Ingestion Routine`).
+- Wake context:
+  assigned critical in-progress routine with no pending comments; the harness
+  had already checked out the issue.
+- Pipeline-state precheck:
+  confirmed the issue is attached to the Crypto Market Analysis Platform
+  workspace, read this state page and
+  `pipelines/bcelab-runtime-pipelines.json` before running the routine.
+- Selection:
+  source-index candidate selection across ECON, MAT, and FOR identified the
+  newest safe source without an existing `report_summary_jobs.source_identity`
+  row: Agora AUSD MAT.
+- Drive source:
+  `Agora AUSD의 크립토 이코노미 발전 단계 및 서사 진화 평가 보고서_ 2024 - 2026.md`.
+- Source identity:
+  `drive:1HXcpdm8xFHUbY46dt2qEHWY6C_eFq30A:0B8HYgThT3NByamM4OWpiREo2MUtEVyt5TEdxWUZaaUdXYXFrPQ`.
+- CRO local-agent JSON:
+  `scripts/pipeline/output/paperclip_cro_summary_mat_ausd_bce2123.json`.
+- Candidate artifact:
+  `scripts/pipeline/output/analysis_md_summary_candidate_mat_ausd.json`.
+- Candidate dry-run:
+  `python3 scripts/pipeline/analysis_md_summary_candidate.py --type mat --slug ausd --drive-root-scope all --source-index only --agent-output-json scripts/pipeline/output/paperclip_cro_summary_mat_ausd_bce2123.json --require-agent-output --limit 1 --dry-run`
+  returned valid with no validation reasons after adjusting one German
+  marketing phrase that initially tripped the raw-format validator.
+- Candidate ingest:
+  `python3 scripts/pipeline/analysis_md_summary_candidate.py --type mat --slug ausd --drive-root-scope all --source-index only --agent-output-json scripts/pipeline/output/paperclip_cro_summary_mat_ausd_bce2123.json --require-agent-output --limit 1 --force`.
+- Candidate result:
+  valid, validation errors none, `job_id=8b362d5b-6a08-437a-84b4-3c17213a8d65`,
+  upsert `inserted`.
+- Summary Authority Gate:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id 8b362d5b-6a08-437a-84b4-3c17213a8d65 --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2123" --write`.
+- Promotion result:
+  `dry_run=false`, `action=promote`, `state=promoted`,
+  `wrote_project_report=true`,
+  `project_report_id=3aee4c46-cf2b-4599-b541-ba635e55de64`.
+- DB verification:
+  the job has `validation_status=valid`, `authority_state=promoted`,
+  `authority_mode=llm_active`, `promotion_decision=promote`,
+  `promotion_actor=paperclip-routine:CRO:BCE-2123`, and
+  `promoted_project_report_id=3aee4c46-cf2b-4599-b541-ba635e55de64`.
+  The project report is `published`, `report_type=maturity`, `language=ko`,
+  `version=1`, and `summary_source_md_file_id=1HXcpdm8xFHUbY46dt2qEHWY6C_eFq30A`.
+- Website/cache verification:
+  `https://www.bcelab.xyz/ko/reports/ausd/maturity` returned HTTP 200 with
+  `cache-control: private, no-cache, no-store, max-age=0, must-revalidate` and
+  `x-vercel-cache: MISS`. The SSR payload includes the promoted card summary
+  and investment-view copy.
+- Deployment/migration:
+  N/A. This routine used the already deployed DB-backed ingest and Summary
+  Authority Gate RPC path only.
+
+### BCE-2122 CRO Analysis MD Summary JSON Ingestion Routine (2026-06-23 KST)
+
+- Workspace/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `c0b2167`.
+- Issue:
+  `BCE-2122` (`CRO Analysis MD Summary JSON Ingestion Routine`).
+- Wake context:
+  assigned critical in-progress routine with no pending comments; the harness
+  had already checked out the issue.
+- Pipeline-state precheck:
+  confirmed the issue is attached to the Crypto Market Analysis Platform
+  workspace, read this state page and
+  `pipelines/bcelab-runtime-pipelines.json` before running the routine.
+- Selection:
+  source-index candidate selection across ECON, MAT, and FOR identified the
+  newest safe source without an existing `report_summary_jobs.source_identity`
+  row: FTX Token FOR.
+- Drive source:
+  `FTT 시장 무결성 및 심층 포렌식 리스크 보고서.md`.
+- Source identity:
+  `drive:1jFomPZINxbQKy-sTTdp_H1jihzSEmKFq:0B8HYgThT3NBySCtWSXBZZnRhWlpleEU5THBIaURBRlYwZjVzPQ`.
+- CRO local-agent JSON:
+  `scripts/pipeline/output/paperclip_cro_summary_for_ftx-token_bce2122.json`.
+- Candidate artifact:
+  `scripts/pipeline/output/analysis_md_summary_candidate_for_ftx-token.json`.
+- Candidate dry-run:
+  `python3 scripts/pipeline/analysis_md_summary_candidate.py --type for --slug ftx-token --drive-root-scope all --source-index only --agent-output-json scripts/pipeline/output/paperclip_cro_summary_for_ftx-token_bce2122.json --require-agent-output --limit 1 --dry-run`
+  returned valid with no validation reasons after removing card-text
+  punctuation that the raw-format validator rejects.
+- Candidate ingest:
+  `python3 scripts/pipeline/analysis_md_summary_candidate.py --type for --slug ftx-token --drive-root-scope all --source-index only --agent-output-json scripts/pipeline/output/paperclip_cro_summary_for_ftx-token_bce2122.json --require-agent-output --limit 1 --force`.
+- Candidate result:
+  valid, validation errors none, `job_id=7fa1a871-2df0-4391-b7e2-63234836f40c`,
+  upsert `inserted`.
+- Summary Authority Gate:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id 7fa1a871-2df0-4391-b7e2-63234836f40c --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2122" --write`.
+- Promotion result:
+  `dry_run=false`, `action=promote`, `state=promoted`,
+  `wrote_project_report=true`,
+  `project_report_id=3f96728f-a6e3-4b83-a839-3cdc70bc829f`.
+- DB verification:
+  the job has `validation_status=valid`, `status=candidate_ready`,
+  `authority_state=promoted`, `authority_mode=llm_active`,
+  `promotion_decision=promote`, `promotion_actor=paperclip-routine:CRO:BCE-2122`,
+  no validation errors, and
+  `promoted_project_report_id=3f96728f-a6e3-4b83-a839-3cdc70bc829f`.
+  The project report is `published`, `report_type=forensic`, `language=ko`,
+  `version=1`, `summary_source_md_file_id=1jFomPZINxbQKy-sTTdp_H1jihzSEmKFq`,
+  and `card_summary_ko` / `card_summary_en` match the CRO local-agent JSON.
+- Website/cache verification:
+  `https://www.bcelab.xyz/ko/reports/ftx-token/forensic`,
+  `https://www.bcelab.xyz/ko/projects/ftx-token`, and
+  `https://www.bcelab.xyz/en/projects/ftx-token`
+  returned HTTP 200 with `cache-control: private, no-cache, no-store,
+  max-age=0, must-revalidate`. Project-page HTML checks confirmed the promoted
+  Korean and English card copy is present; the report detail page returned 200
+  but does not render the card-summary string directly in the fetched HTML.
+- Deployment/migration:
+  N/A. This routine used the already deployed DB-backed ingest and Summary
+  Authority Gate RPC path only.
+
+### BCE-2121 CRO Analysis MD Summary JSON Ingestion Routine (2026-06-23 KST)
+
+- Workspace/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `c0b2167`.
+- Issue:
+  `BCE-2121` (`CRO Analysis MD Summary JSON Ingestion Routine`).
+- Wake context:
+  process-lost retry for assigned critical in-progress routine with no pending
+  comments; the harness had already checked out the issue.
+- Pipeline-state precheck:
+  confirmed the issue is attached to the Crypto Market Analysis Platform
+  workspace, read this state page and
+  `pipelines/bcelab-runtime-pipelines.json` before running the routine.
+- Index refresh:
+  `python3 scripts/pipeline/drive_source_index.py --type <econ|mat|for> --drive-root-scope all`
+  returned `seen=0`, `no_op=true` for all three report types using sync-state
+  checkpoints.
+- Selection:
+  source-index candidate selection across ECON, MAT, and FOR identified the
+  newest safe source without an existing `report_summary_jobs.source_identity`
+  row: Instadapp FOR.
+- Drive source:
+  `Fluid 시장 무결성 및 심층 포렌식 리스크 보고서.md`.
+- Source identity:
+  `drive:1182Dos3oUnKP1tLZMIJm2HQkdvWF9rc_:0B8HYgThT3NByc0tJV0FaNmdxS2g2MkhGSVpXZFd0T2VwbG00PQ`.
+- CRO local-agent JSON:
+  `scripts/pipeline/output/paperclip_cro_summary_for_instadapp_bce2121.json`.
+- Candidate artifact:
+  `scripts/pipeline/output/analysis_md_summary_candidate_for_instadapp.json`.
+- Candidate dry-run:
+  `python3 scripts/pipeline/analysis_md_summary_candidate.py --type for --slug instadapp --drive-root-scope all --source-index only --agent-output-json scripts/pipeline/output/paperclip_cro_summary_for_instadapp_bce2121.json --require-agent-output --limit 1 --dry-run`
+  returned valid with no validation reasons after removing card-text punctuation
+  that the raw-format validator rejects.
+- Candidate ingest:
+  `python3 scripts/pipeline/analysis_md_summary_candidate.py --type for --slug instadapp --drive-root-scope all --source-index only --agent-output-json scripts/pipeline/output/paperclip_cro_summary_for_instadapp_bce2121.json --require-agent-output --limit 1 --force`.
+- Candidate result:
+  valid, validation errors none, `job_id=c55028ae-b564-4480-a503-76c0689ecc66`,
+  upsert `inserted`.
+- Summary Authority Gate:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id c55028ae-b564-4480-a503-76c0689ecc66 --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2121" --write`.
+- Promotion result:
+  `dry_run=false`, `action=promote`, `state=promoted`,
+  `wrote_project_report=true`,
+  `project_report_id=13183e55-4d20-46c7-ac70-7e58f8d43206`.
+- DB verification:
+  the job has `validation_status=valid`, `status=candidate_ready`,
+  `authority_state=promoted`, `authority_mode=llm_active`,
+  `promotion_decision=promote`, `promotion_actor=paperclip-routine:CRO:BCE-2121`,
+  and `promoted_project_report_id=13183e55-4d20-46c7-ac70-7e58f8d43206`.
+  The project report is `published`, `report_type=forensic`, `language=ko`,
+  and `card_summary_ko` / `card_summary_en` match the CRO local-agent JSON.
+- Website/cache verification:
+  `https://www.bcelab.xyz/ko/reports/instadapp/forensic`,
+  `https://www.bcelab.xyz/ko/projects/instadapp`, and
+  `https://www.bcelab.xyz/en/projects/instadapp`
+  returned HTTP 200 with `cache-control: private, no-cache, no-store,
+  max-age=0, must-revalidate` and `x-vercel-cache: MISS`. Project-page HTML
+  checks confirmed the promoted Korean and English card copy is present; the
+  report detail page returned 200 but does not render the card-summary string
+  directly in the fetched HTML.
+- Deployment/migration:
+  N/A. This routine used the already deployed DB-backed ingest and Summary
+  Authority Gate RPC path only.
+
+### BCE-2119 CRO Analysis MD Summary JSON Ingestion Routine (2026-06-23 KST)
+
+- Workspace/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `c0b2167`.
+- Issue:
+  `BCE-2119` (`CRO Analysis MD Summary JSON Ingestion Routine`).
+- Wake context:
+  process-lost retry for assigned critical in-progress routine with no pending
+  comments; the harness had already checked out the issue.
+- Pipeline-state precheck:
+  confirmed the issue is attached to the Crypto Market Analysis Platform
+  workspace, read this state page and
+  `pipelines/bcelab-runtime-pipelines.json` before running the routine.
+- Index refresh:
+  `python3 scripts/pipeline/drive_source_index.py --type <econ|mat|for> --drive-root-scope all`
+  returned `seen=0`, `no_op=true` for all three report types using sync-state
+  checkpoints.
+- Selection:
+  source-index candidate selection across ECON, MAT, and FOR identified the
+  newest safe source without an existing `report_summary_jobs.source_identity`
+  row: Shuffle MAT.
+- Drive source:
+  `Shuffle_SHFL의 크립토 이코노미 발전 단계 및 서사 진화 평가 보고서_ 2023–2026.md`.
+- Source identity:
+  `drive:1gRYAEZsVtW2zWuWXVG5Ibt-L4U70wou9:0B8HYgThT3NBybkhWa0ZPcnpWL25RVEFTdzBGNSt1VjFxV3pjPQ`.
+- CRO local-agent JSON:
+  `scripts/pipeline/output/paperclip_cro_summary_mat_shuffle_bce2119.json`.
+- Candidate artifact:
+  `scripts/pipeline/output/analysis_md_summary_candidate_mat_shuffle.json`.
+- Candidate dry-run:
+  `python3 scripts/pipeline/analysis_md_summary_candidate.py --type mat --slug shuffle --drive-root-scope all --source-index only --agent-output-json scripts/pipeline/output/paperclip_cro_summary_mat_shuffle_bce2119.json --require-agent-output --limit 1 --dry-run`
+  returned valid with no validation reasons.
+- Candidate ingest:
+  `python3 scripts/pipeline/analysis_md_summary_candidate.py --type mat --slug shuffle --drive-root-scope all --source-index only --agent-output-json scripts/pipeline/output/paperclip_cro_summary_mat_shuffle_bce2119.json --require-agent-output --limit 1 --force`.
+- Candidate result:
+  valid, validation errors none, `job_id=e62ad20b-bd9d-4f62-9297-94033e948dd3`,
+  upsert `inserted`.
+- Summary Authority Gate:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id e62ad20b-bd9d-4f62-9297-94033e948dd3 --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2119" --write`.
+- Promotion result:
+  `dry_run=false`, `action=promote`, `state=promoted`,
+  `wrote_project_report=true`,
+  `project_report_id=ea1bb9fa-8116-4224-befc-6d7efb69795c`.
+- DB verification:
+  the job has `validation_status=valid`, `status=candidate_ready`,
+  `authority_state=promoted`, `authority_mode=llm_active`,
+  `promotion_decision=promote`, `promotion_actor=paperclip-routine:CRO:BCE-2119`,
+  and `promoted_project_report_id=ea1bb9fa-8116-4224-befc-6d7efb69795c`.
+  The project report is `published`, `report_type=maturity`, `language=ko`,
+  and `card_summary_ko` / `card_summary_en` match the CRO local-agent JSON.
+- Website/cache verification:
+  `https://www.bcelab.xyz/ko/reports/shuffle/maturity`,
+  `https://www.bcelab.xyz/ko/projects/shuffle`, and
+  `https://www.bcelab.xyz/en/projects/shuffle`
+  returned HTTP 200 with `cache-control: private, no-cache, no-store,
+  max-age=0, must-revalidate` and `x-vercel-cache: MISS`. HTML checks confirmed
+  the promoted Korean and English card copy is present.
+- Deployment/migration:
+  N/A. This routine used the already deployed DB-backed ingest and Summary
+  Authority Gate RPC path only.
+
+### BCE-2118 CRO Analysis MD Summary JSON Ingestion Routine (2026-06-23 KST)
+
+- Workspace/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `c0b2167`.
+- Issue:
+  `BCE-2118` (`CRO Analysis MD Summary JSON Ingestion Routine`).
+- Wake context:
+  assigned critical in-progress routine with no pending comments; the harness
+  had already checked out the issue.
+- Pipeline-state precheck:
+  confirmed the issue is attached to the Crypto Market Analysis Platform
+  workspace, read this state page and
+  `pipelines/bcelab-runtime-pipelines.json` before running the routine.
+- Index refresh:
+  `python3 scripts/pipeline/drive_source_index.py --type <econ|mat|for> --drive-root-scope all`
+  returned `seen=0`, `no_op=true` for all three report types using sync-state
+  checkpoints.
+- Selection:
+  source-index candidate selection across ECON, MAT, and FOR identified the
+  newest safe source without an existing `report_summary_jobs.source_identity`
+  row: Project Ailey MAT.
+- Drive source:
+  `Project Ailey의 크립토 이코노미 발전 단계 및 서사 진화 평가 보고서_ 2024 - 2026.md`.
+- Source identity:
+  `drive:1eZBD5qaV_ld17B4ObnfOJA0g52yTgFGK:0B8HYgThT3NBybEJhTHZWc1hlOHZUbFB1eitBSHUwaWRQeDFjPQ`.
+- CRO local-agent JSON:
+  `scripts/pipeline/output/paperclip_cro_summary_mat_project-ailey_bce2118.json`.
+- Candidate artifact:
+  `scripts/pipeline/output/analysis_md_summary_candidate_mat_project-ailey.json`.
+- Candidate dry-run:
+  `python3 scripts/pipeline/analysis_md_summary_candidate.py --type mat --slug project-ailey --drive-root-scope all --source-index only --agent-output-json scripts/pipeline/output/paperclip_cro_summary_mat_project-ailey_bce2118.json --require-agent-output --limit 1 --dry-run`
+  returned valid with no validation reasons after removing card-text
+  punctuation that the raw-format validator rejects.
+- Candidate ingest:
+  `python3 scripts/pipeline/analysis_md_summary_candidate.py --type mat --slug project-ailey --drive-root-scope all --source-index only --agent-output-json scripts/pipeline/output/paperclip_cro_summary_mat_project-ailey_bce2118.json --require-agent-output --limit 1 --force`.
+- Candidate result:
+  valid, validation errors none, `job_id=3971c073-b662-42f2-909f-7640f2c225f3`,
+  upsert `inserted`.
+- Summary Authority Gate:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id 3971c073-b662-42f2-909f-7640f2c225f3 --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2118" --write`.
+- Promotion result:
+  `dry_run=false`, `action=promote`, `state=promoted`,
+  `wrote_project_report=true`,
+  `project_report_id=1af05c94-2634-4e49-8f1e-4578894c9c92`.
+- DB verification:
+  the job has `validation_status=valid`, `status=candidate_ready`,
+  `authority_state=promoted`, `authority_mode=llm_active`,
+  `promotion_decision=promote`, `promotion_actor=paperclip-routine:CRO:BCE-2118`,
+  and `promoted_project_report_id=1af05c94-2634-4e49-8f1e-4578894c9c92`.
+  The project report is `published`, `report_type=maturity`, `language=ko`,
+  and `card_summary_ko` / `card_summary_en` match the CRO local-agent JSON.
+- Website/cache verification:
+  `https://www.bcelab.xyz/ko/reports/project-ailey/maturity`,
+  `https://www.bcelab.xyz/ko/projects/project-ailey`, and
+  `https://www.bcelab.xyz/en/projects/project-ailey`
+  returned HTTP 200 with `cache-control: private, no-cache, no-store,
+  max-age=0, must-revalidate` and `x-vercel-cache: MISS`. HTML checks confirmed
+  the promoted Korean and English card copy is present.
+- Deployment/migration:
+  N/A. This routine used the already deployed DB-backed ingest and Summary
+  Authority Gate RPC path only.
+
+### BCE-2117 CRO Analysis MD Summary JSON Ingestion Routine (2026-06-23 KST)
+
+- Workspace/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `c0b2167`.
+- Issue:
+  `BCE-2117` (`CRO Analysis MD Summary JSON Ingestion Routine`).
+- Wake context:
+  assigned critical in-progress routine with no pending comments; the harness
+  had already checked out the issue.
+- Pipeline-state precheck:
+  confirmed the issue is attached to the Crypto Market Analysis Platform
+  workspace, read this state page and
+  `pipelines/bcelab-runtime-pipelines.json` before running the routine.
+- Index refresh:
+  `python3 scripts/pipeline/drive_source_index.py --type <econ|mat|for> --drive-root-scope all`
+  returned `seen=0`, `no_op=true` for all three report types using sync-state
+  checkpoints.
+- Selection:
+  source-index candidate selection across ECON, MAT, and FOR identified the
+  newest safe source without an existing `report_summary_jobs.source_identity`
+  row: Robinhood xStock MAT.
+- Drive source:
+  `Robinhood xStock[HOODx]의 크립토 이코노미 발전 단계 및 서사 진화 평가 보고서_ 2024 - 2026.md`.
+- Source identity:
+  `drive:1zXSk47BKQ1NLyLRmxjn5tEf3ab6QOilm:0B8HYgThT3NBycXZ3Q2xtb0FSRHdvSEs0N3lhOURlR01VYWlZPQ`.
+- CRO local-agent JSON:
+  `scripts/pipeline/output/paperclip_cro_summary_mat_robinhood-tokenized-stock-xstock_bce2117.json`.
+- Candidate artifact:
+  `scripts/pipeline/output/analysis_md_summary_candidate_mat_robinhood-tokenized-stock-xstock.json`.
+- Candidate dry-run:
+  `python3 scripts/pipeline/analysis_md_summary_candidate.py --type mat --slug robinhood-tokenized-stock-xstock --drive-root-scope all --source-index only --agent-output-json scripts/pipeline/output/paperclip_cro_summary_mat_robinhood-tokenized-stock-xstock_bce2117.json --require-agent-output --limit 1 --dry-run`
+  returned valid with no validation reasons.
+- Candidate ingest:
+  `python3 scripts/pipeline/analysis_md_summary_candidate.py --type mat --slug robinhood-tokenized-stock-xstock --drive-root-scope all --source-index only --agent-output-json scripts/pipeline/output/paperclip_cro_summary_mat_robinhood-tokenized-stock-xstock_bce2117.json --require-agent-output --limit 1 --force`.
+- Candidate result:
+  valid, validation errors none, `job_id=f3479e95-d6f3-43be-a5ee-0054d853a639`,
+  upsert `inserted`.
+- Summary Authority Gate:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id f3479e95-d6f3-43be-a5ee-0054d853a639 --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2117" --write`.
+- Promotion result:
+  `dry_run=false`, `action=promote`, `state=promoted`,
+  `wrote_project_report=true`,
+  `project_report_id=137724e6-c461-462e-98a5-7839226646d3`.
+- DB verification:
+  the job has `validation_status=valid`, `authority_state=promoted`,
+  `authority_mode=llm_active`, `promotion_decision=promote`,
+  `promotion_actor=paperclip-routine:CRO:BCE-2117`, and
+  `promoted_project_report_id=137724e6-c461-462e-98a5-7839226646d3`.
+  The project report is `published`, `report_type=maturity`, `language=ko`,
+  and `card_summary_ko` matches the CRO local-agent JSON.
+- Website/cache verification:
+  `https://www.bcelab.xyz/ko/reports/robinhood-tokenized-stock-xstock/maturity`,
+  `https://www.bcelab.xyz/ko/projects/robinhood-tokenized-stock-xstock`, and
+  `https://www.bcelab.xyz/en/projects/robinhood-tokenized-stock-xstock`
+  returned HTTP 200 with `cache-control: private, no-cache, no-store,
+  max-age=0, must-revalidate` and `x-vercel-cache: MISS`. HTML checks confirmed
+  the promoted Korean and English card copy is present.
 - Deployment/migration:
   N/A. This routine used the already deployed DB-backed ingest and Summary
   Authority Gate RPC path only.

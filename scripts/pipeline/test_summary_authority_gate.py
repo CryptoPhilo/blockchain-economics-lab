@@ -136,13 +136,21 @@ class FakeRpc:
         key = (job["project_slug"], job["report_type"], job.get("locale", "ko"))
         if key in self.supabase.active_locks:
             raise RuntimeError("active promotion lock exists")
-        target = next(
+        project_id = self.supabase.projects[job["project_slug"]]["id"]
+        visible_statuses = {"published", "coming_soon", "in_review"}
+        candidate_version = job["candidate_patch"].get("card_data", {}).get("source_md", {}).get("version")
+        locale = job.get("locale", "ko")
+        locale_rows = [
             row
             for row in self.supabase.reports.values()
-            if row["project_id"] == self.supabase.projects[job["project_slug"]]["id"]
+            if row["project_id"] == project_id
             and row["report_type"] == job["report_type"]
-            and row["language"] == job.get("locale", "ko")
-        )
+            and row["language"] == locale
+            and row["status"] in visible_statuses
+        ]
+        target = next((row for row in locale_rows if row["version"] == candidate_version), None)
+        if target is None:
+            target = sorted(locale_rows, key=lambda row: row["version"], reverse=True)[0]
         report_patch = {
             "card_summary_ko": job["candidate_patch"].get("card_summary_ko"),
             "card_summary_en": job["candidate_patch"].get("card_summary_en"),
@@ -159,13 +167,16 @@ class FakeRpc:
         if self.supabase.fail_after_report_patch:
             raise RuntimeError("injected transaction failure after project report patch")
         updated = 0
-        for report in self.supabase.reports.values():
+        latest_visible_ids_by_language = {}
+        for report in sorted(self.supabase.reports.values(), key=lambda row: row["version"], reverse=True):
             if (
-                report["project_id"] == self.supabase.projects[job["project_slug"]]["id"]
+                report["project_id"] == project_id
                 and report["report_type"] == job["report_type"]
-                and report["version"] == target["version"]
-                and report["status"] in {"published", "coming_soon", "in_review"}
+                and report["status"] in visible_statuses
             ):
+                latest_visible_ids_by_language.setdefault(report["language"], report["id"])
+        for report in self.supabase.reports.values():
+            if report["id"] in set(latest_visible_ids_by_language.values()):
                 report.update({
                     **report_patch,
                     "card_data": {
@@ -358,6 +369,33 @@ def test_dry_run_uses_latest_visible_target_when_candidate_version_is_stale():
     assert decision.action == "promote"
     assert decision.project_report_id == "report-3"
     assert decision.reason == "dry-run promotion would call atomic DB RPC"
+
+
+def test_write_promotion_updates_latest_visible_language_siblings_under_version_skew():
+    module = load_gate()
+    sb = FakeSupabase(valid_job())
+    sb.reports["report-2"]["status"] = "coming_soon"
+    sb.reports["report-3"] = {
+        "id": "report-3",
+        "project_id": "project-1",
+        "report_type": "econ",
+        "version": 2,
+        "language": "en",
+        "status": "published",
+        "card_data": {"latest_en": True},
+        "card_summary_en": "Stale latest English summary",
+    }
+
+    decision = module.promote_job(sb, sb.jobs["job-1"], actor="agent", authority_mode="llm_active", dry_run=False)
+
+    assert decision.action == "promote"
+    assert decision.project_report_id == "report-1"
+    assert sb.reports["report-1"]["card_summary_ko"] == "검증된 요약"
+    assert "card_summary_en" not in sb.reports["report-2"]
+    assert sb.reports["report-3"]["card_summary_en"] == "Validated summary"
+    assert sb.reports["report-3"]["card_data"]["latest_en"] is True
+    assert sb.reports["report-3"]["card_data"]["summary_authority"]["job_id"] == "job-1"
+    assert sb.jobs["job-1"]["promotion_audit"]["updated_project_report_count"] == 2
 
 
 def test_duplicate_promotion_lock_blocks_concurrent_active_summary_update():
