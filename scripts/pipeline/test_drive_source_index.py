@@ -113,21 +113,72 @@ def test_map_source_file_marks_mat_natural_language_ambiguous():
     assert mapping.mapping_evidence["candidates"]
 
 
+def test_map_source_file_preserves_parsed_version_and_language():
+    module = load_module()
+    indexed = module.DriveIndexedFile(
+        file_id="file-1",
+        folder_scope="active",
+        source_root="analysis2",
+        report_type="econ",
+        folder_id="folder",
+        path="analysis2/ECON/solana_econ_v7_ko.md",
+        name="solana_econ_v7_ko.md",
+        mime_type="text/markdown",
+        modified_time="2026-06-21T00:00:00Z",
+        revision_id="rev-7",
+        size=10,
+        trashed=False,
+        web_view_link=None,
+    )
+
+    mapping = module.map_source_file(indexed, [])
+
+    assert mapping.mapping_status == "safe"
+    assert mapping.report_version == 7
+    assert mapping.source_language == "ko"
+    assert mapping.mapping_evidence["parsed"]["version"] == 7
+
+
 def test_select_index_candidates_reads_safe_extracted_rows_ordered_by_modified_time():
     module = load_module()
     sb = FakeSupabase({
-        "analysis_source_map": [
-            {"file_id": "old", "revision_id": "rev-old", "report_type": "econ", "project_slug": "solana", "mapping_status": "safe"},
-            {"file_id": "new", "revision_id": "rev-new", "report_type": "econ", "project_slug": "solana", "mapping_status": "safe"},
-            {"file_id": "amb", "revision_id": "rev-amb", "report_type": "econ", "project_slug": "solana", "mapping_status": "ambiguous"},
-        ],
-        "drive_file_index": [
-            {"file_id": "old", "name": "old.md", "modified_time": "2026-06-20T00:00:00Z"},
-            {"file_id": "new", "name": "new.md", "modified_time": "2026-06-21T00:00:00Z"},
-        ],
-        "drive_file_content_index": [
-            {"file_id": "old", "revision_id": "rev-old", "extraction_status": "extracted", "extracted_text_path": "/tmp/old.txt"},
-            {"file_id": "new", "revision_id": "rev-new", "extraction_status": "extracted", "extracted_text_path": "/tmp/new.txt"},
+        "analysis_report_source_index": [
+            {
+                "file_id": "old",
+                "revision_id": "rev-old",
+                "report_type": "econ",
+                "project_slug": "solana",
+                "mapping_status": "safe",
+                "extraction_status": "extracted",
+                "report_version": 1,
+                "name": "old.md",
+                "modified_time": "2026-06-20T00:00:00Z",
+                "extracted_text_path": "/tmp/old.txt",
+            },
+            {
+                "file_id": "new",
+                "revision_id": "rev-new",
+                "report_type": "econ",
+                "project_slug": "solana",
+                "mapping_status": "safe",
+                "extraction_status": "extracted",
+                "report_version": 2,
+                "name": "new.md",
+                "modified_time": "2026-06-21T00:00:00Z",
+                "extracted_text_path": "/tmp/new.txt",
+            },
+            {
+                "file_id": "amb",
+                "revision_id": "rev-amb",
+                "report_type": "econ",
+                "project_slug": "solana",
+                "mapping_status": "ambiguous",
+                "extraction_status": "extracted",
+                "report_version": 3,
+                "name": "amb.md",
+                "modified_time": "2026-06-22T00:00:00Z",
+                "extracted_text_path": "/tmp/amb.txt",
+            },
         ],
     })
 
@@ -140,17 +191,31 @@ def test_select_index_candidates_reads_safe_extracted_rows_ordered_by_modified_t
 def test_select_index_candidates_skips_sources_with_existing_summary_jobs():
     module = load_module()
     sb = FakeSupabase({
-        "analysis_source_map": [
-            {"file_id": "done", "revision_id": "rev-done", "report_type": "econ", "project_slug": "solana", "mapping_status": "safe"},
-            {"file_id": "next", "revision_id": "rev-next", "report_type": "econ", "project_slug": "solana", "mapping_status": "safe"},
-        ],
-        "drive_file_index": [
-            {"file_id": "done", "name": "done.md", "modified_time": "2026-06-22T00:00:00Z"},
-            {"file_id": "next", "name": "next.md", "modified_time": "2026-06-21T00:00:00Z"},
-        ],
-        "drive_file_content_index": [
-            {"file_id": "done", "revision_id": "rev-done", "extraction_status": "extracted", "extracted_text_path": "/tmp/done.txt"},
-            {"file_id": "next", "revision_id": "rev-next", "extraction_status": "extracted", "extracted_text_path": "/tmp/next.txt"},
+        "analysis_report_source_index": [
+            {
+                "file_id": "done",
+                "revision_id": "rev-done",
+                "report_type": "econ",
+                "project_slug": "solana",
+                "mapping_status": "safe",
+                "extraction_status": "extracted",
+                "report_version": 2,
+                "name": "done.md",
+                "modified_time": "2026-06-22T00:00:00Z",
+                "extracted_text_path": "/tmp/done.txt",
+            },
+            {
+                "file_id": "next",
+                "revision_id": "rev-next",
+                "report_type": "econ",
+                "project_slug": "solana",
+                "mapping_status": "safe",
+                "extraction_status": "extracted",
+                "report_version": 1,
+                "name": "next.md",
+                "modified_time": "2026-06-21T00:00:00Z",
+                "extracted_text_path": "/tmp/next.txt",
+            },
         ],
         "report_summary_jobs": [
             {"id": "job-1", "source_identity": "drive:done:rev-done"},
@@ -239,6 +304,13 @@ def test_sync_index_reuses_unchanged_revision_without_extracting(monkeypatch, tm
                 "mapping_status": "safe",
             }
         ],
+        "analysis_report_source_index": [
+            {
+                "file_id": "file-1",
+                "revision_id": "rev-1",
+                "report_type": "econ",
+            }
+        ],
     })
 
     metrics = module.sync_index(sb, object(), report_type="econ", drive_root_scope="active", slug="solana", dry_run=False)
@@ -277,7 +349,12 @@ def test_sync_index_persists_sync_state_after_successful_write(monkeypatch, tmp_
     metrics = module.sync_index(sb, object(), report_type="econ", drive_root_scope="active", slug="solana", dry_run=False)
 
     sync_ops = [op for op in sb.operations if op[0] == "drive_source_sync_state"]
+    report_source_ops = [op for op in sb.operations if op[0] == "analysis_report_source_index"]
     assert metrics["sync_state_upserts"] == 1
+    assert metrics["report_source_upserts"] == 1
+    assert len(report_source_ops) == 1
+    assert report_source_ops[0][2]["report_version"] == 1
+    assert report_source_ops[0][2]["source_language"] == "ko"
     assert len(sync_ops) == 1
     payload = sync_ops[0][2]
     assert payload["source_root"] == "analysis2"

@@ -20,6 +20,9 @@ replacement for the ECON/MAT/FOR slide publishing pipelines.
   metadata, extracted text, and safe/ambiguous/unmatched project mappings in
   Supabase. It is default-off for candidate selection unless
   `analysis_md_summary_candidate.py --source-index prefer|only` is used.
+  The backfill path should use the denormalized `analysis_report_source_index`
+  table so it can select by `report_type/project_slug/report_version` without
+  repeatedly traversing Google Drive folders.
 - Runtime entrypoint: `scripts/pipeline/analysis_md_summary_candidate.py`.
 - Source-index entrypoint: `scripts/pipeline/drive_source_index.py`.
 - Operator command shape:
@@ -97,7 +100,13 @@ replacement for the ECON/MAT/FOR slide publishing pipelines.
   - `drive_file_content_index`: extracted text hash/status, page count, and
     local extracted-text cache path keyed by Drive file/revision.
   - `analysis_source_map`: safe, ambiguous, unmatched, or skipped mapping from
-    Drive source to report type/project slug with mapping evidence.
+    Drive source to report type/project slug with mapping evidence, parsed
+    report version, and source language when filename metadata is available.
+  - `analysis_report_source_index`: denormalized backfill lookup table keyed by
+    `file_id/revision_id/report_type`, carrying the Drive path, extracted text
+    pointer, mapping status, `source_identity`, parsed report version, and
+    source language. Backfill routines should read this table first and avoid
+    folder-wide Drive scans unless the index is missing or stale.
   - `drive_source_sync_state`: active per
     `source_root/folder_scope/report_type/folder_id` scanner checkpoint table.
     Successful non-dry-run syncs persist `last_sync_at`, `last_success_at`,
@@ -109,6 +118,14 @@ replacement for the ECON/MAT/FOR slide publishing pipelines.
   `analysis_md_summary_candidate.py --source-index prefer` uses safe extracted
   index rows first and falls back to the folder scan; `--source-index only`
   exits with `no_safe_index_candidate` if no safe extracted row exists.
+- Backfill operating mode:
+  1. Refresh the source index with
+     `python3 scripts/pipeline/drive_source_index.py --type <econ|mat|for> --drive-root-scope all`.
+  2. Run candidate generation with
+     `python3 scripts/pipeline/analysis_md_summary_candidate.py --type <type> --slug <slug> --drive-root-scope all --source-index only ...`.
+  3. Use `--full-rescan` only for bootstrap/recovery or when Drive folder
+     history may have been missed; normal backfills should rely on the sync
+     checkpoint plus `analysis_report_source_index`.
 - Ambiguous/unmatched rows are retained for review but are not consumed by the
   summary candidate pipeline.
 
@@ -276,7 +293,7 @@ website publishing contract for `econ-report-publishing`,
       `BCE-2078`, `BCE-2079`, `BCE-2080`, `BCE-2082`, `BCE-2083`,
       `BCE-2084`, `BCE-2085`, `BCE-2086`, `BCE-2087`, `BCE-2088`, `BCE-2089`,
       `BCE-2090`, `BCE-2091`, `BCE-2092`, `BCE-2093`, `BCE-2095`, `BCE-2096`,
-      `BCE-2101`, `BCE-2102`, `BCE-2103`, `BCE-2104`, and `BCE-2112`.
+      `BCE-2101`, `BCE-2102`, `BCE-2103`, `BCE-2104`, `BCE-2112`, and `BCE-2114`.
 
   - 2026-06-20 run `27861610008` remains useful as negative evidence: it
     prevented runtime or DB candidate writes when the summary-generation
@@ -2775,6 +2792,69 @@ website publishing contract for `econ-report-publishing`,
 - Deployment/migration:
   N/A. This routine used the already deployed DB-backed ingest and Summary
   Authority Gate RPC path only.
+
+### BCE-2114 CRO Analysis MD Summary JSON Ingestion Routine (2026-06-23 KST)
+
+- Workspace/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `c414f15`.
+- Issue:
+  `BCE-2114` (`CRO Analysis MD Summary JSON Ingestion Routine`).
+- Wake context:
+  assigned critical in-progress routine with no pending comments; the harness
+  had already checked out the issue.
+- Pipeline-state precheck:
+  confirmed the issue is attached to the Crypto Market Analysis Platform
+  workspace, read this state page and
+  `pipelines/bcelab-runtime-pipelines.json` before running the routine.
+- Selection:
+  source-index candidate selection across ECON, MAT, and FOR identified the
+  newest safe source without an existing candidate job before this run:
+  Undeads Games MAT.
+- Drive source:
+  `Undeads Games의 크립토 이코노미 발전 단계 및 서사 진화 평가 보고서_ 2022 - 2026.md`.
+- Source identity:
+  `drive:1VWBEjwhnruJHrROoZxMiDX_HAtzTl_G3:0B8HYgThT3NByMUZBSzBjcUx6R0xXekQ0MTZHU3JyZ1B4aXNzPQ`.
+- Identity gate:
+  tracked project `undeads-games` has DB name `Undeads Games` and symbol
+  `UDS`; the Drive title/body identify Undeads Games, UDS, tokenized assets,
+  Steam launch, Rush, staking, and maturity risks.
+- CRO local-agent JSON:
+  `scripts/pipeline/output/paperclip_cro_summary_mat_undeads-games_bce2114.json`.
+- Candidate artifact:
+  `scripts/pipeline/output/analysis_md_summary_candidate_mat_undeads-games.json`.
+- Candidate dry-run:
+  first dry-run returned raw-format validator warnings for slash/hyphen-style
+  card text. The local JSON was rewritten into natural-language card copy, and
+  the rerun returned valid with write=`dry_run`.
+- Candidate ingest:
+  `python3 scripts/pipeline/analysis_md_summary_candidate.py --type mat --slug undeads-games --drive-root-scope all --source-index only --agent-output-json scripts/pipeline/output/paperclip_cro_summary_mat_undeads-games_bce2114.json --require-agent-output --limit 1 --force`.
+- Candidate result:
+  valid, validation errors none, `job_id=3168433a-0b8f-4b57-b3dd-f75164dac1b1`,
+  upsert `inserted`.
+- Summary Authority Gate:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id 3168433a-0b8f-4b57-b3dd-f75164dac1b1 --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2114" --write`.
+- Promotion result:
+  `dry_run=false`, `action=promote`, `state=promoted`,
+  `wrote_project_report=true`,
+  `project_report_id=8c91b213-0e08-4045-8503-b88cd64b923e`.
+- DB verification:
+  the job has `validation_status=valid`, `authority_state=promoted`,
+  `authority_mode=llm_active`, `promotion_decision=promote`,
+  `promotion_actor=paperclip-routine:CRO:BCE-2114`, no validation errors, and
+  `promoted_project_report_id=8c91b213-0e08-4045-8503-b88cd64b923e`.
+  The project report is `published`, `report_type=maturity`, `language=ko`,
+  `version=1`, and `summary_source_md_file_id=1VWBEjwhnruJHrROoZxMiDX_HAtzTl_G3`.
+- Website/cache verification:
+  `https://www.bcelab.xyz/ko/reports/undeads-games/maturity`,
+  `https://www.bcelab.xyz/ko/projects/undeads-games`, and
+  `https://www.bcelab.xyz/en/projects/undeads-games` returned HTTP 200 with
+  `cache-control: private, no-cache, no-store, max-age=0, must-revalidate` and
+  `x-vercel-cache: MISS`; the pages contained the expected Undeads Games, UDS,
+  Steam, token asset, and repeat-play summary strings.
+- Deployment/migration:
+  N/A. This routine used the already deployed DB-backed ingest and Summary
+  Authority Gate RPC path only; no manifest change was needed.
 
 ### BCE-2112 CRO Analysis MD Summary JSON Ingestion Routine (2026-06-23 KST)
 

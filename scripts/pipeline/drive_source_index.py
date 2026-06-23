@@ -43,6 +43,7 @@ DRIVE_SOURCE_INDEX_TABLES = (
     "drive_file_index",
     "drive_file_content_index",
     "analysis_source_map",
+    "analysis_report_source_index",
     "drive_source_sync_state",
 )
 
@@ -83,6 +84,8 @@ class SourceMapping:
     report_type: str
     project_slug: Optional[str]
     subject: Optional[str]
+    report_version: Optional[int]
+    source_language: Optional[str]
     mapping_confidence: int
     mapping_status: str
     mapping_evidence: Dict[str, Any]
@@ -241,11 +244,33 @@ def map_source_file(indexed: DriveIndexedFile, projects: Sequence[Dict[str, Any]
     parsed = _parse_markdown_name(indexed.name)
     evidence: Dict[str, Any] = {"name": indexed.name, "path": indexed.path, "candidates": []}
     if parsed:
-        slug, parsed_type, _version, lang = parsed
-        evidence["parsed"] = {"slug": slug, "report_type": parsed_type, "lang": lang}
+        slug, parsed_type, version, lang = parsed
+        evidence["parsed"] = {"slug": slug, "report_type": parsed_type, "version": version, "lang": lang}
         if parsed_type != indexed.report_type:
-            return SourceMapping(indexed.file_id, indexed.revision_id, indexed.report_type, slug, slug, 0, "skipped", evidence)
-        return SourceMapping(indexed.file_id, indexed.revision_id, indexed.report_type, slug, slug, 100, "safe", evidence)
+            return SourceMapping(
+                indexed.file_id,
+                indexed.revision_id,
+                indexed.report_type,
+                slug,
+                slug,
+                version,
+                lang,
+                0,
+                "skipped",
+                evidence,
+            )
+        return SourceMapping(
+            indexed.file_id,
+            indexed.revision_id,
+            indexed.report_type,
+            slug,
+            slug,
+            version,
+            lang,
+            100,
+            "safe",
+            evidence,
+        )
 
     scored: List[Tuple[int, Dict[str, Any]]] = []
     for project in projects:
@@ -258,7 +283,7 @@ def map_source_file(indexed: DriveIndexedFile, projects: Sequence[Dict[str, Any]
         for score, item in scored[:5]
     ]
     if not scored:
-        return SourceMapping(indexed.file_id, indexed.revision_id, indexed.report_type, None, None, 0, "unmatched", evidence)
+        return SourceMapping(indexed.file_id, indexed.revision_id, indexed.report_type, None, None, None, None, 0, "unmatched", evidence)
     top_score, top_project = scored[0]
     if len(scored) > 1 and scored[1][0] >= top_score - 10:
         return SourceMapping(
@@ -267,6 +292,8 @@ def map_source_file(indexed: DriveIndexedFile, projects: Sequence[Dict[str, Any]
             indexed.report_type,
             str(top_project.get("slug") or ""),
             str(top_project.get("name") or top_project.get("slug") or ""),
+            None,
+            None,
             top_score,
             "ambiguous",
             evidence,
@@ -277,6 +304,8 @@ def map_source_file(indexed: DriveIndexedFile, projects: Sequence[Dict[str, Any]
         indexed.report_type,
         str(top_project.get("slug") or ""),
         str(top_project.get("name") or top_project.get("slug") or ""),
+        None,
+        None,
         top_score,
         "safe",
         evidence,
@@ -299,9 +328,102 @@ def select_index_candidates(
     slug: Optional[str],
     limit: int,
 ) -> List[Dict[str, Any]]:
+    try:
+        rows = _select_report_source_index_candidates(sb, report_type=report_type, slug=slug, limit=limit)
+    except Exception as exc:
+        if not _is_missing_drive_index_schema_error(exc):
+            raise
+        return _select_index_candidates_legacy(sb, report_type=report_type, slug=slug, limit=limit)
+    if rows:
+        return rows
+    return _select_index_candidates_legacy(sb, report_type=report_type, slug=slug, limit=limit)
+
+
+def _select_report_source_index_candidates(
+    sb: Any,
+    *,
+    report_type: str,
+    slug: Optional[str],
+    limit: int,
+) -> List[Dict[str, Any]]:
+    query = (
+        sb.table("analysis_report_source_index")
+        .select("*")
+        .eq("report_type", report_type)
+        .eq("mapping_status", "safe")
+        .eq("extraction_status", "extracted")
+    )
+    if slug:
+        query = query.eq("project_slug", slug)
+    rows = query.execute().data or []
+    selected: List[Dict[str, Any]] = []
+    for row in rows:
+        file_id = str(row.get("file_id") or "")
+        revision_id = str(row.get("revision_id") or "")
+        if not file_id or not revision_id:
+            continue
+        if _source_has_summary_job(sb, file_id=file_id, revision_id=revision_id):
+            continue
+        selected.append(_candidate_row_from_report_source(row))
+    selected.sort(
+        key=lambda row: (
+            row["mapping"].get("report_version") or 0,
+            str(row["file"].get("modified_time") or ""),
+        ),
+        reverse=True,
+    )
+    return selected[: max(1, limit)]
+
+
+def _candidate_row_from_report_source(row: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        "file": {
+            "file_id": row.get("file_id"),
+            "revision_id": row.get("revision_id"),
+            "folder_scope": row.get("folder_scope"),
+            "source_root": row.get("source_root"),
+            "report_type": row.get("report_type"),
+            "folder_id": row.get("folder_id"),
+            "path": row.get("path"),
+            "name": row.get("name"),
+            "mime_type": row.get("mime_type"),
+            "modified_time": row.get("modified_time"),
+            "size": row.get("size"),
+            "metadata": {"webViewLink": row.get("web_view_link")} if row.get("web_view_link") else {},
+        },
+        "content": {
+            "file_id": row.get("file_id"),
+            "revision_id": row.get("revision_id"),
+            "text_sha256": row.get("text_sha256"),
+            "extraction_status": row.get("extraction_status"),
+            "page_count": row.get("page_count"),
+            "extracted_text_path": row.get("extracted_text_path"),
+        },
+        "mapping": {
+            "file_id": row.get("file_id"),
+            "revision_id": row.get("revision_id"),
+            "report_type": row.get("report_type"),
+            "project_slug": row.get("project_slug"),
+            "subject": row.get("subject"),
+            "report_version": row.get("report_version"),
+            "source_language": row.get("source_language"),
+            "mapping_status": row.get("mapping_status"),
+            "mapping_confidence": row.get("mapping_confidence"),
+            "mapping_evidence": row.get("mapping_evidence") or {},
+        },
+    }
+
+
+def _select_index_candidates_legacy(
+    sb: Any,
+    *,
+    report_type: str,
+    slug: Optional[str],
+    limit: int,
+) -> List[Dict[str, Any]]:
     query = (
         sb.table("analysis_source_map")
-        .select("file_id, revision_id, report_type, project_slug, mapping_status, mapping_confidence, mapping_evidence")
+        .select("file_id, revision_id, report_type, project_slug, subject, mapping_status, mapping_confidence, mapping_evidence")
         .eq("report_type", report_type)
         .eq("mapping_status", "safe")
     )
@@ -393,6 +515,7 @@ def sync_index(
         "modified_after": modified_after,
         "sync_state_used": bool(checkpoint_resolver),
         "sync_state_upserts": 0,
+        "report_source_upserts": 0,
         "no_op": False,
     }
     seen_by_folder: Dict[Tuple[str, str, str, str], int] = {}
@@ -403,7 +526,8 @@ def sync_index(
         existing_file = _existing_file_row(sb, indexed.file_id) if sb else None
         existing_content = _existing_content_row(sb, indexed.file_id, indexed.revision_id) if sb else None
         existing_mapping = _existing_mapping_row(sb, indexed.file_id, indexed.revision_id, report_type) if sb else None
-        if _is_unchanged(indexed, existing_file, existing_content, existing_mapping):
+        existing_report_source = _existing_report_source_row(sb, indexed.file_id, indexed.revision_id, report_type) if sb else None
+        if _is_unchanged(indexed, existing_file, existing_content, existing_mapping, existing_report_source):
             metrics["unchanged"] += 1
             metrics["content_cached"] += 1
             continue
@@ -422,7 +546,12 @@ def sync_index(
         sb.table("drive_file_index").upsert(_file_row(indexed), on_conflict="file_id").execute()
         sb.table("drive_file_content_index").upsert(_content_row(content), on_conflict="file_id,revision_id").execute()
         sb.table("analysis_source_map").upsert(_mapping_row(mapping), on_conflict="file_id,revision_id,report_type").execute()
+        sb.table("analysis_report_source_index").upsert(
+            _report_source_row(indexed, content, mapping),
+            on_conflict="file_id,revision_id,report_type",
+        ).execute()
         metrics["metadata_upserts"] += 1
+        metrics["report_source_upserts"] += 1
     if not dry_run and sb:
         for folder_scope, source_root, folder_id in folder_keys:
             key = (source_root, folder_scope, report_type, folder_id)
@@ -542,16 +671,40 @@ def _existing_mapping_row(sb: Any, file_id: str, revision_id: str, report_type: 
     return rows[0] if rows else None
 
 
+def _existing_report_source_row(sb: Any, file_id: str, revision_id: str, report_type: str) -> Optional[Dict[str, Any]]:
+    try:
+        rows = (
+            sb.table("analysis_report_source_index")
+            .select("file_id, revision_id, report_type")
+            .eq("file_id", file_id)
+            .eq("revision_id", revision_id)
+            .eq("report_type", report_type)
+            .limit(1)
+            .execute()
+            .data
+            or []
+        )
+    except Exception as exc:
+        _raise_missing_drive_index_schema(exc)
+        raise
+    return rows[0] if rows else None
+
+
 def _raise_missing_drive_index_schema(exc: Exception) -> None:
-    message = str(exc)
-    if "PGRST205" not in message and not any(table in message for table in DRIVE_SOURCE_INDEX_TABLES):
+    if not _is_missing_drive_index_schema_error(exc):
         return
     raise RuntimeError(
         "Drive Source Index tables are not available in Supabase. "
         "Apply supabase/migrations/20260621043000_add_drive_source_index.sql "
-        "and refresh the PostgREST schema cache before running persisted or "
+        "and supabase/migrations/20260623010000_add_analysis_report_source_index.sql, "
+        "then refresh the PostgREST schema cache before running persisted or "
         "checkpoint-backed drive_source_index.py syncs."
     ) from exc
+
+
+def _is_missing_drive_index_schema_error(exc: Exception) -> bool:
+    message = str(exc)
+    return "PGRST205" in message or any(table in message for table in DRIVE_SOURCE_INDEX_TABLES)
 
 
 def _is_unchanged(
@@ -559,8 +712,9 @@ def _is_unchanged(
     existing_file: Optional[Dict[str, Any]],
     existing_content: Optional[Dict[str, Any]],
     existing_mapping: Optional[Dict[str, Any]],
+    existing_report_source: Optional[Dict[str, Any]],
 ) -> bool:
-    if not existing_file or not existing_content or not existing_mapping:
+    if not existing_file or not existing_content or not existing_mapping or not existing_report_source:
         return False
     return (
         str(existing_file.get("revision_id") or "") == indexed.revision_id
@@ -627,11 +781,45 @@ def _mapping_row(mapping: SourceMapping) -> Dict[str, Any]:
         "report_type": mapping.report_type,
         "project_slug": mapping.project_slug,
         "subject": mapping.subject,
+        "report_version": mapping.report_version,
+        "source_language": mapping.source_language,
         "mapping_confidence": mapping.mapping_confidence,
         "mapping_status": mapping.mapping_status,
         "mapping_evidence": mapping.mapping_evidence,
         "mapped_at": utc_now(),
         "updated_at": utc_now(),
+    }
+
+
+def _report_source_row(indexed: DriveIndexedFile, content: ContentIndex, mapping: SourceMapping) -> Dict[str, Any]:
+    now = utc_now()
+    return {
+        "file_id": indexed.file_id,
+        "revision_id": indexed.revision_id,
+        "report_type": indexed.report_type,
+        "project_slug": mapping.project_slug,
+        "subject": mapping.subject,
+        "report_version": mapping.report_version,
+        "source_language": mapping.source_language,
+        "source_identity": f"drive:{indexed.file_id}:{indexed.revision_id}",
+        "folder_scope": indexed.folder_scope,
+        "source_root": indexed.source_root,
+        "folder_id": indexed.folder_id,
+        "path": indexed.path,
+        "name": indexed.name,
+        "mime_type": indexed.mime_type,
+        "modified_time": indexed.modified_time,
+        "size": indexed.size,
+        "web_view_link": indexed.web_view_link,
+        "text_sha256": content.text_sha256,
+        "extraction_status": content.extraction_status,
+        "page_count": content.page_count,
+        "extracted_text_path": content.extracted_text_path,
+        "mapping_confidence": mapping.mapping_confidence,
+        "mapping_status": mapping.mapping_status,
+        "mapping_evidence": mapping.mapping_evidence,
+        "last_seen_at": now,
+        "updated_at": now,
     }
 
 
