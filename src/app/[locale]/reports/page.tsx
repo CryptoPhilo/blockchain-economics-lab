@@ -97,7 +97,7 @@ export default async function ReportsPage({ params, searchParams }: Props) {
     .order('created_at', { ascending: false })
 
   const { data: rawReports } = await dataQuery
-  let marketRankLookup = new Map<string, number>()
+  let marketRankLookup = buildMarketRankLookup([])
   try {
     marketRankLookup = buildMarketRankLookup(await projectsRepository.getLatestScoreboardMarketSnapshot())
   } catch (error) {

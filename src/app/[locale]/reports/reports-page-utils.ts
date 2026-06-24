@@ -145,7 +145,7 @@ export function prepareRapidChangeReports(args: {
   page: number
   pageSize: number
   searchQuery?: string
-  marketRankLookup?: Map<string, number>
+  marketRankLookup?: MarketRankLookup
 }) {
   const normalizedQuery = args.searchQuery?.trim().toLowerCase() || ''
   const filteredReports = normalizedQuery
@@ -193,40 +193,93 @@ function toDisplayRank(value: unknown) {
   return Number.isInteger(rank) && rank >= 1 && rank <= 500 ? rank : null
 }
 
+type MarketRankEntry = {
+  rank: number
+  slugKey: string | null
+  nameKey: string | null
+}
+
+export type MarketRankLookup = {
+  bySlug: Map<string, number>
+  byName: Map<string, number>
+  bySymbol: Map<string, MarketRankEntry[]>
+}
+
+function createMarketRankLookup(): MarketRankLookup {
+  return {
+    bySlug: new Map(),
+    byName: new Map(),
+    bySymbol: new Map(),
+  }
+}
+
 export function buildMarketRankLookup(snapshotRows: ScoreboardMarketSnapshotRow[]) {
-  const lookup = new Map<string, number>()
+  const lookup = createMarketRankLookup()
 
   for (const row of snapshotRows) {
     const rank = toDisplayRank(row.cmc_rank)
     if (!rank) continue
 
-    for (const value of [row.slug, row.cmc_symbol, row.cmc_name]) {
-      const key = normalizeRankKey(value)
-      if (key && !lookup.has(key)) lookup.set(key, rank)
+    const slugKey = normalizeRankKey(row.slug)
+    const symbolKey = normalizeRankKey(row.cmc_symbol)
+    const nameKey = normalizeRankKey(row.cmc_name)
+
+    if (slugKey && !lookup.bySlug.has(slugKey)) {
+      lookup.bySlug.set(slugKey, rank)
+    }
+    if (nameKey && !lookup.byName.has(nameKey)) {
+      lookup.byName.set(nameKey, rank)
+    }
+    if (symbolKey) {
+      const entries = lookup.bySymbol.get(symbolKey) || []
+      entries.push({ rank, slugKey, nameKey })
+      lookup.bySymbol.set(symbolKey, entries)
     }
   }
 
   return lookup
 }
 
-export function getMarketRankForReport(report: ProjectReport, marketRankLookup: Map<string, number>) {
+export function getMarketRankForReport(report: ProjectReport, marketRankLookup: MarketRankLookup) {
   const project = report.project
   if (!project) return null
 
-  const candidates = [
+  const slugCandidates = [
     project.slug,
-    project.symbol,
-    project.name,
     project.cmc_id,
     project.coingecko_id,
+  ]
+    .map(normalizeRankKey)
+    .filter((key): key is string => key !== null)
+
+  const nameCandidates = [
+    project.name,
     ...(Array.isArray(project.aliases) ? project.aliases : []),
   ]
+    .map(normalizeRankKey)
+    .filter((key): key is string => key !== null)
 
-  for (const candidate of candidates) {
-    const key = normalizeRankKey(candidate)
-    if (!key) continue
-    const rank = marketRankLookup.get(key)
+  for (const key of slugCandidates) {
+    const rank = marketRankLookup.bySlug.get(key)
     if (rank) return rank
+  }
+
+  for (const key of nameCandidates) {
+    const rank = marketRankLookup.byName.get(key)
+    if (rank) return rank
+  }
+
+  const symbolKey = normalizeRankKey(project.symbol)
+  const symbolEntries = symbolKey ? marketRankLookup.bySymbol.get(symbolKey) || [] : []
+  if (symbolEntries.length > 0) {
+    const slugKeys = new Set(slugCandidates)
+    const nameKeys = new Set(nameCandidates)
+
+    for (const entry of symbolEntries) {
+      if ((entry.slugKey && slugKeys.has(entry.slugKey)) || (entry.nameKey && nameKeys.has(entry.nameKey))) {
+        return entry.rank
+      }
+    }
   }
 
   return null

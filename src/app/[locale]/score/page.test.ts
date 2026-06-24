@@ -399,6 +399,64 @@ describe('score page CMC canonical Top 500 snapshot guard', () => {
     })
   })
 
+  it('maps the CMC Avalanche slug to the report-bearing avalanche-2 project', () => {
+    const trackedProjects = [
+      {
+        id: 'avalanche-project',
+        name: 'Avalanche',
+        slug: 'avalanche-2',
+        symbol: 'AVAX',
+        category: 'Layer 1',
+        market_cap_usd: 100,
+        coingecko_id: 'avalanche-2',
+        cmc_id: null,
+        aliases: [],
+        maturity_score: 69.5,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const availabilityByProjectSlug = new Map([
+      ['avalanche-2', {
+        reportTypes: ['econ'],
+        reportDates: {
+          econ: '2026-06-11T00:00:00.000Z',
+          maturity: null,
+          forensic: null,
+        },
+        maturityScore: null,
+      }],
+    ])
+    const snapshotRows = Array.from(
+      { length: 500 },
+      (_, index) => ({
+        ...makeSnapshotRow(index + 1, index === 27 ? 'avalanche' : `cmc-project-${index + 1}`),
+        cmc_name: index === 27 ? 'Avalanche' : `CMC Project ${index + 1}`,
+        cmc_symbol: index === 27 ? 'AVAX' : `P${index + 1}`,
+      }),
+    )
+
+    const rows = canonicalSnapshotRowsToScoreRows(
+      snapshotRows,
+      trackedProjects,
+      undefined,
+      availabilityByProjectSlug,
+    )
+
+    expect(rows[27]).toMatchObject({
+      rank: 28,
+      name: 'Avalanche',
+      symbol: 'AVAX',
+      slug: 'avalanche-2',
+      score: 69.5,
+      reportTypes: ['econ'],
+      reportDates: {
+        econ: '2026-06-11T00:00:00.000Z',
+      },
+    })
+  })
+
   it('uses canonical alias target report availability when CMC identifies ETHGas by GWEI', () => {
     const activeMarketProjects = [
       {

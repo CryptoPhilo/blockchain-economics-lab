@@ -37,6 +37,7 @@ const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'curve-dao-token', slug: 'curve-dao' },
   { alias: 'blockstack', slug: 'stacks' },
   { alias: 'fetch-ai', slug: 'artificial-superintelligence-alliance' },
+  { alias: 'avalanche', slug: 'avalanche-2' },
   { alias: 'euro-coin', slug: 'eurc' },
   { alias: 'eur-coinvertible', slug: 'eur-coinvertible' },
   { alias: 'eur coinvertible', slug: 'eur-coinvertible' },

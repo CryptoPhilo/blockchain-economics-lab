@@ -695,9 +695,54 @@ describe('rapid change report list helpers', () => {
       locale: 'ko',
       page: 1,
       pageSize: 20,
-      marketRankLookup: new Map(),
+      marketRankLookup: buildMarketRankLookup([]),
     })
 
+    expect(result.totalCount).toBe(0)
+    expect(result.reports).toEqual([])
+  })
+
+  it('does not treat a symbol-only Top 500 collision as the report project rank', () => {
+    const reports = [
+      createReport({
+        id: 'mmt-forensic',
+        project_id: 'mmt',
+        title_en: 'MMT rapid change',
+        created_at: '2026-06-23T03:00:00.000Z',
+        project: {
+          id: 'mmt',
+          name: 'MMT',
+          slug: 'mmt',
+          symbol: 'MMT',
+          status: 'active',
+          discovered_at: '2026-04-01T00:00:00.000Z',
+          forensic_monitoring: true,
+          created_at: '2026-04-01T00:00:00.000Z',
+        },
+      }),
+    ]
+    const marketRankLookup = buildMarketRankLookup([
+      {
+        slug: 'mmt-finance',
+        cmc_symbol: 'MMT',
+        cmc_name: 'MMT Finance',
+        cmc_rank: 420,
+        price_usd: null,
+        market_cap: null,
+        change_24h: null,
+        recorded_at: '2026-06-23T00:00:00.000Z',
+      },
+    ])
+
+    const result = prepareRapidChangeReports({
+      reports,
+      locale: 'ko',
+      page: 1,
+      pageSize: 20,
+      marketRankLookup,
+    })
+
+    expect(getMarketRankForReport(reports[0], marketRankLookup)).toBeNull()
     expect(result.totalCount).toBe(0)
     expect(result.reports).toEqual([])
   })
