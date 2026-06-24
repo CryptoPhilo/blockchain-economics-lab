@@ -252,6 +252,8 @@ def list_drive_candidates(
     slug: Optional[str],
     source_scope: str,
     service: Any,
+    promoted_source_identities: Optional[Iterable[str]] = None,
+    include_promoted_sources: bool = False,
 ) -> List[AnalysisMdCandidate]:
     folder_ids = _source_folder_ids_for_report_type(report_type, source_scope=source_scope, service=service)
     items: List[Dict[str, Any]] = []
@@ -259,6 +261,7 @@ def list_drive_candidates(
         items.extend(_list_drive_markdown_sources_with_revision(service, folder_id))
 
     project = fetch_project(None, slug) if slug else None
+    promoted_identities = set(promoted_source_identities or ())
     candidates: List[Tuple[int, AnalysisMdCandidate]] = []
     for item in items:
         name = str(item.get("name") or "")
@@ -278,9 +281,24 @@ def list_drive_candidates(
         if slug and not inferred_slug:
             inferred_slug = slug
 
+        revision_id = item.get("headRevisionId") or item.get("md5Checksum")
+        revision_identity = (
+            source_identity(drive_file_id=item["id"], revision_id=revision_id, source_hash="")
+            if revision_id
+            else None
+        )
+        if revision_identity and not include_promoted_sources and revision_identity in promoted_identities:
+            continue
+
         text = _download_drive_text(service, item["id"])
         source_hash = markdown_sha256(text)
-        revision_id = item.get("headRevisionId") or item.get("md5Checksum")
+        identity = source_identity(
+            drive_file_id=item["id"],
+            revision_id=revision_id,
+            source_hash=source_hash,
+        )
+        if not include_promoted_sources and identity in promoted_identities:
+            continue
         source = MarkdownSource(
             slug=inferred_slug,
             report_type=report_type,
@@ -294,11 +312,7 @@ def list_drive_candidates(
         )
         candidate = AnalysisMdCandidate(
             source=source,
-            source_identity=source_identity(
-                drive_file_id=item["id"],
-                revision_id=revision_id,
-                source_hash=source_hash,
-            ),
+            source_identity=identity,
             source_sha256=source_hash,
             revision_id=revision_id,
             web_view_link=item.get("webViewLink"),
@@ -375,6 +389,25 @@ def existing_job(sb: Any, idempotency_key: str) -> Optional[Dict[str, Any]]:
     )
     rows = res.data or []
     return rows[0] if rows else None
+
+
+def promoted_source_identities(sb: Any, *, report_type: str) -> set[str]:
+    if not sb:
+        return set()
+    res = (
+        sb.table("report_summary_jobs")
+        .select("source_identity")
+        .eq("report_type", REPORT_TYPE_TO_DB[report_type])
+        .eq("authority_state", "promoted")
+        .limit(10000)
+        .execute()
+    )
+    rows = res.data or []
+    return {
+        str(row.get("source_identity"))
+        for row in rows
+        if row.get("source_identity")
+    }
 
 
 def upsert_job(sb: Any, result: CandidateResult, *, force: bool, dry_run: bool) -> Dict[str, Optional[str]]:
@@ -627,12 +660,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             slug=args.slug,
             source_scope=source_scope,
             service=service,
+            promoted_source_identities=promoted_source_identities(sb, report_type=args.type),
+            include_promoted_sources=args.force,
         )
     candidates = candidates[: max(1, args.limit)]
 
     run_id = start_telemetry(sb, report_type=args.type, dry_run=args.dry_run, slug=args.slug)
     results: List[CandidateResult] = []
     write_results: List[Dict[str, Optional[str]]] = []
+    if not candidates:
+        print("no-op: no new analysis markdown")
     for candidate in candidates:
         result = process_candidate(candidate, agent_payload=agent_payload)
         if sb:

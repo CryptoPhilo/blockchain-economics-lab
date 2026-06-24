@@ -71,6 +71,30 @@ class FakeSupabase:
         return FakeTable(self, name)
 
 
+class FakeDriveListRequest:
+    def __init__(self, rows):
+        self.rows = rows
+
+    def execute(self):
+        return {"files": self.rows}
+
+
+class FakeDriveFiles:
+    def __init__(self, rows):
+        self.rows = rows
+
+    def list(self, **_kwargs):
+        return FakeDriveListRequest(self.rows)
+
+
+class FakeDriveService:
+    def __init__(self, rows):
+        self.rows = rows
+
+    def files(self):
+        return FakeDriveFiles(self.rows)
+
+
 def local_candidate(module, text=None):
     source_text = text or (
         "# Solana ECON\n\n"
@@ -207,6 +231,89 @@ def test_upsert_job_allows_same_source_identity_with_new_prompt_version():
     assert len(inserts) == 1
     assert inserts[0][2]["source_identity"] == result.candidate.source_identity
     assert inserts[0][2]["idempotency_key"] != old_key
+
+
+def test_drive_candidate_selection_skips_promoted_source_identity_before_download(monkeypatch):
+    module = load_candidate_pipeline()
+    downloaded = []
+    rows = [
+        {
+            "id": "file-promoted",
+            "name": "promoted.md",
+            "headRevisionId": "rev-promoted",
+            "modifiedTime": "2026-06-24T00:00:00Z",
+        },
+        {
+            "id": "file-new",
+            "name": "new.md",
+            "headRevisionId": "rev-new",
+            "modifiedTime": "2026-06-24T00:01:00Z",
+        },
+    ]
+
+    monkeypatch.setattr(module, "_source_folder_ids_for_report_type", lambda *_args, **_kwargs: ["folder"])
+    monkeypatch.setattr(module, "fetch_project", lambda *_args, **_kwargs: {"slug": "solana"})
+
+    def fake_download(_service, file_id):
+        downloaded.append(file_id)
+        return "# Solana ECON\n\nSolana source text for candidate selection.\n"
+
+    monkeypatch.setattr(module, "_download_drive_text", fake_download)
+
+    candidates = module.list_drive_candidates(
+        report_type="econ",
+        slug="solana",
+        source_scope="all",
+        service=FakeDriveService(rows),
+        promoted_source_identities={"drive:file-promoted:rev-promoted"},
+    )
+
+    assert downloaded == ["file-new"]
+    assert [candidate.source.drive_file_id for candidate in candidates] == ["file-new"]
+
+
+def test_drive_candidate_selection_force_includes_promoted_source(monkeypatch):
+    module = load_candidate_pipeline()
+    rows = [
+        {
+            "id": "file-promoted",
+            "name": "promoted.md",
+            "headRevisionId": "rev-promoted",
+            "modifiedTime": "2026-06-24T00:00:00Z",
+        },
+    ]
+
+    monkeypatch.setattr(module, "_source_folder_ids_for_report_type", lambda *_args, **_kwargs: ["folder"])
+    monkeypatch.setattr(module, "fetch_project", lambda *_args, **_kwargs: {"slug": "solana"})
+    monkeypatch.setattr(
+        module,
+        "_download_drive_text",
+        lambda *_args, **_kwargs: "# Solana ECON\n\nSolana source text for manual reprocessing.\n",
+    )
+
+    candidates = module.list_drive_candidates(
+        report_type="econ",
+        slug="solana",
+        source_scope="all",
+        service=FakeDriveService(rows),
+        promoted_source_identities={"drive:file-promoted:rev-promoted"},
+        include_promoted_sources=True,
+    )
+
+    assert [candidate.source_identity for candidate in candidates] == ["drive:file-promoted:rev-promoted"]
+
+
+def test_no_candidates_prints_no_op_without_error(monkeypatch, tmp_path, capsys):
+    module = load_candidate_pipeline()
+
+    monkeypatch.setattr(module, "get_supabase_client", lambda: None)
+    monkeypatch.setattr(module, "_get_drive_service", lambda: object())
+    monkeypatch.setattr(module, "list_drive_candidates", lambda **_kwargs: [])
+    monkeypatch.setattr(module, "write_artifact", lambda *_args, **_kwargs: tmp_path / "artifact.json")
+    monkeypatch.setattr(module, "complete_telemetry", lambda *_args, **_kwargs: None)
+
+    assert module.main(["--type", "econ", "--slug", "solana", "--drive-root-scope", "all"]) == 0
+    assert "no-op: no new analysis markdown" in capsys.readouterr().out
 
 
 def test_telemetry_uses_existing_supabase_column_contract(tmp_path):
