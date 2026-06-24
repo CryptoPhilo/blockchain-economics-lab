@@ -874,6 +874,68 @@ website publishing contract for `econ-report-publishing`,
   change was needed because execution stayed within the existing
   `analysis-md-summary-candidate` and `summary_authority_gate` contracts.
 
+### BCE-2181 CRO Analysis MD Summary JSON Ingestion Routine (2026-06-25 08:49 KST)
+
+- Workspace/SHA used:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `13d4d03`.
+- Primary context checked before execution:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` and
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Latest unprocessed/changed Drive Markdown selected by current Drive/DB scan:
+  `WeFi 크립토이코노미 설계 분석 보고서.md`.
+- Source identity:
+  `drive:1oD6z3H1tmKWDT81NhcQkpA3DTs4xVch9:0B8HYgThT3NByZFpRV2dxbGFHTERoa0V1NS8wMkFuK3I2RGdZPQ`.
+- Source SHA-256:
+  `94d07108cd935552aa3f60a55200e30b911f765fe8b725eb3487585ca66ff096`.
+- Paperclip CRO JSON output:
+  `scripts/pipeline/output/paperclip_cro_summary_econ_wefi_bce2181.json`.
+- Candidate artifact:
+  `scripts/pipeline/output/analysis_md_summary_candidate_econ_wefi.json`.
+- Source audit artifact:
+  `scripts/pipeline/output/paperclip_cro_source_econ_wefi_bce2181.md`.
+- Execution note:
+  the first ingest inserted the candidate row as validation-failed because
+  `marketing_by_lang.{de,en,es,fr}.raw_format_fragment`,
+  `summary_by_lang.de.raw_format_fragment`, and
+  `marketing_by_lang.zh.too_short` tripped the card-quality gate. The CRO JSON
+  was revised to remove raw-format fragments and lengthen the zh Investment
+  View, then the same idempotency row was rerun with `--force`.
+- Candidate ingest result after correction:
+  - report type: `econ`
+  - slug: `wefi`
+  - validation status: `valid`
+  - validation reasons: none
+  - upsert result: `updated_existing`
+  - job id: `5a418e94-e270-4042-a0d4-a7e857403d2c`
+- Summary Authority Gate write command:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id 5a418e94-e270-4042-a0d4-a7e857403d2c --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2181" --write`.
+- Promotion result:
+  - action: `promote`
+  - state: `promoted`
+  - wrote_project_report: `true`
+  - project_report_id: `1ce848dc-4ee5-4eec-905d-8ade66dd6088`
+  - promoted_at: `2026-06-24T23:48:49.921171+00:00`
+- DB verification artifact:
+  `scripts/pipeline/output/bce2181_wefi_econ_db_verification.json`.
+- Project report verification:
+  - `tracked_projects.slug=wefi`
+  - `project_reports.id=1ce848dc-4ee5-4eec-905d-8ade66dd6088`
+  - `report_type=econ`, `language=ko`, `status=published`
+  - `card_summary_ko=WeFi는 금융 실사용과 WFI 보상을 연결하지만, 토큰 외 핵심 회계·Energy·CBM 검증 경로는 아직 제한적이다.`
+  - `card_data.summary_authority.mode=llm_active`
+  - `card_data.summary_authority.job_id=5a418e94-e270-4042-a0d4-a7e857403d2c`
+- Website/cache verification artifact:
+  `scripts/pipeline/output/bce2181_wefi_econ_website_verification.json`.
+  KO and EN report/project pages for `wefi` returned HTTP `200` with
+  `cache-control: private, no-cache, no-store, max-age=0, must-revalidate` and
+  contained the promoted summaries. The local Python TLS verifier used an
+  unverified SSL context for the HTTP/content check because the local CA chain
+  was incomplete.
+- Pipeline state wiki was updated with this execution evidence. No manifest
+  change was needed because execution stayed within the existing
+  `analysis-md-summary-candidate` and `summary_authority_gate` contracts.
+
 ### BCE-2055 CRO MAT Summary Backfill Batch 5 (2026-06-24 12:18 KST)
 
 - Workspace/SHA used:
