@@ -434,9 +434,7 @@ function reportIsVisibleOnScoreboard(report: ScoreboardVisibleReportRow, locale:
       report.status as (typeof SCOREBOARD_VISIBLE_REPORT_STATUSES)[number],
     )
   ) return false
-  if (!reportLanguageMatchesScoreboardLocale(report, normalizedLocale)) return false
-  return hasScoreboardAssetForLocale(report, normalizedLocale)
-    || (SCOREBOARD_ENGLISH_ASSET_FALLBACK_LOCALES.has(normalizedLocale) && hasScoreboardAssetForLocale(report, 'en'))
+  return reportLanguageMatchesScoreboardLocale(report, normalizedLocale)
 }
 
 function extractReportMaturityScore(report: ScoreboardVisibleReportRow): number | null {

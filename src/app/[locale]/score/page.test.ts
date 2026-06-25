@@ -697,7 +697,7 @@ describe('score page CMC canonical Top 500 snapshot guard', () => {
     })
   })
 
-  it('does not restore timestamp fallback for a report type that explicitly lacks locale assets', () => {
+  it('keeps active badges for published reports even when locale assets are missing', () => {
     const trackedProjects = [
       {
         id: 'sun-project',
@@ -750,15 +750,15 @@ describe('score page CMC canonical Top 500 snapshot guard', () => {
 
     expect(row).toMatchObject({
       slug: 'sun-token',
-      reportTypes: ['econ'],
+      reportTypes: ['econ', 'maturity'],
       reportDates: {
         econ: '2026-05-01T00:00:00.000Z',
-        maturity: null,
+        maturity: '2026-05-02T00:00:00.000Z',
       },
     })
   })
 
-  it('does not restore forensic fallback when the report row explicitly lacks locale assets', () => {
+  it('keeps active forensic badges for published reports even when locale assets are missing', () => {
     const trackedProjects = [
       {
         id: 'lighter-project',
@@ -811,11 +811,11 @@ describe('score page CMC canonical Top 500 snapshot guard', () => {
 
     expect(row).toMatchObject({
       slug: 'lighter',
-      reportTypes: ['econ', 'maturity'],
+      reportTypes: ['econ', 'forensic', 'maturity'],
       reportDates: {
         econ: '2026-05-01T00:00:00.000Z',
         maturity: '2026-05-02T00:00:00.000Z',
-        forensic: null,
+        forensic: '2026-05-03T00:00:00.000Z',
       },
     })
   })
