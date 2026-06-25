@@ -243,18 +243,18 @@ export function getLocaleReportState<T extends {
     return { status: 'not_found' }
   }
 
-  const localeReport = reports.find((report) => (
-    report.language === locale && hasSlideAssetForLocale(report, locale)
-  ))
-  if (localeReport) {
-    return { status: 'available', report: localeReport }
-  }
-
   const summaryAuthorityReport = reports.find((report) => (
     hasSummaryAuthorityMetadataForLocale(report, locale)
   ))
   if (summaryAuthorityReport) {
     return { status: 'available', report: summaryAuthorityReport }
+  }
+
+  const localeReport = reports.find((report) => (
+    report.language === locale && hasSlideAssetForLocale(report, locale)
+  ))
+  if (localeReport) {
+    return { status: 'available', report: localeReport }
   }
 
   // A report is considered available only after its HTML slide output exists.

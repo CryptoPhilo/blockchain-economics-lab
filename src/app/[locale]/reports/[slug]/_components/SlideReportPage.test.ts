@@ -312,6 +312,61 @@ describe('SlideReportPage locale availability', () => {
     expect(screen.getByText('RealLink 투자 관점 문장')).toBeTruthy()
   })
 
+  it('prefers promoted summary-only authority rows over existing slide siblings', async () => {
+    mockReportQueries(
+      { id: 'project-reallink', slug: 'reallink', name: 'RealLink', symbol: 'REAL' },
+      [
+        {
+          id: 'reallink-econ-slide-sibling',
+          project_id: 'project-reallink',
+          language: 'ko',
+          report_type: 'econ',
+          status: 'published',
+          version: 1,
+          card_summary_ko: '이전 슬라이드 요약',
+          marketing_content_by_lang: {
+            ko: '이전 투자 관점',
+          },
+          slide_html_urls_by_lang: {
+            ko: 'https://example.test/slides/econ/reallink/latest/ko.html',
+          },
+        },
+        {
+          id: 'reallink-econ-ko-summary-only',
+          project_id: 'project-reallink',
+          language: 'ko',
+          report_type: 'econ',
+          status: 'coming_soon',
+          version: 1,
+          card_summary_ko: 'RealLink promoted ECON 요약',
+          card_data: {
+            summary_by_lang: {
+              ko: 'RealLink promoted ECON 요약',
+            },
+            summary_authority: {
+              mode: 'llm_active',
+              job_id: 'job-reallink-econ',
+            },
+          },
+          marketing_content_by_lang: {
+            ko: 'RealLink promoted 투자 관점',
+          },
+          slide_html_urls_by_lang: {},
+        },
+      ],
+    )
+
+    const page = await SlideReportPage({ locale: 'ko', slug: 'reallink', reportType: 'econ' })
+    render(page)
+
+    expect(screen.getByTestId('slide-viewer').getAttribute('data-url')).toBe(
+      'https://example.test/slides/econ/reallink/latest/ko.html',
+    )
+    expect(screen.getByText('RealLink promoted ECON 요약')).toBeTruthy()
+    expect(screen.getByText('RealLink promoted 투자 관점')).toBeTruthy()
+    expect(screen.queryByText('이전 슬라이드 요약')).toBeNull()
+  })
+
   it('renders forensic slide reports through the shared report viewer', async () => {
     mockReportQueries(
       { id: 'project-1', slug: 'hedera-hashgraph', name: 'Hedera', symbol: 'HBAR' },
@@ -824,6 +879,34 @@ describe('getLocaleReportState', () => {
     expect(
       getLocaleReportState([report], 'en'),
     ).toEqual({ status: 'available', report })
+  })
+
+  it('prefers active summary-authority metadata over an exact slide row', () => {
+    const slideReport = {
+      id: 'reallink-econ-slide',
+      language: 'ko',
+      slide_html_urls_by_lang: {
+        ko: 'https://example.test/slides/econ/reallink/latest/ko.html',
+      },
+    }
+    const summaryReport = {
+      id: 'reallink-econ-summary',
+      language: 'ko',
+      card_data: {
+        summary_by_lang: {
+          ko: 'RealLink promoted ECON 요약',
+        },
+        summary_authority: {
+          mode: 'llm_active',
+          job_id: 'job-reallink-econ',
+        },
+      },
+      slide_html_urls_by_lang: {},
+    }
+
+    expect(
+      getLocaleReportState([slideReport, summaryReport], 'ko'),
+    ).toEqual({ status: 'available', report: summaryReport })
   })
 
   it('prefers slide HTML rows over PDF-only legacy rows for sibling locale availability', () => {

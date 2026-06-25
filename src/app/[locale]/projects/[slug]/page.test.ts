@@ -147,6 +147,37 @@ describe('project detail report selection', () => {
     expect(selectReportsByType([promotedSummaryOnly], 'en').get('econ')).toBe(promotedSummaryOnly)
   })
 
+  it('prefers promoted summary-authority metadata over an older slide sibling', () => {
+    const slideSibling = createReport({
+      id: 'reallink-econ-slide-sibling',
+      status: 'published',
+      language: 'ko',
+      card_summary_ko: '이전 슬라이드 요약',
+      slide_html_urls_by_lang: {
+        ko: 'https://example.test/slides/econ/reallink/latest/ko.html',
+      },
+    } as Partial<ProjectReport>)
+    const promotedSummaryOnly = createReport({
+      id: 'reallink-econ-summary-authority',
+      status: 'coming_soon',
+      language: 'ko',
+      card_summary_ko: 'RealLink promoted ECON 요약',
+      card_data: {
+        summary_by_lang: {
+          ko: 'RealLink promoted ECON 요약',
+        },
+        summary_authority: {
+          mode: 'llm_active',
+          job_id: 'job-reallink-econ',
+        },
+      },
+      slide_html_urls_by_lang: {},
+    } as Partial<ProjectReport>)
+
+    expect(selectReportsByType([slideSibling, promotedSummaryOnly], 'ko').get('econ'))
+      .toBe(promotedSummaryOnly)
+  })
+
   it('does not select rows that have no report asset for the requested locale', () => {
     const zhOnly = createReport({
       id: 'alpha-zh-only',

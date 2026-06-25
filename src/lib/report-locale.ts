@@ -116,9 +116,9 @@ export function pickLocaleReport<T extends Pick<ProjectReport, 'language'> & Par
   reports: T[],
   locale: string,
 ): T | undefined {
-  return reports.find((report) => report.language === locale)
+  return reports.find((report) => hasSummaryAuthorityMetadataForLocale(report, locale))
+    || reports.find((report) => report.language === locale)
     || reports.find((report) => hasLocalizedAsset(report, locale))
-    || reports.find((report) => hasSummaryAuthorityMetadataForLocale(report, locale))
     || (ENGLISH_ASSET_FALLBACK_LOCALES.has(locale)
       ? reports.find((report) => hasLocalizedAsset(report, 'en'))
       : undefined)
