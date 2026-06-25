@@ -111,12 +111,17 @@ export default async function ExchangeDetailPage({
       </section>
 
       {listingRows.length > 0 ? (
-        <ScoreTableGate
-          rows={listingRows}
-          freeLimit={listingRows.length}
-          locale={locale}
-          className="max-h-[clamp(420px,calc(100dvh-13rem),780px)] overflow-auto overscroll-y-auto pr-1"
-        />
+        <section aria-labelledby="exchange-listings-title">
+          <h2 id="exchange-listings-title" className="mb-4 text-xl font-semibold text-white">
+            {isKo ? '거래소 상장종목 목록' : 'Exchange listed assets'}
+          </h2>
+          <ScoreTableGate
+            rows={listingRows}
+            freeLimit={listingRows.length}
+            locale={locale}
+            className="max-h-[clamp(420px,calc(100dvh-13rem),780px)] overflow-auto overscroll-y-auto pr-1"
+          />
+        </section>
       ) : (
         <ExchangeDetailState
           title={isKo ? 'Top500 매칭 종목이 없습니다.' : 'No matched Top500 assets.'}

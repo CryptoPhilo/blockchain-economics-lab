@@ -479,6 +479,7 @@ export function buildExchangeAggregates(
   }
 
   return Array.from(byExchange.values())
+    .filter(({ projects }) => projects.size > 0)
     .map(({ exchange, projects }) => {
       const projectRows = Array.from(projects.values())
       const bceExchangeScore = calculateBceExchangeScore(projectRows)
