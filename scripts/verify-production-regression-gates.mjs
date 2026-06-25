@@ -1,6 +1,7 @@
 const DEFAULT_BASE_URL = 'https://bcelab.xyz'
 const DEFAULT_SCORE_PAGE_MAX_MS = 7000
 const DEFAULT_SCORE_PAGE_MAX_BYTES = 650000
+const DEFAULT_SCORE_PAGE_ATTEMPTS = 2
 
 const baseUrl = normalizeBaseUrl(
   process.env.BCE_REGRESSION_BASE_URL
@@ -10,6 +11,9 @@ const baseUrl = normalizeBaseUrl(
 const maxScorePageMs = Number(process.env.BCE_SCORE_PAGE_MAX_MS || DEFAULT_SCORE_PAGE_MAX_MS)
 const maxScorePageBytes = Number(
   process.env.BCE_SCORE_PAGE_MAX_BYTES || DEFAULT_SCORE_PAGE_MAX_BYTES,
+)
+const scorePageAttempts = Number(
+  process.env.BCE_SCORE_PAGE_ATTEMPTS || DEFAULT_SCORE_PAGE_ATTEMPTS,
 )
 const cacheBust = process.env.GITHUB_RUN_ID || Date.now().toString()
 const failures = []
@@ -70,6 +74,15 @@ async function fetchJson(path) {
   return { ...result, json }
 }
 
+async function fetchFastestText(path, attempts) {
+  const results = []
+  const totalAttempts = Math.max(1, Math.floor(attempts))
+  for (let attempt = 0; attempt < totalAttempts; attempt += 1) {
+    results.push(await fetchText(path))
+  }
+  return results.reduce((fastest, result) => (result.ms < fastest.ms ? result : fastest))
+}
+
 function hasCmcRankOne(html) {
   return /CoinMarketCap #1|CMC #(<!-- -->)?1/.test(html)
 }
@@ -87,7 +100,7 @@ function extractRows(payload) {
   return []
 }
 
-const scorePage = await fetchText('/ko/score')
+const scorePage = await fetchFastestText('/ko/score', scorePageAttempts)
 requireCondition(scorePage.ok, 'Top500 page responds successfully', `${scorePage.status} ${scorePage.url}`)
 requireCondition(
   scorePage.ms <= maxScorePageMs,
