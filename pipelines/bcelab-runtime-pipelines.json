@@ -207,6 +207,72 @@
       ]
     },
     {
+      "key": "x-promo-manual-post",
+      "paperclipName": "X Promo Manual Post",
+      "statePage": "knowledge/pipelines/x-promo.md",
+      "owner": "CMO",
+      "status": "active",
+      "cadence": {
+        "kind": "manual",
+        "workflow": ".github/workflows/x-promo-manual-post.yml"
+      },
+      "nodes": [
+        {
+          "key": "approval_queue_generation",
+          "paperclipLabel": "Build X promo approval queue",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/x-promo-manual-post.yml",
+            "entrypoint": "scripts/pipeline/x_promo_pipeline.py",
+            "commandContains": "x_promo_pipeline.py",
+            "localAllowed": ["dry_run", "development"]
+          }
+        },
+        {
+          "key": "manual_row_approval",
+          "paperclipLabel": "Approve exactly one confirmed queue row",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/x-promo-manual-post.yml",
+            "commandContains": "Approved exactly one queue row",
+            "localAllowed": ["development"]
+          }
+        },
+        {
+          "key": "selected_post_dry_run",
+          "paperclipLabel": "Dry-run selected X promo post",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/x-promo-manual-post.yml",
+            "entrypoint": "scripts/pipeline/x_promo_pipeline.py",
+            "commandContains": "--queue-jsonl",
+            "localAllowed": ["dry_run", "development"]
+          }
+        },
+        {
+          "key": "selected_real_post",
+          "paperclipLabel": "Post selected X promo item",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/x-promo-manual-post.yml",
+            "entrypoint": "scripts/pipeline/x_promo_pipeline.py",
+            "commandContains": "--post",
+            "localAllowed": []
+          }
+        },
+        {
+          "key": "artifact_upload",
+          "paperclipLabel": "Upload X promo queue and post logs",
+          "execution": {
+            "mode": "github_actions",
+            "workflow": ".github/workflows/x-promo-manual-post.yml",
+            "commandContains": "x-promo-manual-post-${{ github.run_id }}-${{ github.run_attempt }}",
+            "localAllowed": ["development"]
+          }
+        }
+      ]
+    },
+    {
       "key": "bcelab-website-development-and-operations",
       "paperclipName": "BCELab Website Development and Operations",
       "statePage": "knowledge/pipelines/website.md",
