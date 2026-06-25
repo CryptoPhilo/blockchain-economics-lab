@@ -337,7 +337,7 @@ function addSuppressedReportTypeToMap(
   map.set(key, existing)
 }
 
-function mergeNonForensicFallback(
+function mergeReportFallback(
   source: ReportAvailability,
   fallback: ReportAvailability,
 ): ReportAvailability {
@@ -348,7 +348,7 @@ function mergeNonForensicFallback(
     suppressedReportTypes: source.suppressedReportTypes,
   }
 
-  for (const reportType of ['econ', 'maturity'] as const) {
+  for (const reportType of ['econ', 'maturity', 'forensic'] as const) {
     if (source.suppressedReportTypes?.includes(reportType)) continue
     if (!fallback.reportTypes.includes(reportType)) continue
     if (!merged.reportTypes.includes(reportType)) {
@@ -371,14 +371,14 @@ function getReportAvailability(
   canonicalAvailability?: ReportAvailability,
 ): ReportAvailability {
   const fallback = createFallbackReportAvailability(project)
-  if (canonicalAvailability) return mergeNonForensicFallback(canonicalAvailability, fallback)
+  if (canonicalAvailability) return mergeReportFallback(canonicalAvailability, fallback)
   const live = project?.id ? availabilityByProjectId?.get(project.id) : undefined
   if (!availabilityByProjectId) return fallback
   if (!live) {
-    return createEmptyReportAvailability()
+    return fallback
   }
 
-  return mergeNonForensicFallback(live, fallback)
+  return mergeReportFallback(live, fallback)
 }
 
 function hasNonEmptyAssetValue(value: unknown): boolean {

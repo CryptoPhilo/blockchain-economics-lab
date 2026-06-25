@@ -757,6 +757,68 @@ describe('score page CMC canonical Top 500 snapshot guard', () => {
       },
     })
   })
+
+  it('does not restore forensic fallback when the report row explicitly lacks locale assets', () => {
+    const trackedProjects = [
+      {
+        id: 'lighter-project',
+        name: 'Lighter',
+        slug: 'lighter',
+        symbol: 'LIT',
+        category: 'DeFi',
+        market_cap_usd: 100,
+        coingecko_id: 'lighter',
+        cmc_id: 'lighter',
+        aliases: [],
+        maturity_score: 70.5,
+        last_econ_report_at: '2026-05-01T00:00:00.000Z',
+        last_maturity_report_at: '2026-05-02T00:00:00.000Z',
+        last_forensic_report_at: '2026-05-03T00:00:00.000Z',
+      },
+    ]
+    const availabilityByProjectSlug = buildReportAvailabilityByProjectSlug([
+      {
+        project_id: 'lighter-project',
+        report_type: 'econ',
+        language: 'ko',
+        published_at: '2026-05-01T00:00:00.000Z',
+        gdrive_urls_by_lang: {
+          ko: { url: 'https://drive.google.com/file/d/lighter-econ-ko/view' },
+        },
+        tracked_projects: {
+          slug: 'lighter',
+        },
+      },
+      {
+        project_id: 'lighter-project',
+        report_type: 'forensic',
+        language: 'ko',
+        published_at: '2026-05-03T00:00:00.000Z',
+        gdrive_urls_by_lang: {},
+        slide_html_urls_by_lang: {},
+        tracked_projects: {
+          slug: 'lighter',
+        },
+      },
+    ], 'ko', { includeSuppressedReportTypes: true })
+
+    const [row] = snapshotRowsToScoreRows(
+      [makeSnapshotRow(89, 'lighter')],
+      buildTrackedProjectLookup(trackedProjects),
+      new Map(),
+      availabilityByProjectSlug,
+    )
+
+    expect(row).toMatchObject({
+      slug: 'lighter',
+      reportTypes: ['econ', 'maturity'],
+      reportDates: {
+        econ: '2026-05-01T00:00:00.000Z',
+        maturity: '2026-05-02T00:00:00.000Z',
+        forensic: null,
+      },
+    })
+  })
 })
 
 describe('score page tracked project aliases', () => {
@@ -1424,7 +1486,7 @@ describe('score page tracked project aliases', () => {
     })
   })
 
-  it('does not show timestamp-only report badges when live report availability was loaded', () => {
+  it('preserves timestamp fallback badges when live report availability has no matching row', () => {
     const trackedProjects = [
       {
         id: 'bitcoin-project',
@@ -1460,9 +1522,9 @@ describe('score page tracked project aliases', () => {
       name: 'Bitcoin',
       symbol: 'BTC',
       slug: 'bitcoin',
-      reportTypes: [],
+      reportTypes: ['econ'],
       reportDates: {
-        econ: null,
+        econ: '2026-05-08T13:39:29.458217Z',
         maturity: null,
         forensic: null,
       },
@@ -1639,7 +1701,7 @@ describe('score page report availability policy', () => {
     expect(availability.has('backpack-project')).toBe(false)
   })
 
-  it('does not merge stale timestamp fallback over loaded slug availability', () => {
+  it('restores timestamp fallback for report types missing from loaded slug availability', () => {
     const trackedProjects = [
       {
         id: 'backpack-project',
@@ -1682,11 +1744,11 @@ describe('score page report availability policy', () => {
 
     expect(row).toMatchObject({
       slug: 'backpack-exchange',
-      reportTypes: ['econ'],
+      reportTypes: ['econ', 'forensic'],
       reportDates: {
         econ: '2026-06-14T12:33:07.000Z',
         maturity: null,
-        forensic: null,
+        forensic: '2026-05-31T04:53:54.487754Z',
       },
     })
   })
