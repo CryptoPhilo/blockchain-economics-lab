@@ -787,7 +787,7 @@ async function fetchScoreboardSourceData() {
 
 const getCachedScoreboardSourceData = unstable_cache(
   fetchScoreboardSourceData,
-  ['scoreboard-source-data-v1'],
+  ['scoreboard-source-data-v2'],
   {
     revalidate: SCOREBOARD_DATA_CACHE_SECONDS,
     tags: ['scoreboard-source-data'],
@@ -796,7 +796,7 @@ const getCachedScoreboardSourceData = unstable_cache(
 
 const getCachedVisibleReportsForScoreboardByProjectSlugs = unstable_cache(
   async (projectSlugs: string[]) => fetchVisibleReportsForScoreboardByProjectSlugs(projectSlugs),
-  ['scoreboard-visible-reports-by-slugs-v1'],
+  ['scoreboard-visible-reports-by-slugs-v2'],
   {
     revalidate: SCOREBOARD_DATA_CACHE_SECONDS,
     tags: ['scoreboard-visible-reports'],
