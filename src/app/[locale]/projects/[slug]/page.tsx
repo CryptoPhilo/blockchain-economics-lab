@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { getLocalizedMarketingContent } from '@/lib/report-marketing-content'
 import { getLocalizedCardSummary } from '@/lib/report-summary'
 import { pickLocaleReport, reportSupportsLocale } from '@/lib/report-locale'
+import { hasActiveSummaryAuthority } from '@/app/[locale]/reports/[slug]/_components/slide-report-utils'
 import {
   buildReportVersionHref,
   getReportVersionLabel,
@@ -225,6 +226,11 @@ function isSameReportVersionGroup(a: ProjectReport, b: ProjectReport): boolean {
     && Number(a.version || 0) === Number(b.version || 0)
 }
 
+export function isProjectPageVisibleReport(report: ProjectReport): boolean {
+  if (report.status === 'published' || report.status === 'in_review') return true
+  return report.status === 'coming_soon' && hasActiveSummaryAuthority(report)
+}
+
 function mergeCoverUrlsForReportVersionGroup(
   reports: ProjectReport[],
   selectedReport: ProjectReport,
@@ -347,12 +353,12 @@ export default async function ProjectDetailPage({ params }: Props) {
       .from('project_reports')
       .select('*')
       .eq('project_id', project.id)
-      .in('status', ['published', 'in_review'])
+      .in('status', ['published', 'coming_soon', 'in_review'])
       .order('is_latest', { ascending: false })
       .order('updated_at', { ascending: false })
     : { data: [] }
 
-  const reports = (reportsRaw || []) as ProjectReport[]
+  const reports = ((reportsRaw || []) as ProjectReport[]).filter(isProjectPageVisibleReport)
   const reportsByType = selectReportsByType(reports, locale)
   const historyByType = buildReportHistoryByType(reports, reportsByType, locale)
   const orderedReports = REPORT_TYPE_ORDER

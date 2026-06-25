@@ -80,6 +80,45 @@ function hasSlideAssetForLocale(
   return resolveSlideUrlForLocale(report.slide_html_urls_by_lang, locale, false) !== null
 }
 
+function getCardData(report: { card_data?: unknown }): CardDataRecord | null {
+  const cardData = report.card_data
+  return cardData && typeof cardData === 'object' ? cardData as CardDataRecord : null
+}
+
+export function hasActiveSummaryAuthority(report: {
+  card_data?: unknown
+}): boolean {
+  const cardData = getCardData(report)
+  const summaryAuthority = cardData?.summary_authority
+  if (!summaryAuthority || typeof summaryAuthority !== 'object') return false
+
+  return (summaryAuthority as Record<string, unknown>).mode === 'llm_active'
+}
+
+function hasSummaryAuthorityMetadataForLocale(
+  report: SummaryReportRecord & { card_data?: CardDataRecord | null },
+  locale: string,
+): boolean {
+  if (!hasActiveSummaryAuthority(report)) return false
+
+  const cardData = getCardData(report)
+  const summaryByLang = cardData?.summary_by_lang as Record<string, unknown> | undefined
+  const localeSummary =
+    summaryByLang?.[locale]
+    ?? report[`card_summary_${locale}`]
+    ?? cardData?.[`summary_${locale}`]
+
+  if (isNonEmptyString(localeSummary)) return true
+  if (report.language === locale && isNonEmptyString(cardData?.summary)) return true
+
+  if (locale !== 'en') return false
+
+  return isNonEmptyString(summaryByLang?.en)
+    || isNonEmptyString(report.card_summary_en)
+    || isNonEmptyString(cardData?.summary_en)
+    || isNonEmptyString(cardData?.summary)
+}
+
 export function resolveSlideUrl(
   urlsByLang: Record<string, unknown> | null | undefined,
   locale: string,
@@ -192,6 +231,7 @@ export type LocaleReportState<T> =
 
 export function getLocaleReportState<T extends {
   language?: string | null
+  card_data?: CardDataRecord | null
   gdrive_urls_by_lang?: Record<string, unknown> | null
   file_urls_by_lang?: Record<string, unknown> | null
   slide_html_urls_by_lang?: Record<string, unknown> | null
@@ -208,6 +248,13 @@ export function getLocaleReportState<T extends {
   ))
   if (localeReport) {
     return { status: 'available', report: localeReport }
+  }
+
+  const summaryAuthorityReport = reports.find((report) => (
+    hasSummaryAuthorityMetadataForLocale(report, locale)
+  ))
+  if (summaryAuthorityReport) {
+    return { status: 'available', report: summaryAuthorityReport }
   }
 
   // A report is considered available only after its HTML slide output exists.

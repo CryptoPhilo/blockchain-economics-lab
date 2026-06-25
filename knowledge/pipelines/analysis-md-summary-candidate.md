@@ -100,6 +100,50 @@ BCE-2000 adds a change-request/candidate path only. It does not change the activ
 website publishing contract for `econ-report-publishing`,
 `mat-report-publishing`, or `for-report-publishing`.
 
+### BCE-2193 Website Publication Contract for Summary-Only Promoted Rows (2026-06-25 13:39 KST)
+
+- Workspace/SHA used:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `d83a1fe` before local changes.
+- Primary context checked before implementation:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` and
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Issue:
+  RealLink ECON job `b9117ac6-dfb6-4297-8317-3e4dead2c7ac` is promoted to
+  project report `f60ecf21-6fb6-4b2b-8595-0b17a2d7f636`, but the target row is
+  `status=coming_soon` and summary-only with no `slide_html_urls_by_lang`.
+  Existing website code queried only `published`/`in_review` rows on project
+  pages and required slide HTML on report pages, so promoted metadata was not
+  visible.
+- Chosen publication contract:
+  `project_reports.status=coming_soon` remains hidden by default. A coming-soon
+  row becomes website-visible only when `card_data.summary_authority.mode` is
+  `llm_active` and localized summary metadata exists for the requested locale.
+  This preserves the existing rule that ordinary PDF-only or pre-render slide
+  rows remain `locale_pending`, while Summary Authority Gate promoted
+  summary-only rows can expose summary and Investment View copy.
+- Code changes:
+  - `src/app/[locale]/projects/[slug]/page.tsx` now queries
+    `published`, `coming_soon`, and `in_review` rows, then filters
+    coming-soon rows to active summary-authority rows only.
+  - `src/lib/report-locale.ts` treats active summary-authority metadata as
+    locale support for report card selection.
+  - `src/app/[locale]/reports/[slug]/_components/slide-report-utils.ts`
+    treats active summary-authority metadata as an available locale report even
+    without slide HTML.
+- Local verification:
+  - `npm test -- --runTestsByPath 'src/app/[locale]/projects/[slug]/page.test.ts' 'src/app/[locale]/reports/[slug]/_components/SlideReportPage.test.ts' src/lib/report-locale.test.ts --runInBand`
+    passed (`76 passed`).
+  - `npx tsc --noEmit` passed.
+  - `npm run verify:pipeline` passed.
+  - `npm run verify:runtime-pipelines` passed.
+  - `npm run lint` passed with existing warnings only.
+  - `npm run build` passed.
+- Deployment status:
+  local implementation and verification are complete. Production deployment and
+  live RealLink ECON page checks still need the guarded `Production Deploy`
+  workflow for BCE-2193 before BCE-2191 can close.
+
 ## BCE-2005 Remote Migration/Deploy Evidence (Blocked)
 
 - Workspace: `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`

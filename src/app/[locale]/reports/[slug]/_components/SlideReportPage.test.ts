@@ -268,6 +268,50 @@ describe('SlideReportPage locale availability', () => {
     expect(screen.getByText('장기 투자 관점 문장')).toBeTruthy()
   })
 
+  it('renders promoted summary-only authority rows without slide HTML', async () => {
+    mockReportQueries(
+      { id: 'project-reallink', slug: 'reallink', name: 'RealLink', symbol: 'REAL' },
+      [
+        {
+          id: 'reallink-econ-ko-summary-only',
+          project_id: 'project-reallink',
+          language: 'ko',
+          report_type: 'econ',
+          status: 'coming_soon',
+          version: 1,
+          card_summary_ko: 'RealLink 한국어 ECON 요약',
+          card_summary_en: 'RealLink English ECON summary.',
+          card_data: {
+            summary_by_lang: {
+              en: 'RealLink English ECON summary.',
+              ko: 'RealLink 한국어 ECON 요약',
+            },
+            summary_authority: {
+              mode: 'llm_active',
+              job_id: 'job-reallink-econ',
+            },
+          },
+          marketing_content_by_lang: {
+            ko: 'RealLink 투자 관점 문장',
+            en: 'RealLink investment view.',
+          },
+          slide_html_urls_by_lang: {},
+          gdrive_urls_by_lang: {},
+        },
+      ],
+    )
+
+    const page = await SlideReportPage({ locale: 'ko', slug: 'reallink', reportType: 'econ' })
+    render(page)
+
+    expect(mockNotFound).not.toHaveBeenCalled()
+    expect(screen.queryByTestId('slide-viewer')).toBeNull()
+    expect(screen.queryByText('localePendingTitle')).toBeNull()
+    expect(screen.getByText('RealLink 한국어 ECON 요약')).toBeTruthy()
+    expect(screen.getByText('투자 관점')).toBeTruthy()
+    expect(screen.getByText('RealLink 투자 관점 문장')).toBeTruthy()
+  })
+
   it('renders forensic slide reports through the shared report viewer', async () => {
     mockReportQueries(
       { id: 'project-1', slug: 'hedera-hashgraph', name: 'Hedera', symbol: 'HBAR' },
@@ -754,6 +798,32 @@ describe('getLocaleReportState', () => {
     expect(
       getLocaleReportState([report], 'en'),
     ).toEqual({ status: 'locale_pending' })
+  })
+
+  it('returns available for active summary-authority metadata without slide HTML', () => {
+    const report = {
+      id: 'reallink-econ-ko-summary-only',
+      language: 'ko',
+      card_data: {
+        summary_by_lang: {
+          en: 'RealLink English ECON summary.',
+          ko: 'RealLink 한국어 ECON 요약',
+        },
+        summary_authority: {
+          mode: 'llm_active',
+          job_id: 'job-reallink-econ',
+        },
+      },
+      slide_html_urls_by_lang: {},
+      gdrive_urls_by_lang: {},
+    }
+
+    expect(
+      getLocaleReportState([report], 'ko'),
+    ).toEqual({ status: 'available', report })
+    expect(
+      getLocaleReportState([report], 'en'),
+    ).toEqual({ status: 'available', report })
   })
 
   it('prefers slide HTML rows over PDF-only legacy rows for sibling locale availability', () => {

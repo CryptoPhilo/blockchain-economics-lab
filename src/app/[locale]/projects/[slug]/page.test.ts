@@ -3,6 +3,7 @@ import {
   buildReportHistoryByType,
   buildReportHref,
   getReportCoverImageUrls,
+  isProjectPageVisibleReport,
   pickProjectBackgroundCoverUrl,
   pickLocalizedTitle,
   selectReportsByType,
@@ -110,6 +111,40 @@ describe('project detail report selection', () => {
     expect(selectReportsByType([legacyPdfOnly], 'en').get('econ')).toBe(legacyPdfOnly)
     expect(selectReportsByType([legacyPdfOnly], 'ja').get('econ')).toBe(legacyPdfOnly)
     expect(selectReportsByType([legacyPdfOnly], 'de').get('econ')).toBe(legacyPdfOnly)
+  })
+
+  it('treats promoted summary-authority coming-soon rows as project-page visible', () => {
+    const promotedSummaryOnly = createReport({
+      id: 'reallink-econ-summary-only',
+      status: 'coming_soon',
+      language: 'ko',
+      card_summary_ko: 'RealLink 한국어 ECON 요약',
+      card_data: {
+        summary_by_lang: {
+          en: 'RealLink English ECON summary.',
+          ko: 'RealLink 한국어 ECON 요약',
+        },
+        summary_authority: {
+          mode: 'llm_active',
+          job_id: 'job-reallink-econ',
+        },
+      },
+      slide_html_urls_by_lang: null,
+      gdrive_urls_by_lang: null,
+    } as Partial<ProjectReport>)
+    const ordinaryComingSoon = createReport({
+      id: 'ordinary-coming-soon',
+      status: 'coming_soon',
+      language: 'ko',
+      card_summary_ko: '아직 게시되면 안 되는 요약',
+      slide_html_urls_by_lang: null,
+      gdrive_urls_by_lang: null,
+    } as Partial<ProjectReport>)
+
+    expect(isProjectPageVisibleReport(promotedSummaryOnly)).toBe(true)
+    expect(isProjectPageVisibleReport(ordinaryComingSoon)).toBe(false)
+    expect(selectReportsByType([promotedSummaryOnly], 'ko').get('econ')).toBe(promotedSummaryOnly)
+    expect(selectReportsByType([promotedSummaryOnly], 'en').get('econ')).toBe(promotedSummaryOnly)
   })
 
   it('does not select rows that have no report asset for the requested locale', () => {

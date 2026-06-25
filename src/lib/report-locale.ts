@@ -42,6 +42,37 @@ function hasLocalizedSlideAsset(report: Partial<ProjectReport>, locale: string):
   return hasNonEmptyValue(slideUrls?.[locale])
 }
 
+function hasActiveSummaryAuthority(report: Partial<ProjectReport>): boolean {
+  const cardData = report.card_data
+  if (!cardData || typeof cardData !== 'object') return false
+
+  const summaryAuthority = (cardData as Record<string, unknown>).summary_authority
+  if (!summaryAuthority || typeof summaryAuthority !== 'object') return false
+
+  return (summaryAuthority as Record<string, unknown>).mode === 'llm_active'
+}
+
+function hasSummaryAuthorityMetadataForLocale(report: Partial<ProjectReport>, locale: string): boolean {
+  if (!hasActiveSummaryAuthority(report)) return false
+
+  const cardData = report.card_data as Record<string, unknown> | null | undefined
+  const summaryByLang = cardData?.summary_by_lang as Record<string, unknown> | undefined
+  const localeSummary =
+    summaryByLang?.[locale]
+    ?? (report as Record<string, unknown>)[`card_summary_${locale}`]
+    ?? cardData?.[`summary_${locale}`]
+
+  if (hasNonEmptyValue(localeSummary)) return true
+  if (report.language === locale && hasNonEmptyValue(cardData?.summary)) return true
+
+  if (locale !== 'en') return false
+
+  return hasNonEmptyValue(summaryByLang?.en)
+    || hasNonEmptyValue(report.card_summary_en)
+    || hasNonEmptyValue(cardData?.summary_en)
+    || hasNonEmptyValue(cardData?.summary)
+}
+
 export function reportHasSlideAssetForLocale(
   report: Partial<ProjectReport>,
   locale: string,
@@ -66,6 +97,10 @@ export function reportSupportsLocale(report: ProjectReport, locale: string): boo
     return true
   }
 
+  if (hasSummaryAuthorityMetadataForLocale(report, locale)) {
+    return true
+  }
+
   if (ENGLISH_ASSET_FALLBACK_LOCALES.has(locale) && hasLocalizedAsset(report, 'en')) {
     return true
   }
@@ -83,6 +118,7 @@ export function pickLocaleReport<T extends Pick<ProjectReport, 'language'> & Par
 ): T | undefined {
   return reports.find((report) => report.language === locale)
     || reports.find((report) => hasLocalizedAsset(report, locale))
+    || reports.find((report) => hasSummaryAuthorityMetadataForLocale(report, locale))
     || (ENGLISH_ASSET_FALLBACK_LOCALES.has(locale)
       ? reports.find((report) => hasLocalizedAsset(report, 'en'))
       : undefined)
