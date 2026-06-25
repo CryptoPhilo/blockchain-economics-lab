@@ -819,6 +819,56 @@ describe('score page CMC canonical Top 500 snapshot guard', () => {
       },
     })
   })
+
+  it('preserves timestamp fallback when slug availability has locale-mismatched report rows', () => {
+    const trackedProjects = [
+      {
+        id: 'tether-gold-project',
+        name: 'Tether Gold',
+        slug: 'tether-gold',
+        symbol: 'XAUT',
+        category: 'RWA',
+        market_cap_usd: 100,
+        coingecko_id: 'tether-gold',
+        cmc_id: 'tether-gold',
+        aliases: [],
+        maturity_score: 52,
+        last_econ_report_at: '2026-05-01T00:00:00.000Z',
+        last_maturity_report_at: '2026-05-02T00:00:00.000Z',
+        last_forensic_report_at: null,
+      },
+    ]
+    const availabilityByProjectSlug = buildReportAvailabilityByProjectSlug([
+      {
+        project_id: 'tether-gold-project',
+        report_type: 'econ',
+        language: 'en',
+        published_at: '2026-05-01T00:00:00.000Z',
+        gdrive_urls_by_lang: {
+          en: { url: 'https://drive.google.com/file/d/tether-gold-econ-en/view' },
+        },
+        tracked_projects: {
+          slug: 'tether-gold',
+        },
+      },
+    ], 'ko')
+
+    const [row] = snapshotRowsToScoreRows(
+      [makeSnapshotRow(33, 'tether-gold')],
+      buildTrackedProjectLookup(trackedProjects),
+      new Map(),
+      availabilityByProjectSlug,
+    )
+
+    expect(row).toMatchObject({
+      slug: 'tether-gold',
+      reportTypes: ['econ', 'maturity'],
+      reportDates: {
+        econ: '2026-05-01T00:00:00.000Z',
+        maturity: '2026-05-02T00:00:00.000Z',
+      },
+    })
+  })
 })
 
 describe('score page tracked project aliases', () => {

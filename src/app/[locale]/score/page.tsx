@@ -951,9 +951,7 @@ export default async function ScorePage({
     canonicalAliasReportResult = { reports: [], loaded: false }
   }
   const reportAvailabilityByProjectSlug = canonicalAliasReportResult.loaded
-    ? buildReportAvailabilityByProjectSlug(canonicalAliasReportResult.reports, locale, {
-      includeSuppressedReportTypes: true,
-    })
+    ? buildReportAvailabilityByProjectSlug(canonicalAliasReportResult.reports, locale)
     : undefined
 
   const rows = snapshotRowsToScoreRows(
