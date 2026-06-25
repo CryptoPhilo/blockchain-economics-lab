@@ -47,6 +47,8 @@ const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'world-liberty-financial-wlfi', slug: 'world-liberty-financial' },
   { alias: 'world-liberty-financial-usd', slug: 'usd1' },
   { alias: 'bnb', slug: 'binancecoin' },
+  { alias: 'gram', slug: 'the-open-network' },
+  { alias: 'gram (prev. toncoin)', slug: 'the-open-network' },
   { alias: 'toncoin', slug: 'the-open-network' },
   { alias: 'hedera', slug: 'hedera-hashgraph' },
   { alias: 'pi', slug: 'pi-network' },

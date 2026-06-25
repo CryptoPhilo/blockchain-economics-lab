@@ -1454,7 +1454,11 @@ describe('score page tracked project aliases', () => {
     const snapshotRows = [
       makeSnapshotRow(4, 'bnb'),
       makeSnapshotRow(19, 'multi-collateral-dai'),
-      makeSnapshotRow(20, 'toncoin'),
+      {
+        ...makeSnapshotRow(20, 'gram'),
+        cmc_name: 'Gram (prev. Toncoin)',
+        cmc_symbol: 'GRAM',
+      },
       makeSnapshotRow(21, 'world-liberty-financial-usd'),
       makeSnapshotRow(23, 'hedera'),
       makeSnapshotRow(44, 'pi'),
