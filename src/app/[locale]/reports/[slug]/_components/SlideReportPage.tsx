@@ -14,6 +14,7 @@ import {
   type CardDataRecord,
   getLocaleReportState,
   getLocalizedSummary,
+  hasActiveSummaryAuthority,
   getReportDisplayDate,
   resolveReportPdfUrl,
   resolveSlideUrl,
@@ -33,6 +34,7 @@ type ReportRecord = Record<string, unknown> & {
   updated_at?: string | null
   created_at?: string | null
   is_latest?: boolean | null
+  card_data?: CardDataRecord | null
   marketing_content_by_lang?: Record<string, unknown> | null
 }
 
@@ -110,6 +112,12 @@ function pickDefaultReportForLocale(
   sortedRows: ReportRecord[],
   locale: string,
 ): ReportRecord | undefined {
+  const summaryAuthorityReport = sortedRows.find((row) => (
+    hasActiveSummaryAuthority(row)
+    && getLocalizedSummary(locale, row, row.card_data as CardDataRecord | null)
+  ))
+  if (summaryAuthorityReport) return summaryAuthorityReport
+
   const seenVersions = new Set<number>()
 
   for (const row of sortedRows) {

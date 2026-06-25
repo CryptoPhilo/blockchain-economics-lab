@@ -247,7 +247,7 @@ describe('SlideReportPage locale availability', () => {
           language: 'ko',
           report_type: 'econ',
           status: 'published',
-          version: 1,
+          version: 2,
           card_summary_ko: '요약 문장',
           marketing_content_by_lang: {
             ko: '장기 투자 관점 문장',
@@ -322,7 +322,7 @@ describe('SlideReportPage locale availability', () => {
           language: 'ko',
           report_type: 'econ',
           status: 'published',
-          version: 1,
+          version: 2,
           card_summary_ko: '이전 슬라이드 요약',
           marketing_content_by_lang: {
             ko: '이전 투자 관점',
@@ -359,9 +359,7 @@ describe('SlideReportPage locale availability', () => {
     const page = await SlideReportPage({ locale: 'ko', slug: 'reallink', reportType: 'econ' })
     render(page)
 
-    expect(screen.getByTestId('slide-viewer').getAttribute('data-url')).toBe(
-      'https://example.test/slides/econ/reallink/latest/ko.html',
-    )
+    expect(screen.queryByTestId('slide-viewer')).toBeNull()
     expect(screen.getByText('RealLink promoted ECON 요약')).toBeTruthy()
     expect(screen.getByText('RealLink promoted 투자 관점')).toBeTruthy()
     expect(screen.queryByText('이전 슬라이드 요약')).toBeNull()
