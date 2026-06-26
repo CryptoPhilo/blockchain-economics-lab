@@ -1084,6 +1084,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/velvet/1/ko.html"
   },
+  "1-taspgrGKFzSz8d79YOYLzsrxWdmSjZM": {
+    "error": null,
+    "finished_at": "2026-06-26T11:14:58.513244+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-26T09:16:57.000Z",
+    "name": "ZETA_FOR_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zetachain/latest/ja.html",
+    "report_id": "abd82e2a-77bc-4845-b2f5-e10b1b5b5d80",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "zetachain",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/ZETA_FOR_jp.pdf",
+    "started_at": "2026-06-26T11:14:47.146362+00:00",
+    "status": "published",
+    "updated_at": "2026-06-26T11:14:58.513260+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zetachain/1/ja.html"
+  },
   "1-tsH9rp2JLKED4VfdQtmF_jn5v9mEUGE": {
     "error": "unresolved (slug=? via filename_unresolved; lang=en via filename)",
     "lang": "en",
@@ -1902,6 +1932,36 @@
     "updated_at": "2026-05-12T18:10:47.443885+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/litecoin/latest/en.html"
+  },
+  "10zSqV9YddFVcOpiZooF4P8hJJ83LgU_9": {
+    "error": null,
+    "finished_at": "2026-06-26T11:15:10.550700+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-26T09:15:54.000Z",
+    "name": "ZETA_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zetachain/latest/en.html",
+    "report_id": "9e8b6555-b96c-4152-bac3-f830f095d9e0",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "zetachain",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/ZETA_FOR_en.pdf",
+    "started_at": "2026-06-26T11:15:00.189990+00:00",
+    "status": "published",
+    "updated_at": "2026-06-26T11:15:10.550714+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zetachain/2/en.html"
   },
   "11-YRpk-k2B4fNQ_moL7qp6_X2BdJP4Gm": {
     "error": "unresolved (slug=? via filename_unresolved; lang=ko via filename)",
@@ -7223,7 +7283,7 @@
     "source_path": "Slide2/mat/Playnance_GCOIN_MAT_jp.pdf",
     "started_at": "2026-06-26T08:14:01.656418+00:00",
     "status": "published",
-    "updated_at": "2026-06-26T08:14:14.957360+00:00",
+    "updated_at": "2026-06-26T11:13:22.195726+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/playnance/1/ja.html"
   },
@@ -15889,7 +15949,7 @@
     "source_path": "Slide2/mat/Playnance_GCOIN_MAT_cn.pdf",
     "started_at": "2026-06-26T08:12:51.539060+00:00",
     "status": "published",
-    "updated_at": "2026-06-26T08:13:20.477849+00:00",
+    "updated_at": "2026-06-26T11:13:20.345440+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/playnance/1/zh.html"
   },
@@ -32727,7 +32787,7 @@
     "source_path": "Slide2/econ/MSTRx_ECON_en.pdf",
     "started_at": "2026-06-26T08:11:19.316104+00:00",
     "status": "published",
-    "updated_at": "2026-06-26T08:11:33.193654+00:00",
+    "updated_at": "2026-06-26T11:13:15.593724+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/microstrategy-tokenized-stock-xstock/1/en.html"
   },
@@ -36028,7 +36088,7 @@
     "source_path": "Slide2/econ/MSTRx_ECON_ko.pdf",
     "started_at": "2026-06-26T08:11:59.963853+00:00",
     "status": "published",
-    "updated_at": "2026-06-26T08:12:15.386692+00:00",
+    "updated_at": "2026-06-26T11:13:16.581094+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/microstrategy-tokenized-stock-xstock/1/ko.html"
   },
@@ -40221,7 +40281,7 @@
     "source_path": "Slide2/mat/Playnance_GCOIN_MAT_ko.pdf",
     "started_at": "2026-06-26T08:15:10.067449+00:00",
     "status": "published",
-    "updated_at": "2026-06-26T08:15:23.662191+00:00",
+    "updated_at": "2026-06-26T11:13:26.373811+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/playnance/1/ko.html"
   },
@@ -40464,6 +40524,36 @@
     "updated_at": "2026-05-14T10:42:29.723618+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/injective/latest/ja.html"
+  },
+  "1fH9mROkuOUtHW0JFyei2xl9DQqUr9Eee": {
+    "error": null,
+    "finished_at": "2026-06-26T11:14:16.045233+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-26T09:18:07.000Z",
+    "name": "ZETA_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zetachain/latest/zh.html",
+    "report_id": "64174bdc-ce4a-4a3f-b691-ea28255f3575",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "zetachain",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/ZETA_FOR_cn.pdf",
+    "started_at": "2026-06-26T11:13:54.850942+00:00",
+    "status": "published",
+    "updated_at": "2026-06-26T11:14:16.045245+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zetachain/1/zh.html"
   },
   "1fHUOOROyNfKAjZAaBY1pdXagJ-Pqfw-u": {
     "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
@@ -42577,6 +42667,36 @@
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/canton-network/2/zh.html"
   },
+  "1hQN61zKrL9wKJFaJ1-OcmwKyAzFf8t4L": {
+    "error": null,
+    "finished_at": "2026-06-26T11:15:51.783740+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-26T09:14:48.000Z",
+    "name": "ZETA_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zetachain/latest/ko.html",
+    "report_id": "e75e8b76-2121-47b1-8cb9-63d581b5d9f0",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "zetachain",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/ZETA_FOR_ko.pdf",
+    "started_at": "2026-06-26T11:15:42.456737+00:00",
+    "status": "published",
+    "updated_at": "2026-06-26T11:15:51.783752+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zetachain/1/ko.html"
+  },
   "1hQPSG6-KivJoOHir5ck6GvjN5FINXAQx": {
     "error": null,
     "finished_at": "2026-05-17T13:49:10.299676+00:00",
@@ -43967,7 +44087,7 @@
     "source_path": "Slide2/mat/Playnance_GCOIN_MAT_en.pdf",
     "started_at": "2026-06-26T08:14:17.240678+00:00",
     "status": "published",
-    "updated_at": "2026-06-26T08:14:30.026904+00:00",
+    "updated_at": "2026-06-26T11:13:24.184094+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/playnance/1/en.html"
   },
@@ -50459,7 +50579,7 @@
     "source_path": "Slide2/econ/MSTRx_ECON_jp.pdf",
     "started_at": "2026-06-26T08:11:01.930042+00:00",
     "status": "published",
-    "updated_at": "2026-06-26T08:11:16.531858+00:00",
+    "updated_at": "2026-06-26T11:13:14.916203+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/microstrategy-tokenized-stock-xstock/1/ja.html"
   },
@@ -51208,7 +51328,7 @@
     "source_path": "Slide2/econ/MSTRx_ECON_cn.pdf",
     "started_at": "2026-06-26T08:10:05.865788+00:00",
     "status": "published",
-    "updated_at": "2026-06-26T08:10:26.656590+00:00",
+    "updated_at": "2026-06-26T11:13:14.204069+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/microstrategy-tokenized-stock-xstock/1/zh.html"
   },
