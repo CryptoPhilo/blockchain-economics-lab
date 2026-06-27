@@ -18730,6 +18730,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/first-digital-usd/1/ko.html"
   },
+  "1IZMy-KXUGryKeE0eRHHoft0kIh2_LouF": {
+    "error": null,
+    "finished_at": "2026-06-27T14:51:14.818619+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-27T13:10:13.000Z",
+    "name": "BAS_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bnb-attestation-service/latest/en.html",
+    "report_id": "26484178-76dd-4488-a2d5-5a23505a2068",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "bnb-attestation-service",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/BAS_MAT_en.pdf",
+    "started_at": "2026-06-27T14:50:57.017074+00:00",
+    "status": "published",
+    "updated_at": "2026-06-27T14:51:14.818634+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bnb-attestation-service/1/en.html"
+  },
   "1I_4qnkPvn9nyBWMmaBeKJFVTzH7lzQww": {
     "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
     "lang": "zh",
@@ -26973,7 +27003,7 @@
     "source_path": "Slide2/econ/BAS_ECON_ko.pdf",
     "started_at": "2026-06-27T13:02:15.458367+00:00",
     "status": "published",
-    "updated_at": "2026-06-27T13:02:26.787647+00:00",
+    "updated_at": "2026-06-27T14:49:14.102752+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bnb-attestation-service/1/ko.html"
   },
@@ -28996,7 +29026,7 @@
     "source_path": "Slide2/econ/BAS_ECON_cn.pdf",
     "started_at": "2026-06-27T13:00:43.963724+00:00",
     "status": "published",
-    "updated_at": "2026-06-27T13:00:59.912501+00:00",
+    "updated_at": "2026-06-27T14:49:11.514016+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bnb-attestation-service/1/zh.html"
   },
@@ -34560,6 +34590,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/myx-finance/1/zh.html"
   },
+  "1Zj2qMA_rkiscyp-6ux_oDVAn-EXq0O-o": {
+    "error": null,
+    "finished_at": "2026-06-27T14:50:54.681742+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-27T13:12:33.000Z",
+    "name": "BAS_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bnb-attestation-service/latest/ja.html",
+    "report_id": "cde25bb7-8d7a-4505-a194-e88e66960a7e",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "bnb-attestation-service",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/BAS_MAT_jp.pdf",
+    "started_at": "2026-06-27T14:50:41.877387+00:00",
+    "status": "published",
+    "updated_at": "2026-06-27T14:50:54.681758+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bnb-attestation-service/1/ja.html"
+  },
   "1ZjSSEDbo2-qVz1sqgZBqQLKn-pnyNGRd": {
     "error": null,
     "finished_at": "2026-06-11T09:07:50.530567+00:00",
@@ -39436,6 +39496,36 @@
     "updated_at": "2026-06-10T08:51:05.446756+00:00",
     "version": null,
     "versioned_url": null
+  },
+  "1dsBClfWFWsoM0zfnpquY2fnOIIUOl27k": {
+    "error": null,
+    "finished_at": "2026-06-27T14:51:57.620423+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-27T13:08:01.000Z",
+    "name": "BAS_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bnb-attestation-service/latest/ko.html",
+    "report_id": "4bfe8bce-45d3-401b-9925-0182fabbb761",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "bnb-attestation-service",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/BAS_MAT_ko.pdf",
+    "started_at": "2026-06-27T14:51:44.499649+00:00",
+    "status": "published",
+    "updated_at": "2026-06-27T14:51:57.620439+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bnb-attestation-service/1/ko.html"
   },
   "1dt08nnsqkIwK_eFY-ineFYr1Sib-iYYW": {
     "error": null,
@@ -48588,7 +48678,7 @@
     "source_path": "Slide2/econ/BAS_ECON_en.pdf",
     "started_at": "2026-06-27T13:01:41.079892+00:00",
     "status": "published",
-    "updated_at": "2026-06-27T13:01:51.610695+00:00",
+    "updated_at": "2026-06-27T14:49:13.254900+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bnb-attestation-service/1/en.html"
   },
@@ -50722,6 +50812,36 @@
     "updated_at": "2026-06-14T08:53:36.211053+00:00",
     "version": null,
     "versioned_url": null
+  },
+  "1pXZnXG8lfa33beXS6lE5piAYULOvG-vh": {
+    "error": null,
+    "finished_at": "2026-06-27T14:50:13.439675+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-27T13:15:01.000Z",
+    "name": "BAS_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bnb-attestation-service/latest/zh.html",
+    "report_id": "5f96f92e-f3f2-4405-8a30-ff5d416ab422",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "bnb-attestation-service",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/BAS_MAT_cn.pdf",
+    "started_at": "2026-06-27T14:49:44.407523+00:00",
+    "status": "published",
+    "updated_at": "2026-06-27T14:50:13.439690+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bnb-attestation-service/1/zh.html"
   },
   "1pYqcNNkLHe8cz3oMR7BJbqhelfGWBJY2": {
     "error": "unresolved (slug=? via filename_unresolved; lang=zh via filename)",
@@ -53133,7 +53253,7 @@
     "source_path": "Slide2/econ/BAS_ECON_jp.pdf",
     "started_at": "2026-06-27T13:01:27.099348+00:00",
     "status": "published",
-    "updated_at": "2026-06-27T13:01:39.494668+00:00",
+    "updated_at": "2026-06-27T14:49:12.420258+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bnb-attestation-service/1/ja.html"
   },
