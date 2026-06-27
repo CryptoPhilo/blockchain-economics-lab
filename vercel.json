@@ -3,6 +3,7 @@
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
+  "ignoreCommand": "node scripts/vercel-ignore-build.mjs",
   "regions": ["icn1"],
   "headers": [
     {

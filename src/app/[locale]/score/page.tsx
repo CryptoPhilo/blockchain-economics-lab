@@ -47,6 +47,8 @@ const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'world-liberty-financial-usd', slug: 'usd1' },
   { alias: 'bnb', slug: 'binancecoin' },
   { alias: 'toncoin', slug: 'the-open-network' },
+  { alias: 'gram', slug: 'the-open-network' },
+  { alias: 'gram prev toncoin', slug: 'the-open-network' },
   { alias: 'hedera', slug: 'hedera-hashgraph' },
   { alias: 'pi', slug: 'pi-network' },
   { alias: 'worldcoin-org', slug: 'worldcoin' },
@@ -786,7 +788,7 @@ async function fetchScoreboardSourceData() {
 
 const getCachedScoreboardSourceData = unstable_cache(
   fetchScoreboardSourceData,
-  ['scoreboard-source-data-v1'],
+  ['scoreboard-source-data-v4'],
   {
     revalidate: SCOREBOARD_DATA_CACHE_SECONDS,
     tags: ['scoreboard-source-data'],
@@ -795,7 +797,7 @@ const getCachedScoreboardSourceData = unstable_cache(
 
 const getCachedVisibleReportsForScoreboardByProjectSlugs = unstable_cache(
   async (projectSlugs: string[]) => fetchVisibleReportsForScoreboardByProjectSlugs(projectSlugs),
-  ['scoreboard-visible-reports-by-slugs-v1'],
+  ['scoreboard-visible-reports-by-slugs-v4'],
   {
     revalidate: SCOREBOARD_DATA_CACHE_SECONDS,
     tags: ['scoreboard-visible-reports'],

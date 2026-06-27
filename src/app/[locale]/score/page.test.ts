@@ -5,6 +5,7 @@ jest.mock('next/cache', () => ({
 import {
   buildReportAvailabilityByProjectId,
   buildReportAvailabilityByProjectSlug,
+  buildTrackedProjectIdentityLookup,
   buildTrackedProjectLookup,
   canonicalSnapshotRowsToScoreRows,
   fetchVisibleReportsForScoreboard,
@@ -1911,6 +1912,289 @@ describe('score page report availability policy', () => {
       score: 75.5,
       reportTypes: ['maturity'],
     })
+  })
+
+  it('keeps Reallink ECON active when summary targets and other locales are newer', () => {
+    const trackedProjects = [
+      {
+        id: 'reallink-project',
+        name: 'Reallink',
+        slug: 'reallink',
+        symbol: 'REAL',
+        category: 'Infrastructure',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: 'reallink',
+        aliases: [],
+        maturity_score: 70.8,
+        last_econ_report_at: '2026-06-25T03:20:02+00:00',
+        last_maturity_report_at: '2026-06-25T03:23:59+00:00',
+        last_forensic_report_at: null,
+      },
+    ]
+
+    const availabilityByProjectSlug = buildReportAvailabilityByProjectSlug([
+      {
+        project_id: 'reallink-project',
+        report_type: 'econ',
+        language: 'ko',
+        status: 'coming_soon',
+        version: 1,
+        is_latest: false,
+        published_at: null,
+        updated_at: '2026-06-25T03:12:00+00:00',
+        tracked_projects: { slug: 'reallink' },
+      },
+      {
+        project_id: 'reallink-project',
+        report_type: 'econ',
+        language: 'ko',
+        status: 'published',
+        version: 2,
+        is_latest: true,
+        published_at: '2026-06-25T03:16:01+00:00',
+        slide_html_urls_by_lang: {
+          ko: 'https://example.supabase.co/storage/v1/object/public/slides/econ/reallink/latest/ko.html',
+        },
+        tracked_projects: { slug: 'reallink' },
+      },
+      {
+        project_id: 'reallink-project',
+        report_type: 'econ',
+        language: 'zh',
+        status: 'published',
+        version: 1,
+        is_latest: true,
+        published_at: '2026-06-25T03:20:02+00:00',
+        slide_html_urls_by_lang: {
+          zh: 'https://example.supabase.co/storage/v1/object/public/slides/econ/reallink/latest/zh.html',
+        },
+        tracked_projects: { slug: 'reallink' },
+      },
+      {
+        project_id: 'reallink-project',
+        report_type: 'maturity',
+        language: 'ko',
+        status: 'published',
+        version: 2,
+        is_latest: true,
+        published_at: '2026-06-25T03:23:59+00:00',
+        slide_html_urls_by_lang: {
+          ko: 'https://example.supabase.co/storage/v1/object/public/slides/maturity/reallink/latest/ko.html',
+        },
+        tracked_projects: { slug: 'reallink' },
+      },
+    ], 'ko')
+
+    const [row] = snapshotRowsToScoreRows(
+      [
+        {
+          ...makeSnapshotRow(265, 'reallink'),
+          cmc_name: 'Reallink',
+          cmc_symbol: 'REAL',
+        },
+      ],
+      buildTrackedProjectLookup(trackedProjects),
+      new Map(),
+      availabilityByProjectSlug,
+      buildTrackedProjectIdentityLookup(trackedProjects),
+    )
+
+    expect(row).toMatchObject({
+      slug: 'reallink',
+      reportTypes: ['econ', 'maturity'],
+      reportDates: {
+        econ: '2026-06-25T03:20:02+00:00',
+        maturity: '2026-06-25T03:23:59+00:00',
+        forensic: null,
+      },
+    })
+  })
+
+  it('keeps localized stablecoin and rebrand badges active from slug availability', () => {
+    const trackedProjects = [
+      {
+        id: 'dai-project',
+        name: 'Dai',
+        slug: 'dai',
+        symbol: 'DAI',
+        category: 'Stablecoin',
+        market_cap_usd: 100,
+        coingecko_id: 'dai',
+        cmc_id: null,
+        aliases: ['multi-collateral-dai'],
+        maturity_score: 80.4,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+      {
+        id: 'usd1-project',
+        name: 'USD1',
+        slug: 'usd1',
+        symbol: 'USD1',
+        category: 'Stablecoin',
+        market_cap_usd: 100,
+        coingecko_id: 'usd1-wlfi',
+        cmc_id: null,
+        aliases: ['world-liberty-financial-usd'],
+        maturity_score: 65.9,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+      {
+        id: 'ethena-project',
+        name: 'Ethena',
+        slug: 'ethena',
+        symbol: 'ENA',
+        category: 'Stablecoin',
+        market_cap_usd: 100,
+        coingecko_id: 'ethena',
+        cmc_id: null,
+        aliases: ['ethena-usde', 'usde'],
+        maturity_score: 70.2,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+      {
+        id: 'ton-project',
+        name: 'TON',
+        slug: 'the-open-network',
+        symbol: 'TON',
+        category: 'Layer 1',
+        market_cap_usd: 100,
+        coingecko_id: 'the-open-network',
+        cmc_id: null,
+        aliases: ['gram', 'toncoin'],
+        maturity_score: 63.6,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const availabilityByProjectSlug = buildReportAvailabilityByProjectSlug([
+      {
+        project_id: 'dai-project',
+        report_type: 'maturity',
+        language: 'ko',
+        status: 'published',
+        published_at: '2026-06-17T10:31:36.843406+00:00',
+        slide_html_urls_by_lang: {
+          ko: 'https://example.supabase.co/storage/v1/object/public/slides/maturity/dai/latest/ko.html',
+        },
+        tracked_projects: { slug: 'dai' },
+      },
+      {
+        project_id: 'usd1-project',
+        report_type: 'maturity',
+        language: 'ko',
+        status: 'published',
+        published_at: '2026-06-17T10:32:29.418489+00:00',
+        slide_html_urls_by_lang: {
+          ko: 'https://example.supabase.co/storage/v1/object/public/slides/maturity/usd1/latest/ko.html',
+        },
+        tracked_projects: { slug: 'usd1' },
+      },
+      {
+        project_id: 'ethena-project',
+        report_type: 'econ',
+        language: 'ko',
+        status: 'published',
+        version: 2,
+        is_latest: true,
+        published_at: '2026-06-17T10:32:21.561996+00:00',
+        slide_html_urls_by_lang: {
+          ko: 'https://example.supabase.co/storage/v1/object/public/slides/econ/ethena/latest/ko.html',
+        },
+        tracked_projects: { slug: 'ethena' },
+      },
+      {
+        project_id: 'ton-project',
+        report_type: 'econ',
+        language: 'ko',
+        status: 'published',
+        version: 2,
+        is_latest: true,
+        published_at: '2026-05-26T09:13:03.350903+00:00',
+        slide_html_urls_by_lang: {
+          ko: 'https://example.supabase.co/storage/v1/object/public/slides/econ/the-open-network/latest/ko.html',
+        },
+        tracked_projects: { slug: 'the-open-network' },
+      },
+      {
+        project_id: 'ton-project',
+        report_type: 'maturity',
+        language: 'ko',
+        status: 'published',
+        published_at: '2026-06-09T05:42:58.306+00:00',
+        slide_html_urls_by_lang: {
+          ko: 'https://example.supabase.co/storage/v1/object/public/slides/maturity/the-open-network/latest/ko.html',
+        },
+        tracked_projects: { slug: 'the-open-network' },
+      },
+    ], 'ko')
+
+    const rows = snapshotRowsToScoreRows(
+      [
+        makeSnapshotRow(16, 'multi-collateral-dai'),
+        makeSnapshotRow(19, 'world-liberty-financial-usd'),
+        makeSnapshotRow(20, 'ethena-usde'),
+        {
+          ...makeSnapshotRow(21, 'gram'),
+          cmc_name: 'Gram (prev. Toncoin)',
+          cmc_symbol: 'GRAM',
+        },
+      ],
+      buildTrackedProjectLookup(trackedProjects, { includeProjectAliases: false }),
+      new Map(),
+      availabilityByProjectSlug,
+      buildTrackedProjectIdentityLookup(trackedProjects),
+    )
+
+    expect(rows.map((row) => ({
+      slug: row.slug,
+      reportTypes: row.reportTypes,
+      reportDates: row.reportDates,
+    }))).toEqual([
+      {
+        slug: 'dai',
+        reportTypes: ['maturity'],
+        reportDates: {
+          econ: null,
+          maturity: '2026-06-17T10:31:36.843406+00:00',
+          forensic: null,
+        },
+      },
+      {
+        slug: 'usd1',
+        reportTypes: ['maturity'],
+        reportDates: {
+          econ: null,
+          maturity: '2026-06-17T10:32:29.418489+00:00',
+          forensic: null,
+        },
+      },
+      {
+        slug: 'ethena',
+        reportTypes: ['econ'],
+        reportDates: {
+          econ: '2026-06-17T10:32:21.561996+00:00',
+          maturity: null,
+          forensic: null,
+        },
+      },
+      {
+        slug: 'the-open-network',
+        reportTypes: ['econ', 'maturity'],
+        reportDates: {
+          econ: '2026-05-26T09:13:03.350903+00:00',
+          maturity: '2026-06-09T05:42:58.306+00:00',
+          forensic: null,
+        },
+      },
+    ])
   })
 
   it('uses card_data slug availability when the report project relation is detached', () => {
