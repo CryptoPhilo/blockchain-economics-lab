@@ -2087,6 +2087,177 @@ describe('score page report availability policy', () => {
     })
   })
 
+
+  it('keeps localized stablecoin and rebrand badges active from slug availability', () => {
+    const trackedProjects = [
+      {
+        id: 'dai-project',
+        name: 'Dai',
+        slug: 'dai',
+        symbol: 'DAI',
+        category: 'Stablecoin',
+        market_cap_usd: 100,
+        coingecko_id: 'dai',
+        cmc_id: null,
+        aliases: ['multi-collateral-dai'],
+        maturity_score: 80.4,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+      {
+        id: 'usd1-project',
+        name: 'USD1',
+        slug: 'usd1',
+        symbol: 'USD1',
+        category: 'Stablecoin',
+        market_cap_usd: 100,
+        coingecko_id: 'usd1-wlfi',
+        cmc_id: null,
+        aliases: ['world-liberty-financial-usd'],
+        maturity_score: 65.9,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+      {
+        id: 'ethena-project',
+        name: 'Ethena',
+        slug: 'ethena',
+        symbol: 'ENA',
+        category: 'Stablecoin',
+        market_cap_usd: 100,
+        coingecko_id: 'ethena',
+        cmc_id: null,
+        aliases: ['ethena-usde', 'usde'],
+        maturity_score: 70.2,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+      {
+        id: 'ton-project',
+        name: 'TON',
+        slug: 'the-open-network',
+        symbol: 'TON',
+        category: 'Layer 1',
+        market_cap_usd: 100,
+        coingecko_id: 'the-open-network',
+        cmc_id: null,
+        aliases: ['gram', 'toncoin'],
+        maturity_score: 63.6,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+    ]
+    const availabilityByProjectSlug = buildReportAvailabilityByProjectSlug([
+      {
+        project_id: 'dai-project',
+        report_type: 'maturity',
+        language: 'ko',
+        status: 'published',
+        published_at: '2026-06-17T10:31:36.843406+00:00',
+        tracked_projects: { slug: 'dai' },
+      },
+      {
+        project_id: 'usd1-project',
+        report_type: 'maturity',
+        language: 'ko',
+        status: 'published',
+        published_at: '2026-06-17T10:32:29.418489+00:00',
+        tracked_projects: { slug: 'usd1' },
+      },
+      {
+        project_id: 'ethena-project',
+        report_type: 'econ',
+        language: 'ko',
+        status: 'published',
+        version: 2,
+        is_latest: true,
+        published_at: '2026-06-17T10:32:21.561996+00:00',
+        tracked_projects: { slug: 'ethena' },
+      },
+      {
+        project_id: 'ton-project',
+        report_type: 'econ',
+        language: 'ko',
+        status: 'published',
+        version: 2,
+        is_latest: true,
+        published_at: '2026-05-26T09:13:03.350903+00:00',
+        tracked_projects: { slug: 'the-open-network' },
+      },
+      {
+        project_id: 'ton-project',
+        report_type: 'maturity',
+        language: 'ko',
+        status: 'published',
+        published_at: '2026-06-09T05:42:58.306+00:00',
+        tracked_projects: { slug: 'the-open-network' },
+      },
+    ], 'ko')
+
+    const rows = snapshotRowsToScoreRows(
+      [
+        makeSnapshotRow(16, 'multi-collateral-dai'),
+        makeSnapshotRow(19, 'world-liberty-financial-usd'),
+        makeSnapshotRow(20, 'ethena-usde'),
+        {
+          ...makeSnapshotRow(21, 'gram'),
+          cmc_name: 'Gram (prev. Toncoin)',
+          cmc_symbol: 'GRAM',
+        },
+      ],
+      buildTrackedProjectLookup(trackedProjects, { includeProjectAliases: false }),
+      new Map(),
+      availabilityByProjectSlug,
+    )
+
+    expect(rows.map((row) => ({
+      slug: row.slug,
+      reportTypes: row.reportTypes,
+      reportDates: row.reportDates,
+    }))).toEqual([
+      {
+        slug: 'dai',
+        reportTypes: ['maturity'],
+        reportDates: {
+          econ: null,
+          maturity: '2026-06-17T10:31:36.843406+00:00',
+          forensic: null,
+        },
+      },
+      {
+        slug: 'usd1',
+        reportTypes: ['maturity'],
+        reportDates: {
+          econ: null,
+          maturity: '2026-06-17T10:32:29.418489+00:00',
+          forensic: null,
+        },
+      },
+      {
+        slug: 'ethena',
+        reportTypes: ['econ'],
+        reportDates: {
+          econ: '2026-06-17T10:32:21.561996+00:00',
+          maturity: null,
+          forensic: null,
+        },
+      },
+      {
+        slug: 'the-open-network',
+        reportTypes: ['econ', 'maturity'],
+        reportDates: {
+          econ: '2026-05-26T09:13:03.350903+00:00',
+          maturity: '2026-06-09T05:42:58.306+00:00',
+          forensic: null,
+        },
+      },
+    ])
+  })
+
   it('uses card_data slug availability when the report project relation is detached', () => {
     const trackedProjects = [
       {
