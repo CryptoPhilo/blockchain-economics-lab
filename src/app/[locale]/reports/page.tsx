@@ -6,6 +6,7 @@ import { getLocalizedMarketingContent } from '@/lib/report-marketing-content'
 import { getLocalizedCardSummary } from '@/lib/report-summary'
 import { buildReportVersionHref, getReportVersionLabel } from '@/lib/report-versioning'
 import { createProjectsRepository } from '@/lib/repositories/projects'
+import { FORENSIC_REPORT_VALIDITY_DAYS, FORENSIC_SCAN_WINDOW_HOURS } from '@/lib/constants/forensic'
 import { buildMarketRankLookup, getMarketRankForReport, prepareRapidChangeReports } from './reports-page-utils'
 
 export const dynamic = 'force-dynamic'
@@ -83,15 +84,21 @@ export default async function ReportsPage({ params, searchParams }: Props) {
   const t = await getTranslations('reports')
   const currentPage = Math.max(1, parseInt(pageStr || '1', 10))
 
-  const seventyTwoHoursAgo = new Date()
-  seventyTwoHoursAgo.setHours(seventyTwoHoursAgo.getHours() - 72)
+  const scanWindowStart = new Date()
+  scanWindowStart.setHours(scanWindowStart.getHours() - FORENSIC_SCAN_WINDOW_HOURS)
+  const reportValidityStart = new Date()
+  reportValidityStart.setDate(reportValidityStart.getDate() - FORENSIC_REPORT_VALIDITY_DAYS)
+  const rapidChangeWindowFilter = [
+    `and(status.eq.published,published_at.gte.${reportValidityStart.toISOString()})`,
+    `and(status.in.(coming_soon,in_review),created_at.gte.${scanWindowStart.toISOString()})`,
+  ].join(',')
 
   const dataQuery = supabase
     .from('project_reports')
     .select('*, project:tracked_projects(id, name, slug, symbol, chain, category, coingecko_id, cmc_id, aliases)')
     .in('status', ['published', 'coming_soon', 'in_review'])
     .eq('report_type', 'forensic')
-    .gte('created_at', seventyTwoHoursAgo.toISOString())
+    .or(rapidChangeWindowFilter)
     .order('is_latest', { ascending: false })
     .order('updated_at', { ascending: false })
     .order('created_at', { ascending: false })
@@ -137,8 +144,8 @@ export default async function ReportsPage({ params, searchParams }: Props) {
         </h1>
         <p className="text-gray-400 mb-3">
           {locale === 'ko'
-            ? '72시간 내에 발행된 포렌식(FOR) 보고서 - 긴급 시장 변화를 놓치지 마세요'
-            : 'Forensic (FOR) reports published within 72 hours - Don\'t miss critical market changes'}
+            ? '72시간 내 감지 후보와 7일 이내 발행된 포렌식(FOR) 보고서 - 긴급 시장 변화를 놓치지 마세요'
+            : 'Forensic (FOR) scan candidates from 72 hours and reports published within 7 days - Don\'t miss critical market changes'}
         </p>
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
           <span className="animate-pulse">🔴</span>
@@ -371,8 +378,8 @@ export default async function ReportsPage({ params, searchParams }: Props) {
           <div className="text-6xl mb-4">✅</div>
           <p className="text-gray-400 text-lg mb-2">
             {locale === 'ko'
-              ? '현재 72시간 내 발행된 FOR 보고서가 없습니다'
-              : 'No FOR reports published within the last 72 hours'}
+              ? '현재 72시간 내 감지 후보나 7일 이내 발행된 FOR 보고서가 없습니다'
+              : 'No FOR scan candidates from 72 hours or reports published within 7 days'}
           </p>
           <p className="text-gray-600 text-sm">
             {locale === 'ko'
@@ -442,14 +449,14 @@ export default async function ReportsPage({ params, searchParams }: Props) {
             </h3>
             <p className="text-sm text-gray-500 max-w-2xl">
               {locale === 'ko'
-                ? 'FOR(포렌식) 보고서는 시장에서 급격한 변화가 감지된 프로젝트를 심층 분석합니다. 72시간 이내 생성된 보고서는 현재 진행 중인 중요한 시장 이벤트를 나타냅니다.'
-                : 'FOR (Forensic) reports provide deep analysis of projects with detected rapid market changes. Reports created within 72 hours indicate ongoing critical market events.'}
+                ? 'FOR(포렌식) 보고서는 시장에서 급격한 변화가 감지된 프로젝트를 심층 분석합니다. 감지 후보는 72시간 동안 유지하고, 발행된 보고서는 7일 동안 같은 급변동 원인이 유효한 것으로 봅니다.'
+                : 'FOR (Forensic) reports provide deep analysis of projects with detected rapid market changes. Scan candidates are retained for 72 hours, while published reports keep the same rapid-change cause valid for 7 days.'}
             </p>
           </div>
           <div className="text-center px-6 py-4 rounded-xl bg-red-500/10 border border-red-500/20">
             <div className="text-3xl font-bold text-red-400 mb-1">{totalCount}</div>
             <div className="text-xs text-gray-500 uppercase">
-              {locale === 'ko' ? '최근 72시간' : 'Last 72 Hours'}
+              {locale === 'ko' ? '스캔 72시간 / 보고서 7일' : '72h Scan / 7d Reports'}
             </div>
           </div>
         </div>

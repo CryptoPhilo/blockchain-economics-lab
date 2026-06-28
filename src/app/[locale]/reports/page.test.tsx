@@ -24,6 +24,7 @@ type MockReportQuery = {
   in: jest.Mock
   eq: jest.Mock
   gte: jest.Mock
+  or: jest.Mock
   order: jest.Mock
   then: <TResult1 = { data: unknown[] }, TResult2 = never>(
     onFulfilled?: ((value: { data: unknown[] }) => TResult1 | PromiseLike<TResult1>) | null | undefined,
@@ -37,6 +38,7 @@ function createReportsQuery(data: unknown[]) {
     in: jest.fn(() => query),
     eq: jest.fn(() => query),
     gte: jest.fn(() => query),
+    or: jest.fn(() => query),
     order: jest.fn(() => query),
     then: (resolve, reject) => Promise.resolve({ data }).then(resolve, reject),
   }
@@ -90,7 +92,7 @@ describe('ReportsPage rapid change cards', () => {
     expect(revalidate).toBe(0)
   })
 
-  it('queries forensic reports from the last 72 hours and renders candidate card contract fields', async () => {
+  it('queries 72-hour scan candidates and 7-day published forensic reports', async () => {
     const reportsQuery = mockReportsQuery([
       {
         id: 'eth-candidate',
@@ -145,10 +147,17 @@ describe('ReportsPage rapid change cards', () => {
 
     expect(reportsQuery.in).toHaveBeenCalledWith('status', ['published', 'coming_soon', 'in_review'])
     expect(reportsQuery.eq).toHaveBeenCalledWith('report_type', 'forensic')
-    expect(reportsQuery.gte).toHaveBeenCalledWith('created_at', expect.any(String))
+    expect(reportsQuery.gte).not.toHaveBeenCalled()
+    expect(reportsQuery.or).toHaveBeenCalledTimes(1)
 
-    const gteIso = reportsQuery.gte.mock.calls[0][1] as string
-    expect(Number.isNaN(Date.parse(gteIso))).toBe(false)
+    const windowFilter = reportsQuery.or.mock.calls[0][0] as string
+    expect(windowFilter).toContain('and(status.eq.published,published_at.gte.')
+    expect(windowFilter).toContain('and(status.in.(coming_soon,in_review),created_at.gte.')
+    const isoMatches = [...windowFilter.matchAll(/gte\.([^,)]+)/g)].map((match) => match[1])
+    expect(isoMatches).toHaveLength(2)
+    for (const iso of isoMatches) {
+      expect(Number.isNaN(Date.parse(iso))).toBe(false)
+    }
 
     expect(screen.getByText('Ethereum Forensic Analysis v1')).toBeTruthy()
     expect(screen.getByText('Ethereum (ETH)')).toBeTruthy()

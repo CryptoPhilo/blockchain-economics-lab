@@ -106,6 +106,9 @@ export const FORENSIC_LIST_CONFIG = {
   icon: '🔍',
 } as const
 
+export const FORENSIC_SCAN_WINDOW_HOURS = 72
+export const FORENSIC_REPORT_VALIDITY_DAYS = 7
+
 export function getLabel(
   labels: Record<string, string>,
   locale: string,
