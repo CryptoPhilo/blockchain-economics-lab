@@ -1634,6 +1634,73 @@ describe('score page report availability policy', () => {
     })
   })
 
+  it('merges project-id availability when cached slug availability is missing a localized MAT report', () => {
+    const trackedProjects = [
+      {
+        id: 'spx6900-project',
+        name: 'SPX6900',
+        slug: 'spx6900',
+        symbol: 'SPX',
+        category: '',
+        market_cap_usd: 100,
+        coingecko_id: 'spx6900',
+        cmc_id: 'spx6900',
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: '2026-06-17T12:59:19.264Z',
+        last_maturity_report_at: '2026-06-11T03:02:41.726Z',
+        last_forensic_report_at: null,
+      },
+    ]
+    const availabilityByProjectSlug = buildReportAvailabilityByProjectSlug([
+      {
+        project_id: 'spx6900-project',
+        report_type: 'econ',
+        status: 'published',
+        language: 'ko',
+        published_at: '2026-06-17T12:59:19.264Z',
+        slide_html_urls_by_lang: {
+          ko: 'https://example.supabase.co/storage/v1/object/public/slides/econ/spx6900/latest/ko.html',
+        },
+        tracked_projects: {
+          slug: 'spx6900',
+        },
+      },
+    ], 'ko', { includeSuppressedReportTypes: true })
+    const availabilityByProjectId = buildReportAvailabilityByProjectId([
+      {
+        project_id: 'spx6900-project',
+        report_type: 'maturity',
+        status: 'published',
+        language: 'ko',
+        published_at: '2026-06-11T03:02:41.726Z',
+        card_data: {
+          maturity_score: 64.5,
+        },
+        slide_html_urls_by_lang: {
+          ko: 'https://example.supabase.co/storage/v1/object/public/slides/mat/spx6900/latest/ko.html',
+        },
+      },
+    ], 'ko', { includeSuppressedReportTypes: true })
+
+    const [row] = snapshotRowsToScoreRows(
+      [makeSnapshotRow(100, 'spx6900')],
+      buildTrackedProjectLookup(trackedProjects),
+      availabilityByProjectId,
+      availabilityByProjectSlug,
+    )
+
+    expect(row).toMatchObject({
+      slug: 'spx6900',
+      score: 64.5,
+      reportTypes: ['econ', 'maturity'],
+      reportDates: {
+        econ: '2026-06-17T12:59:19.264Z',
+        maturity: '2026-06-11T03:02:41.726Z',
+      },
+    })
+  })
+
   it('renders active ECON availability for Bitcoin when a Korean localized asset exists', () => {
     const trackedProjects = [
       {

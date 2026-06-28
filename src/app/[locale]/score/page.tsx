@@ -366,20 +366,52 @@ function mergeNonForensicFallback(
   return merged
 }
 
+function mergeVisibleReportAvailability(
+  primary: ReportAvailability,
+  secondary: ReportAvailability,
+): ReportAvailability {
+  const merged: ReportAvailability = {
+    reportTypes: [...primary.reportTypes],
+    reportDates: { ...primary.reportDates },
+    maturityScore: primary.maturityScore ?? secondary.maturityScore,
+    suppressedReportTypes: primary.suppressedReportTypes,
+  }
+
+  for (const reportType of ['econ', 'maturity', 'forensic'] as const) {
+    if (!secondary.reportTypes.includes(reportType)) continue
+    if (!merged.reportTypes.includes(reportType)) {
+      merged.reportTypes.push(reportType)
+    }
+
+    const secondaryDate = secondary.reportDates[reportType]
+    const currentDate = merged.reportDates[reportType]
+    if (secondaryDate && (!currentDate || new Date(secondaryDate).getTime() > new Date(currentDate).getTime())) {
+      merged.reportDates[reportType] = secondaryDate
+    }
+  }
+
+  if (merged.suppressedReportTypes?.length) {
+    merged.suppressedReportTypes = merged.suppressedReportTypes.filter(
+      (reportType) => !secondary.reportTypes.includes(reportType),
+    )
+  }
+
+  return merged
+}
+
 function getReportAvailability(
   project: TrackedScoreboardProject | undefined,
   availabilityByProjectId?: Map<string, ReportAvailability>,
   canonicalAvailability?: ReportAvailability,
 ): ReportAvailability {
   const fallback = createFallbackReportAvailability(project)
-  if (canonicalAvailability) return mergeNonForensicFallback(canonicalAvailability, fallback)
   const live = project?.id ? availabilityByProjectId?.get(project.id) : undefined
+  const authoritative = canonicalAvailability && live
+    ? mergeVisibleReportAvailability(canonicalAvailability, live)
+    : canonicalAvailability ?? live
+  if (authoritative) return mergeNonForensicFallback(authoritative, fallback)
   if (!availabilityByProjectId) return fallback
-  if (!live) {
-    return createEmptyReportAvailability()
-  }
-
-  return mergeNonForensicFallback(live, fallback)
+  return createEmptyReportAvailability()
 }
 
 function hasNonEmptyAssetValue(value: unknown): boolean {
@@ -797,7 +829,16 @@ const getCachedScoreboardSourceData = unstable_cache(
 
 const getCachedVisibleReportsForScoreboardByProjectSlugs = unstable_cache(
   async (projectSlugs: string[]) => fetchVisibleReportsForScoreboardByProjectSlugs(projectSlugs),
-  ['scoreboard-visible-reports-by-slugs-v4'],
+  ['scoreboard-visible-reports-by-slugs-v5'],
+  {
+    revalidate: SCOREBOARD_DATA_CACHE_SECONDS,
+    tags: ['scoreboard-visible-reports'],
+  },
+)
+
+const getCachedVisibleReportsForScoreboardByProjectIds = unstable_cache(
+  async (projectIds: string[]) => fetchVisibleReportsForScoreboard(projectIds),
+  ['scoreboard-visible-reports-by-project-ids-v1'],
   {
     revalidate: SCOREBOARD_DATA_CACHE_SECONDS,
     tags: ['scoreboard-visible-reports'],
@@ -945,16 +986,26 @@ export default async function ScorePage({
     requireCompleteCanonicalSnapshot: false,
   })
   let canonicalAliasReportResult: Awaited<ReturnType<typeof fetchVisibleReportsForScoreboardByProjectSlugs>>
+  let projectReportResult: Awaited<ReturnType<typeof fetchVisibleReportsForScoreboard>>
   try {
-    canonicalAliasReportResult = await getCachedVisibleReportsForScoreboardByProjectSlugs(reportScope.projectSlugs)
+    [canonicalAliasReportResult, projectReportResult] = await Promise.all([
+      getCachedVisibleReportsForScoreboardByProjectSlugs(reportScope.projectSlugs),
+      getCachedVisibleReportsForScoreboardByProjectIds(reportScope.projectIds),
+    ])
   } catch (error) {
     console.error('Failed to initialize scoreboard report availability boundary', {
       message: error instanceof Error ? error.message : String(error),
     })
     canonicalAliasReportResult = { reports: [], loaded: false }
+    projectReportResult = { reports: [], loaded: false }
   }
   const reportAvailabilityByProjectSlug = canonicalAliasReportResult.loaded
     ? buildReportAvailabilityByProjectSlug(canonicalAliasReportResult.reports, locale, {
+      includeSuppressedReportTypes: true,
+    })
+    : undefined
+  const reportAvailabilityByProjectId = projectReportResult.loaded
+    ? buildReportAvailabilityByProjectId(projectReportResult.reports, locale, {
       includeSuppressedReportTypes: true,
     })
     : undefined
@@ -962,7 +1013,7 @@ export default async function ScorePage({
   const rows = snapshotRowsToScoreRows(
     pageSnapshotRows,
     buildTrackedProjectLookup(trackedProjects, { includeProjectAliases: false }),
-    canonicalAliasReportResult.loaded ? new Map() : undefined,
+    reportAvailabilityByProjectId,
     reportAvailabilityByProjectSlug,
     buildTrackedProjectIdentityLookup(trackedProjects),
   )
