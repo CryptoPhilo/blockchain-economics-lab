@@ -598,7 +598,7 @@
     "source_path": "Slide2/econ/ARC_ECON_en.pdf",
     "started_at": "2026-06-28T06:13:50.151179+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T09:31:20.115295+00:00",
+    "updated_at": "2026-06-28T11:22:05.547719+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ai-rig-complex/1/en.html"
   },
@@ -5570,7 +5570,7 @@
     "source_path": "Slide2/mat/MUon_MAT_jp.pdf",
     "started_at": "2026-06-28T06:22:36.214124+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T09:31:42.738119+00:00",
+    "updated_at": "2026-06-28T11:22:26.656960+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/micron-technology-tokenized-stock-ondo/1/ja.html"
   },
@@ -6628,7 +6628,7 @@
     "source_path": "Slide2/econ/Light_ECON_cn.pdf",
     "started_at": "2026-06-28T06:10:08.812266+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T09:31:12.585820+00:00",
+    "updated_at": "2026-06-28T11:21:59.825673+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/light/1/zh.html"
   },
@@ -16193,6 +16193,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/playnance/1/zh.html"
   },
+  "1FUK9eVPJChAehDTJTBKgJW0FzYot4unQ": {
+    "error": null,
+    "finished_at": "2026-06-28T11:26:50.106034+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T11:11:25.000Z",
+    "name": "DCR_FOR_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/decred/latest/ja.html",
+    "report_id": "b33c2add-6def-4b52-9dbd-fdd9b2dd0674",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "decred",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/DCR_FOR_jp.pdf",
+    "started_at": "2026-06-28T11:26:33.539728+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T11:26:50.106052+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/decred/1/ja.html"
+  },
   "1FVpQJB0wRpZtNuGLagI8L9zDhZth4Yt8": {
     "error": null,
     "finished_at": "2026-05-17T08:50:36.699924+00:00",
@@ -18820,6 +18850,36 @@
     "version": null,
     "versioned_url": null
   },
+  "1ILjersHAodc8kbzFULUMqrm0h35GzmFv": {
+    "error": null,
+    "finished_at": "2026-06-28T11:24:56.634342+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T11:16:39.000Z",
+    "name": "Data_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/data-network/latest/ko.html",
+    "report_id": "1e7225ea-1444-4461-907d-b2f0cfb4b23d",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "data-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/Data_FOR_ko.pdf",
+    "started_at": "2026-06-28T11:24:43.348269+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T11:24:56.634363+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/data-network/1/ko.html"
+  },
   "1IMQLDnSc87RA-BoRHJflNkK8wL7Ky4Fw": {
     "error": null,
     "finished_at": "2026-05-17T10:14:46.364800+00:00",
@@ -20990,6 +21050,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/curve-dao/1/ja.html"
   },
+  "1K5ngdSok5HXxmIz2ECcBbt54gxnz06GX": {
+    "error": null,
+    "finished_at": "2026-06-28T11:30:59.621873+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T10:25:01.000Z",
+    "name": "0G_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zero-gravity/latest/ko.html",
+    "report_id": "6ee3ec8d-d2f7-4f6d-a348-b53af2b9c613",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "zero-gravity",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/0G_FOR_ko.pdf",
+    "started_at": "2026-06-28T11:30:46.312323+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T11:30:59.621894+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zero-gravity/1/ko.html"
+  },
   "1K68z7bu-FowwLWs98SgPgJyi5nmkfnNV": {
     "error": null,
     "finished_at": "2026-06-12T10:52:04.742923+00:00",
@@ -22034,7 +22124,7 @@
     "source_path": "Slide2/econ/Light_ECON_ko.pdf",
     "started_at": "2026-06-28T06:12:06.473672+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T09:31:16.385823+00:00",
+    "updated_at": "2026-06-28T11:22:02.722176+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/light/1/ko.html"
   },
@@ -24267,7 +24357,7 @@
     "source_path": "Slide2/econ/Light_ECON_jp.pdf",
     "started_at": "2026-06-28T06:11:07.445029+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T09:31:13.996444+00:00",
+    "updated_at": "2026-06-28T11:22:00.790165+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/light/1/ja.html"
   },
@@ -25068,7 +25158,7 @@
     "source_path": "Slide2/econ/ARC_ECON_cn.pdf",
     "started_at": "2026-06-28T06:12:48.549323+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T09:31:18.217965+00:00",
+    "updated_at": "2026-06-28T11:22:03.663741+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ai-rig-complex/1/zh.html"
   },
@@ -29306,7 +29396,7 @@
     "source_path": "Slide2/mat/MUon_MAT_cn.pdf",
     "started_at": "2026-06-28T06:21:33.534224+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T09:31:40.705259+00:00",
+    "updated_at": "2026-06-28T11:22:24.828133+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/micron-technology-tokenized-stock-ondo/1/zh.html"
   },
@@ -31600,6 +31690,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/virtuals-protocol/1/en.html"
   },
+  "1W9VxpnaUDqWHJPFxdgACjkAZkAMvYr10": {
+    "error": null,
+    "finished_at": "2026-06-28T11:27:53.475991+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T11:08:27.000Z",
+    "name": "DCR_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/decred/latest/ko.html",
+    "report_id": "7fbfb659-3b26-499e-bbc4-e443187fe262",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "decred",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/DCR_FOR_ko.pdf",
+    "started_at": "2026-06-28T11:27:41.965911+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T11:27:53.476009+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/decred/1/ko.html"
+  },
   "1W9tNxBJ9tcsR6yfiSOGySiP_ZMiM5L6l": {
     "error": null,
     "finished_at": "2026-05-31T10:08:43.705838+00:00",
@@ -32903,6 +33023,36 @@
     "updated_at": "2026-06-18T16:07:45.044765+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/kamino-finance/1/zh.html"
+  },
+  "1XMcoYH_s6Sx0so4jSdL-e2XOCLVOprvH": {
+    "error": null,
+    "finished_at": "2026-06-28T11:29:05.286502+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T10:29:00.000Z",
+    "name": "0G_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zero-gravity/latest/zh.html",
+    "report_id": "c93d95a4-f401-4b75-b8dc-9dab972698f6",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "zero-gravity",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/0G_FOR_cn.pdf",
+    "started_at": "2026-06-28T11:28:41.625277+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T11:29:05.286520+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zero-gravity/1/zh.html"
   },
   "1XN28o1dg-6ZZ7HMTt7Y5qP2lErLA8bpF": {
     "error": null,
@@ -37618,6 +37768,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ripple-usd/1/zh.html"
   },
+  "1b5yP6uEg9cuKxXwQbyX3OhrgCc3EKatp": {
+    "error": null,
+    "finished_at": "2026-06-28T11:24:04.308890+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T11:19:20.000Z",
+    "name": "Data_FOR_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/data-network/latest/ja.html",
+    "report_id": "53dd3027-0834-44f3-a599-642e31f15c34",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "data-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/Data_FOR_jp.pdf",
+    "started_at": "2026-06-28T11:23:50.432454+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T11:24:04.308910+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/data-network/1/ja.html"
+  },
   "1b6An2OBWle3pPt9qwgjAWM1HQ9EgLV46": {
     "error": null,
     "finished_at": "2026-06-09T14:27:35.602812+00:00",
@@ -40549,7 +40729,7 @@
     "source_path": "Slide2/mat/ARC_MAT_ko.pdf",
     "started_at": "2026-06-28T06:20:40.704627+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T09:31:38.692698+00:00",
+    "updated_at": "2026-06-28T11:22:22.916297+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ai-rig-complex/1/ko.html"
   },
@@ -40815,7 +40995,7 @@
     "source_path": "Slide2/mat/Light_MAT_en.pdf",
     "started_at": "2026-06-28T06:16:38.279738+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T09:31:29.363211+00:00",
+    "updated_at": "2026-06-28T11:22:14.088714+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/light/1/en.html"
   },
@@ -41081,7 +41261,7 @@
     "source_path": "Slide2/mat/MUon_MAT_ko.pdf",
     "started_at": "2026-06-28T06:23:43.906479+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T09:31:46.590784+00:00",
+    "updated_at": "2026-06-28T11:22:30.396162+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/micron-technology-tokenized-stock-ondo/1/ko.html"
   },
@@ -42927,7 +43107,7 @@
     "source_path": "Slide2/mat/Light_MAT_ko.pdf",
     "started_at": "2026-06-28T06:17:25.263149+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T09:31:31.099776+00:00",
+    "updated_at": "2026-06-28T11:22:15.896442+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/light/1/ko.html"
   },
@@ -43095,6 +43275,36 @@
     "started_at": "2026-05-17T17:43:15.235656+00:00",
     "status": "failed",
     "updated_at": "2026-05-17T17:43:35.379949+00:00"
+  },
+  "1h9oJUN5gJ68ctJc3s1JBTdpLZD8luaGv": {
+    "error": null,
+    "finished_at": "2026-06-28T11:25:52.649204+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T11:13:00.000Z",
+    "name": "DCR_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/decred/latest/zh.html",
+    "report_id": "6d341ba5-4ec6-4d09-9b11-21b550401bac",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "decred",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/DCR_FOR_cn.pdf",
+    "started_at": "2026-06-28T11:25:30.196730+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T11:25:52.649221+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/decred/1/zh.html"
   },
   "1hA9q9bPOXomGhpXwYiMorwqttsXEuH-B": {
     "error": null,
@@ -44645,6 +44855,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/humanity-protocol/1/ja.html"
   },
+  "1iYAelqRIDXJqAIABymMR_Gi21Hgl-sMF": {
+    "error": null,
+    "finished_at": "2026-06-28T11:30:00.896680+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T10:27:45.000Z",
+    "name": "0G_FOR_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zero-gravity/latest/ja.html",
+    "report_id": "1a74c166-7fd6-4959-9e1a-7c5cbd54ebca",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "zero-gravity",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/0G_FOR_jp.pdf",
+    "started_at": "2026-06-28T11:29:48.650855+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T11:30:00.896698+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zero-gravity/1/ja.html"
+  },
   "1iawDNLJGfit4N8aW__0sMuUvkHhAeXxE": {
     "error": "unresolved (slug=? via filename_unresolved; lang=en via filename)",
     "lang": "en",
@@ -45947,7 +46187,7 @@
     "source_path": "Slide2/mat/ARC_MAT_cn.pdf",
     "started_at": "2026-06-28T06:18:23.668729+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T09:31:33.370171+00:00",
+    "updated_at": "2026-06-28T11:22:17.815682+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ai-rig-complex/1/zh.html"
   },
@@ -46517,7 +46757,7 @@
     "source_path": "Slide2/mat/MUon_MAT_en.pdf",
     "started_at": "2026-06-28T06:22:57.765589+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T09:31:44.709302+00:00",
+    "updated_at": "2026-06-28T11:22:28.627259+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/micron-technology-tokenized-stock-ondo/1/en.html"
   },
@@ -47931,7 +48171,7 @@
     "source_path": "Slide2/mat/Light_MAT_cn.pdf",
     "started_at": "2026-06-28T06:15:17.236564+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T09:31:24.994762+00:00",
+    "updated_at": "2026-06-28T11:22:10.471824+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/light/1/zh.html"
   },
@@ -51579,7 +51819,7 @@
     "source_path": "Slide2/mat/ARC_MAT_en.pdf",
     "started_at": "2026-06-28T06:19:49.319258+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T09:31:36.961098+00:00",
+    "updated_at": "2026-06-28T11:22:21.182195+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ai-rig-complex/1/en.html"
   },
@@ -52929,7 +53169,7 @@
     "source_path": "Slide2/econ/ARC_ECON_ko.pdf",
     "started_at": "2026-06-28T06:14:31.479559+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T09:31:21.069438+00:00",
+    "updated_at": "2026-06-28T11:22:06.848377+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ai-rig-complex/1/ko.html"
   },
@@ -54106,7 +54346,7 @@
     "source_path": "Slide2/econ/Light_ECON_en.pdf",
     "started_at": "2026-06-28T06:11:24.213685+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T09:31:15.388060+00:00",
+    "updated_at": "2026-06-28T11:22:01.766072+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/light/1/en.html"
   },
@@ -54638,6 +54878,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/ftx-token/1/ko.html"
   },
+  "1smqFUnDOFk6PwiMcy8hUugdLcNIkmJA4": {
+    "error": null,
+    "finished_at": "2026-06-28T11:24:21.471171+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T11:17:54.000Z",
+    "name": "Data_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/data-network/latest/en.html",
+    "report_id": "19c16767-9468-4a57-b963-052133cec3d9",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "data-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/Data_FOR_en.pdf",
+    "started_at": "2026-06-28T11:24:07.092825+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T11:24:21.471190+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/data-network/2/en.html"
+  },
   "1snpM-5jATeCErX7uxhx6JVCTkJC2Rtf1": {
     "error": "Storage upload failed for slides/econ/celestia/1/ja_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
     "lang": "ja",
@@ -54886,7 +55156,7 @@
     "source_path": "Slide2/mat/Light_MAT_jp.pdf",
     "started_at": "2026-06-28T06:16:18.189089+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T09:31:27.256285+00:00",
+    "updated_at": "2026-06-28T11:22:12.385292+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/light/1/ja.html"
   },
@@ -55578,6 +55848,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/cow-protocol/1/ko.html"
   },
+  "1tdEPPg83fwxafS2tftzn-QJZpe9PK8yx": {
+    "error": null,
+    "finished_at": "2026-06-28T11:27:07.480935+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T11:09:55.000Z",
+    "name": "DCR_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/decred/latest/en.html",
+    "report_id": "d96285d8-0b55-45bb-9ee8-5fc5a6ade10b",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "decred",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/DCR_FOR_en.pdf",
+    "started_at": "2026-06-28T11:26:52.785341+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T11:27:07.480954+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/decred/2/en.html"
+  },
   "1tdTLOaGvDAR3S2fNyW6L-Jv1mc7gXt-A": {
     "error": null,
     "finished_at": "2026-06-28T06:19:45.104541+00:00",
@@ -55604,7 +55904,7 @@
     "source_path": "Slide2/mat/ARC_MAT_jp.pdf",
     "started_at": "2026-06-28T06:19:28.546916+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T09:31:35.160428+00:00",
+    "updated_at": "2026-06-28T11:22:19.493937+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ai-rig-complex/1/ja.html"
   },
@@ -56578,6 +56878,36 @@
     "updated_at": "2026-05-17T18:05:31.652274+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/stable/1/ja.html"
+  },
+  "1uQoWzG4ppwgONF7WHkbS5U2fFqHSzOZL": {
+    "error": null,
+    "finished_at": "2026-06-28T11:23:21.047194+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T11:20:32.000Z",
+    "name": "Data_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/data-network/latest/zh.html",
+    "report_id": "45df2051-663a-484b-8d4b-e1c6ce7adaf2",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "data-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/Data_FOR_cn.pdf",
+    "started_at": "2026-06-28T11:23:01.485369+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T11:23:21.047212+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/data-network/1/zh.html"
   },
   "1uTc6Xiy694e1CPhKZlEPpl2IYtO45ZBh": {
     "error": null,
@@ -58815,7 +59145,7 @@
     "source_path": "Slide2/econ/ARC_ECON_jp.pdf",
     "started_at": "2026-06-28T06:13:35.265561+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T09:31:19.143498+00:00",
+    "updated_at": "2026-06-28T11:22:04.601676+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ai-rig-complex/1/ja.html"
   },
@@ -59089,6 +59419,36 @@
     "updated_at": "2026-06-14T08:59:26.518475+00:00",
     "version": null,
     "versioned_url": null
+  },
+  "1xHeADE_umoeBCZYSlJE7IcNRkPG60Clu": {
+    "error": null,
+    "finished_at": "2026-06-28T11:30:18.282227+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T10:26:26.000Z",
+    "name": "0G_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zero-gravity/latest/en.html",
+    "report_id": "d962923b-1c50-49a5-8809-305e8c2fabfb",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "zero-gravity",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/0G_FOR_en.pdf",
+    "started_at": "2026-06-28T11:30:03.443998+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T11:30:18.282245+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zero-gravity/2/en.html"
   },
   "1xNeXRlObVV-2OBw_N51I443TP4JW98-z": {
     "error": null,
