@@ -598,7 +598,7 @@
     "source_path": "Slide2/econ/ARC_ECON_en.pdf",
     "started_at": "2026-06-28T06:13:50.151179+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:29:44.238592+00:00",
+    "updated_at": "2026-06-28T15:52:17.390932+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ai-rig-complex/1/en.html"
   },
@@ -1033,7 +1033,7 @@
     "source_path": "Slide2/for/Syrup_FOR_en.pdf",
     "started_at": "2026-06-28T12:52:19.444974+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:19.940566+00:00",
+    "updated_at": "2026-06-28T16:05:38.890861+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/maple-finance/2/en.html"
   },
@@ -1626,7 +1626,7 @@
     "source_path": "Slide2/for/MNT_FOR_jp.pdf",
     "started_at": "2026-06-28T12:56:47.421405+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:26.201794+00:00",
+    "updated_at": "2026-06-28T16:05:45.189322+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/mantle/1/ja.html"
   },
@@ -3175,6 +3175,36 @@
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/gmx/2/en.html"
   },
+  "126wkVA-YHy6EUGqH9GJjjNCp-uJ87acB": {
+    "error": null,
+    "finished_at": "2026-06-28T15:53:42.514542+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T15:43:43.000Z",
+    "name": "HOT_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/holo/latest/zh.html",
+    "report_id": "9ff48a54-b1da-4cbb-813a-6df5fe71a854",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "holo",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/HOT_FOR_cn.pdf",
+    "started_at": "2026-06-28T15:53:18.096862+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T15:53:42.514558+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/holo/1/zh.html"
+  },
   "1274YPiG-qTtUzsU_H4rizvmeUe5j7Y0t": {
     "error": null,
     "finished_at": "2026-06-11T05:04:02.156332+00:00",
@@ -3387,7 +3417,7 @@
     "source_path": "Slide2/for/ELF_FOR_en.pdf",
     "started_at": "2026-06-28T14:32:19.125592+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:32:33.342650+00:00",
+    "updated_at": "2026-06-28T16:05:35.293504+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/aelf/2/en.html"
   },
@@ -3485,6 +3515,36 @@
     "updated_at": "2026-05-17T18:04:42.261749+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usdd/1/en.html"
+  },
+  "12QHX-xO0Al-tAXctVbBXN6aWDAfrBCcd": {
+    "error": null,
+    "finished_at": "2026-06-28T15:59:41.518922+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T15:28:57.000Z",
+    "name": "BSV_FOR_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bitcoin-sv/latest/ja.html",
+    "report_id": "fdf04c45-6b10-4cc2-bed0-5c724ab1a282",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "bitcoin-sv",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/BSV_FOR_jp.pdf",
+    "started_at": "2026-06-28T15:59:29.282007+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T15:59:41.518934+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bitcoin-sv/1/ja.html"
   },
   "12U1gJP-q8wE6pcZEQS6gQKdBnylRppNl": {
     "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
@@ -4742,6 +4802,36 @@
     "updated_at": "2026-05-12T18:24:04.158517+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/dexe/latest/ja.html"
+  },
+  "13dMlboA74AJ51h9h-NIWTgZKBkJQquDJ": {
+    "error": null,
+    "finished_at": "2026-06-28T16:01:17.732151+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T15:23:58.000Z",
+    "name": "SNX_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/synthetix/latest/zh.html",
+    "report_id": "87d2ddcd-7b85-47b6-900c-ea9189954348",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "synthetix",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/SNX_FOR_cn.pdf",
+    "started_at": "2026-06-28T16:00:55.272194+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T16:01:17.732166+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/synthetix/1/zh.html"
   },
   "13dskmGWRhoXs-w4LKe9GijUzfKrIdiMM": {
     "error": null,
@@ -6718,7 +6808,7 @@
     "source_path": "Slide2/econ/Light_ECON_cn.pdf",
     "started_at": "2026-06-28T06:10:08.812266+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:29:36.514248+00:00",
+    "updated_at": "2026-06-28T15:52:11.883423+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/light/1/zh.html"
   },
@@ -8398,6 +8488,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gensyn/1/zh.html"
   },
+  "17BbSpsy3JXnhBanxv3eBUdnpwuwmfeow": {
+    "error": null,
+    "finished_at": "2026-06-28T16:02:54.455095+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T15:20:10.000Z",
+    "name": "SNX_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/synthetix/latest/ko.html",
+    "report_id": "c864938b-09fc-4da9-994b-b9407328e1de",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "synthetix",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/SNX_FOR_ko.pdf",
+    "started_at": "2026-06-28T16:02:42.308883+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T16:02:54.455109+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/synthetix/1/ko.html"
+  },
   "17D-JxR7HHGuISqalxiy7vlfLLzzzRMf0": {
     "error": null,
     "finished_at": "2026-06-01T07:47:53.748321+00:00",
@@ -8637,6 +8757,36 @@
     "updated_at": "2026-06-13T20:53:03.179962+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/sosovalue/1/ko.html"
+  },
+  "17Nf8Zf3p9rpXnyiGLH3ICP8R_gVk_TVW": {
+    "error": null,
+    "finished_at": "2026-06-28T15:57:21.339622+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T15:35:28.000Z",
+    "name": "CELO_FOR_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/celo/latest/ja.html",
+    "report_id": "1cddd204-85da-44d6-9be4-063ef67f1ada",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "celo",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/CELO_FOR_jp.pdf",
+    "started_at": "2026-06-28T15:57:08.488824+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T15:57:21.339637+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/celo/1/ja.html"
   },
   "17OZ1U5zX4drzBwAso263spc2F2VMG80J": {
     "error": "unresolved (slug=? via filename_unresolved; lang=zh via filename)",
@@ -9992,7 +10142,7 @@
     "source_path": "Slide2/for/ELF_FOR_jp.pdf",
     "started_at": "2026-06-28T14:32:02.377706+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:32:17.140063+00:00",
+    "updated_at": "2026-06-28T16:05:34.388234+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/aelf/1/ja.html"
   },
@@ -13607,6 +13757,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/wormhole/1/zh.html"
   },
+  "1D6uP7SEII1djjLS_gTYyWBhsOF3KwMg_": {
+    "error": null,
+    "finished_at": "2026-06-28T16:00:23.182686+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T15:26:33.000Z",
+    "name": "BSV_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bitcoin-sv/latest/ko.html",
+    "report_id": "32898e3e-9255-4465-b94e-b1aead8e0abc",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "bitcoin-sv",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/BSV_FOR_ko.pdf",
+    "started_at": "2026-06-28T16:00:10.942625+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T16:00:23.182700+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bitcoin-sv/1/ko.html"
+  },
   "1D8pBm0ywxDSJIOvzQTmDN19O0ESQfpoN": {
     "error": null,
     "finished_at": "2026-05-29T06:09:12.697549+00:00",
@@ -14622,7 +14802,7 @@
     "source_path": "Slide2/for/Syrup_FOR_jp.pdf",
     "started_at": "2026-06-28T12:52:07.983102+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:18.990074+00:00",
+    "updated_at": "2026-06-28T16:05:37.986518+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/maple-finance/1/ja.html"
   },
@@ -16369,7 +16549,7 @@
     "source_path": "Slide2/for/DCR_FOR_jp.pdf",
     "started_at": "2026-06-28T11:26:33.539728+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:33.356569+00:00",
+    "updated_at": "2026-06-28T16:05:52.357827+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/decred/1/ja.html"
   },
@@ -17993,6 +18173,36 @@
     "version": 4,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ethereum/4/en.html"
   },
+  "1HP7DFbF4R9Ve1SmbZTGWLoGN57Uo87y0": {
+    "error": null,
+    "finished_at": "2026-06-28T16:05:32.563818+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T14:29:04.000Z",
+    "name": "MOODENG_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/moo-deng-solana/latest/ko.html",
+    "report_id": "3c8b2626-af0d-45d7-936f-704823fb4e24",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "moo-deng-solana",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/MOODENG_FOR_ko.pdf",
+    "started_at": "2026-06-28T16:05:21.116352+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T16:05:32.563832+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/moo-deng-solana/1/ko.html"
+  },
   "1HPI-nfjSI-d-Pb8kxQW7wtX0iGs-YV9k": {
     "error": null,
     "finished_at": "2026-06-27T15:59:35.415524+00:00",
@@ -19026,7 +19236,7 @@
     "source_path": "Slide2/for/Data_FOR_ko.pdf",
     "started_at": "2026-06-28T11:24:43.348269+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:31.559087+00:00",
+    "updated_at": "2026-06-28T16:05:50.549434+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/data-network/1/ko.html"
   },
@@ -19176,7 +19386,7 @@
     "source_path": "Slide2/for/Syrup_FOR_cn.pdf",
     "started_at": "2026-06-28T12:51:11.656619+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:18.088818+00:00",
+    "updated_at": "2026-06-28T16:05:37.097403+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/maple-finance/1/zh.html"
   },
@@ -19968,7 +20178,7 @@
     "source_path": "Slide2/for/MNT_FOR_ko.pdf",
     "started_at": "2026-06-28T12:57:36.812355+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:28.011582+00:00",
+    "updated_at": "2026-06-28T16:05:46.971490+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/mantle/1/ko.html"
   },
@@ -20551,6 +20761,36 @@
     "status": "skipped_legacy_portrait_pdf",
     "updated_at": "2026-06-09T04:15:16.359011+00:00"
   },
+  "1JM215y7E97DM_vfCzAm_QK0p0SDKcxoA": {
+    "error": null,
+    "finished_at": "2026-06-28T16:03:50.839438+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T14:33:01.000Z",
+    "name": "MOODENG_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/moo-deng-solana/latest/zh.html",
+    "report_id": "7b5d5a55-9a68-4680-aa71-227a4c9076c1",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "moo-deng-solana",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/MOODENG_FOR_cn.pdf",
+    "started_at": "2026-06-28T16:03:31.026579+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T16:03:50.839455+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/moo-deng-solana/1/zh.html"
+  },
   "1JMROtSTl210bREcKcPHv9cnYHAxLokAx": {
     "error": null,
     "finished_at": "2026-06-01T10:43:29.636681+00:00",
@@ -21034,7 +21274,7 @@
     "source_path": "Slide2/for/CAP_FOR_en.pdf",
     "started_at": "2026-06-28T12:54:40.962941+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:23.518614+00:00",
+    "updated_at": "2026-06-28T16:05:42.498139+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/cap-app/2/en.html"
   },
@@ -21316,7 +21556,7 @@
     "source_path": "Slide2/for/0G_FOR_ko.pdf",
     "started_at": "2026-06-28T11:30:46.312323+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:38.718035+00:00",
+    "updated_at": "2026-06-28T16:05:57.719495+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zero-gravity/1/ko.html"
   },
@@ -22364,7 +22604,7 @@
     "source_path": "Slide2/econ/Light_ECON_ko.pdf",
     "started_at": "2026-06-28T06:12:06.473672+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:29:41.443573+00:00",
+    "updated_at": "2026-06-28T15:52:14.631015+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/light/1/ko.html"
   },
@@ -24477,9 +24717,39 @@
     "source_path": "Slide2/for/MNT_FOR_en.pdf",
     "started_at": "2026-06-28T12:56:59.440494+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:27.115362+00:00",
+    "updated_at": "2026-06-28T16:05:46.083595+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/mantle/2/en.html"
+  },
+  "1NRoidsII724qcUY487zH-x5-K6JMoRnl": {
+    "error": null,
+    "finished_at": "2026-06-28T15:59:54.919866+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T15:27:43.000Z",
+    "name": "BSV_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bitcoin-sv/latest/en.html",
+    "report_id": "dce1af85-a08d-4328-8c3c-4e13f57916f1",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "bitcoin-sv",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/BSV_FOR_en.pdf",
+    "started_at": "2026-06-28T15:59:42.873958+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T15:59:54.919881+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bitcoin-sv/2/en.html"
   },
   "1NSRi8ow79kLElwZeOs0ptVU4nnanSR-J": {
     "error": null,
@@ -24627,7 +24897,7 @@
     "source_path": "Slide2/econ/Light_ECON_jp.pdf",
     "started_at": "2026-06-28T06:11:07.445029+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:29:37.859893+00:00",
+    "updated_at": "2026-06-28T15:52:12.807248+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/light/1/ja.html"
   },
@@ -25428,7 +25698,7 @@
     "source_path": "Slide2/econ/ARC_ECON_cn.pdf",
     "started_at": "2026-06-28T06:12:48.549323+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:29:42.352660+00:00",
+    "updated_at": "2026-06-28T15:52:15.536779+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ai-rig-complex/1/zh.html"
   },
@@ -28769,7 +29039,7 @@
     "source_path": "Slide2/for/MNT_FOR_cn.pdf",
     "started_at": "2026-06-28T12:55:59.926523+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:25.305308+00:00",
+    "updated_at": "2026-06-28T16:05:44.294939+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/mantle/1/zh.html"
   },
@@ -29197,6 +29467,36 @@
     "updated_at": "2026-05-17T18:09:01.302674+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/dexe/1/ja.html"
+  },
+  "1SrZ5y556fnSAn-73EvERLd7TAc0wcvqp": {
+    "error": null,
+    "finished_at": "2026-06-28T16:04:54.112340+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T14:30:21.000Z",
+    "name": "MOODENG_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/moo-deng-solana/latest/en.html",
+    "report_id": "3b4dc9f4-4630-4562-a349-3c27799a3adc",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "moo-deng-solana",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/MOODENG_FOR_en.pdf",
+    "started_at": "2026-06-28T16:04:43.794241+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T16:04:54.112353+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/moo-deng-solana/2/en.html"
   },
   "1Swx5n8SlsXg6aZ_F7uj2GLjC9U-zwmmR": {
     "error": "Storage upload failed for slides/econ/bittensor/1/en_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
@@ -29696,7 +29996,7 @@
     "source_path": "Slide2/mat/MUon_MAT_cn.pdf",
     "started_at": "2026-06-28T06:21:33.534224+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:30:04.238747+00:00",
+    "updated_at": "2026-06-28T15:52:35.282317+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/micron-technology-tokenized-stock-ondo/1/zh.html"
   },
@@ -30622,7 +30922,7 @@
     "source_path": "Slide2/for/ELF_FOR_ko.pdf",
     "started_at": "2026-06-28T14:33:02.780853+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:17.134848+00:00",
+    "updated_at": "2026-06-28T16:05:36.192095+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/aelf/1/ko.html"
   },
@@ -30923,6 +31223,36 @@
     "updated_at": "2026-05-17T17:59:07.146666+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/binancecoin/2/en.html"
+  },
+  "1UUsuuv1JfRBnJC863VabVmYay9mWcQ-w": {
+    "error": null,
+    "finished_at": "2026-06-28T15:56:38.689751+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T15:36:43.000Z",
+    "name": "CELO_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/celo/latest/zh.html",
+    "report_id": "e71e31d4-f15d-4c96-b81b-de8afddb01c1",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "celo",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/CELO_FOR_cn.pdf",
+    "started_at": "2026-06-28T15:56:15.339059+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T15:56:38.689767+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/celo/1/zh.html"
   },
   "1UWa96MPjs2Ql03iCuQLdPKMw-D9veSYR": {
     "error": null,
@@ -32046,7 +32376,7 @@
     "source_path": "Slide2/for/DCR_FOR_ko.pdf",
     "started_at": "2026-06-28T11:27:41.965911+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:35.125286+00:00",
+    "updated_at": "2026-06-28T16:05:54.148681+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/decred/1/ko.html"
   },
@@ -33380,7 +33710,7 @@
     "source_path": "Slide2/for/0G_FOR_cn.pdf",
     "started_at": "2026-06-28T11:28:41.625277+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:36.020543+00:00",
+    "updated_at": "2026-06-28T16:05:55.043459+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zero-gravity/1/zh.html"
   },
@@ -34066,6 +34396,36 @@
     "updated_at": "2026-06-05T13:32:06.293912+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zerebro/1/ja.html"
+  },
+  "1Y10Ql7imkODg1i2CICZ7f1Ac96VF9Vgy": {
+    "error": null,
+    "finished_at": "2026-06-28T16:04:41.443565+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T14:31:52.000Z",
+    "name": "MOODENG_FOR_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/moo-deng-solana/latest/ja.html",
+    "report_id": "b9fb87ff-70f7-488f-95ae-ef095e0d8ab5",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "moo-deng-solana",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/MOODENG_FOR_jp.pdf",
+    "started_at": "2026-06-28T16:04:30.041019+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T16:04:41.443580+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/moo-deng-solana/1/ja.html"
   },
   "1Y6Z-JIP_c0-L283IUegqGjEKfPDhwR4R": {
     "error": null,
@@ -35100,7 +35460,7 @@
     "source_path": "Slide2/for/CAP_FOR_cn.pdf",
     "started_at": "2026-06-28T12:53:34.479113+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:21.726188+00:00",
+    "updated_at": "2026-06-28T16:05:40.702323+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/cap-app/1/zh.html"
   },
@@ -36296,6 +36656,36 @@
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ethereum/2/en.html"
   },
+  "1_E-etif-SK-PkMcgmcXsZeXg4Wrajvul": {
+    "error": null,
+    "finished_at": "2026-06-28T15:57:35.596504+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T15:34:15.000Z",
+    "name": "CELO_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/celo/latest/en.html",
+    "report_id": "2003ea40-aed1-4860-b713-d14f116ddfef",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "celo",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/CELO_FOR_en.pdf",
+    "started_at": "2026-06-28T15:57:23.192890+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T15:57:35.596518+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/celo/2/en.html"
+  },
   "1_Mfv9pEZ9i9nusPcaLZvK_5vFnmm8bIF": {
     "error": "unresolved (slug=? via filename_unresolved; lang=zh via filename)",
     "lang": "zh",
@@ -37259,7 +37649,7 @@
     "source_path": "Slide2/for/Syrup_FOR_ko.pdf",
     "started_at": "2026-06-28T12:52:54.072571+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:20.828029+00:00",
+    "updated_at": "2026-06-28T16:05:39.809830+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/maple-finance/1/ko.html"
   },
@@ -38184,7 +38574,7 @@
     "source_path": "Slide2/for/Data_FOR_jp.pdf",
     "started_at": "2026-06-28T11:23:50.432454+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:29.791755+00:00",
+    "updated_at": "2026-06-28T16:05:48.751008+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/data-network/1/ja.html"
   },
@@ -39678,6 +40068,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ripple/1/ja.html"
   },
+  "1cunoUnSgotnIZe9yRzFH1AozlN477orD": {
+    "error": null,
+    "finished_at": "2026-06-28T16:02:00.982187+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T15:22:44.000Z",
+    "name": "SNX_FOR_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/synthetix/latest/ja.html",
+    "report_id": "0bf64821-99ef-41af-8f39-c8c98fb88d02",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "synthetix",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/SNX_FOR_jp.pdf",
+    "started_at": "2026-06-28T16:01:48.377362+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T16:02:00.982201+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/synthetix/1/ja.html"
+  },
   "1cvJ_JPI7KGfi42JYOBimEyQCEw3loCrz": {
     "error": null,
     "finished_at": "2026-05-17T08:54:41.215050+00:00",
@@ -41119,7 +41539,7 @@
     "source_path": "Slide2/mat/ARC_MAT_ko.pdf",
     "started_at": "2026-06-28T06:20:40.704627+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:30:02.292326+00:00",
+    "updated_at": "2026-06-28T15:52:33.333165+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ai-rig-complex/1/ko.html"
   },
@@ -41385,7 +41805,7 @@
     "source_path": "Slide2/mat/Light_MAT_en.pdf",
     "started_at": "2026-06-28T06:16:38.279738+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:29:53.367487+00:00",
+    "updated_at": "2026-06-28T15:52:24.858719+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/light/1/en.html"
   },
@@ -41624,6 +42044,36 @@
     "updated_at": "2026-06-17T18:43:24.744810+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ordi/1/ja.html"
+  },
+  "1f0AVfJm9nQ5tsPyrIEDeJmce0G1xeWRe": {
+    "error": null,
+    "finished_at": "2026-06-28T16:02:14.680994+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T15:21:26.000Z",
+    "name": "SNX_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/synthetix/latest/en.html",
+    "report_id": "002456c9-a8a3-44cf-8b91-c38bdc1692e0",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "synthetix",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/SNX_FOR_en.pdf",
+    "started_at": "2026-06-28T16:02:02.969453+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T16:02:14.681008+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/synthetix/2/en.html"
   },
   "1f1kB0yJUDa2Flr1J27TeWj57N8Uv5EVM": {
     "error": null,
@@ -42333,7 +42783,7 @@
     "source_path": "Slide2/for/CAP_FOR_jp.pdf",
     "started_at": "2026-06-28T12:54:26.909820+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:22.622257+00:00",
+    "updated_at": "2026-06-28T16:05:41.606960+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/cap-app/1/ja.html"
   },
@@ -43305,6 +43755,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/grass/1/ko.html"
   },
+  "1gn3c1dUvkBYLqhgvG6XDe9qK58FYYZja": {
+    "error": null,
+    "finished_at": "2026-06-28T15:59:06.335021+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T15:30:32.000Z",
+    "name": "BSV_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bitcoin-sv/latest/zh.html",
+    "report_id": "f033486d-4982-45c9-9e1c-656536dd4357",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "bitcoin-sv",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/BSV_FOR_cn.pdf",
+    "started_at": "2026-06-28T15:58:44.162955+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T15:59:06.335036+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bitcoin-sv/1/zh.html"
+  },
   "1gnxw-UmzAY-uZtbPAakB6CamhVxGXEe7": {
     "error": null,
     "finished_at": "2026-06-11T05:03:35.757265+00:00",
@@ -43527,7 +44007,7 @@
     "source_path": "Slide2/mat/Light_MAT_ko.pdf",
     "started_at": "2026-06-28T06:17:25.263149+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:29:55.113679+00:00",
+    "updated_at": "2026-06-28T15:52:26.498764+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/light/1/ko.html"
   },
@@ -43722,7 +44202,7 @@
     "source_path": "Slide2/for/DCR_FOR_cn.pdf",
     "started_at": "2026-06-28T11:25:30.196730+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:32.458277+00:00",
+    "updated_at": "2026-06-28T16:05:51.458570+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/decred/1/zh.html"
   },
@@ -44138,7 +44618,7 @@
     "source_path": "Slide2/for/CAP_FOR_ko.pdf",
     "started_at": "2026-06-28T12:55:19.511359+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:24.406290+00:00",
+    "updated_at": "2026-06-28T16:05:43.400134+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/cap-app/1/ko.html"
   },
@@ -45331,7 +45811,7 @@
     "source_path": "Slide2/for/0G_FOR_jp.pdf",
     "started_at": "2026-06-28T11:29:48.650855+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:36.908684+00:00",
+    "updated_at": "2026-06-28T16:05:55.943556+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zero-gravity/1/ja.html"
   },
@@ -46637,7 +47117,7 @@
     "source_path": "Slide2/mat/ARC_MAT_cn.pdf",
     "started_at": "2026-06-28T06:18:23.668729+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:29:56.958099+00:00",
+    "updated_at": "2026-06-28T15:52:28.207610+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ai-rig-complex/1/zh.html"
   },
@@ -47976,6 +48456,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pudgy-penguins/1/zh.html"
   },
+  "1lGoTp29R3jQhZPuJ94PXYBF5V3Ax6XfY": {
+    "error": null,
+    "finished_at": "2026-06-28T15:54:32.567439+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T15:42:23.000Z",
+    "name": "HOT_FOR_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/holo/latest/ja.html",
+    "report_id": "95161549-7517-4046-9144-6784b3aa3aa0",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "holo",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/HOT_FOR_jp.pdf",
+    "started_at": "2026-06-28T15:54:20.293001+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T15:54:32.567453+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/holo/1/ja.html"
+  },
   "1lH_iQR7BHnZFgQVXabGRLROLTe6O8m3s": {
     "error": "language/content mismatch — resolved 'ko' via filename but ocr body script indicates 'ja'",
     "lang": "ko",
@@ -48250,6 +48760,36 @@
     "updated_at": "2026-05-17T17:56:28.622525+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/internet-computer/2/en.html"
+  },
+  "1llkI4UwLz8Khg-koNGlbYPrCYJrQSoNM": {
+    "error": null,
+    "finished_at": "2026-06-28T15:55:42.951585+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T15:39:24.000Z",
+    "name": "HOT_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/holo/latest/ko.html",
+    "report_id": "ef306eee-506f-459e-83a8-883d028dcfaf",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "holo",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/HOT_FOR_ko.pdf",
+    "started_at": "2026-06-28T15:55:30.116029+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T15:55:42.951598+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/holo/1/ko.html"
   },
   "1lpkTozkz7RFU5xyYNxoLZJJ-eGDzKQqw": {
     "error": null,
@@ -48621,7 +49161,7 @@
     "source_path": "Slide2/mat/Light_MAT_cn.pdf",
     "started_at": "2026-06-28T06:15:17.236564+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:29:48.678674+00:00",
+    "updated_at": "2026-06-28T15:52:21.442328+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/light/1/zh.html"
   },
@@ -52269,7 +52809,7 @@
     "source_path": "Slide2/mat/ARC_MAT_en.pdf",
     "started_at": "2026-06-28T06:19:49.319258+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:30:00.396340+00:00",
+    "updated_at": "2026-06-28T15:52:31.679786+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ai-rig-complex/1/en.html"
   },
@@ -53619,7 +54159,7 @@
     "source_path": "Slide2/econ/ARC_ECON_ko.pdf",
     "started_at": "2026-06-28T06:14:31.479559+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:29:45.173466+00:00",
+    "updated_at": "2026-06-28T15:52:18.303595+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ai-rig-complex/1/ko.html"
   },
@@ -54796,7 +55336,7 @@
     "source_path": "Slide2/econ/Light_ECON_en.pdf",
     "started_at": "2026-06-28T06:11:24.213685+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:29:39.212099+00:00",
+    "updated_at": "2026-06-28T15:52:13.715201+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/light/1/en.html"
   },
@@ -55354,7 +55894,7 @@
     "source_path": "Slide2/for/Data_FOR_en.pdf",
     "started_at": "2026-06-28T11:24:07.092825+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:30.671874+00:00",
+    "updated_at": "2026-06-28T16:05:49.640026+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/data-network/2/en.html"
   },
@@ -55606,7 +56146,7 @@
     "source_path": "Slide2/mat/Light_MAT_jp.pdf",
     "started_at": "2026-06-28T06:16:18.189089+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:29:51.220614+00:00",
+    "updated_at": "2026-06-28T15:52:23.162652+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/light/1/ja.html"
   },
@@ -56183,6 +56723,36 @@
     "status": "language_mismatch",
     "updated_at": "2026-05-12T18:26:11.880511+00:00"
   },
+  "1tV63qkYWEsIB0c9cW8KenQxAgsAq0tns": {
+    "error": null,
+    "finished_at": "2026-06-28T15:58:20.009473+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T15:32:54.000Z",
+    "name": "CELO_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/celo/latest/ko.html",
+    "report_id": "8afff080-e0dd-4010-8286-697dde940201",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "celo",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/CELO_FOR_ko.pdf",
+    "started_at": "2026-06-28T15:58:08.657744+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T15:58:20.009488+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/celo/1/ko.html"
+  },
   "1tX7iRr9Q58_stH9WQXO4kjiugo_uzIBJ": {
     "error": null,
     "finished_at": "2026-05-17T09:59:58.343222+00:00",
@@ -56324,7 +56894,7 @@
     "source_path": "Slide2/for/DCR_FOR_en.pdf",
     "started_at": "2026-06-28T11:26:52.785341+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:34.237591+00:00",
+    "updated_at": "2026-06-28T16:05:53.256172+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/decred/2/en.html"
   },
@@ -56354,7 +56924,7 @@
     "source_path": "Slide2/mat/ARC_MAT_jp.pdf",
     "started_at": "2026-06-28T06:19:28.546916+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:29:58.667574+00:00",
+    "updated_at": "2026-06-28T15:52:29.876335+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ai-rig-complex/1/ja.html"
   },
@@ -57355,7 +57925,7 @@
     "source_path": "Slide2/for/Data_FOR_cn.pdf",
     "started_at": "2026-06-28T11:23:01.485369+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:28.905088+00:00",
+    "updated_at": "2026-06-28T16:05:47.864496+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/data-network/1/zh.html"
   },
@@ -57405,6 +57975,36 @@
     "slug_source": "filename",
     "status": "language_mismatch",
     "updated_at": "2026-05-12T18:03:56.379346+00:00"
+  },
+  "1u_c9MBb3puBP0VQh-mlNnTd0FG8UlU99": {
+    "error": null,
+    "finished_at": "2026-06-28T15:54:46.915771+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-06-28T15:41:07.000Z",
+    "name": "HOT_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/holo/latest/en.html",
+    "report_id": "c8d06e08-61ce-42c3-88f4-c56d53766c0a",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "holo",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/HOT_FOR_en.pdf",
+    "started_at": "2026-06-28T15:54:34.461247+00:00",
+    "status": "published",
+    "updated_at": "2026-06-28T15:54:46.915785+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/holo/2/en.html"
   },
   "1uadTt6jUyMWGYNzenw7D4OkxZGuMvlHj": {
     "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
@@ -59595,7 +60195,7 @@
     "source_path": "Slide2/econ/ARC_ECON_jp.pdf",
     "started_at": "2026-06-28T06:13:35.265561+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:29:43.288520+00:00",
+    "updated_at": "2026-06-28T15:52:16.432182+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ai-rig-complex/1/ja.html"
   },
@@ -59896,7 +60496,7 @@
     "source_path": "Slide2/for/0G_FOR_en.pdf",
     "started_at": "2026-06-28T11:30:03.443998+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:33:37.838816+00:00",
+    "updated_at": "2026-06-28T16:05:56.831392+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zero-gravity/2/en.html"
   },
@@ -61668,7 +62268,7 @@
     "source_path": "Slide2/for/ELF_FOR_cn.pdf",
     "started_at": "2026-06-28T14:30:54.616574+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T14:31:14.853520+00:00",
+    "updated_at": "2026-06-28T16:05:33.480971+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/aelf/1/zh.html"
   },
