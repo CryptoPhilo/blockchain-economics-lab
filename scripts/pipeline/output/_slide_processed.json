@@ -1033,7 +1033,7 @@
     "source_path": "Slide2/for/Syrup_FOR_en.pdf",
     "started_at": "2026-06-28T12:52:19.444974+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:38.890861+00:00",
+    "updated_at": "2026-06-28T16:53:58.357907+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/maple-finance/2/en.html"
   },
@@ -1626,7 +1626,7 @@
     "source_path": "Slide2/for/MNT_FOR_jp.pdf",
     "started_at": "2026-06-28T12:56:47.421405+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:45.189322+00:00",
+    "updated_at": "2026-06-28T16:54:03.424221+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/mantle/1/ja.html"
   },
@@ -3201,7 +3201,7 @@
     "source_path": "Slide2/for/HOT_FOR_cn.pdf",
     "started_at": "2026-06-28T15:53:18.096862+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:53:42.514558+00:00",
+    "updated_at": "2026-06-28T16:53:39.995027+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/holo/1/zh.html"
   },
@@ -3417,7 +3417,7 @@
     "source_path": "Slide2/for/ELF_FOR_en.pdf",
     "started_at": "2026-06-28T14:32:19.125592+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:35.293504+00:00",
+    "updated_at": "2026-06-28T16:53:55.428361+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/aelf/2/en.html"
   },
@@ -3542,7 +3542,7 @@
     "source_path": "Slide2/for/BSV_FOR_jp.pdf",
     "started_at": "2026-06-28T15:59:29.282007+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:59:41.518934+00:00",
+    "updated_at": "2026-06-28T16:53:46.294272+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bitcoin-sv/1/ja.html"
   },
@@ -4829,7 +4829,7 @@
     "source_path": "Slide2/for/SNX_FOR_cn.pdf",
     "started_at": "2026-06-28T16:00:55.272194+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:01:17.732166+00:00",
+    "updated_at": "2026-06-28T16:53:48.388180+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/synthetix/1/zh.html"
   },
@@ -6808,7 +6808,7 @@
     "source_path": "Slide2/econ/Light_ECON_cn.pdf",
     "started_at": "2026-06-28T06:10:08.812266+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:52:11.883423+00:00",
+    "updated_at": "2026-06-28T16:53:24.722082+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/light/1/zh.html"
   },
@@ -8514,7 +8514,7 @@
     "source_path": "Slide2/for/SNX_FOR_ko.pdf",
     "started_at": "2026-06-28T16:02:42.308883+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:02:54.455109+00:00",
+    "updated_at": "2026-06-28T16:53:50.525833+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/synthetix/1/ko.html"
   },
@@ -8784,7 +8784,7 @@
     "source_path": "Slide2/for/CELO_FOR_jp.pdf",
     "started_at": "2026-06-28T15:57:08.488824+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:57:21.339637+00:00",
+    "updated_at": "2026-06-28T16:53:43.494321+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/celo/1/ja.html"
   },
@@ -10142,7 +10142,7 @@
     "source_path": "Slide2/for/ELF_FOR_jp.pdf",
     "started_at": "2026-06-28T14:32:02.377706+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:34.388234+00:00",
+    "updated_at": "2026-06-28T16:53:54.728552+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/aelf/1/ja.html"
   },
@@ -13783,7 +13783,7 @@
     "source_path": "Slide2/for/BSV_FOR_ko.pdf",
     "started_at": "2026-06-28T16:00:10.942625+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:00:23.182700+00:00",
+    "updated_at": "2026-06-28T16:53:47.680820+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bitcoin-sv/1/ko.html"
   },
@@ -14802,7 +14802,7 @@
     "source_path": "Slide2/for/Syrup_FOR_jp.pdf",
     "started_at": "2026-06-28T12:52:07.983102+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:37.986518+00:00",
+    "updated_at": "2026-06-28T16:53:57.627508+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/maple-finance/1/ja.html"
   },
@@ -16549,7 +16549,7 @@
     "source_path": "Slide2/for/DCR_FOR_jp.pdf",
     "started_at": "2026-06-28T11:26:33.539728+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:52.357827+00:00",
+    "updated_at": "2026-06-28T16:54:09.079637+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/decred/1/ja.html"
   },
@@ -18199,7 +18199,7 @@
     "source_path": "Slide2/for/MOODENG_FOR_ko.pdf",
     "started_at": "2026-06-28T16:05:21.116352+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:32.563832+00:00",
+    "updated_at": "2026-06-28T16:53:53.326506+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/moo-deng-solana/1/ko.html"
   },
@@ -19236,7 +19236,7 @@
     "source_path": "Slide2/for/Data_FOR_ko.pdf",
     "started_at": "2026-06-28T11:24:43.348269+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:50.549434+00:00",
+    "updated_at": "2026-06-28T16:54:07.629237+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/data-network/1/ko.html"
   },
@@ -19386,7 +19386,7 @@
     "source_path": "Slide2/for/Syrup_FOR_cn.pdf",
     "started_at": "2026-06-28T12:51:11.656619+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:37.097403+00:00",
+    "updated_at": "2026-06-28T16:53:56.916991+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/maple-finance/1/zh.html"
   },
@@ -20178,7 +20178,7 @@
     "source_path": "Slide2/for/MNT_FOR_ko.pdf",
     "started_at": "2026-06-28T12:57:36.812355+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:46.971490+00:00",
+    "updated_at": "2026-06-28T16:54:04.816927+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/mantle/1/ko.html"
   },
@@ -20787,7 +20787,7 @@
     "source_path": "Slide2/for/MOODENG_FOR_cn.pdf",
     "started_at": "2026-06-28T16:03:31.026579+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:03:50.839455+00:00",
+    "updated_at": "2026-06-28T16:53:51.234156+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/moo-deng-solana/1/zh.html"
   },
@@ -21274,7 +21274,7 @@
     "source_path": "Slide2/for/CAP_FOR_en.pdf",
     "started_at": "2026-06-28T12:54:40.962941+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:42.498139+00:00",
+    "updated_at": "2026-06-28T16:54:01.164185+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/cap-app/2/en.html"
   },
@@ -21556,7 +21556,7 @@
     "source_path": "Slide2/for/0G_FOR_ko.pdf",
     "started_at": "2026-06-28T11:30:46.312323+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:57.719495+00:00",
+    "updated_at": "2026-06-28T16:54:13.321527+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zero-gravity/1/ko.html"
   },
@@ -22604,7 +22604,7 @@
     "source_path": "Slide2/econ/Light_ECON_ko.pdf",
     "started_at": "2026-06-28T06:12:06.473672+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:52:14.631015+00:00",
+    "updated_at": "2026-06-28T16:53:26.857893+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/light/1/ko.html"
   },
@@ -24717,7 +24717,7 @@
     "source_path": "Slide2/for/MNT_FOR_en.pdf",
     "started_at": "2026-06-28T12:56:59.440494+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:46.083595+00:00",
+    "updated_at": "2026-06-28T16:54:04.122055+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/mantle/2/en.html"
   },
@@ -24747,7 +24747,7 @@
     "source_path": "Slide2/for/BSV_FOR_en.pdf",
     "started_at": "2026-06-28T15:59:42.873958+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:59:54.919881+00:00",
+    "updated_at": "2026-06-28T16:53:46.989333+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bitcoin-sv/2/en.html"
   },
@@ -24897,7 +24897,7 @@
     "source_path": "Slide2/econ/Light_ECON_jp.pdf",
     "started_at": "2026-06-28T06:11:07.445029+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:52:12.807248+00:00",
+    "updated_at": "2026-06-28T16:53:25.453717+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/light/1/ja.html"
   },
@@ -29039,7 +29039,7 @@
     "source_path": "Slide2/for/MNT_FOR_cn.pdf",
     "started_at": "2026-06-28T12:55:59.926523+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:44.294939+00:00",
+    "updated_at": "2026-06-28T16:54:02.716644+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/mantle/1/zh.html"
   },
@@ -29494,7 +29494,7 @@
     "source_path": "Slide2/for/MOODENG_FOR_en.pdf",
     "started_at": "2026-06-28T16:04:43.794241+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:04:54.112353+00:00",
+    "updated_at": "2026-06-28T16:53:52.625931+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/moo-deng-solana/2/en.html"
   },
@@ -30922,7 +30922,7 @@
     "source_path": "Slide2/for/ELF_FOR_ko.pdf",
     "started_at": "2026-06-28T14:33:02.780853+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:36.192095+00:00",
+    "updated_at": "2026-06-28T16:53:56.126774+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/aelf/1/ko.html"
   },
@@ -31250,7 +31250,7 @@
     "source_path": "Slide2/for/CELO_FOR_cn.pdf",
     "started_at": "2026-06-28T15:56:15.339059+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:56:38.689767+00:00",
+    "updated_at": "2026-06-28T16:53:42.796534+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/celo/1/zh.html"
   },
@@ -32376,7 +32376,7 @@
     "source_path": "Slide2/for/DCR_FOR_ko.pdf",
     "started_at": "2026-06-28T11:27:41.965911+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:54.148681+00:00",
+    "updated_at": "2026-06-28T16:54:10.509413+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/decred/1/ko.html"
   },
@@ -33710,7 +33710,7 @@
     "source_path": "Slide2/for/0G_FOR_cn.pdf",
     "started_at": "2026-06-28T11:28:41.625277+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:55.043459+00:00",
+    "updated_at": "2026-06-28T16:54:11.207025+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zero-gravity/1/zh.html"
   },
@@ -34423,7 +34423,7 @@
     "source_path": "Slide2/for/MOODENG_FOR_jp.pdf",
     "started_at": "2026-06-28T16:04:30.041019+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:04:41.443580+00:00",
+    "updated_at": "2026-06-28T16:53:51.925891+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/moo-deng-solana/1/ja.html"
   },
@@ -35460,7 +35460,7 @@
     "source_path": "Slide2/for/CAP_FOR_cn.pdf",
     "started_at": "2026-06-28T12:53:34.479113+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:40.702323+00:00",
+    "updated_at": "2026-06-28T16:53:59.745270+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/cap-app/1/zh.html"
   },
@@ -36682,7 +36682,7 @@
     "source_path": "Slide2/for/CELO_FOR_en.pdf",
     "started_at": "2026-06-28T15:57:23.192890+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:57:35.596518+00:00",
+    "updated_at": "2026-06-28T16:53:44.193210+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/celo/2/en.html"
   },
@@ -37649,7 +37649,7 @@
     "source_path": "Slide2/for/Syrup_FOR_ko.pdf",
     "started_at": "2026-06-28T12:52:54.072571+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:39.809830+00:00",
+    "updated_at": "2026-06-28T16:53:59.046622+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/maple-finance/1/ko.html"
   },
@@ -38574,7 +38574,7 @@
     "source_path": "Slide2/for/Data_FOR_jp.pdf",
     "started_at": "2026-06-28T11:23:50.432454+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:48.751008+00:00",
+    "updated_at": "2026-06-28T16:54:06.207477+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/data-network/1/ja.html"
   },
@@ -40094,7 +40094,7 @@
     "source_path": "Slide2/for/SNX_FOR_jp.pdf",
     "started_at": "2026-06-28T16:01:48.377362+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:02:00.982201+00:00",
+    "updated_at": "2026-06-28T16:53:49.084916+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/synthetix/1/ja.html"
   },
@@ -41805,7 +41805,7 @@
     "source_path": "Slide2/mat/Light_MAT_en.pdf",
     "started_at": "2026-06-28T06:16:38.279738+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:52:24.858719+00:00",
+    "updated_at": "2026-06-28T16:53:32.963698+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/light/1/en.html"
   },
@@ -42071,7 +42071,7 @@
     "source_path": "Slide2/for/SNX_FOR_en.pdf",
     "started_at": "2026-06-28T16:02:02.969453+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:02:14.681008+00:00",
+    "updated_at": "2026-06-28T16:53:49.823936+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/synthetix/2/en.html"
   },
@@ -42783,7 +42783,7 @@
     "source_path": "Slide2/for/CAP_FOR_jp.pdf",
     "started_at": "2026-06-28T12:54:26.909820+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:41.606960+00:00",
+    "updated_at": "2026-06-28T16:54:00.467924+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/cap-app/1/ja.html"
   },
@@ -43781,7 +43781,7 @@
     "source_path": "Slide2/for/BSV_FOR_cn.pdf",
     "started_at": "2026-06-28T15:58:44.162955+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:59:06.335036+00:00",
+    "updated_at": "2026-06-28T16:53:45.590157+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bitcoin-sv/1/zh.html"
   },
@@ -44007,7 +44007,7 @@
     "source_path": "Slide2/mat/Light_MAT_ko.pdf",
     "started_at": "2026-06-28T06:17:25.263149+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:52:26.498764+00:00",
+    "updated_at": "2026-06-28T16:53:34.377550+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/light/1/ko.html"
   },
@@ -44202,7 +44202,7 @@
     "source_path": "Slide2/for/DCR_FOR_cn.pdf",
     "started_at": "2026-06-28T11:25:30.196730+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:51.458570+00:00",
+    "updated_at": "2026-06-28T16:54:08.360291+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/decred/1/zh.html"
   },
@@ -44618,7 +44618,7 @@
     "source_path": "Slide2/for/CAP_FOR_ko.pdf",
     "started_at": "2026-06-28T12:55:19.511359+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:43.400134+00:00",
+    "updated_at": "2026-06-28T16:54:01.863118+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/cap-app/1/ko.html"
   },
@@ -45811,7 +45811,7 @@
     "source_path": "Slide2/for/0G_FOR_jp.pdf",
     "started_at": "2026-06-28T11:29:48.650855+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:55.943556+00:00",
+    "updated_at": "2026-06-28T16:54:11.910726+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zero-gravity/1/ja.html"
   },
@@ -47117,7 +47117,7 @@
     "source_path": "Slide2/mat/ARC_MAT_cn.pdf",
     "started_at": "2026-06-28T06:18:23.668729+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:52:28.207610+00:00",
+    "updated_at": "2026-06-28T16:53:35.975697+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ai-rig-complex/1/zh.html"
   },
@@ -48482,7 +48482,7 @@
     "source_path": "Slide2/for/HOT_FOR_jp.pdf",
     "started_at": "2026-06-28T15:54:20.293001+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:54:32.567453+00:00",
+    "updated_at": "2026-06-28T16:53:40.696346+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/holo/1/ja.html"
   },
@@ -48787,7 +48787,7 @@
     "source_path": "Slide2/for/HOT_FOR_ko.pdf",
     "started_at": "2026-06-28T15:55:30.116029+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:55:42.951598+00:00",
+    "updated_at": "2026-06-28T16:53:42.088214+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/holo/1/ko.html"
   },
@@ -49161,7 +49161,7 @@
     "source_path": "Slide2/mat/Light_MAT_cn.pdf",
     "started_at": "2026-06-28T06:15:17.236564+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:52:21.442328+00:00",
+    "updated_at": "2026-06-28T16:53:29.976895+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/light/1/zh.html"
   },
@@ -52809,7 +52809,7 @@
     "source_path": "Slide2/mat/ARC_MAT_en.pdf",
     "started_at": "2026-06-28T06:19:49.319258+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:52:31.679786+00:00",
+    "updated_at": "2026-06-28T16:53:38.937855+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ai-rig-complex/1/en.html"
   },
@@ -55336,7 +55336,7 @@
     "source_path": "Slide2/econ/Light_ECON_en.pdf",
     "started_at": "2026-06-28T06:11:24.213685+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:52:13.715201+00:00",
+    "updated_at": "2026-06-28T16:53:26.155744+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/light/1/en.html"
   },
@@ -55894,7 +55894,7 @@
     "source_path": "Slide2/for/Data_FOR_en.pdf",
     "started_at": "2026-06-28T11:24:07.092825+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:49.640026+00:00",
+    "updated_at": "2026-06-28T16:54:06.930910+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/data-network/2/en.html"
   },
@@ -56146,7 +56146,7 @@
     "source_path": "Slide2/mat/Light_MAT_jp.pdf",
     "started_at": "2026-06-28T06:16:18.189089+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:52:23.162652+00:00",
+    "updated_at": "2026-06-28T16:53:31.396930+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/light/1/ja.html"
   },
@@ -56749,7 +56749,7 @@
     "source_path": "Slide2/for/CELO_FOR_ko.pdf",
     "started_at": "2026-06-28T15:58:08.657744+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:58:20.009488+00:00",
+    "updated_at": "2026-06-28T16:53:44.887740+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/celo/1/ko.html"
   },
@@ -56894,7 +56894,7 @@
     "source_path": "Slide2/for/DCR_FOR_en.pdf",
     "started_at": "2026-06-28T11:26:52.785341+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:53.256172+00:00",
+    "updated_at": "2026-06-28T16:54:09.805377+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/decred/2/en.html"
   },
@@ -56924,7 +56924,7 @@
     "source_path": "Slide2/mat/ARC_MAT_jp.pdf",
     "started_at": "2026-06-28T06:19:28.546916+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:52:29.876335+00:00",
+    "updated_at": "2026-06-28T16:53:37.529457+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ai-rig-complex/1/ja.html"
   },
@@ -57925,7 +57925,7 @@
     "source_path": "Slide2/for/Data_FOR_cn.pdf",
     "started_at": "2026-06-28T11:23:01.485369+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:47.864496+00:00",
+    "updated_at": "2026-06-28T16:54:05.522853+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/data-network/1/zh.html"
   },
@@ -58002,7 +58002,7 @@
     "source_path": "Slide2/for/HOT_FOR_en.pdf",
     "started_at": "2026-06-28T15:54:34.461247+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T15:54:46.915785+00:00",
+    "updated_at": "2026-06-28T16:53:41.396683+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/holo/2/en.html"
   },
@@ -60496,7 +60496,7 @@
     "source_path": "Slide2/for/0G_FOR_en.pdf",
     "started_at": "2026-06-28T11:30:03.443998+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:56.831392+00:00",
+    "updated_at": "2026-06-28T16:54:12.607286+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zero-gravity/2/en.html"
   },
@@ -62268,7 +62268,7 @@
     "source_path": "Slide2/for/ELF_FOR_cn.pdf",
     "started_at": "2026-06-28T14:30:54.616574+00:00",
     "status": "published",
-    "updated_at": "2026-06-28T16:05:33.480971+00:00",
+    "updated_at": "2026-06-28T16:53:54.023747+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/aelf/1/zh.html"
   },
