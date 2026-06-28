@@ -49,6 +49,8 @@ const SCOREBOARD_CANONICAL_ALIASES = [
   { alias: 'toncoin', slug: 'the-open-network' },
   { alias: 'gram', slug: 'the-open-network' },
   { alias: 'gram prev toncoin', slug: 'the-open-network' },
+  { alias: 'avalanche', slug: 'avalanche-2' },
+  { alias: 'avax', slug: 'avalanche-2' },
   { alias: 'hedera', slug: 'hedera-hashgraph' },
   { alias: 'pi', slug: 'pi-network' },
   { alias: 'worldcoin-org', slug: 'worldcoin' },

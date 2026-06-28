@@ -1701,6 +1701,96 @@ describe('score page report availability policy', () => {
     })
   })
 
+  it('maps Avalanche CMC slug to the report-bearing avalanche-2 project', () => {
+    const trackedProjects = [
+      {
+        id: 'empty-avalanche-project',
+        name: 'Avalanche',
+        slug: 'avalanche',
+        symbol: 'AVAX',
+        category: '',
+        market_cap_usd: 100,
+        coingecko_id: null,
+        cmc_id: null,
+        aliases: [],
+        maturity_score: null,
+        last_econ_report_at: null,
+        last_maturity_report_at: null,
+        last_forensic_report_at: null,
+      },
+      {
+        id: 'avalanche-2-project',
+        name: 'Avalanche',
+        slug: 'avalanche-2',
+        symbol: 'AVAX',
+        category: '',
+        market_cap_usd: 100,
+        coingecko_id: 'avalanche-2',
+        cmc_id: null,
+        aliases: ['avalanche', 'avalanche-2', 'AVAX'],
+        maturity_score: 69.5,
+        last_econ_report_at: '2026-05-26T09:23:05.719Z',
+        last_maturity_report_at: '2026-06-17T10:34:08.625Z',
+        last_forensic_report_at: null,
+      },
+    ]
+    const availabilityByProjectSlug = buildReportAvailabilityByProjectSlug([
+      {
+        project_id: 'avalanche-2-project',
+        report_type: 'econ',
+        status: 'published',
+        language: 'ko',
+        published_at: '2026-05-26T09:22:50.713Z',
+        slide_html_urls_by_lang: {
+          ko: 'https://example.supabase.co/storage/v1/object/public/slides/econ/avalanche-2/latest/ko.html',
+        },
+        tracked_projects: {
+          slug: 'avalanche-2',
+        },
+      },
+      {
+        project_id: 'avalanche-2-project',
+        report_type: 'maturity',
+        status: 'published',
+        language: 'ko',
+        published_at: '2026-06-17T10:34:08.625Z',
+        card_data: {
+          maturity_score: 69.5,
+        },
+        slide_html_urls_by_lang: {
+          ko: 'https://example.supabase.co/storage/v1/object/public/slides/mat/avalanche-2/latest/ko.html',
+        },
+        tracked_projects: {
+          slug: 'avalanche-2',
+        },
+      },
+    ], 'ko')
+
+    const [row] = snapshotRowsToScoreRows(
+      [
+        {
+          ...makeSnapshotRow(28, 'avalanche'),
+          cmc_name: 'Avalanche',
+          cmc_symbol: 'AVAX',
+        },
+      ],
+      buildTrackedProjectLookup(trackedProjects, { includeProjectAliases: false }),
+      new Map(),
+      availabilityByProjectSlug,
+      buildTrackedProjectIdentityLookup(trackedProjects),
+    )
+
+    expect(row).toMatchObject({
+      slug: 'avalanche-2',
+      score: 69.5,
+      reportTypes: ['econ', 'maturity'],
+      reportDates: {
+        econ: '2026-05-26T09:23:05.719Z',
+        maturity: '2026-06-17T10:34:08.625Z',
+      },
+    })
+  })
+
   it('renders active ECON availability for Bitcoin when a Korean localized asset exists', () => {
     const trackedProjects = [
       {
