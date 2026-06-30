@@ -100,6 +100,96 @@ BCE-2000 adds a change-request/candidate path only. It does not change the activ
 website publishing contract for `econ-report-publishing`,
 `mat-report-publishing`, or `for-report-publishing`.
 
+### BCE-2332 ZKsync FOR Target Row Missing (2026-07-01 07:05 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `c394ad0`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  routine execution issue `[BCE-2332](/BCE/issues/BCE-2332)`; 신규 댓글은
+  없었고 harness가 checkout한 `issue_assigned` 실행이었다.
+- 후보 스캔:
+  Google Drive `analysis2/{ECON,MAT,FOR}` 및 legacy `analysis/{ECON,MAT,FOR}`
+  Markdown 메타데이터를 확인하고, `report_summary_jobs.authority_state=promoted`
+  source identity를 제외했다.
+- 이번 실행의 최신 unpromoted Drive Markdown:
+  `ZK 시장 무결성 및 심층 포렌식 리스크 보고서.md`
+  (`report_type=for`, `modifiedTime=2026-06-01T03:41:56.000Z`).
+- Source identity:
+  `drive:1PXLbDbDMMlCgkVhqOrEWUc2KQ9mDkynU:0B8HYgThT3NBybG5vL2NWWjFzNEpzNHlmZzQ5YWZGcVhqMllJPQ`.
+- Source SHA-256:
+  `5a7fd51e1b957fe758ec04619c307a5a566e3ca5fd96958d464b7af1adbe5cd8`.
+- Source snapshot:
+  `scripts/pipeline/output/paperclip_cro_source_for_zksync_bce2332.md`.
+- Canonical tracked project:
+  `zksync` (`symbol=Z`, `status=active`). Source body references ZKsync and
+  ZKsync Era, so the `ZK` Drive title maps to canonical `zksync`.
+- 차단 원인:
+  `zksync/forensic/ko`에 website-visible `project_reports` target row가
+  없다. `summary_authority_gate.py`의 `find_target_report` 계약상
+  `llm_active --write` 승격은 기존 website-visible target row를 필요로 하며,
+  현재 상태에서는 `website-visible project_reports target not found:
+  zksync/forensic/ko`로 실패한다.
+- 실행 결과:
+  CRO JSON 생성, candidate ingest, Summary Authority Gate `--write` 승격은
+  수행하지 않았다. 이슈 완료 규칙의 target report lookup failure에
+  해당하므로 DataPlatformEngineer unblock issue를 생성하고
+  `[BCE-2332](/BCE/issues/BCE-2332)`를 해당 이슈에 blocked로 연결한다.
+- 배포/캐시 영향:
+  `project_reports` write 및 웹사이트-visible content 변경이 없었으므로
+  배포 또는 캐시 무효화는 필요하지 않다.
+- Manifest change:
+  no change needed. 이번 기록은 기존 `analysis-md-summary-candidate` 및
+  `summary_authority_gate` 계약 하의 운영 데이터 블로커 진단이다.
+
+### BCE-2333 ZKsync FOR Target Backfill Applied (2026-07-01 07:09 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `c394ad0` before local repair; pushed migration commit
+  `6cee93350e1e694c763abebf4679fe0ceccba772`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  assigned critical issue `[BCE-2333](/BCE/issues/BCE-2333)`; 신규 댓글은
+  없었고 harness가 checkout한 `issue_assigned` 실행이었다.
+- 수정:
+  `supabase/migrations/20260630222500_seed_zksync_forensic_ko_summary_target.sql`
+  을 추가했다. 이 migration은 기존 canonical `tracked_projects.slug=zksync`
+  row를 사용해 `status=coming_soon`, `language=ko`,
+  `report_type=forensic`, `version=1`인 FOR target shell을 생성/복구한다.
+- Approved DB path:
+  `.github/workflows/db-migration.yml` manual dispatch with
+  `migration_name=20260630222500_seed_zksync_forensic_ko_summary_target.sql`.
+- Remote migration evidence:
+  GitHub Actions run
+  `https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/28479050975`
+  completed `success` on branch `codex/paperclip-agent-summary-source` at
+  `6cee93350e1e694c763abebf4679fe0ceccba772`. The selected SQL migration step
+  returned `[]`.
+- Production DB verification:
+  `tracked_projects.slug=zksync`, `symbol=Z`, `tracked_projects.status=active`;
+  `project_reports.id=f2483f7b-4dbd-429e-bfab-207128ec50e3`,
+  `report_type=forensic`, `language=ko`, `version=1`,
+  `status=coming_soon`, `is_latest=true`.
+  `card_data.summary_authority_target` records issue
+  `[BCE-2333](/BCE/issues/BCE-2333)`, blocked issue
+  `[BCE-2332](/BCE/issues/BCE-2332)`, source identity
+  `drive:1PXLbDbDMMlCgkVhqOrEWUc2KQ9mDkynU:0B8HYgThT3NBybG5vL2NWWjFzNEpzNHlmZzQ5YWZGcVhqMllJPQ`,
+  Drive file id, revision id, and source SHA-256
+  `5a7fd51e1b957fe758ec04619c307a5a566e3ca5fd96958d464b7af1adbe5cd8`.
+- Unblock status:
+  the `zksync/forensic/ko` website-visible target row now exists, so
+  `[BCE-2332](/BCE/issues/BCE-2332)` can resume candidate ingest and
+  Summary Authority Gate promotion for the ZKsync FOR source.
+- Manifest change:
+  no change needed. This was a remote application of the existing operational
+  seed/backfill under the `analysis-md-summary-candidate` contract.
+
 ### BCE-2330 AIOZ Network MAT Summary Target Backfill Applied (2026-07-01 06:23 KST)
 
 - 사용 워크스페이스/SHA:
@@ -303,6 +393,46 @@ website publishing contract for `econ-report-publishing`,
   no change needed. This is an operational data/backfill blocker under the
   existing `analysis-md-summary-candidate` and `summary_authority_gate`
   contract.
+
+### BCE-2329 AIOZ Network MAT Promotion Resumed (2026-07-01 06:27 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `c394ad0`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  `[BCE-2330](/BCE/issues/BCE-2330)` child blocker completion으로
+  `[BCE-2329](/BCE/issues/BCE-2329)`가 재개되었다.
+- Target row verification:
+  `tracked_projects.slug=aioz-network`, `symbol=AIOZ`, `status=active` 및
+  MAT KO target row가 production DB에 존재함을 확인했다.
+  `project_reports.id=17e2dd0b-4ecc-4155-8fa6-63220ce9561a`,
+  `report_type=maturity`, `language=ko`, `version=1`,
+  `status=coming_soon`, `is_latest=true`.
+- Candidate job before promotion:
+  `report_summary_jobs.id=d74bc166-b9ef-421d-8c9a-875939ed706c`,
+  `validation_status=valid`, `status=candidate_ready`,
+  `authority_state=validation_passed`.
+- Summary Authority Gate write command:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id d74bc166-b9ef-421d-8c9a-875939ed706c --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2329" --write`.
+- Promotion result:
+  - action: `promote`
+  - state: `promoted`
+  - wrote project report: `true`
+  - project report id: `17e2dd0b-4ecc-4155-8fa6-63220ce9561a`
+- DB verification artifact:
+  `scripts/pipeline/output/bce2329_aioz-network_mat_db_website_verification.json`.
+- Project report verification:
+  - `card_summary_ko=AIOZ Network는 분산 CDN에서 AI, Storage, Streaming을 결합한 DePIN 인프라로 확장했다. 성숙도는 63.5/100이며, 사용량, 매출, 소각의 공개 검증성이 핵심 병목이다.`
+  - `card_data.summary_authority.mode=llm_active`
+  - `card_data.summary_authority.job_id=d74bc166-b9ef-421d-8c9a-875939ed706c`
+  - `card_data.summary_authority.source_identity=drive:13Bj-oq6W6mACE1_86xYzS6W2RYeARsr6:0B8HYgThT3NByQlUxUEtsTzVPTjFJMEswNFdSNWliVDQvLzBzPQ`
+- Manifest change:
+  no change needed. This was a resumed promotion under the existing
+  `analysis-md-summary-candidate` and `summary_authority_gate` contract after
+  `[BCE-2330](/BCE/issues/BCE-2330)` restored the operational data target.
   - `report_type=econ`, `language=ko`, `status=coming_soon`,
     `version=1`, `is_latest=true`
   - `card_summary_ko=Huma Finance는 결제 흐름의 단기 유동성을 온체인 자본과 연결하는 PayFi 신용 인프라다. 강점은 실물 수요와 회전율이고, 병목은 오프체인 심사와 토큰 가치 포착이다.`
