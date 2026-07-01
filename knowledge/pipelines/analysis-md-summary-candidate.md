@@ -100,6 +100,30 @@ BCE-2000 adds a change-request/candidate path only. It does not change the activ
 website publishing contract for `econ-report-publishing`,
 `mat-report-publishing`, or `for-report-publishing`.
 
+### BCE-2337 Derive MAT Target Backfill Prepared (2026-07-01 10:10 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `f558b58`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  assigned critical unblock issue `[BCE-2337](/BCE/issues/BCE-2337)` from
+  blocked routine issue `[BCE-2314](/BCE/issues/BCE-2314)`.
+- 수정:
+  `supabase/migrations/20260701011000_seed_derive_maturity_ko_summary_target.sql`
+  을 추가했다. 이 migration은 기존 canonical `tracked_projects.slug=derive`
+  row를 사용해 `status=coming_soon`, `language=ko`,
+  `report_type=maturity`, `version=1`인 MAT target shell을 생성/복구한다.
+- Source identity:
+  `drive:1OicDtoEMKE4HAY_6VbutZjEE4WJXx6Vz:0B8HYgThT3NBycDdtUHBLcFhEekxlZnlkSmlERUxEOHRIZ1lrPQ`.
+- Source SHA-256:
+  `cd3b52dd021add9264e2d1ea9c3433252e0469413201ad6dd3bf18ef98b5af0e`.
+- 파이프라인 상태:
+  state wiki updated by this section. Executable manifest update was not needed
+  because entrypoints, gates, and runtime contract were unchanged.
+
 ### BCE-2332 ZKsync FOR Target Row Missing (2026-07-01 07:05 KST)
 
 - 사용 워크스페이스/SHA:
