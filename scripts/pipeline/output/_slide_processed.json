@@ -2980,6 +2980,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/virtuals-protocol/1/ko.html"
   },
+  "11uittJpBi7YNFuyfbxtQgkKfXGoW6OSq": {
+    "error": null,
+    "finished_at": "2026-07-01T08:50:40.029873+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-01T07:47:35.000Z",
+    "name": "Ansem_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/the-black-bull/latest/en.html",
+    "report_id": "fa7cb27f-fe56-4c34-abf3-e7473324ebc5",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "the-black-bull",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/Ansem_FOR_en.pdf",
+    "started_at": "2026-07-01T08:50:28.868131+00:00",
+    "status": "published",
+    "updated_at": "2026-07-01T08:50:40.029889+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/the-black-bull/2/en.html"
+  },
   "11vXz0G2QHY64tj-uhmhYJ3wKn-so0pga": {
     "error": null,
     "finished_at": "2026-06-10T08:48:41.557929+00:00",
@@ -13748,7 +13778,7 @@
     "source_path": "Slide2/mat/Derive_MAT_en.pdf",
     "started_at": "2026-07-01T04:58:11.252612+00:00",
     "status": "published",
-    "updated_at": "2026-07-01T04:58:27.408224+00:00",
+    "updated_at": "2026-07-01T08:48:02.952223+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/derive/1/en.html"
   },
@@ -14588,7 +14618,7 @@
     "source_path": "Slide2/mat/Derive_MAT_ko.pdf",
     "started_at": "2026-07-01T04:58:55.829253+00:00",
     "status": "published",
-    "updated_at": "2026-07-01T04:59:10.463893+00:00",
+    "updated_at": "2026-07-01T08:48:04.900849+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/derive/2/ko.html"
   },
@@ -15519,6 +15549,36 @@
     "updated_at": "2026-05-17T17:56:37.623077+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/mantle/1/ja.html"
+  },
+  "1EZ00RbwgNWoxnmRtC2_7uQ5WBqNLwwBR": {
+    "error": null,
+    "finished_at": "2026-07-01T08:50:26.415832+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-01T07:48:46.000Z",
+    "name": "Ansem_FOR_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/the-black-bull/latest/ja.html",
+    "report_id": "37056783-baf7-4485-b088-790faecd79f4",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "the-black-bull",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/Ansem_FOR_jp.pdf",
+    "started_at": "2026-07-01T08:50:13.297137+00:00",
+    "status": "published",
+    "updated_at": "2026-07-01T08:50:26.415847+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/the-black-bull/1/ja.html"
   },
   "1Ee-cU1vIdvri6vR_mO55ZBy18Nitaul3": {
     "error": null,
@@ -25070,6 +25130,36 @@
     "updated_at": "2026-06-08T18:11:04.278656+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/jupiter-perps-lp/1/zh.html"
+  },
+  "1NU8Ox3Za1o3yW5YN9tVS3lxDvU5oiSST": {
+    "error": null,
+    "finished_at": "2026-07-01T08:49:06.742442+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-01T07:49:57.000Z",
+    "name": "Ansem_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/the-black-bull/latest/zh.html",
+    "report_id": "04985986-aaa3-442e-8043-3c435ceff5d6",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "the-black-bull",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/Ansem_FOR_cn.pdf",
+    "started_at": "2026-07-01T08:48:48.004418+00:00",
+    "status": "published",
+    "updated_at": "2026-07-01T08:49:06.742456+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/the-black-bull/1/zh.html"
   },
   "1NUYEn5SROoFoa4JXbeMJ6ZKm6AzdFZ0x": {
     "error": null,
@@ -43453,7 +43543,7 @@
     "source_path": "Slide2/mat/Derive_MAT_cn.pdf",
     "started_at": "2026-07-01T04:56:49.119067+00:00",
     "status": "published",
-    "updated_at": "2026-07-01T04:57:15.956041+00:00",
+    "updated_at": "2026-07-01T08:47:59.023849+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/derive/1/zh.html"
   },
@@ -49369,7 +49459,7 @@
     "source_path": "Slide2/mat/Derive_MAT_jp.pdf",
     "started_at": "2026-07-01T04:57:51.826853+00:00",
     "status": "published",
-    "updated_at": "2026-07-01T04:58:08.935942+00:00",
+    "updated_at": "2026-07-01T08:48:01.165889+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/derive/1/ja.html"
   },
@@ -51751,6 +51841,36 @@
     "updated_at": "2026-06-25T12:16:56.647738+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/io-net/1/ja.html"
+  },
+  "1nwfD6432zup2_ObSXjGsDzVaPcinbkuk": {
+    "error": null,
+    "finished_at": "2026-07-01T08:51:21.235348+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-01T07:45:55.000Z",
+    "name": "Ansem_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/the-black-bull/latest/ko.html",
+    "report_id": "3d6c88a5-84ed-4185-b429-5734d797d332",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "the-black-bull",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/Ansem_FOR_ko.pdf",
+    "started_at": "2026-07-01T08:51:09.189830+00:00",
+    "status": "published",
+    "updated_at": "2026-07-01T08:51:21.235362+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/the-black-bull/1/ko.html"
   },
   "1nxAejYoSLvUIVI6LCGLyrwo2msi4A-BI": {
     "error": null,
