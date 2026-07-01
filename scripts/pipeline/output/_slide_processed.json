@@ -1953,6 +1953,36 @@
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aave/latest/en.html"
   },
+  "10nifZaj4nsRE7td9G5UPg-lKPsTjPpQm": {
+    "error": null,
+    "finished_at": "2026-07-01T11:47:58.447284+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-01T09:10:46.000Z",
+    "name": "Lumera_Health_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/lumera-health/latest/zh.html",
+    "report_id": "4559dbf9-26a4-49db-9ffc-f09f55bf28a4",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "lumera-health",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/Lumera_Health_MAT_cn.pdf",
+    "started_at": "2026-07-01T11:47:37.317014+00:00",
+    "status": "published",
+    "updated_at": "2026-07-01T11:47:58.447302+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/lumera-health/1/zh.html"
+  },
   "10taZspjE-3EHqqFVOzF6HtI2bJfyIGnF": {
     "error": null,
     "finished_at": "2026-06-10T04:56:01.267508+00:00",
@@ -3006,7 +3036,7 @@
     "source_path": "Slide2/for/Ansem_FOR_en.pdf",
     "started_at": "2026-07-01T08:50:28.868131+00:00",
     "status": "published",
-    "updated_at": "2026-07-01T08:50:40.029889+00:00",
+    "updated_at": "2026-07-01T11:49:46.439312+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/the-black-bull/2/en.html"
   },
@@ -12048,6 +12078,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/dai/1/ja.html"
   },
+  "1BPpD96-InNAKdZtJwwsSc8KNTBtZ_Pku": {
+    "error": null,
+    "finished_at": "2026-07-01T11:48:57.159081+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-01T09:07:41.000Z",
+    "name": "Lumera_Health_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/lumera-health/latest/en.html",
+    "report_id": "54f19da1-3f71-46a9-ad9b-1986894e8633",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "lumera-health",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/Lumera_Health_MAT_en.pdf",
+    "started_at": "2026-07-01T11:48:47.087394+00:00",
+    "status": "published",
+    "updated_at": "2026-07-01T11:48:57.159097+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/lumera-health/1/en.html"
+  },
   "1BQ2gBNGvNDPuJIjbYnEJwH_zgzfQ15EV": {
     "error": "Storage upload failed for slides/econ/trueusd/1/ko_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
     "lang": "ko",
@@ -13778,7 +13838,7 @@
     "source_path": "Slide2/mat/Derive_MAT_en.pdf",
     "started_at": "2026-07-01T04:58:11.252612+00:00",
     "status": "published",
-    "updated_at": "2026-07-01T08:48:02.952223+00:00",
+    "updated_at": "2026-07-01T11:49:42.055655+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/derive/1/en.html"
   },
@@ -14618,7 +14678,7 @@
     "source_path": "Slide2/mat/Derive_MAT_ko.pdf",
     "started_at": "2026-07-01T04:58:55.829253+00:00",
     "status": "published",
-    "updated_at": "2026-07-01T08:48:04.900849+00:00",
+    "updated_at": "2026-07-01T11:49:44.028076+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/derive/2/ko.html"
   },
@@ -15358,6 +15418,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/matic-network/1/en.html"
   },
+  "1EEptC_v6tNDIJ44FvQzXZ4Eyn3ou3e9n": {
+    "error": null,
+    "finished_at": "2026-07-01T11:49:36.122611+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-01T09:05:57.000Z",
+    "name": "Lumera_Health_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/lumera-health/latest/ko.html",
+    "report_id": "e6032c05-8ea3-420c-9625-9cb0c095513f",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "lumera-health",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/Lumera_Health_MAT_ko.pdf",
+    "started_at": "2026-07-01T11:49:23.565898+00:00",
+    "status": "published",
+    "updated_at": "2026-07-01T11:49:36.122630+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/lumera-health/1/ko.html"
+  },
   "1EHwcaitcUFwWpL3TwWJhKorBD7F_4OIG": {
     "error": null,
     "finished_at": "2026-05-13T00:16:58.427797+00:00",
@@ -15576,7 +15666,7 @@
     "source_path": "Slide2/for/Ansem_FOR_jp.pdf",
     "started_at": "2026-07-01T08:50:13.297137+00:00",
     "status": "published",
-    "updated_at": "2026-07-01T08:50:26.415847+00:00",
+    "updated_at": "2026-07-01T11:49:45.745368+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/the-black-bull/1/ja.html"
   },
@@ -25157,7 +25247,7 @@
     "source_path": "Slide2/for/Ansem_FOR_cn.pdf",
     "started_at": "2026-07-01T08:48:48.004418+00:00",
     "status": "published",
-    "updated_at": "2026-07-01T08:49:06.742456+00:00",
+    "updated_at": "2026-07-01T11:49:45.052419+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/the-black-bull/1/zh.html"
   },
@@ -43543,7 +43633,7 @@
     "source_path": "Slide2/mat/Derive_MAT_cn.pdf",
     "started_at": "2026-07-01T04:56:49.119067+00:00",
     "status": "published",
-    "updated_at": "2026-07-01T08:47:59.023849+00:00",
+    "updated_at": "2026-07-01T11:49:38.453153+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/derive/1/zh.html"
   },
@@ -49459,7 +49549,7 @@
     "source_path": "Slide2/mat/Derive_MAT_jp.pdf",
     "started_at": "2026-07-01T04:57:51.826853+00:00",
     "status": "published",
-    "updated_at": "2026-07-01T08:48:01.165889+00:00",
+    "updated_at": "2026-07-01T11:49:40.356340+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/derive/1/ja.html"
   },
@@ -51868,7 +51958,7 @@
     "source_path": "Slide2/for/Ansem_FOR_ko.pdf",
     "started_at": "2026-07-01T08:51:09.189830+00:00",
     "status": "published",
-    "updated_at": "2026-07-01T08:51:21.235362+00:00",
+    "updated_at": "2026-07-01T11:49:47.129956+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/the-black-bull/1/ko.html"
   },
@@ -55779,6 +55869,36 @@
     "updated_at": "2026-05-29T01:49:26.251258+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/dydx-chain/1/ja.html"
+  },
+  "1rpmoDOH8uveeCPAMIP-ai6qOUG_C42Z-": {
+    "error": null,
+    "finished_at": "2026-07-01T11:48:44.876105+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-01T09:09:14.000Z",
+    "name": "Lumera_Health_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331562167907,
+      "height": 941.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 1672.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/lumera-health/latest/ja.html",
+    "report_id": "4a6acd47-974f-4a8e-adc4-4952a4326e8c",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "lumera-health",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/Lumera_Health_MAT_jp.pdf",
+    "started_at": "2026-07-01T11:48:32.590171+00:00",
+    "status": "published",
+    "updated_at": "2026-07-01T11:48:44.876120+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/lumera-health/1/ja.html"
   },
   "1rqxo03zUNCrN5XIXSyfnhaSazVeFqkYb": {
     "error": null,
