@@ -100,7 +100,7 @@ BCE-2000 adds a change-request/candidate path only. It does not change the activ
 website publishing contract for `econ-report-publishing`,
 `mat-report-publishing`, or `for-report-publishing`.
 
-### BCE-2337 Derive MAT Target Backfill Prepared (2026-07-01 10:10 KST)
+### BCE-2337 Derive MAT Target Backfill Applied (2026-07-01 10:10 KST)
 
 - 사용 워크스페이스/SHA:
   `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
@@ -116,6 +116,17 @@ website publishing contract for `econ-report-publishing`,
   을 추가했다. 이 migration은 기존 canonical `tracked_projects.slug=derive`
   row를 사용해 `status=coming_soon`, `language=ko`,
   `report_type=maturity`, `version=1`인 MAT target shell을 생성/복구한다.
+- Approved DB path:
+  `.github/workflows/db-migration.yml` manual dispatch with
+  `migration_name=20260701011000_seed_derive_maturity_ko_summary_target.sql`
+  succeeded at run
+  `https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/28486313941`
+  on commit `99afc40db87fd22ed72de443ec589320d3c46bfd`.
+- Production DB verification:
+  `tracked_projects.slug=derive`, `symbol=DRV`, `status=monitoring_only`;
+  `project_reports.id=83a84c29-42d7-487d-a434-fb8ca925a0d8`,
+  `report_type=maturity`, `language=ko`, `version=1`,
+  `status=coming_soon`, `is_latest=true`.
 - Source identity:
   `drive:1OicDtoEMKE4HAY_6VbutZjEE4WJXx6Vz:0B8HYgThT3NBycDdtUHBLcFhEekxlZnlkSmlERUxEOHRIZ1lrPQ`.
 - Source SHA-256:
