@@ -100,6 +100,183 @@ BCE-2000 adds a change-request/candidate path only. It does not change the activ
 website publishing contract for `econ-report-publishing`,
 `mat-report-publishing`, or `for-report-publishing`.
 
+### BCE-2339 Derive ECON Target Backfill Applied (2026-07-01 11:42 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `219745e`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/econ.md`, `knowledge/pipelines/analysis-md-summary-candidate.md`,
+  및 `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  assigned critical unblock issue `[BCE-2339](/BCE/issues/BCE-2339)` from
+  blocked routine issue `[BCE-2338](/BCE/issues/BCE-2338)`.
+- 수정:
+  `supabase/migrations/20260701024500_seed_derive_econ_ko_summary_target.sql`
+  을 추가했다. 이 migration은 기존 canonical `tracked_projects.slug=derive`
+  row를 사용해 `status=coming_soon`, `language=ko`,
+  `report_type=econ`, `version=1`인 ECON target shell을 생성/복구한다.
+- Approved DB path:
+  `.github/workflows/db-migration.yml` manual dispatch with
+  `migration_name=20260701024500_seed_derive_econ_ko_summary_target.sql`
+  succeeded at run
+  `https://github.com/CryptoPhilo/blockchain-economics-lab/actions/runs/28489791675`
+  on commit `219745e219de67796eb11917ad8717eb415e5818`.
+- Summary Authority Gate write command:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id 1472e9ca-5507-416b-af7c-79fb5f133f90 --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2338" --write`.
+- Promotion result:
+  - action: `promote`
+  - state: `promoted`
+  - wrote project report: `true`
+  - project report id: `6365e42d-65bc-4c4b-85d7-a8d0130cc4f5`
+- Production DB verification:
+  - `tracked_projects.slug=derive`, `symbol=DRV`, `status=monitoring_only`
+  - `report_summary_jobs.id=1472e9ca-5507-416b-af7c-79fb5f133f90`
+  - `validation_status=valid`, `status=candidate_ready`
+  - `authority_state=promoted`, `authority_mode=llm_active`
+  - `project_reports.id=6365e42d-65bc-4c4b-85d7-a8d0130cc4f5`
+  - `report_type=econ`, `language=ko`, `status=coming_soon`,
+    `is_latest=true`
+  - `card_summary_ko=Derive는 온체인 정산과 오프체인 매칭을 결합한 파생상품 경제권이지만 DRV 가치 포착은 아직 간접적이다.`
+  - `card_data.summary_authority.mode=llm_active`
+  - `card_data.summary_authority.job_id=1472e9ca-5507-416b-af7c-79fb5f133f90`
+- Website/cache verification:
+  `https://www.bcelab.xyz/ko/projects/derive`,
+  `https://www.bcelab.xyz/en/projects/derive`,
+  `https://www.bcelab.xyz/ko/reports/derive/econ`, and
+  `https://www.bcelab.xyz/en/reports/derive/econ` returned HTTP `200`
+  with `cache-control: private, no-cache, no-store, max-age=0,
+  must-revalidate` and contained the promoted KO/EN summary strings.
+- 파이프라인 상태:
+  state wiki updated by this section. Executable manifest update was not needed
+  because entrypoints, gates, and runtime contract were unchanged.
+
+### BCE-2338 Derive ECON Target Row Missing (2026-07-01 11:56 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `88877be`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  assigned critical routine execution issue `[BCE-2338](/BCE/issues/BCE-2338)`.
+- 후보 스캔:
+  Google Drive `analysis2/{ECON,MAT,FOR}` 및 legacy `analysis/{ECON,MAT,FOR}`
+  Markdown 메타데이터를 확인하고, `report_summary_jobs.authority_state=promoted`
+  source identity를 제외했다.
+- 이번 실행의 최신 unpromoted Drive Markdown:
+  `Derive 크립토이코노미 설계 분석 보고서.md`
+  (`report_type=econ`, `modifiedTime=2026-06-30T07:18:23.000Z`).
+- Source identity:
+  `drive:1B64FsuZ_IUA_X6l3QvCpAdUMuvIVNh0x:0B8HYgThT3NByakVkRGpqTnVVUkF5TWZValhIUlhQU1RiUHFVPQ`.
+- Source SHA-256:
+  `8506e3e6276068cb1e9a29be1dc8dad89e506261c8fddb7c2f7a2f7dbcb95967`.
+- Source snapshot:
+  `scripts/pipeline/output/paperclip_cro_source_econ_derive_bce2338.md`.
+- CRO JSON:
+  `scripts/pipeline/output/paperclip_cro_summary_econ_derive_bce2338.json`.
+- Candidate artifact:
+  `scripts/pipeline/output/analysis_md_summary_candidate_econ_derive.json`.
+- Candidate ingest result:
+  - validation status: `valid`
+  - validation reasons: none
+  - upsert result: `updated_existing`
+  - job id: `1472e9ca-5507-416b-af7c-79fb5f133f90`
+- Selector/runtime note:
+  the direct CLI command with `--type econ --slug derive --drive-root-scope all
+  --agent-output-json ... --require-agent-output --limit 1 --force` stalled in
+  Google Drive `_download_drive_text`. To preserve the same contract without
+  remote LLM use, this run reused the exact Drive file id, revision id, and
+  saved source snapshot, then invoked existing `process_candidate`, `upsert_job`,
+  telemetry, and artifact writer functions directly.
+- Summary Authority Gate write command:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id 1472e9ca-5507-416b-af7c-79fb5f133f90 --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2338" --write`.
+- Gate result:
+  blocked with `website-visible project_reports target not found: derive/econ/ko`.
+- Production DB verification:
+  `tracked_projects.slug=derive`, `symbol=DRV`, `status=monitoring_only`.
+  Existing `project_reports` rows are `derive/maturity/ko` and
+  `derive/forensic/en`; no website-visible `derive/econ/ko` target shell exists.
+- 배포/캐시 영향:
+  candidate row was written to `report_summary_jobs`, but `project_reports` was
+  not promoted or changed. Website-visible content and cache state are unchanged.
+- 파이프라인 상태:
+  state wiki updated by this section. Executable manifest update was not needed
+  because entrypoints, gates, and runtime contract were unchanged.
+
+### BCE-2314 Derive MAT CRO JSON Ingest And Promotion Completed (2026-07-01 10:57 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `88877be`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  routine execution issue `[BCE-2314](/BCE/issues/BCE-2314)` resumed after
+  child blocker `[BCE-2337](/BCE/issues/BCE-2337)` completed. `[BCE-2337](/BCE/issues/BCE-2337)`
+  had backfilled and verified the required `derive/maturity/ko` target row.
+- Drive source:
+  `Derive의 크립토 이코노미 발전 단계 및 서사 진화 평가 보고서_ 2021 - 2026.md`
+  (`report_type=mat`, `modifiedTime=2026-06-30T07:19:36.000Z`).
+- Source identity:
+  `drive:1OicDtoEMKE4HAY_6VbutZjEE4WJXx6Vz:0B8HYgThT3NBycDdtUHBLcFhEekxlZnlkSmlERUxEOHRIZ1lrPQ`.
+- Source SHA-256:
+  `cd3b52dd021add9264e2d1ea9c3433252e0469413201ad6dd3bf18ef98b5af0e`.
+- Source snapshot:
+  `scripts/pipeline/output/paperclip_cro_source_mat_derive_bce2314.md`.
+- CRO JSON:
+  `scripts/pipeline/output/paperclip_cro_summary_mat_derive_bce2314.json`.
+- Candidate artifact:
+  `scripts/pipeline/output/analysis_md_summary_candidate_mat_derive.json`.
+- DB/website verification:
+  `scripts/pipeline/output/bce2314_derive_mat_db_website_verification.json`.
+- Candidate ingest result:
+  - validation status: `valid`
+  - validation reasons: none
+  - upsert result: `inserted`
+  - job id: `f10e6fe3-d49a-4cea-bd2c-aa361c1c9ef4`
+- Selector/runtime note:
+  the direct CLI command with `--type mat --slug derive --drive-root-scope all
+  --agent-output-json ... --require-agent-output --limit 1 --force` stalled in
+  Google Drive `_download_drive_text`. To preserve the same contract without
+  remote LLM use, this run reused the exact Drive file id, revision id, and
+  previously saved source snapshot, then invoked existing `process_candidate`,
+  `upsert_job`, and artifact writer functions directly.
+- Summary Authority Gate write command:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id f10e6fe3-d49a-4cea-bd2c-aa361c1c9ef4 --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2314" --write`.
+- Promotion result:
+  - action: `promote`
+  - state: `promoted`
+  - wrote project report: `true`
+  - project report id: `83a84c29-42d7-487d-a434-fb8ca925a0d8`
+- Project report verification:
+  - `tracked_projects.slug=derive`, `symbol=DRV`, `status=monitoring_only`
+  - `report_summary_jobs.id=f10e6fe3-d49a-4cea-bd2c-aa361c1c9ef4`
+  - `validation_status=valid`, `status=candidate_ready`
+  - `authority_state=promoted`, `authority_mode=llm_active`
+  - `project_reports.id=83a84c29-42d7-487d-a434-fb8ca925a0d8`
+  - `report_type=maturity`, `language=ko`, `status=coming_soon`,
+    `is_latest=true`
+  - `card_summary_ko=Derive는 성숙도 74.7점의 온체인 파생상품 결제 레이어로 기술 완성도는 높지만 토큰 수익 귀속은 아직 증명 단계다.`
+  - `card_data.summary_authority.mode=llm_active`
+  - `card_data.summary_authority.job_id=f10e6fe3-d49a-4cea-bd2c-aa361c1c9ef4`
+- Website/cache verification:
+  `https://www.bcelab.xyz/ko/projects/derive`,
+  `https://www.bcelab.xyz/en/projects/derive`,
+  `https://www.bcelab.xyz/ko/reports/derive/maturity`, and
+  `https://www.bcelab.xyz/en/reports/derive/maturity` returned HTTP `200`
+  with `cache-control: private, no-cache, no-store, max-age=0,
+  must-revalidate` and contained the promoted KO/EN 74.7 summary strings.
+- Deployment/cache implication:
+  this was a Supabase content promotion through the Summary Authority Gate RPC;
+  no code deploy was required. Website project-page and maturity detail-page
+  visibility is confirmed on the current production deployment.
+- 파이프라인 상태:
+  state wiki updated by this section. Executable manifest update was not needed
+  because entrypoints, gates, and runtime contract were unchanged.
+
 ### BCE-2337 Derive MAT Target Backfill Applied (2026-07-01 10:10 KST)
 
 - 사용 워크스페이스/SHA:
@@ -131,6 +308,100 @@ website publishing contract for `econ-report-publishing`,
   `drive:1OicDtoEMKE4HAY_6VbutZjEE4WJXx6Vz:0B8HYgThT3NBycDdtUHBLcFhEekxlZnlkSmlERUxEOHRIZ1lrPQ`.
 - Source SHA-256:
   `cd3b52dd021add9264e2d1ea9c3433252e0469413201ad6dd3bf18ef98b5af0e`.
+- 파이프라인 상태:
+  state wiki updated by this section. Executable manifest update was not needed
+  because entrypoints, gates, and runtime contract were unchanged.
+
+### BCE-2314 Derive MAT Target Row Missing (2026-07-01 10:01 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `f558b58`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  routine execution issue `[BCE-2314](/BCE/issues/BCE-2314)` was previously
+  moved to `blocked` after a disconnected live execution. The current CRO run
+  checked it out from `blocked` and resumed diagnosis.
+- 후보 스캔:
+  Google Drive `analysis2/{ECON,MAT,FOR}` 및 legacy `analysis/{ECON,MAT,FOR}`
+  Markdown 메타데이터를 확인하고,
+  `report_summary_jobs.authority_state=promoted` source identity를 제외했다.
+- 이번 실행의 최신 unpromoted Drive Markdown:
+  `Derive의 크립토 이코노미 발전 단계 및 서사 진화 평가 보고서_ 2021 - 2026.md`
+  (`report_type=mat`, `modifiedTime=2026-06-30T07:19:36.000Z`).
+- Source identity:
+  `drive:1OicDtoEMKE4HAY_6VbutZjEE4WJXx6Vz:0B8HYgThT3NBycDdtUHBLcFhEekxlZnlkSmlERUxEOHRIZ1lrPQ`.
+- Source SHA-256:
+  `cd3b52dd021add9264e2d1ea9c3433252e0469413201ad6dd3bf18ef98b5af0e`.
+- Source snapshot:
+  `scripts/pipeline/output/paperclip_cro_source_mat_derive_bce2314.md`.
+- Canonical tracked project:
+  `derive` (`symbol=DRV`, `status=monitoring_only`).
+- 차단 원인:
+  `derive/maturity/ko`에 website-visible `project_reports` target row가 없다.
+  현재 `derive`에는 `forensic/en` target shell만 확인된다. Summary Authority
+  Gate `llm_active --write` 승격은 기존 website-visible KO maturity target
+  row를 필요로 하므로, 현 상태에서 JSON ingest/promotion을 진행하면 target
+  report lookup failure가 된다.
+- 실행 결과:
+  CRO JSON 생성, candidate ingest, Summary Authority Gate `--write` 승격은
+  수행하지 않았다. DataPlatformEngineer unblock issue
+  `[BCE-2337](/BCE/issues/BCE-2337)`를 생성했고
+  `[BCE-2314](/BCE/issues/BCE-2314)`를 해당 이슈에 blocked로 연결한다.
+- 배포/캐시 영향:
+  `project_reports` write 및 웹사이트-visible content 변경이 없었으므로
+  배포 또는 캐시 무효화는 필요하지 않다.
+- 파이프라인 상태:
+  state wiki updated by this section. Executable manifest update was not needed
+  because entrypoints, gates, and runtime contract were unchanged.
+
+### BCE-2336 Centrifuge MAT CRO JSON Ingest And Promotion (2026-07-01 09:50 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `f558b58`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`. Manifest 변경은 필요 없었다.
+- Wake context:
+  routine execution issue `[BCE-2336](/BCE/issues/BCE-2336)`; 신규 사용자
+  지시는 없었고 `analysis-md-summary-candidate` 다음 eligible source 처리로
+  진행했다.
+- 후보 스캔:
+  Google Drive `analysis2/{ECON,MAT,FOR}` 및 legacy `analysis/{ECON,MAT,FOR}`
+  Markdown 메타데이터를 확인하고,
+  `report_summary_jobs.authority_state=promoted` source identity를 제외했다.
+- 이번 실행의 최신 eligible Drive Markdown:
+  `Centrifuge의 크립토 이코노미 발전 단계 및 서사 진화 평가 보고서_ 2017–2026.md`
+  (`report_type=mat`, `modifiedTime=2026-05-24T23:42:21.000Z`).
+- Source identity:
+  `drive:1QxXtpU4YcpcIy69RZYuFTej2rbMm5v9p:0B8HYgThT3NByZ1RIV1BlSmFjbDJtOVUvMnlMcGVNdFlmdjVJPQ`.
+- Source SHA-256:
+  `163b5d63b1dca4320e726cd590eed04690db4510b754c0bb26b54d0fc6e0608a`.
+- Source snapshot:
+  `scripts/pipeline/output/paperclip_cro_source_mat_centrifuge_bce2336.md`.
+- CRO JSON:
+  `scripts/pipeline/output/paperclip_cro_summary_mat_centrifuge_bce2336.json`.
+- Candidate artifact:
+  `scripts/pipeline/output/analysis_md_summary_candidate_mat_centrifuge.json`.
+- DB/website verification:
+  `scripts/pipeline/output/bce2336_centrifuge_mat_db_website_verification.json`.
+- Canonical tracked project:
+  `centrifuge` (`symbol=CFG`, `status=monitoring_only`) with existing MAT target
+  report `7f52608c-1382-44ad-b2d6-e95b8ead8588`.
+- 실행 결과:
+  agent payload validation passed, `report_summary_jobs` row
+  `f926887d-ed70-4392-9554-4636dd1303d0` inserted, Summary Authority Gate
+  `llm_active --write` promoted it into project report
+  `7f52608c-1382-44ad-b2d6-e95b8ead8588`.
+- 웹 검증:
+  `https://www.bcelab.xyz/ko/projects/centrifuge`,
+  `https://www.bcelab.xyz/en/projects/centrifuge`,
+  `https://www.bcelab.xyz/ko/reports/centrifuge/maturity`,
+  `https://www.bcelab.xyz/en/reports/centrifuge/maturity` all returned HTTP
+  200 and contained the promoted 71.8 maturity summary markers.
 - 파이프라인 상태:
   state wiki updated by this section. Executable manifest update was not needed
   because entrypoints, gates, and runtime contract were unchanged.
@@ -224,6 +495,245 @@ website publishing contract for `econ-report-publishing`,
 - Manifest change:
   no change needed. This was a remote application of the existing operational
   seed/backfill under the `analysis-md-summary-candidate` contract.
+
+### BCE-2332 ZKsync FOR Promotion Resumed (2026-07-01 07:14 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `f558b58`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  `[BCE-2333](/BCE/issues/BCE-2333)`의 댓글로
+  `[BCE-2332](/BCE/issues/BCE-2332)`가 재개되었다. 댓글은
+  `zksync/forensic/ko` Summary Authority target row가 production에 존재함을
+  보고했다.
+- Target row verification:
+  `tracked_projects.slug=zksync`, `symbol=Z`, `status=active` 및 FOR KO
+  target row가 production DB에 존재함을 확인했다.
+  `project_reports.id=f2483f7b-4dbd-429e-bfab-207128ec50e3`,
+  `report_type=forensic`, `language=ko`, `version=1`,
+  `status=coming_soon`, `is_latest=true`.
+- Drive source:
+  `ZK 시장 무결성 및 심층 포렌식 리스크 보고서.md`.
+- Source identity:
+  `drive:1PXLbDbDMMlCgkVhqOrEWUc2KQ9mDkynU:0B8HYgThT3NBybG5vL2NWWjFzNEpzNHlmZzQ5YWZGcVhqMllJPQ`.
+- Source SHA-256:
+  `5a7fd51e1b957fe758ec04619c307a5a566e3ca5fd96958d464b7af1adbe5cd8`.
+- Paperclip CRO JSON output:
+  `scripts/pipeline/output/paperclip_cro_summary_for_zksync_bce2332.json`.
+- Source snapshot:
+  `scripts/pipeline/output/paperclip_cro_source_for_zksync_bce2332.md`.
+- Candidate artifact:
+  `scripts/pipeline/output/analysis_md_summary_candidate_for_zksync.json`.
+- Candidate ingest result:
+  - report type: `for`
+  - slug: `zksync`
+  - validation status: `valid`
+  - validation reasons: none
+  - upsert result: `inserted`
+  - job id: `e6b2ffb0-ab63-478b-a832-411263edb0e2`
+- Selector/runtime note:
+  the Drive source title starts with `ZK`, while canonical project slug is
+  `zksync`. To preserve Drive revision provenance and avoid selector mismatch,
+  this run fixed Drive file id, revision, source text, canonical project, and
+  target row, then reused existing `process_candidate`, `upsert_job`, artifact
+  writer, and Summary Authority Gate functions directly.
+- Summary Authority Gate write command:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id e6b2ffb0-ab63-478b-a832-411263edb0e2 --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2332" --write`.
+- Promotion result:
+  - action: `promote`
+  - state: `promoted`
+  - wrote project report: `true`
+  - project report id: `f2483f7b-4dbd-429e-bfab-207128ec50e3`
+- DB and website verification artifact:
+  `scripts/pipeline/output/bce2332_zksync_for_db_website_verification.json`.
+- Project report verification:
+  - `report_summary_jobs.id=e6b2ffb0-ab63-478b-a832-411263edb0e2`
+  - `validation_status=valid`, `status=candidate_ready`
+  - `authority_state=promoted`, `authority_mode=llm_active`
+  - `project_reports.id=f2483f7b-4dbd-429e-bfab-207128ec50e3`
+  - `card_summary_ko=ZKsync ZK는 0.01485달러 추세 저항과 6월 17일 언락을 앞둔 HIGH 리스크 자산으로, 0.01500 돌파 전 추격 매수는 제한적이다.`
+  - `card_data.summary_authority.mode=llm_active`
+  - `card_data.summary_authority.job_id=e6b2ffb0-ab63-478b-a832-411263edb0e2`
+  - `card_data.summary_authority.source_identity=drive:1PXLbDbDMMlCgkVhqOrEWUc2KQ9mDkynU:0B8HYgThT3NBybG5vL2NWWjFzNEpzNHlmZzQ5YWZGcVhqMllJPQ`
+- Website/cache verification:
+  - `https://www.bcelab.xyz/ko/projects/zksync`,
+    `https://www.bcelab.xyz/en/projects/zksync`,
+    `https://www.bcelab.xyz/ko/reports/forensic/zksync`,
+    `https://www.bcelab.xyz/en/reports/forensic/zksync`,
+    `https://www.bcelab.xyz/ko/reports?type=forensic`, and
+    `https://www.bcelab.xyz/en/reports?type=forensic` returned HTTP `200`
+    with `cache-control: private, no-cache, no-store, max-age=0,
+    must-revalidate`.
+  - KO project, KO forensic detail, and KO forensic listing pages contained the
+    promoted KO summary string. EN project, EN forensic detail, and EN forensic
+    listing pages contained the promoted EN summary string.
+  - `/ko/reports/zksync/forensic` and `/en/reports/zksync/forensic` returned
+    HTTP `200` but did not contain `ZKsync`; production FOR canonical detail
+    route is `/reports/forensic/zksync`.
+- Deployment/cache implication:
+  this was a Supabase content promotion through the Summary Authority Gate RPC;
+  no code deploy was required. Website project-page, canonical forensic
+  detail-page, and forensic listing visibility is confirmed on the current
+  production deployment.
+- Manifest change:
+  no change needed. This was a routine execution under the existing
+  `analysis-md-summary-candidate` and `summary_authority_gate` contracts.
+
+### BCE-2334 Audiera MAT CRO JSON Ingest And Promotion (2026-07-01 07:43 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `f558b58`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  assigned critical routine issue `[BCE-2334](/BCE/issues/BCE-2334)`; 신규
+  댓글은 없었고 harness가 checkout한 `issue_assigned` 실행이었다.
+- Candidate selection:
+  Drive metadata for `analysis2/{ECON,MAT,FOR}` and legacy
+  `analysis/{ECON,MAT,FOR}` was checked with promoted
+  `report_summary_jobs.authority_state=promoted` source identities excluded.
+  The newest unpromoted source was MAT `Audiera`.
+- Drive source:
+  `Audiera의 크립토 이코노미 발전 단계 및 서사 진화 평가 보고서_ 2025 - 2026.md`.
+- Source identity:
+  `drive:1E-pdILaPb599OP71fnTSu9SlmZAyZWOp:0B8HYgThT3NBydnlWT21takFrSG5JMUgyR2xFWjRoZ3VRYVpRPQ`.
+- Source SHA-256:
+  `94eab32219f02fed43be554f25d25de761af74b1209853837f5a521dbfd9c3e8`.
+- Paperclip CRO JSON output:
+  `scripts/pipeline/output/paperclip_cro_summary_mat_audiera_bce2334.json`.
+- Source snapshot:
+  `scripts/pipeline/output/paperclip_cro_source_mat_audiera_bce2334.md`.
+- Candidate artifact:
+  `scripts/pipeline/output/analysis_md_summary_candidate_mat_audiera.json`.
+- Candidate ingest result:
+  - report type: `mat`
+  - slug: `audiera`
+  - validation status: `valid`
+  - validation reasons: none after replacing validator-unsafe hyphenated
+    `agent-native` wording with `agent native`
+  - upsert result: `updated_existing`
+  - job id: `42b71ce8-b723-45da-9812-41424475ac5e`
+- Selector/runtime note:
+  the direct CLI command with `--type mat --slug audiera --drive-root-scope all
+  --agent-output-json ... --require-agent-output --limit 1 --force` stalled in
+  Google Drive download. To preserve the same contract without remote LLM use,
+  this run reused the existing Drive source-index extracted text for the exact
+  file/revision and invoked existing `process_candidate`, `upsert_job`, and
+  artifact writer functions directly.
+- Summary Authority Gate write command:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id 42b71ce8-b723-45da-9812-41424475ac5e --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2334" --write`.
+- Promotion result:
+  - action: `promote`
+  - state: `promoted`
+  - wrote project report: `true`
+  - project report id: `4150da79-0400-45f3-8792-fafacd3dcd5a`
+- DB and website verification artifact:
+  `scripts/pipeline/output/bce2334_audiera_mat_db_website_verification.json`.
+- Project report verification:
+  - `validation_status=valid`, `status=candidate_ready`
+  - `authority_state=promoted`, `authority_mode=llm_active`
+  - `card_data.summary_authority.mode=llm_active`
+  - `card_data.summary_authority.job_id=42b71ce8-b723-45da-9812-41424475ac5e`
+  - `card_data.summary_authority.source_identity=drive:1E-pdILaPb599OP71fnTSu9SlmZAyZWOp:0B8HYgThT3NBydnlWT21takFrSG5JMUgyR2xFWjRoZ3VRYVpRPQ`
+- Website/cache verification:
+  `https://www.bcelab.xyz/ko/projects/audiera`,
+  `https://www.bcelab.xyz/en/projects/audiera`,
+  `https://www.bcelab.xyz/ko/reports/audiera/maturity`, and
+  `https://www.bcelab.xyz/en/reports/audiera/maturity` returned HTTP `200`
+  with `cache-control: private, no-cache, no-store, max-age=0,
+  must-revalidate` and contained the promoted KO/EN summary strings.
+  `https://www.bcelab.xyz/ko/reports/maturity/audiera` and
+  `https://www.bcelab.xyz/en/reports/maturity/audiera` returned HTTP `404`;
+  the active MAT detail route is `/reports/audiera/maturity`.
+- Deployment/cache implication:
+  this was a Supabase content promotion through the Summary Authority Gate RPC;
+  no code deploy was required. Website project-page and canonical maturity
+  detail-page visibility is confirmed on the current production deployment.
+- Manifest change:
+  no change needed. This was a routine execution under the existing
+  `analysis-md-summary-candidate` and `summary_authority_gate` contracts.
+
+### BCE-2335 EigenCloud MAT CRO JSON Ingest And Promotion (2026-07-01 08:06 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `f558b58`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  assigned critical routine issue `[BCE-2335](/BCE/issues/BCE-2335)`; 신규
+  댓글은 없었고 harness가 checkout한 `issue_assigned` 실행이었다.
+- Candidate selection:
+  Drive metadata for `analysis2/{ECON,MAT,FOR}` and legacy
+  `analysis/{ECON,MAT,FOR}` was checked with promoted
+  `report_summary_jobs.authority_state=promoted` source identities excluded.
+  The newest unpromoted source was MAT `EigenCloud`.
+- Drive source:
+  `EigenCloud의 크립토 이코노미 발전 단계 및 서사 진화 평가 보고서_ 2023–2026.md`.
+- Source identity:
+  `drive:1j_KcF7PZYdJsXHl4GlpLFH8tpDpvzf3R:0B8HYgThT3NByeThBcVFNMklpY0dXYnp4N0hmZ1NCcXRkUGhnPQ`.
+- Source SHA-256:
+  `3b07462f98afd246dcc0e55601d6f32f8e1578fe0a72f941689da5f7b92cee23`.
+- Paperclip CRO JSON output:
+  `scripts/pipeline/output/paperclip_cro_summary_mat_eigencloud_bce2335.json`.
+- Source snapshot:
+  `scripts/pipeline/output/paperclip_cro_source_mat_eigencloud_bce2335.md`.
+- Candidate artifact:
+  `scripts/pipeline/output/analysis_md_summary_candidate_mat_eigencloud.json`.
+- Candidate ingest result:
+  - report type: `mat`
+  - slug: `eigencloud`
+  - validation status: `valid`
+  - validation reasons: none
+  - upsert result: `inserted`
+  - job id: `5958079a-17e4-4250-97d2-e187ca8f7d71`
+- Selector/runtime note:
+  the direct CLI command with `--type mat --slug eigencloud --drive-root-scope all
+  --agent-output-json ... --require-agent-output --limit 1 --force` stalled in
+  Google Drive download. To preserve the same contract without remote LLM use,
+  this run used the exact downloaded Drive file id/revision source snapshot and
+  invoked existing `process_candidate`, `upsert_job`, and artifact writer
+  functions directly.
+- Summary Authority Gate write command:
+  `python3 scripts/pipeline/summary_authority_gate.py --job-id 5958079a-17e4-4250-97d2-e187ca8f7d71 --authority-mode llm_active --actor "paperclip-routine:CRO:BCE-2335" --write`.
+- Promotion result:
+  - action: `promote`
+  - state: `promoted`
+  - wrote project report: `true`
+  - project report id: `bca5f379-94ef-4b88-b8a8-15fe806bd0b6`
+- DB and website verification artifact:
+  `scripts/pipeline/output/bce2335_eigencloud_mat_db_website_verification.json`.
+- Project report verification:
+  - `report_summary_jobs.id=5958079a-17e4-4250-97d2-e187ca8f7d71`
+  - `validation_status=valid`, `status=candidate_ready`
+  - `authority_state=promoted`, `authority_mode=llm_active`
+  - `project_reports.id=bca5f379-94ef-4b88-b8a8-15fe806bd0b6`
+  - `card_data.summary_authority.mode=llm_active`
+  - `card_data.summary_authority.job_id=5958079a-17e4-4250-97d2-e187ca8f7d71`
+  - `card_data.summary_authority.source_identity=drive:1j_KcF7PZYdJsXHl4GlpLFH8tpDpvzf3R:0B8HYgThT3NByeThBcVFNMklpY0dXYnp4N0hmZ1NCcXRkUGhnPQ`
+- Website/cache verification:
+  `https://www.bcelab.xyz/ko/projects/eigencloud`,
+  `https://www.bcelab.xyz/en/projects/eigencloud`,
+  `https://www.bcelab.xyz/ko/reports/eigencloud/maturity`, and
+  `https://www.bcelab.xyz/en/reports/eigencloud/maturity` returned HTTP `200`
+  with `cache-control: private, no-cache, no-store, max-age=0,
+  must-revalidate` and contained the promoted KO/EN summary strings.
+  `https://www.bcelab.xyz/ko/reports/maturity/eigencloud` and
+  `https://www.bcelab.xyz/en/reports/maturity/eigencloud` returned HTTP `404`;
+  the active MAT detail route is `/reports/eigencloud/maturity`.
+- Deployment/cache implication:
+  this was a Supabase content promotion through the Summary Authority Gate RPC;
+  no code deploy was required. Website project-page and canonical maturity
+  detail-page visibility is confirmed on the current production deployment.
+- Manifest change:
+  no change needed. This was a routine execution under the existing
+  `analysis-md-summary-candidate` and `summary_authority_gate` contracts.
 
 ### BCE-2330 AIOZ Network MAT Summary Target Backfill Applied (2026-07-01 06:23 KST)
 
