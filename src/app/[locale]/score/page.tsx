@@ -822,7 +822,7 @@ async function fetchScoreboardSourceData() {
 
 const getCachedScoreboardSourceData = unstable_cache(
   fetchScoreboardSourceData,
-  ['scoreboard-source-data-v4'],
+  ['scoreboard-source-data-v5'],
   {
     revalidate: SCOREBOARD_DATA_CACHE_SECONDS,
     tags: ['scoreboard-source-data'],
@@ -831,7 +831,7 @@ const getCachedScoreboardSourceData = unstable_cache(
 
 const getCachedVisibleReportsForScoreboardByProjectSlugs = unstable_cache(
   async (projectSlugs: string[]) => fetchVisibleReportsForScoreboardByProjectSlugs(projectSlugs),
-  ['scoreboard-visible-reports-by-slugs-v5'],
+  ['scoreboard-visible-reports-by-slugs-v6'],
   {
     revalidate: SCOREBOARD_DATA_CACHE_SECONDS,
     tags: ['scoreboard-visible-reports'],
@@ -840,7 +840,7 @@ const getCachedVisibleReportsForScoreboardByProjectSlugs = unstable_cache(
 
 const getCachedVisibleReportsForScoreboardByProjectIds = unstable_cache(
   async (projectIds: string[]) => fetchVisibleReportsForScoreboard(projectIds),
-  ['scoreboard-visible-reports-by-project-ids-v1'],
+  ['scoreboard-visible-reports-by-project-ids-v2'],
   {
     revalidate: SCOREBOARD_DATA_CACHE_SECONDS,
     tags: ['scoreboard-visible-reports'],

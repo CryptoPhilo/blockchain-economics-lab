@@ -2409,6 +2409,63 @@ describe('score page report availability policy', () => {
     })
   })
 
+  it('uses slug availability for newly seeded lisUSD reports on the score table', () => {
+    const availabilityByProjectSlug = buildReportAvailabilityByProjectSlug([
+      {
+        project_id: 'project-lisusd-report',
+        report_type: 'econ',
+        language: 'ko',
+        published_at: '2026-06-30T06:06:44.731964+00:00',
+        card_data: {
+          slug: 'lisusd',
+        },
+        slide_html_urls_by_lang: {
+          ko: 'https://example.supabase.co/storage/v1/object/public/slides/econ/lisusd/latest/ko.html',
+        },
+        tracked_projects: {
+          slug: 'lisusd',
+        },
+      },
+      {
+        project_id: 'project-lisusd-report',
+        report_type: 'maturity',
+        language: 'ko',
+        published_at: '2026-06-30T06:07:15.960177+00:00',
+        card_data: {
+          slug: 'lisusd',
+          maturity_score: 57,
+        },
+        slide_html_urls_by_lang: {
+          ko: 'https://example.supabase.co/storage/v1/object/public/slides/mat/lisusd/latest/ko.html',
+        },
+        tracked_projects: {
+          slug: 'lisusd',
+        },
+      },
+    ], 'ko')
+
+    const [row] = snapshotRowsToScoreRows(
+      [
+        {
+          ...makeSnapshotRow(274, 'lisusd'),
+          cmc_name: 'lisUSD',
+          cmc_symbol: 'lisUSD',
+        },
+      ],
+      buildTrackedProjectLookup([]),
+      new Map(),
+      availabilityByProjectSlug,
+    )
+
+    expect(row).toMatchObject({
+      name: 'lisUSD',
+      symbol: 'lisUSD',
+      slug: 'lisusd',
+      score: 57,
+      reportTypes: ['econ', 'maturity'],
+    })
+  })
+
   it('renders OKX ECON and MAT badges when localized assets exist', () => {
     const trackedProjects = [
       {

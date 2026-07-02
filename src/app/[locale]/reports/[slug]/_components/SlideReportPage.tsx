@@ -118,8 +118,9 @@ function pickDefaultReportForLocale(
     seenVersions.add(version)
 
     const versionRows = sortedRows.filter((candidate) => Number(candidate.version || 0) === version)
-    if (getLocaleReportState(versionRows, locale).status === 'available') {
-      return row
+    const reportState = getLocaleReportState(versionRows, locale)
+    if (reportState.status === 'available') {
+      return reportState.report
     }
   }
 

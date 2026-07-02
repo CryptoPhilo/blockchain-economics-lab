@@ -165,6 +165,65 @@ describe('SlideReportPage locale availability', () => {
     )
   })
 
+  it('uses the newest version that has a requested-locale forensic slide', async () => {
+    mockReportQueries(
+      { id: 'project-ansem', slug: 'the-black-bull', name: 'The Black Bull', symbol: 'ANSEM' },
+      [
+        {
+          id: 'report-en-v2',
+          project_id: 'project-ansem',
+          language: 'en',
+          report_type: 'forensic',
+          status: 'published',
+          version: 2,
+          is_latest: true,
+          slide_html_urls_by_lang: {
+            en: 'https://example.supabase.co/storage/v1/object/public/slides/for/the-black-bull/latest/en.html',
+          },
+        },
+        {
+          id: 'report-ko-v1',
+          project_id: 'project-ansem',
+          language: 'ko',
+          report_type: 'forensic',
+          status: 'published',
+          version: 1,
+          is_latest: true,
+          card_data: {
+            summary_ko: 'ANSEM 포렌식 리스크 보고서.',
+          },
+          slide_html_urls_by_lang: {
+            ko: 'https://example.supabase.co/storage/v1/object/public/slides/for/the-black-bull/latest/ko.html',
+          },
+          gdrive_urls_by_lang: {
+            ko: 'https://drive.google.com/file/d/ansem-ko/view?usp=drivesdk',
+          },
+        },
+        {
+          id: 'report-ja-v1',
+          project_id: 'project-ansem',
+          language: 'ja',
+          report_type: 'forensic',
+          status: 'published',
+          version: 1,
+          is_latest: true,
+          slide_html_urls_by_lang: {
+            ja: 'https://example.supabase.co/storage/v1/object/public/slides/for/the-black-bull/latest/ja.html',
+          },
+        },
+      ],
+    )
+
+    const page = await SlideReportPage({ locale: 'ko', slug: 'the-black-bull', reportType: 'forensic' })
+    render(page)
+
+    expect(mockNotFound).not.toHaveBeenCalled()
+    expect(screen.getByTestId('slide-viewer').getAttribute('data-url')).toBe(
+      'https://example.supabase.co/storage/v1/object/public/slides/for/the-black-bull/latest/ko.html',
+    )
+    expect(screen.queryByText('localePendingTitle')).toBeNull()
+  })
+
   it.each(['de', 'es', 'fr'])(
     'renders the English fallback slide on the %s route when the requested locale asset is missing',
     async (locale) => {
