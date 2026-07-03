@@ -7543,7 +7543,7 @@
     "source_path": "Slide2/mat/DHN_MAT_jp.pdf",
     "started_at": "2026-07-03T12:25:26.154804+00:00",
     "status": "published",
-    "updated_at": "2026-07-03T17:46:49.486356+00:00",
+    "updated_at": "2026-07-03T18:55:55.632232+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/dohrnii/1/ja.html"
   },
@@ -10986,7 +10986,7 @@
     "source_path": "Slide2/mat/DHN_MAT_en.pdf",
     "started_at": "2026-07-03T12:25:37.875431+00:00",
     "status": "published",
-    "updated_at": "2026-07-03T17:46:51.091269+00:00",
+    "updated_at": "2026-07-03T18:55:57.984694+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/dohrnii/1/en.html"
   },
@@ -15186,7 +15186,7 @@
     "source_path": "Slide2/mat/DHN_MAT_ko.pdf",
     "started_at": "2026-07-03T12:26:00.831824+00:00",
     "status": "published",
-    "updated_at": "2026-07-03T17:46:52.835686+00:00",
+    "updated_at": "2026-07-03T18:56:01.612455+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/dohrnii/2/ko.html"
   },
@@ -16976,6 +16976,36 @@
     "started_at": "2026-05-17T17:42:01.444666+00:00",
     "status": "failed",
     "updated_at": "2026-05-17T17:42:19.401528+00:00"
+  },
+  "1FMn9aI2OZsko9rgO4xqlUP5T_0WZuyqs": {
+    "error": null,
+    "finished_at": "2026-07-03T18:55:46.796872+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-03T17:53:40.000Z",
+    "name": "ANTFUN_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 9,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ant-fun/latest/en.html",
+    "report_id": "c06f58a0-4ae4-465e-a4d5-2e567993132f",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "ant-fun",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/ANTFUN_MAT_en.pdf",
+    "started_at": "2026-07-03T18:55:33.574412+00:00",
+    "status": "published",
+    "updated_at": "2026-07-03T18:55:46.796892+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ant-fun/1/en.html"
   },
   "1FNa95JQ8_3uxXL3_hhL_zB8BgCUU2mfN": {
     "error": null,
@@ -20778,7 +20808,7 @@
     "source_path": "Slide2/econ/UnifAI Network_ECON_jp.pdf",
     "started_at": "2026-07-03T12:22:06.142936+00:00",
     "status": "published",
-    "updated_at": "2026-07-03T17:46:42.456033+00:00",
+    "updated_at": "2026-07-03T18:53:30.530507+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/unifai-network/1/ja.html"
   },
@@ -25877,7 +25907,7 @@
     "source_path": "Slide2/econ/UnifAI Network_ECON_ko.pdf",
     "started_at": "2026-07-03T12:22:33.518053+00:00",
     "status": "published",
-    "updated_at": "2026-07-03T17:46:43.346443+00:00",
+    "updated_at": "2026-07-03T18:53:31.938090+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/unifai-network/1/ko.html"
   },
@@ -30179,7 +30209,7 @@
     "source_path": "Slide2/mat/DHN_MAT_cn.pdf",
     "started_at": "2026-07-03T12:24:47.490552+00:00",
     "status": "published",
-    "updated_at": "2026-07-03T17:46:47.711435+00:00",
+    "updated_at": "2026-07-03T18:55:51.371201+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/dohrnii/1/zh.html"
   },
@@ -35396,6 +35426,36 @@
     "updated_at": "2026-06-01T07:55:04.170315+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/gas/1/ko.html"
+  },
+  "1Y9LRjz266JOyz50jxCLc5PHB0MKVk2lZ": {
+    "error": null,
+    "finished_at": "2026-07-03T18:54:24.216430+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-03T17:56:07.000Z",
+    "name": "ANTFUN_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ant-fun/latest/zh.html",
+    "report_id": "c4aab6e1-39f7-4522-8b02-32cf05e23363",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "ant-fun",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/ANTFUN_MAT_cn.pdf",
+    "started_at": "2026-07-03T18:53:58.900463+00:00",
+    "status": "published",
+    "updated_at": "2026-07-03T18:54:24.216448+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ant-fun/1/zh.html"
   },
   "1YD0VQGy0YVn9WeahjtdwKdAtXgd5z15C": {
     "error": null,
@@ -45797,6 +45857,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/data-network/1/zh.html"
   },
+  "1hStc8jpZsw0dBkoaNdrijcI4eeVk9kUN": {
+    "error": null,
+    "finished_at": "2026-07-03T18:55:31.393423+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-03T17:54:00.000Z",
+    "name": "ANTFUN_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ant-fun/latest/ko.html",
+    "report_id": "dd5b0fcc-d98a-4313-81ea-fab40827b535",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "ant-fun",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/ANTFUN_MAT_ko.pdf",
+    "started_at": "2026-07-03T18:55:19.923394+00:00",
+    "status": "published",
+    "updated_at": "2026-07-03T18:55:31.393442+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ant-fun/1/ko.html"
+  },
   "1hVjUQn_56nDb5avcUnKWw01IzUlIjA8j": {
     "error": null,
     "finished_at": "2026-05-17T09:09:11.099359+00:00",
@@ -52188,7 +52278,7 @@
     "source_path": "Slide2/econ/UnifAI Network_ECON_cn.pdf",
     "started_at": "2026-07-03T12:21:27.361251+00:00",
     "status": "published",
-    "updated_at": "2026-07-03T17:46:41.559270+00:00",
+    "updated_at": "2026-07-03T18:53:28.295260+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/unifai-network/1/zh.html"
   },
@@ -59563,6 +59653,36 @@
     "status": "language_mismatch",
     "updated_at": "2026-05-12T18:20:47.967682+00:00"
   },
+  "1ue2YDlXhHVK9CQ-x6BG05XfFPqyazAgz": {
+    "error": null,
+    "finished_at": "2026-07-03T18:55:00.837547+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-03T17:54:57.000Z",
+    "name": "ANTFUN_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ant-fun/latest/ja.html",
+    "report_id": "5d68c1cf-2272-44bc-a5e2-054cd7e340bb",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "ant-fun",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/ANTFUN_MAT_jp.pdf",
+    "started_at": "2026-07-03T18:54:47.998323+00:00",
+    "status": "published",
+    "updated_at": "2026-07-03T18:55:00.837566+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ant-fun/1/ja.html"
+  },
   "1uhL4AfCPC9yB6kZsICREfxa0x6ZbQdeq": {
     "error": "unresolved (slug=? via filename_unresolved; lang=ko via filename)",
     "lang": "ko",
@@ -63723,7 +63843,7 @@
     "source_path": "Slide2/econ/UnifAI Network_ECON_en.pdf",
     "started_at": "2026-07-03T12:22:44.353886+00:00",
     "status": "published",
-    "updated_at": "2026-07-03T17:46:44.240084+00:00",
+    "updated_at": "2026-07-03T18:53:32.928017+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/unifai-network/1/en.html"
   },
