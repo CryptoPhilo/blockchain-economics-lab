@@ -65,10 +65,10 @@ describe('buildListingCandidates', () => {
     expect(findCmcTop30ExchangeReference('Binance TR')?.coingeckoId).toBeNull()
   })
 
-  it('builds CMC Top 30 backfill targets including zero-listing exchanges', () => {
+  it('builds CMC Top 30 backfill targets for source-backed exchanges only', () => {
     const targets = buildExchangeTargets({ exchanges: [], seedCmcTop30: true })
 
-    expect(targets).toHaveLength(30)
+    expect(targets).toHaveLength(29)
     expect(targets[0]).toEqual(expect.objectContaining({
       exchangeSlug: 'binance',
       exchangeName: 'Binance',
@@ -80,10 +80,13 @@ describe('buildListingCandidates', () => {
         cmc_rank: 1,
       }),
     }))
-    expect(targets).toContainEqual(expect.objectContaining({
-      exchangeSlug: 'binance-tr',
-      coingeckoId: null,
-    }))
+    expect(targets.every((target) => typeof target.coingeckoId === 'string')).toBe(true)
+    expect(targets).not.toContainEqual(expect.objectContaining({ exchangeSlug: 'binance-tr' }))
+  })
+
+  it('rejects explicit CMC Top 30 exchanges that have no listing source', () => {
+    expect(() => buildExchangeTargets({ exchanges: ['binance-tr'], seedCmcTop30: false }))
+      .toThrow('Exchange binance-tr is in the CMC Top 30 snapshot but has no supported listing source')
   })
 
   it('canonicalizes scoped CMC Top 30 exchange aliases to internal slugs', () => {
@@ -354,6 +357,12 @@ describe('buildListingCandidates', () => {
     const manifest = JSON.parse(readFileSync(join(process.cwd(), 'pipelines/bcelab-runtime-pipelines.json'), 'utf8'))
 
     expect(workflow).toContain('seed_cmc_top30:')
+    expect(workflow).toContain("cron: '0 18 * * 0'")
+    expect(workflow).toContain("github.event_name == 'schedule' && 'apply'")
+    expect(workflow).toContain("github.event_name == 'schedule' && 'true'")
+    expect(workflow).toContain("github.event_name == 'schedule' && '10000'")
+    expect(workflow).toContain('timeout-minutes: 120')
+    expect(workflow).toContain('weekly-cmc-top30')
     expect(workflow).toContain('SEED_CMC_TOP30')
     expect(workflow).toContain('args+=(--cmc-top30)')
     expect(workflow).toContain('request_delay_ms:')
@@ -363,6 +372,8 @@ describe('buildListingCandidates', () => {
     expect(workflow).toContain('default: 3')
     expect(workflow).toContain('seed_cmc_top30 apply requires page_limit >= 3')
     expect(workflow).toContain('upbit apply requires page_limit >= 3')
+    expect(readFileSync(join(process.cwd(), 'scripts/backfill-exchange-listings.ts'), 'utf8'))
+      .toContain('Deactivated unsupported CMC Top 30 exchange rows')
 
     const websitePipeline = manifest.pipelines.find((
       pipeline: { key: string },
@@ -372,10 +383,17 @@ describe('buildListingCandidates', () => {
     ))
 
     expect(exchangeBackfill.inputs).toEqual(expect.objectContaining({
-      seedCmcTop30: expect.stringContaining('seed_cmc_top30'),
+      seedCmcTop30: expect.stringMatching(/seed_cmc_top30[\s\S]*source-backed[\s\S]*schedule events force seed_cmc_top30=true/),
       exchanges: expect.stringContaining('Optional'),
+      mode: expect.stringContaining('schedule events force mode=apply'),
       pageLimit: expect.stringMatching(/defaults to 3[\s\S]*Upbit/),
-      requestDelayMs: expect.stringContaining('0 to 60000'),
+      requestDelayMs: expect.stringContaining('schedule events force requestDelayMs=10000'),
+    }))
+    expect(exchangeBackfill.cadence).toEqual(expect.objectContaining({
+      kind: 'scheduled',
+      workflow: '.github/workflows/exchange-listing-backfill.yml',
+      cron: '0 18 * * 0',
+      expectedIntervalDays: 7,
     }))
   })
 })

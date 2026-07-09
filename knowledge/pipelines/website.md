@@ -241,14 +241,30 @@ the `exchange_listing_backfill` node. Production writes remain remote-only:
 dispatch `mode=dry_run` first, then `mode=apply` only after the relevant
 release/backfill approval covers the same scope.
 
+As of 2026-07-09, the same workflow also owns the recurring all-exchange
+listing refresh. GitHub Actions schedule `0 18 * * 0` runs every seven days
+at Monday 03:00 Asia/Seoul and forces `mode=apply`, `seed_cmc_top30=true`,
+`page_limit=3`, and `request_delay_ms=10000`. The job timeout is 120 minutes
+because a 2026-07-09 full Top 30 apply dispatch hit the previous 20-minute
+limit after repeated CoinGecko HTTP 429 retry-after waits. This scheduled path
+refreshes all source-backed CMC Top 30 exchange supported-asset lists through
+the approved remote production-write surface; manual scoped runs remain
+available through `workflow_dispatch`. CMC Top 30 snapshot rows without a
+supported listing source, such as `binance-tr`, are retained in
+`src/lib/exchange-top30.ts` for ranking provenance but are excluded from the
+refresh target list and deactivated during apply so they do not reappear as
+zero-listing exchange menu rows.
+
 ## BCE-1979 Exchange Top 30 Partial Apply Continuation
 
 As of 2026-06-15, CMC Top 30 exchange listing backfill apply is tolerant of
 partial progress when a mapped CoinGecko venue exhausts recoverable HTTP 429,
 408, or 5xx retries after the BCE-1978 retry policy. In `--cmc-top30` mode, the
-script records the venue as a skipped listing fetch, preserves the seeded CMC
-exchange row/evidence at zero listings, and continues processing remaining Top
-30 venues.
+script records the venue as a skipped listing fetch, preserves the target-level
+evidence at zero listings for logs, and continues processing remaining Top 30
+venues. CMC Top 30 snapshot entries that have no listing source are not fetch
+targets and are deactivated by the apply path instead of being preserved as
+active zero-listing exchange rows.
 
 Explicit scoped `--exchange` backfills remain fail-fast on fetch exhaustion.
 The stdout evidence summary reports seeded exchange count, listing-backfilled
@@ -270,9 +286,10 @@ Remote exchange listing backfill evidence:
   `Fetch failed/skipped exchange count: 0`.
 - Apply `27551222306` ran on the same commit and inputs with `mode=apply`.
   It completed successfully, applied all 30 CMC Top 30 exchange rows, and
-  reported `Fetch failed/skipped exchange count: 0`. `binance-tr` remained a
-  seeded zero-listing venue because the snapshot has no mapped CoinGecko spot
-  exchange id.
+  reported `Fetch failed/skipped exchange count: 0`. This historical behavior
+  seeded `binance-tr` as a zero-listing venue because the snapshot had no
+  mapped CoinGecko spot exchange id; the 2026-07-09 weekly refresh contract now
+  excludes and deactivates unsupported snapshot entries.
 
 Post-apply live verification against `https://www.bcelab.xyz` returned HTTP 200
 for `/api/exchanges`, `/ko/exchanges`, `/ko/exchanges/mexc`,

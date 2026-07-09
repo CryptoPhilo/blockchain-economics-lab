@@ -398,9 +398,19 @@ function buildCmcTop30Metadata(exchange: CmcTop30ExchangeReference): Record<stri
   }
 }
 
+function hasListingSource(exchange: CmcTop30ExchangeReference): exchange is CmcTop30ExchangeReference & { coingeckoId: string } {
+  return isNonEmptyString(exchange.coingeckoId)
+}
+
+function getUnsupportedCmcTop30ExchangeSlugs(): string[] {
+  return CMC_TOP_30_EXCHANGES
+    .filter((exchange) => !hasListingSource(exchange))
+    .map((exchange) => exchange.slug)
+}
+
 export function buildExchangeTargets(options: Pick<Options, 'exchanges' | 'seedCmcTop30'>): ExchangeTarget[] {
   if (options.seedCmcTop30) {
-    return CMC_TOP_30_EXCHANGES.map((exchange) => ({
+    return CMC_TOP_30_EXCHANGES.filter(hasListingSource).map((exchange) => ({
       exchangeSlug: exchange.slug,
       exchangeName: exchange.cmcName,
       coingeckoId: exchange.coingeckoId,
@@ -412,6 +422,10 @@ export function buildExchangeTargets(options: Pick<Options, 'exchanges' | 'seedC
   return options.exchanges.map((exchange) => {
     const cmcReference = findCmcTop30ExchangeReference(exchange)
     if (cmcReference) {
+      if (!hasListingSource(cmcReference)) {
+        throw new Error(`Exchange ${cmcReference.slug} is in the CMC Top 30 snapshot but has no supported listing source`)
+      }
+
       return {
         exchangeSlug: cmcReference.slug,
         exchangeName: cmcReference.cmcName,
@@ -429,6 +443,26 @@ export function buildExchangeTargets(options: Pick<Options, 'exchanges' | 'seedC
       metadata: { source: 'coingecko_exchanges_tickers' },
     }
   })
+}
+
+async function deactivateUnsupportedCmcTop30Exchanges(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+): Promise<number> {
+  const slugs = getUnsupportedCmcTop30ExchangeSlugs()
+  if (slugs.length === 0) return 0
+
+  const { data, error } = await supabase
+    .from('exchanges')
+    .update({
+      status: 'inactive',
+      updated_at: new Date().toISOString(),
+    })
+    .in('slug', slugs)
+    .select('slug')
+
+  if (error) throw new Error(`Failed to deactivate unsupported CMC Top 30 exchanges: ${error.message}`)
+  return (data ?? []).length
 }
 
 export async function fetchCoinGeckoExchange(
@@ -752,6 +786,12 @@ async function main(): Promise<void> {
   const projects = applyLatestCmcRanks(trackedProjects, latestCmcRanks)
   console.log(`Tracked projects loaded: ${projects.length}; CMC rank snapshot rows loaded: ${latestCmcRanks.size}`)
 
+  const unsupportedCmcTop30ExchangeSlugs = options.seedCmcTop30 ? getUnsupportedCmcTop30ExchangeSlugs() : []
+  let deactivatedUnsupportedExchangeCount = 0
+  if (options.apply && unsupportedCmcTop30ExchangeSlugs.length > 0) {
+    deactivatedUnsupportedExchangeCount = await deactivateUnsupportedCmcTop30Exchanges(supabase)
+  }
+
   const evidence: ExchangeEvidence[] = []
   const rows = await processExchangeBackfillTargets(
     exchangeTargets,
@@ -790,6 +830,10 @@ async function main(): Promise<void> {
   console.log('\nBackfill summary:')
   console.log(`Seeded exchange count: ${exchangeTargets.length}`)
   console.log(`Listing backfilled exchange count: ${listingBackfilledExchangeCount}`)
+  console.log(`Unsupported CMC Top 30 exchange count: ${unsupportedCmcTop30ExchangeSlugs.length}`)
+  if (options.apply) {
+    console.log(`Deactivated unsupported CMC Top 30 exchange rows: ${deactivatedUnsupportedExchangeCount}`)
+  }
   console.log(`Fetch failed/skipped exchange count: ${skippedFetches.length}`)
   if (skippedFetches.length > 0) {
     console.log('Skipped exchanges:')
