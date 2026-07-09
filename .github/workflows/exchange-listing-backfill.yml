@@ -1,6 +1,10 @@
 name: Exchange Listing Backfill
 
 on:
+  schedule:
+    # Refresh all mapped CMC Top 30 exchange listings every 7 days.
+    # Runs Monday 03:00 Asia/Seoul.
+    - cron: '0 18 * * 0'
   workflow_dispatch:
     inputs:
       mode:
@@ -35,7 +39,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: exchange-listing-backfill-${{ github.event.inputs.exchanges || 'unknown' }}
+  group: exchange-listing-backfill-${{ github.event_name == 'schedule' && 'weekly-cmc-top30' || (github.event.inputs.exchanges || 'unknown') }}
   cancel-in-progress: false
 
 jobs:
@@ -81,9 +85,9 @@ jobs:
 
       - name: Validate dispatch scope
         env:
-          MODE: ${{ github.event.inputs.mode || 'dry_run' }}
+          MODE: ${{ github.event_name == 'schedule' && 'apply' || (github.event.inputs.mode || 'dry_run') }}
           EXCHANGES: ${{ github.event.inputs.exchanges }}
-          SEED_CMC_TOP30: ${{ github.event.inputs.seed_cmc_top30 || 'false' }}
+          SEED_CMC_TOP30: ${{ github.event_name == 'schedule' && 'true' || (github.event.inputs.seed_cmc_top30 || 'false') }}
           PAGE_LIMIT: ${{ github.event.inputs.page_limit || '3' }}
           REQUEST_DELAY_MS: ${{ github.event.inputs.request_delay_ms || '2500' }}
         run: |
@@ -154,9 +158,9 @@ jobs:
           SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
-          MODE: ${{ github.event.inputs.mode || 'dry_run' }}
+          MODE: ${{ github.event_name == 'schedule' && 'apply' || (github.event.inputs.mode || 'dry_run') }}
           EXCHANGES: ${{ github.event.inputs.exchanges }}
-          SEED_CMC_TOP30: ${{ github.event.inputs.seed_cmc_top30 || 'false' }}
+          SEED_CMC_TOP30: ${{ github.event_name == 'schedule' && 'true' || (github.event.inputs.seed_cmc_top30 || 'false') }}
           PAGE_LIMIT: ${{ github.event.inputs.page_limit || '3' }}
           REQUEST_DELAY_MS: ${{ github.event.inputs.request_delay_ms || '2500' }}
         run: |
@@ -192,9 +196,10 @@ jobs:
         run: |
           echo "## Exchange Listing Backfill" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Mode**: ${{ github.event.inputs.mode || 'dry_run' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Trigger**: ${{ github.event_name }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Mode**: ${{ github.event_name == 'schedule' && 'apply' || (github.event.inputs.mode || 'dry_run') }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Exchanges**: ${{ github.event.inputs.exchanges }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Seed CMC Top 30**: ${{ github.event.inputs.seed_cmc_top30 || 'false' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Seed CMC Top 30**: ${{ github.event_name == 'schedule' && 'true' || (github.event.inputs.seed_cmc_top30 || 'false') }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Page limit**: ${{ github.event.inputs.page_limit || '3' }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Request delay ms**: ${{ github.event.inputs.request_delay_ms || '2500' }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Run ID**: ${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"

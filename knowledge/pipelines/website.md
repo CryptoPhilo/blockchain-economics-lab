@@ -241,6 +241,14 @@ the `exchange_listing_backfill` node. Production writes remain remote-only:
 dispatch `mode=dry_run` first, then `mode=apply` only after the relevant
 release/backfill approval covers the same scope.
 
+As of 2026-07-09, the same workflow also owns the recurring all-exchange
+listing refresh. GitHub Actions schedule `0 18 * * 0` runs every seven days
+at Monday 03:00 Asia/Seoul and forces `mode=apply`, `seed_cmc_top30=true`,
+`page_limit=3`, and `request_delay_ms=2500`. This scheduled path refreshes all
+mapped CMC Top 30 exchange supported-asset lists through the approved remote
+production-write surface; manual scoped runs remain available through
+`workflow_dispatch`.
+
 ## BCE-1979 Exchange Top 30 Partial Apply Continuation
 
 As of 2026-06-15, CMC Top 30 exchange listing backfill apply is tolerant of

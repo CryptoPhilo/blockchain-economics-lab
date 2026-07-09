@@ -354,6 +354,10 @@ describe('buildListingCandidates', () => {
     const manifest = JSON.parse(readFileSync(join(process.cwd(), 'pipelines/bcelab-runtime-pipelines.json'), 'utf8'))
 
     expect(workflow).toContain('seed_cmc_top30:')
+    expect(workflow).toContain("cron: '0 18 * * 0'")
+    expect(workflow).toContain("github.event_name == 'schedule' && 'apply'")
+    expect(workflow).toContain("github.event_name == 'schedule' && 'true'")
+    expect(workflow).toContain('weekly-cmc-top30')
     expect(workflow).toContain('SEED_CMC_TOP30')
     expect(workflow).toContain('args+=(--cmc-top30)')
     expect(workflow).toContain('request_delay_ms:')
@@ -372,10 +376,17 @@ describe('buildListingCandidates', () => {
     ))
 
     expect(exchangeBackfill.inputs).toEqual(expect.objectContaining({
-      seedCmcTop30: expect.stringContaining('seed_cmc_top30'),
+      seedCmcTop30: expect.stringMatching(/seed_cmc_top30[\s\S]*schedule events force seed_cmc_top30=true/),
       exchanges: expect.stringContaining('Optional'),
+      mode: expect.stringContaining('schedule events force mode=apply'),
       pageLimit: expect.stringMatching(/defaults to 3[\s\S]*Upbit/),
       requestDelayMs: expect.stringContaining('0 to 60000'),
+    }))
+    expect(exchangeBackfill.cadence).toEqual(expect.objectContaining({
+      kind: 'scheduled',
+      workflow: '.github/workflows/exchange-listing-backfill.yml',
+      cron: '0 18 * * 0',
+      expectedIntervalDays: 7,
     }))
   })
 })
