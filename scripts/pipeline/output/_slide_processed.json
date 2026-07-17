@@ -658,7 +658,7 @@
     "source_path": "Slide2/mat/Gravity_MAT_cn.pdf",
     "started_at": "2026-07-17T08:38:21.364296+00:00",
     "status": "published",
-    "updated_at": "2026-07-17T08:38:41.544606+00:00",
+    "updated_at": "2026-07-17T10:27:41.036499+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gravity-token/1/zh.html"
   },
@@ -3120,6 +3120,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/cheems-pet/1/zh.html"
   },
+  "11YyGzmKrkROUS_KDFop6MfCt7cn51vTF": {
+    "error": null,
+    "finished_at": "2026-07-17T10:27:10.776215+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-17T06:36:44.000Z",
+    "name": "Theta Network_ECON_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/theta-network/latest/en.html",
+    "report_id": "8cc2a4fb-5b3c-48be-bd4e-af953445d668",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "theta-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/Theta Network_ECON_en.pdf",
+    "started_at": "2026-07-17T10:27:02.783798+00:00",
+    "status": "published",
+    "updated_at": "2026-07-17T10:27:10.776232+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/theta-network/2/en.html"
+  },
   "11aAoCEpr6DkeY4-asM3bHPEMaJqpH9nO": {
     "error": null,
     "finished_at": "2026-07-13T07:01:23.832523+00:00",
@@ -3834,6 +3864,36 @@
     "updated_at": "2026-06-05T13:34:46.580411+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zerebro/1/ko.html"
+  },
+  "1252Rs3VZxBuCMmjiLcy9j2pIy3gQRUWz": {
+    "error": null,
+    "finished_at": "2026-07-17T10:25:34.128207+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-17T06:41:37.000Z",
+    "name": "USDsui_ECON_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usdsui/latest/en.html",
+    "report_id": "d9b90ca6-7cea-4c55-9902-2c9ed02b9429",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "usdsui",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/USDsui_ECON_en.pdf",
+    "started_at": "2026-07-17T10:25:25.759404+00:00",
+    "status": "published",
+    "updated_at": "2026-07-17T10:25:34.128221+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usdsui/1/en.html"
   },
   "126MbSevSIqpMkrVSRS7k2cIgCxOH-oe9": {
     "error": null,
@@ -8878,7 +8938,7 @@
     "source_path": "Slide2/mat/Gravity_MAT_en.pdf",
     "started_at": "2026-07-17T08:39:27.897559+00:00",
     "status": "published",
-    "updated_at": "2026-07-17T08:39:37.322906+00:00",
+    "updated_at": "2026-07-17T10:27:46.329829+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gravity-token/1/en.html"
   },
@@ -9606,6 +9666,36 @@
     "updated_at": "2026-05-12T18:10:47.772016+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/monero/latest/ja.html"
+  },
+  "16i6_kVvUg1g2bUoMhqvl4ZmeMq3PZ9DC": {
+    "error": null,
+    "finished_at": "2026-07-17T10:25:24.283729+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-17T06:41:39.000Z",
+    "name": "USDsui_ECON_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usdsui/latest/ja.html",
+    "report_id": "f0e4a5c0-f63b-4d7f-98ee-a18f2f4b7291",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "usdsui",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/USDsui_ECON_jp.pdf",
+    "started_at": "2026-07-17T10:25:15.149316+00:00",
+    "status": "published",
+    "updated_at": "2026-07-17T10:25:24.283747+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usdsui/1/ja.html"
   },
   "16icP3cxJ34oaHc3yChXp6IJHWIyeyqjU": {
     "error": null,
@@ -11126,7 +11216,7 @@
     "source_path": "Slide2/mat/Moca_MAT_jp.pdf",
     "started_at": "2026-07-17T08:40:43.258122+00:00",
     "status": "published",
-    "updated_at": "2026-07-17T08:40:53.241490+00:00",
+    "updated_at": "2026-07-17T10:27:49.772827+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/mocaverse/1/ja.html"
   },
@@ -13728,7 +13818,7 @@
     "source_path": "Slide2/mat/Zerebro_MAT_jp.pdf",
     "started_at": "2026-07-17T08:42:30.124040+00:00",
     "status": "published",
-    "updated_at": "2026-07-17T08:42:39.881152+00:00",
+    "updated_at": "2026-07-17T10:27:56.740184+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zerebro/1/ja.html"
   },
@@ -14676,7 +14766,7 @@
     "source_path": "Slide2/mat/Talus_MAT_jp.pdf",
     "started_at": "2026-07-17T08:44:12.791595+00:00",
     "status": "published",
-    "updated_at": "2026-07-17T08:44:22.374900+00:00",
+    "updated_at": "2026-07-17T10:28:03.608840+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/talus-network/1/ja.html"
   },
@@ -15127,6 +15217,36 @@
     "updated_at": "2026-06-07T16:04:09.217556+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/sosovalue/1/zh.html"
+  },
+  "1Bc2bYrZe58HTXpmK2EaRnXjrayUfkZiT": {
+    "error": null,
+    "finished_at": "2026-07-17T10:25:52.771251+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-17T06:41:36.000Z",
+    "name": "USDsui_ECON_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usdsui/latest/ko.html",
+    "report_id": "8743e98b-3186-47db-a5d9-9fdf97fcaa7e",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "usdsui",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/USDsui_ECON_ko.pdf",
+    "started_at": "2026-07-17T10:25:44.453864+00:00",
+    "status": "published",
+    "updated_at": "2026-07-17T10:25:52.771268+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usdsui/1/ko.html"
   },
   "1BfoJkXWdra8pUw1R-sFZ9Yq1SU0gG_Gj": {
     "error": null,
@@ -15776,7 +15896,7 @@
     "source_path": "Slide2/mat/Zerebro_MAT_cn.pdf",
     "started_at": "2026-07-17T08:41:53.522816+00:00",
     "status": "published",
-    "updated_at": "2026-07-17T08:42:12.919783+00:00",
+    "updated_at": "2026-07-17T10:27:55.041581+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zerebro/1/zh.html"
   },
@@ -16076,7 +16196,7 @@
     "source_path": "Slide2/mat/Propy_MAT_jp.pdf",
     "started_at": "2026-07-17T08:45:37.113437+00:00",
     "status": "published",
-    "updated_at": "2026-07-17T08:45:48.155842+00:00",
+    "updated_at": "2026-07-17T10:28:10.843470+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/propy/1/ja.html"
   },
@@ -19040,7 +19160,7 @@
     "source_path": "Slide2/mat/Propy_MAT_ko.pdf",
     "started_at": "2026-07-17T08:46:08.689527+00:00",
     "status": "published",
-    "updated_at": "2026-07-17T08:46:18.555872+00:00",
+    "updated_at": "2026-07-17T10:28:14.243647+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/propy/1/ko.html"
   },
@@ -23976,7 +24096,7 @@
     "source_path": "Slide2/mat/Gravity_MAT_ko.pdf",
     "started_at": "2026-07-17T08:39:17.636692+00:00",
     "status": "published",
-    "updated_at": "2026-07-17T08:39:26.297950+00:00",
+    "updated_at": "2026-07-17T10:27:44.564656+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gravity-token/1/ko.html"
   },
@@ -26509,6 +26629,36 @@
     "updated_at": "2026-06-26T08:08:07.916424+00:00",
     "version": null,
     "versioned_url": null
+  },
+  "1Ju7pDXzGqcoCV5KxB5IpOd40DW_GZ7XI": {
+    "error": null,
+    "finished_at": "2026-07-17T10:27:00.656437+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-17T06:36:50.000Z",
+    "name": "Theta Network_ECON_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/theta-network/latest/ja.html",
+    "report_id": "9a3f76e5-fe71-4f87-b17e-c3eeb2c39617",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "theta-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/Theta Network_ECON_jp.pdf",
+    "started_at": "2026-07-17T10:26:51.782797+00:00",
+    "status": "published",
+    "updated_at": "2026-07-17T10:27:00.656452+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/theta-network/2/ja.html"
   },
   "1Jvywt9bnzkGmHhRmFwn-OKcqq1SmGOT1": {
     "error": "unresolved (slug=? via filename_unresolved; lang=zh via filename)",
@@ -29148,6 +29298,36 @@
     "updated_at": "2026-05-27T02:16:29.747226+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/trueusd/1/zh.html"
+  },
+  "1M19-W2ECvjRPw4VUl5_VDIrV6t6A1SJR": {
+    "error": null,
+    "finished_at": "2026-07-17T10:27:38.763075+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-17T06:36:38.000Z",
+    "name": "Theta Network_ECON_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/theta-network/latest/ko.html",
+    "report_id": "3d043cca-fcc6-4bba-80b5-77f9391be47a",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "theta-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/Theta Network_ECON_ko.pdf",
+    "started_at": "2026-07-17T10:27:30.247491+00:00",
+    "status": "published",
+    "updated_at": "2026-07-17T10:27:38.763094+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/theta-network/2/ko.html"
   },
   "1M5eeavxMD6G1cs3ucnC67JrJUJWgw5g4": {
     "error": null,
@@ -32921,7 +33101,7 @@
     "source_path": "Slide2/mat/Moca_MAT_cn.pdf",
     "started_at": "2026-07-17T08:39:58.710780+00:00",
     "status": "published",
-    "updated_at": "2026-07-17T08:40:15.980585+00:00",
+    "updated_at": "2026-07-17T10:27:47.976405+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/mocaverse/1/zh.html"
   },
@@ -43137,6 +43317,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/johnson-johnson-tokenized-stock-xstock/1/ko.html"
   },
+  "1Y8keXTJQRimA1RhkEVBxnrnPUoxqWAUB": {
+    "error": null,
+    "finished_at": "2026-07-17T10:25:05.052941+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-17T06:41:46.000Z",
+    "name": "USDsui_ECON_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usdsui/latest/zh.html",
+    "report_id": "ab3c1c94-ce53-41a5-9b45-c731f47a348d",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "usdsui",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/USDsui_ECON_cn.pdf",
+    "started_at": "2026-07-17T10:24:45.249545+00:00",
+    "status": "published",
+    "updated_at": "2026-07-17T10:25:05.052958+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usdsui/1/zh.html"
+  },
   "1Y9LRjz266JOyz50jxCLc5PHB0MKVk2lZ": {
     "error": null,
     "finished_at": "2026-07-03T18:54:24.216430+00:00",
@@ -46643,7 +46853,7 @@
     "source_path": "Slide2/mat/Zerebro_MAT_ko.pdf",
     "started_at": "2026-07-17T08:43:07.017643+00:00",
     "status": "published",
-    "updated_at": "2026-07-17T08:43:16.332478+00:00",
+    "updated_at": "2026-07-17T10:28:00.162838+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zerebro/1/ko.html"
   },
@@ -49153,7 +49363,7 @@
     "source_path": "Slide2/mat/Talus_MAT_cn.pdf",
     "started_at": "2026-07-17T08:43:32.892950+00:00",
     "status": "published",
-    "updated_at": "2026-07-17T08:43:53.315366+00:00",
+    "updated_at": "2026-07-17T10:28:01.957397+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/talus-network/1/zh.html"
   },
@@ -49388,7 +49598,7 @@
     "source_path": "Slide2/mat/Talus_MAT_en.pdf",
     "started_at": "2026-07-17T08:44:24.352626+00:00",
     "status": "published",
-    "updated_at": "2026-07-17T08:44:33.148012+00:00",
+    "updated_at": "2026-07-17T10:28:05.344016+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/talus-network/1/en.html"
   },
@@ -50463,6 +50673,36 @@
     "updated_at": "2026-06-01T05:30:46.581417+00:00",
     "version": null,
     "versioned_url": null
+  },
+  "1d1I35MSnw9O2CC5jctEMrj6KeIHeu1WS": {
+    "error": null,
+    "finished_at": "2026-07-17T10:26:30.011506+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-17T06:36:53.000Z",
+    "name": "Theta Network_ECON_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/theta-network/latest/zh.html",
+    "report_id": "f90f52af-1b5b-4a6c-b05a-a0e0861635a1",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "theta-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/Theta Network_ECON_cn.pdf",
+    "started_at": "2026-07-17T10:26:10.729043+00:00",
+    "status": "published",
+    "updated_at": "2026-07-17T10:26:30.011523+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/theta-network/2/zh.html"
   },
   "1d20iivuM0MB_M1W4wyvb3XW003_1AYgL": {
     "error": null,
@@ -59680,7 +59920,7 @@
     "source_path": "Slide2/mat/Moca_MAT_en.pdf",
     "started_at": "2026-07-17T08:40:55.206947+00:00",
     "status": "published",
-    "updated_at": "2026-07-17T08:41:03.226208+00:00",
+    "updated_at": "2026-07-17T10:27:51.526513+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/mocaverse/1/en.html"
   },
@@ -62935,7 +63175,7 @@
     "source_path": "Slide2/mat/Propy_MAT_cn.pdf",
     "started_at": "2026-07-17T08:45:08.618718+00:00",
     "status": "published",
-    "updated_at": "2026-07-17T08:45:28.174001+00:00",
+    "updated_at": "2026-07-17T10:28:09.113458+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/propy/1/zh.html"
   },
@@ -66518,7 +66758,7 @@
     "source_path": "Slide2/mat/Propy_MAT_en.pdf",
     "started_at": "2026-07-17T08:45:49.542882+00:00",
     "status": "published",
-    "updated_at": "2026-07-17T08:45:59.094240+00:00",
+    "updated_at": "2026-07-17T10:28:12.543956+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/propy/1/en.html"
   },
@@ -69966,7 +70206,7 @@
     "source_path": "Slide2/mat/Zerebro_MAT_en.pdf",
     "started_at": "2026-07-17T08:42:41.562737+00:00",
     "status": "published",
-    "updated_at": "2026-07-17T08:42:51.066623+00:00",
+    "updated_at": "2026-07-17T10:27:58.470859+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zerebro/1/en.html"
   },
@@ -72002,7 +72242,7 @@
     "source_path": "Slide2/mat/Moca_MAT_ko.pdf",
     "started_at": "2026-07-17T08:41:24.980902+00:00",
     "status": "published",
-    "updated_at": "2026-07-17T08:41:35.428441+00:00",
+    "updated_at": "2026-07-17T10:27:53.175259+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/mocaverse/1/ko.html"
   },
@@ -73966,7 +74206,7 @@
     "source_path": "Slide2/mat/Talus_MAT_ko.pdf",
     "started_at": "2026-07-17T08:44:50.468371+00:00",
     "status": "published",
-    "updated_at": "2026-07-17T08:44:59.618076+00:00",
+    "updated_at": "2026-07-17T10:28:07.190560+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/talus-network/1/ko.html"
   },
@@ -75366,7 +75606,7 @@
     "source_path": "Slide2/mat/Gravity_MAT_jp.pdf",
     "started_at": "2026-07-17T08:38:55.270396+00:00",
     "status": "published",
-    "updated_at": "2026-07-17T08:39:06.101680+00:00",
+    "updated_at": "2026-07-17T10:27:42.797847+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gravity-token/1/ja.html"
   },
