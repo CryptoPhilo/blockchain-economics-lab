@@ -1565,7 +1565,7 @@
     "source_path": "Slide2/econ/Frankencoin_ECON_ko.pdf",
     "started_at": "2026-07-23T22:42:48.821529+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:25.309163+00:00",
+    "updated_at": "2026-07-24T04:29:01.614717+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/frankencoin/1/ko.html"
   },
@@ -7137,6 +7137,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/decred/1/ja.html"
   },
+  "13xQofQEmMMm1NKVuVdSv-rQQU4DBngg9": {
+    "error": null,
+    "finished_at": "2026-07-24T04:24:43.589743+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-24T01:55:14.572Z",
+    "name": "PFEx_ECON_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pfizer-tokenized-stock-xstock/latest/zh.html",
+    "report_id": "bde54e74-04b4-41ad-aa32-63623b8cbbe3",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "pfizer-tokenized-stock-xstock",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/PFEx_ECON_cn.pdf",
+    "started_at": "2026-07-24T04:24:22.035268+00:00",
+    "status": "published",
+    "updated_at": "2026-07-24T04:24:43.589762+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pfizer-tokenized-stock-xstock/1/zh.html"
+  },
   "13xdWmtNO67r1srlsuG1WIFYMeCgR9Pfe": {
     "error": null,
     "finished_at": "2026-06-14T13:10:57.416036+00:00",
@@ -8585,7 +8615,7 @@
     "source_path": "Slide2/mat/CRCLB_MAT_cn.pdf",
     "started_at": "2026-07-23T22:45:07.284356+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:39.096904+00:00",
+    "updated_at": "2026-07-24T04:29:16.153818+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/circle-internet-group-tokenized-bstocks/1/zh.html"
   },
@@ -9843,7 +9873,7 @@
     "source_path": "Slide2/econ/BIM_ECON_cn.pdf",
     "started_at": "2026-07-23T22:40:23.977506+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:12.307549+00:00",
+    "updated_at": "2026-07-24T04:28:51.128700+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bim/1/zh.html"
   },
@@ -9903,7 +9933,7 @@
     "source_path": "Slide2/mat/CRCLB_MAT_jp.pdf",
     "started_at": "2026-07-23T22:45:24.218544+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:40.541756+00:00",
+    "updated_at": "2026-07-24T04:29:17.481524+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/circle-internet-group-tokenized-bstocks/1/ja.html"
   },
@@ -11894,7 +11924,7 @@
     "source_path": "Slide2/econ/BIM_ECON_en.pdf",
     "started_at": "2026-07-23T22:40:49.812773+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:15.154705+00:00",
+    "updated_at": "2026-07-24T04:28:53.132873+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bim/1/en.html"
   },
@@ -15496,7 +15526,7 @@
     "source_path": "Slide2/econ/Magic Eden_ECON_jp.pdf",
     "started_at": "2026-07-23T22:39:48.180014+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:07.129123+00:00",
+    "updated_at": "2026-07-24T04:28:48.179715+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/magiceden/1/ja.html"
   },
@@ -16279,6 +16309,36 @@
     "updated_at": "2026-07-16T12:01:53.115176+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/vanguard-tokenized-etf-xstock/1/ko.html"
+  },
+  "1BKKGW06Vt0gchVPFJwAkLO1CqaW2-Ivv": {
+    "error": null,
+    "finished_at": "2026-07-24T04:27:27.952688+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-24T01:54:56.099Z",
+    "name": "MSFTx_ECON_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/microsoft-tokenized-stock-xstock/latest/ko.html",
+    "report_id": "4e36c2fb-384b-4a54-90b6-10ee9b3ab3d3",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "microsoft-tokenized-stock-xstock",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/MSFTx_ECON_ko.pdf",
+    "started_at": "2026-07-24T04:27:20.354942+00:00",
+    "status": "published",
+    "updated_at": "2026-07-24T04:27:27.952707+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/microsoft-tokenized-stock-xstock/1/ko.html"
   },
   "1BKNTevQX-W3XJfoeo3eyzpHqo_A6RTKJ": {
     "error": null,
@@ -18703,7 +18763,7 @@
     "source_path": "Slide2/econ/SKHYx_ECON_en.pdf",
     "started_at": "2026-07-23T22:43:36.000442+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:28.282332+00:00",
+    "updated_at": "2026-07-24T04:29:04.446272+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sk-hynix-tokenized-stock-xstock/1/en.html"
   },
@@ -19561,7 +19621,7 @@
     "source_path": "Slide2/mat/SKHYx_MAT_ko.pdf",
     "started_at": "2026-07-23T22:46:38.384498+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:49.558974+00:00",
+    "updated_at": "2026-07-24T04:29:29.011541+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/sk-hynix-tokenized-stock-xstock/1/ko.html"
   },
@@ -20165,7 +20225,7 @@
     "source_path": "Slide2/econ/Frankencoin_ECON_en.pdf",
     "started_at": "2026-07-23T22:42:34.420421+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:23.888415+00:00",
+    "updated_at": "2026-07-24T04:29:00.658448+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/frankencoin/1/en.html"
   },
@@ -23281,7 +23341,7 @@
     "source_path": "Slide2/econ/PMX_ECON_en.pdf",
     "started_at": "2026-07-23T22:41:41.643129+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:19.540072+00:00",
+    "updated_at": "2026-07-24T04:28:56.879987+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/philip-morris-tokenized-stock-xstock/1/en.html"
   },
@@ -24367,6 +24427,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/river/1/zh.html"
   },
+  "1GtWz6oMVxCwSr2_yTK5oKuPtMua0VUzY": {
+    "error": null,
+    "finished_at": "2026-07-24T04:25:13.343858+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-24T01:55:11.658Z",
+    "name": "PFEx_ECON_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pfizer-tokenized-stock-xstock/latest/ja.html",
+    "report_id": "b70f0215-8f4c-46da-b060-7b56793ecbaf",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "pfizer-tokenized-stock-xstock",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/PFEx_ECON_jp.pdf",
+    "started_at": "2026-07-24T04:25:02.234301+00:00",
+    "status": "published",
+    "updated_at": "2026-07-24T04:25:13.343877+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pfizer-tokenized-stock-xstock/1/ja.html"
+  },
   "1GtyS7zKygO4iNmQ_Dv0DH9qaVri3syK3": {
     "error": null,
     "finished_at": "2026-07-20T10:01:32.551678+00:00",
@@ -24566,6 +24656,36 @@
     "updated_at": "2026-06-11T04:55:34.390478+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/velvet/1/en.html"
+  },
+  "1H1oelEqqg_S9jWEjr0jMY5rzO4KZFqAw": {
+    "error": null,
+    "finished_at": "2026-07-24T04:28:12.670527+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-24T01:54:50.979Z",
+    "name": "MUx_ECON_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/micron-technology-tokenized-stock-xstock/latest/ja.html",
+    "report_id": "b6bf9210-4013-4bda-893c-f5325f371a70",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "micron-technology-tokenized-stock-xstock",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/MUx_ECON_jp.pdf",
+    "started_at": "2026-07-24T04:28:05.644216+00:00",
+    "status": "published",
+    "updated_at": "2026-07-24T04:28:12.670546+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/micron-technology-tokenized-stock-xstock/1/ja.html"
   },
   "1H4HqjXF6a0H1WvFjmkHGQhG60NCEJqEU": {
     "error": null,
@@ -25119,7 +25239,7 @@
     "source_path": "Slide2/econ/SKHYx_ECON_cn.pdf",
     "started_at": "2026-07-23T22:43:07.549021+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:26.317296+00:00",
+    "updated_at": "2026-07-24T04:29:02.578181+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sk-hynix-tokenized-stock-xstock/1/zh.html"
   },
@@ -26096,7 +26216,7 @@
     "source_path": "Slide2/econ/Magic Eden_ECON_ko.pdf",
     "started_at": "2026-07-23T22:40:08.642065+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:10.406840+00:00",
+    "updated_at": "2026-07-24T04:28:50.136872+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/magiceden/1/ko.html"
   },
@@ -27778,7 +27898,7 @@
     "source_path": "Slide2/econ/Magic Eden_ECON_cn.pdf",
     "started_at": "2026-07-23T22:39:30.027205+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:06.037923+00:00",
+    "updated_at": "2026-07-24T04:28:47.186901+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/magiceden/1/zh.html"
   },
@@ -27898,7 +28018,7 @@
     "source_path": "Slide2/mat/IWMx_MAT_cn.pdf",
     "started_at": "2026-07-23T22:44:12.936687+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:33.088127+00:00",
+    "updated_at": "2026-07-24T04:29:08.203858+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/russell-2000-tokenised-etf-xstock/1/zh.html"
   },
@@ -30209,6 +30329,36 @@
     "updated_at": "2026-06-09T03:49:27.377729+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/c8ntinuum/1/en.html"
+  },
+  "1KV_VjE5GSz5CZHu95BPKkB4fvQ797_Xo": {
+    "error": null,
+    "finished_at": "2026-07-24T04:28:46.236169+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-24T01:54:46.000Z",
+    "name": "MUx_ECON_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/micron-technology-tokenized-stock-xstock/latest/ko.html",
+    "report_id": "63d91d03-ca87-4214-abb8-a11a2a1ab0bd",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "micron-technology-tokenized-stock-xstock",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/MUx_ECON_ko.pdf",
+    "started_at": "2026-07-24T04:28:38.120909+00:00",
+    "status": "published",
+    "updated_at": "2026-07-24T04:28:46.236187+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/micron-technology-tokenized-stock-xstock/1/ko.html"
   },
   "1KWEo0HcxBRwR7eIwqeFfFl39t-GB4sW7": {
     "error": null,
@@ -39103,7 +39253,7 @@
     "source_path": "Slide2/mat/IWMx_MAT_ko.pdf",
     "started_at": "2026-07-23T22:44:52.589062+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:37.675991+00:00",
+    "updated_at": "2026-07-24T04:29:14.716362+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/russell-2000-tokenised-etf-xstock/1/ko.html"
   },
@@ -44349,7 +44499,7 @@
     "source_path": "Slide2/econ/Frankencoin_ECON_jp.pdf",
     "started_at": "2026-07-23T22:42:27.523416+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:22.430482+00:00",
+    "updated_at": "2026-07-24T04:28:59.716023+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/frankencoin/1/ja.html"
   },
@@ -46320,7 +46470,7 @@
     "source_path": "Slide2/mat/IWMx_MAT_jp.pdf",
     "started_at": "2026-07-23T22:44:30.494127+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:34.584762+00:00",
+    "updated_at": "2026-07-24T04:29:10.545188+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/russell-2000-tokenised-etf-xstock/1/ja.html"
   },
@@ -46400,7 +46550,7 @@
     "source_path": "Slide2/mat/CRCLB_MAT_ko.pdf",
     "started_at": "2026-07-23T22:45:45.894309+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:43.699729+00:00",
+    "updated_at": "2026-07-24T04:29:20.183557+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/circle-internet-group-tokenized-bstocks/1/ko.html"
   },
@@ -47950,7 +48100,7 @@
     "source_path": "Slide2/econ/BIM_ECON_ko.pdf",
     "started_at": "2026-07-23T22:41:04.244573+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:16.574946+00:00",
+    "updated_at": "2026-07-24T04:28:54.075479+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bim/1/ko.html"
   },
@@ -50452,7 +50602,7 @@
     "source_path": "Slide2/econ/Frankencoin_ECON_cn.pdf",
     "started_at": "2026-07-23T22:42:10.276444+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:21.475431+00:00",
+    "updated_at": "2026-07-24T04:28:58.771618+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/frankencoin/1/zh.html"
   },
@@ -51097,7 +51247,7 @@
     "source_path": "Slide2/econ/PMX_ECON_jp.pdf",
     "started_at": "2026-07-23T22:41:33.680171+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:18.560957+00:00",
+    "updated_at": "2026-07-24T04:28:55.946089+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/philip-morris-tokenized-stock-xstock/1/ja.html"
   },
@@ -52506,7 +52656,7 @@
     "source_path": "Slide2/econ/BIM_ECON_jp.pdf",
     "started_at": "2026-07-23T22:40:43.550067+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:14.172050+00:00",
+    "updated_at": "2026-07-24T04:28:52.079872+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bim/1/ja.html"
   },
@@ -59319,6 +59469,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sushiswap/1/en.html"
   },
+  "1fpc2scNwPxlkIXV5svR6YwjYnVx4YrCy": {
+    "error": null,
+    "finished_at": "2026-07-24T04:26:25.065972+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-24T01:55:04.044Z",
+    "name": "MSFTx_ECON_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/microsoft-tokenized-stock-xstock/latest/zh.html",
+    "report_id": "b855d13e-5501-41c6-8557-cda6eac5577f",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "microsoft-tokenized-stock-xstock",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/MSFTx_ECON_cn.pdf",
+    "started_at": "2026-07-24T04:26:06.305436+00:00",
+    "status": "published",
+    "updated_at": "2026-07-24T04:26:25.065990+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/microsoft-tokenized-stock-xstock/1/zh.html"
+  },
   "1fpgUlgjwjnZnu5iRoOEAJ5LruhMNgxre": {
     "error": null,
     "finished_at": "2026-05-17T10:08:03.240120+00:00",
@@ -61165,6 +61345,36 @@
     "updated_at": "2026-06-16T20:30:01.937484+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/rsk-infrastructure-framework/1/zh.html"
+  },
+  "1hByh6MeXIsPTFBkJ0zSifJvTmgKxcQ_Q": {
+    "error": null,
+    "finished_at": "2026-07-24T04:25:49.062194+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-24T01:55:06.703Z",
+    "name": "PFEx_ECON_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pfizer-tokenized-stock-xstock/latest/ko.html",
+    "report_id": "a43762a8-02ab-46ed-ba0e-bb6752c4b089",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "pfizer-tokenized-stock-xstock",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/PFEx_ECON_ko.pdf",
+    "started_at": "2026-07-24T04:25:39.333165+00:00",
+    "status": "published",
+    "updated_at": "2026-07-24T04:25:49.062213+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pfizer-tokenized-stock-xstock/1/ko.html"
   },
   "1hD58rg2tGVmDnHKo09FqqY14JOUo-hbg": {
     "error": null,
@@ -64591,7 +64801,7 @@
     "source_path": "Slide2/mat/IWMx_MAT_en.pdf",
     "started_at": "2026-07-23T22:44:37.805700+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:36.158053+00:00",
+    "updated_at": "2026-07-24T04:29:12.562535+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/russell-2000-tokenised-etf-xstock/1/en.html"
   },
@@ -65140,6 +65350,36 @@
     "updated_at": "2026-06-11T12:54:07.992794+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zano/1/ko.html"
+  },
+  "1jwyTBs64mb9i5zCyCCIvSXl9kKjuml7t": {
+    "error": null,
+    "finished_at": "2026-07-24T04:26:54.089547+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-24T01:55:01.436Z",
+    "name": "MSFTx_ECON_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/microsoft-tokenized-stock-xstock/latest/ja.html",
+    "report_id": "f785a652-a219-4ad9-92dd-308705bd7f34",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "microsoft-tokenized-stock-xstock",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/MSFTx_ECON_jp.pdf",
+    "started_at": "2026-07-24T04:26:42.547887+00:00",
+    "status": "published",
+    "updated_at": "2026-07-24T04:26:54.089566+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/microsoft-tokenized-stock-xstock/1/ja.html"
   },
   "1jx_lCuBha63p2bhEqvzk_Pav9m4bIhU3": {
     "error": null,
@@ -71210,6 +71450,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/injective/1/en.html"
   },
+  "1oa-zanuE-JDWx4bcGRtLKVz0YGyCOFGY": {
+    "error": null,
+    "finished_at": "2026-07-24T04:28:22.319546+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-24T01:54:48.212Z",
+    "name": "MUx_ECON_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/micron-technology-tokenized-stock-xstock/latest/en.html",
+    "report_id": "8e437c07-90fd-475d-89c3-9e18b9c50109",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "micron-technology-tokenized-stock-xstock",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/MUx_ECON_en.pdf",
+    "started_at": "2026-07-24T04:28:14.175568+00:00",
+    "status": "published",
+    "updated_at": "2026-07-24T04:28:22.319565+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/micron-technology-tokenized-stock-xstock/1/en.html"
+  },
   "1obyj4McSfd3fWPbCefa0G1w__4T5Tek1": {
     "error": "unresolved (slug=? via filename_unresolved; lang=ko via filename)",
     "lang": "ko",
@@ -73193,7 +73463,7 @@
     "source_path": "Slide2/mat/SKHYx_MAT_en.pdf",
     "started_at": "2026-07-23T22:46:22.845735+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:48.064417+00:00",
+    "updated_at": "2026-07-24T04:29:27.045071+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/sk-hynix-tokenized-stock-xstock/1/en.html"
   },
@@ -74659,7 +74929,7 @@
     "source_path": "Slide2/econ/Magic Eden_ECON_en.pdf",
     "started_at": "2026-07-23T22:39:55.709276+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:09.421855+00:00",
+    "updated_at": "2026-07-24T04:28:49.185612+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/magiceden/1/en.html"
   },
@@ -75480,6 +75750,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/cow-protocol/1/ja.html"
   },
+  "1roNsIyDAOYYsmKtqO5E8XKR1UQ5cGUom": {
+    "error": null,
+    "finished_at": "2026-07-24T04:25:22.933820+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-24T01:55:09.181Z",
+    "name": "PFEx_ECON_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pfizer-tokenized-stock-xstock/latest/en.html",
+    "report_id": "11e85489-78f1-4c18-81f8-d7e1257c808e",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "pfizer-tokenized-stock-xstock",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/PFEx_ECON_en.pdf",
+    "started_at": "2026-07-24T04:25:14.369626+00:00",
+    "status": "published",
+    "updated_at": "2026-07-24T04:25:22.933838+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/pfizer-tokenized-stock-xstock/1/en.html"
+  },
   "1roSkLKXHr4bm_h0CWTRggwtRSDvYHo2s": {
     "error": null,
     "finished_at": "2026-05-28T20:45:13.835345+00:00",
@@ -75746,7 +76046,7 @@
     "source_path": "Slide2/mat/SKHYx_MAT_cn.pdf",
     "started_at": "2026-07-23T22:46:00.909123+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:45.153305+00:00",
+    "updated_at": "2026-07-24T04:29:22.564520+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/sk-hynix-tokenized-stock-xstock/1/zh.html"
   },
@@ -77029,7 +77329,7 @@
     "source_path": "Slide2/econ/PMX_ECON_ko.pdf",
     "started_at": "2026-07-23T22:41:52.686619+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:20.502107+00:00",
+    "updated_at": "2026-07-24T04:28:57.825237+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/philip-morris-tokenized-stock-xstock/1/ko.html"
   },
@@ -77240,6 +77540,36 @@
     "version": null,
     "versioned_url": null
   },
+  "1t2B1qR3S5FrBDVpHWMaLFVwfI3c4vq_g": {
+    "error": null,
+    "finished_at": "2026-07-24T04:27:03.697647+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-24T01:54:58.556Z",
+    "name": "MSFTx_ECON_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/microsoft-tokenized-stock-xstock/latest/en.html",
+    "report_id": "1d3250ac-a849-43de-ac10-ce48fce4a2ce",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "microsoft-tokenized-stock-xstock",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/MSFTx_ECON_en.pdf",
+    "started_at": "2026-07-24T04:26:55.507003+00:00",
+    "status": "published",
+    "updated_at": "2026-07-24T04:27:03.697665+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/microsoft-tokenized-stock-xstock/1/en.html"
+  },
   "1t2Eu3lZgc3HvlY6cNqdSU1_pfjyvGU0F": {
     "error": null,
     "finished_at": "2026-07-23T22:44:02.394682+00:00",
@@ -77266,7 +77596,7 @@
     "source_path": "Slide2/econ/SKHYx_ECON_ko.pdf",
     "started_at": "2026-07-23T22:43:56.874644+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:29.282666+00:00",
+    "updated_at": "2026-07-24T04:29:05.387753+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sk-hynix-tokenized-stock-xstock/1/ko.html"
   },
@@ -80826,7 +81156,7 @@
     "source_path": "Slide2/mat/SKHYx_MAT_jp.pdf",
     "started_at": "2026-07-23T22:46:13.838202+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:46.662482+00:00",
+    "updated_at": "2026-07-24T04:29:24.799692+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/sk-hynix-tokenized-stock-xstock/1/ja.html"
   },
@@ -81237,7 +81567,7 @@
     "source_path": "Slide2/mat/CRCLB_MAT_en.pdf",
     "started_at": "2026-07-23T22:45:32.372246+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:42.110906+00:00",
+    "updated_at": "2026-07-24T04:29:18.794544+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/circle-internet-group-tokenized-bstocks/1/en.html"
   },
@@ -84027,7 +84357,7 @@
     "source_path": "Slide2/econ/SKHYx_ECON_jp.pdf",
     "started_at": "2026-07-23T22:43:28.023529+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:27.306120+00:00",
+    "updated_at": "2026-07-24T04:29:03.517965+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/sk-hynix-tokenized-stock-xstock/1/ja.html"
   },
@@ -84197,7 +84527,7 @@
     "source_path": "Slide2/econ/PMX_ECON_cn.pdf",
     "started_at": "2026-07-23T22:41:17.801271+00:00",
     "status": "published",
-    "updated_at": "2026-07-24T01:03:17.573354+00:00",
+    "updated_at": "2026-07-24T04:28:55.010693+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/philip-morris-tokenized-stock-xstock/1/zh.html"
   },
@@ -84865,6 +85195,36 @@
     "updated_at": "2026-07-21T11:20:19.195332+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/project-ailey/1/ja.html"
+  },
+  "1ypXLRkSpRBm6Wb1r0NHIPHNzkLCey2BE": {
+    "error": null,
+    "finished_at": "2026-07-24T04:27:53.394814+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-24T01:54:53.288Z",
+    "name": "MUx_ECON_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/micron-technology-tokenized-stock-xstock/latest/zh.html",
+    "report_id": "12710459-f5e7-48d0-a736-1b13dc96d7f3",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "micron-technology-tokenized-stock-xstock",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/MUx_ECON_cn.pdf",
+    "started_at": "2026-07-24T04:27:39.589993+00:00",
+    "status": "published",
+    "updated_at": "2026-07-24T04:27:53.394832+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/micron-technology-tokenized-stock-xstock/1/zh.html"
   },
   "1ysRscrKQtRZpu5A0mm-B9WHi4TSXlD-U": {
     "error": null,
