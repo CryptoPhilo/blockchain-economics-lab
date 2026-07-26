@@ -10633,7 +10633,7 @@
     "source_path": "Slide2/mat/SOXXX_MAT_jp.pdf",
     "started_at": "2026-07-25T22:30:17.807393+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T01:10:23.038692+00:00",
+    "updated_at": "2026-07-26T04:40:22.027052+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ishares-semiconductor-tokenized-etf-xstock/1/ja.html"
   },
@@ -10977,6 +10977,36 @@
     "updated_at": "2026-07-20T16:11:15.915785+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/oracle-tokenized-stock-xstock/1/ko.html"
+  },
+  "16xt_YYrGrcf_TiqZorDBfcBFmIyyIseD": {
+    "error": null,
+    "finished_at": "2026-07-26T04:40:18.014581+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-26T00:51:40.000Z",
+    "name": "QFI_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/quantixai/latest/ko.html",
+    "report_id": "387a2500-aef5-447e-bb4c-3457e70b4954",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "quantixai",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/QFI_MAT_ko.pdf",
+    "started_at": "2026-07-26T04:40:08.530350+00:00",
+    "status": "published",
+    "updated_at": "2026-07-26T04:40:18.014618+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/quantixai/1/ko.html"
   },
   "16zUj2A6atIYFWs0z_I8JolV4ylahqj9e": {
     "error": null,
@@ -19805,6 +19835,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/block-street/1/ja.html"
   },
+  "1Dd0FF6GeGoqWhKwZ8IeytANonDthvwF0": {
+    "error": null,
+    "finished_at": "2026-07-26T04:39:25.928306+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-26T00:51:43.000Z",
+    "name": "QFI_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/quantixai/latest/zh.html",
+    "report_id": "63ae2173-ebc7-4af9-8164-6912469ce06b",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "quantixai",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/QFI_MAT_cn.pdf",
+    "started_at": "2026-07-26T04:38:59.645435+00:00",
+    "status": "published",
+    "updated_at": "2026-07-26T04:39:25.928325+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/quantixai/1/zh.html"
+  },
   "1DeZap35R8ET5PXRczQBRNygutoQsyS3b": {
     "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
     "lang": "zh",
@@ -23115,7 +23175,7 @@
     "source_path": "Slide2/mat/SOXXX_MAT_ko.pdf",
     "started_at": "2026-07-25T22:29:42.045437+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T01:10:21.222270+00:00",
+    "updated_at": "2026-07-26T04:40:20.028645+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ishares-semiconductor-tokenized-etf-xstock/1/ko.html"
   },
@@ -32054,7 +32114,7 @@
     "source_path": "Slide2/mat/SOXXX_MAT_cn.pdf",
     "started_at": "2026-07-25T22:30:46.739685+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T01:10:26.490183+00:00",
+    "updated_at": "2026-07-26T04:40:25.776978+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ishares-semiconductor-tokenized-etf-xstock/1/zh.html"
   },
@@ -62047,6 +62107,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ant-fun/1/ko.html"
   },
+  "1hTI5cq_qqXiSZf8hrGMM7luRRNh-BnHq": {
+    "error": null,
+    "finished_at": "2026-07-26T04:39:47.540434+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-26T00:51:42.000Z",
+    "name": "QFI_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/quantixai/latest/ja.html",
+    "report_id": "21a396d3-6359-47f6-972c-67b2ae611ef5",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "quantixai",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/QFI_MAT_jp.pdf",
+    "started_at": "2026-07-26T04:39:37.731997+00:00",
+    "status": "published",
+    "updated_at": "2026-07-26T04:39:47.540453+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/quantixai/1/ja.html"
+  },
   "1hVjUQn_56nDb5avcUnKWw01IzUlIjA8j": {
     "error": null,
     "finished_at": "2026-05-17T09:09:11.099359+00:00",
@@ -75561,7 +75651,7 @@
     "source_path": "Slide2/mat/SOXXX_MAT_en.pdf",
     "started_at": "2026-07-25T22:30:26.814547+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T01:10:24.800388+00:00",
+    "updated_at": "2026-07-26T04:40:23.924055+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ishares-semiconductor-tokenized-etf-xstock/1/en.html"
   },
@@ -86808,6 +86898,36 @@
     "updated_at": "2026-05-14T06:51:51.333894+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tron/1/ko.html"
+  },
+  "1zqfHxG7HcCIaetog6D1PIGTFE9xLC-lD": {
+    "error": null,
+    "finished_at": "2026-07-26T04:39:59.041128+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-26T00:51:41.000Z",
+    "name": "QFI_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/quantixai/latest/en.html",
+    "report_id": "44b35350-03b2-4a94-aca3-5ed6a91617a0",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "quantixai",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/QFI_MAT_en.pdf",
+    "started_at": "2026-07-26T04:39:49.100111+00:00",
+    "status": "published",
+    "updated_at": "2026-07-26T04:39:59.041148+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/quantixai/1/en.html"
   },
   "1zsf8sKMEz5W_1w6_Qny8gj5hGCaX9k9y": {
     "error": "unresolved (slug=? via filename_unresolved; lang=ko via filename)",
