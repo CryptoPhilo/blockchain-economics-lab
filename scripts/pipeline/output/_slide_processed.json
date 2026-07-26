@@ -25,7 +25,7 @@
     "source_path": "Slide2/mat/HOT_MAT_ko.pdf",
     "started_at": "2026-07-26T11:01:02.048567+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:55:32.721296+00:00",
+    "updated_at": "2026-07-26T14:57:12.023399+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/holo/1/ko.html"
   },
@@ -85,7 +85,7 @@
     "source_path": "Slide2/mat/ASTAR_MAT_jp.pdf",
     "started_at": "2026-07-26T13:54:12.132197+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:54:24.790193+00:00",
+    "updated_at": "2026-07-26T14:56:46.086015+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/astar/1/ja.html"
   },
@@ -6394,7 +6394,7 @@
     "source_path": "Slide2/mat/RVN_MAT_ko.pdf",
     "started_at": "2026-07-26T07:20:48.600762+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:56:23.840405+00:00",
+    "updated_at": "2026-07-26T14:58:02.068490+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ravencoin/1/ko.html"
   },
@@ -7630,7 +7630,7 @@
     "source_path": "Slide2/mat/FIDD_MAT_cn.pdf",
     "started_at": "2026-07-26T09:27:50.961220+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:55:35.629064+00:00",
+    "updated_at": "2026-07-26T14:57:15.038317+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/fidelity-digital-dollar/1/zh.html"
   },
@@ -12260,6 +12260,36 @@
     "version": null,
     "versioned_url": null
   },
+  "17abMPNiLcQD5xoM1CWiX_2bW7E68MtFa": {
+    "error": null,
+    "finished_at": "2026-07-26T14:56:28.366810+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-26T13:49:07.000Z",
+    "name": "BANK_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 768.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/lorenzo-protocol/latest/ko.html",
+    "report_id": "91dc0c8c-bf0e-4d6d-801f-fdca485a0a7a",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "lorenzo-protocol",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/BANK_MAT_ko.pdf",
+    "started_at": "2026-07-26T14:56:20.196639+00:00",
+    "status": "published",
+    "updated_at": "2026-07-26T14:56:28.366829+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/lorenzo-protocol/1/ko.html"
+  },
   "17cI5KBeHGmOmbPfzd-fAHFh3gWX3j2Rd": {
     "error": null,
     "finished_at": "2026-06-23T06:13:11.599610+00:00",
@@ -12893,7 +12923,7 @@
     "source_path": "Slide2/mat/PLTRX_MAT_cn.pdf",
     "started_at": "2026-07-26T09:30:24.854693+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:55:57.222697+00:00",
+    "updated_at": "2026-07-26T14:57:35.644023+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/palantir-tokenized-stock-xstock/1/zh.html"
   },
@@ -14142,7 +14172,7 @@
     "source_path": "Slide2/mat/HOT_MAT_en.pdf",
     "started_at": "2026-07-26T11:00:44.604014+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:55:30.256863+00:00",
+    "updated_at": "2026-07-26T14:57:09.404786+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/holo/1/en.html"
   },
@@ -18212,7 +18242,7 @@
     "source_path": "Slide2/mat/FIDD_MAT_jp.pdf",
     "started_at": "2026-07-26T09:28:25.901095+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:55:38.380674+00:00",
+    "updated_at": "2026-07-26T14:57:17.677887+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/fidelity-digital-dollar/1/ja.html"
   },
@@ -18242,7 +18272,7 @@
     "source_path": "Slide2/mat/USDsui_MAT_cn.pdf",
     "started_at": "2026-07-26T10:59:25.773550+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:55:13.630614+00:00",
+    "updated_at": "2026-07-26T14:56:54.182919+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usdsui/1/zh.html"
   },
@@ -18649,7 +18679,7 @@
     "source_path": "Slide2/mat/PLTRX_MAT_en.pdf",
     "started_at": "2026-07-26T09:31:06.685006+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:56:02.126207+00:00",
+    "updated_at": "2026-07-26T14:57:40.696260+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/palantir-tokenized-stock-xstock/1/en.html"
   },
@@ -24463,7 +24493,7 @@
     "source_path": "Slide2/mat/MSFTX_MAT_ko.pdf",
     "started_at": "2026-07-26T13:53:06.311905+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:53:18.930989+00:00",
+    "updated_at": "2026-07-26T14:56:40.527188+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/microsoft-tokenized-stock-xstock/1/ko.html"
   },
@@ -26606,7 +26636,7 @@
     "source_path": "Slide2/mat/DOG_MAT_ko.pdf",
     "started_at": "2026-07-26T09:30:04.470577+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:55:54.851983+00:00",
+    "updated_at": "2026-07-26T14:57:32.953708+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/dog-go-to-the-moon-rune/1/ko.html"
   },
@@ -30326,7 +30356,7 @@
     "source_path": "Slide2/mat/MSFTX_MAT_en.pdf",
     "started_at": "2026-07-26T13:52:46.176112+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:52:56.553418+00:00",
+    "updated_at": "2026-07-26T14:56:37.086226+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/microsoft-tokenized-stock-xstock/1/en.html"
   },
@@ -33105,7 +33135,7 @@
     "source_path": "Slide2/mat/VX_MAT_ko.pdf",
     "started_at": "2026-07-26T07:19:39.201159+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:56:14.015688+00:00",
+    "updated_at": "2026-07-26T14:57:52.526356+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/visa-tokenized-stock-xstock/1/ko.html"
   },
@@ -37041,7 +37071,7 @@
     "source_path": "Slide2/mat/DOG_MAT_en.pdf",
     "started_at": "2026-07-26T09:29:49.454564+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:55:52.145453+00:00",
+    "updated_at": "2026-07-26T14:57:30.743305+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/dog-go-to-the-moon-rune/1/en.html"
   },
@@ -37355,7 +37385,7 @@
     "source_path": "Slide2/mat/RVN_MAT_jp.pdf",
     "started_at": "2026-07-26T07:20:23.537927+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:56:19.378259+00:00",
+    "updated_at": "2026-07-26T14:57:57.697464+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ravencoin/1/ja.html"
   },
@@ -39593,7 +39623,7 @@
     "source_path": "Slide2/mat/FIDD_MAT_ko.pdf",
     "started_at": "2026-07-26T09:28:56.692627+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:55:44.097111+00:00",
+    "updated_at": "2026-07-26T14:57:22.675026+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/fidelity-digital-dollar/1/ko.html"
   },
@@ -48432,6 +48462,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/zerebro/1/zh.html"
   },
+  "1YG8FjE5ZXL3j_4TbFFhA84e3PMOBhjAt": {
+    "error": null,
+    "finished_at": "2026-07-26T14:55:29.375932+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-26T13:49:31.000Z",
+    "name": "BANK_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 768.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/lorenzo-protocol/latest/zh.html",
+    "report_id": "e40a84ec-3007-466d-9e76-0df3f62348ed",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "lorenzo-protocol",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/BANK_MAT_cn.pdf",
+    "started_at": "2026-07-26T14:55:07.397422+00:00",
+    "status": "published",
+    "updated_at": "2026-07-26T14:55:29.375951+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/lorenzo-protocol/1/zh.html"
+  },
   "1YGAYOhcBPslVFDTeQ_jqY7bKvkmlGJaN": {
     "error": "unresolved (slug=? via filename_unresolved; lang=zh via filename)",
     "lang": "zh",
@@ -51112,7 +51172,7 @@
     "source_path": "Slide2/mat/VX_MAT_jp.pdf",
     "started_at": "2026-07-26T07:19:12.165343+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:56:09.633753+00:00",
+    "updated_at": "2026-07-26T14:57:47.965963+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/visa-tokenized-stock-xstock/1/ja.html"
   },
@@ -52829,7 +52889,7 @@
     "source_path": "Slide2/mat/VX_MAT_en.pdf",
     "started_at": "2026-07-26T07:19:21.915357+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:56:11.780565+00:00",
+    "updated_at": "2026-07-26T14:57:50.202358+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/visa-tokenized-stock-xstock/1/en.html"
   },
@@ -53109,7 +53169,7 @@
     "source_path": "Slide2/mat/VX_MAT_cn.pdf",
     "started_at": "2026-07-26T07:18:41.917445+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:56:07.220030+00:00",
+    "updated_at": "2026-07-26T14:57:45.770266+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/visa-tokenized-stock-xstock/1/zh.html"
   },
@@ -53685,6 +53745,36 @@
     "updated_at": "2026-05-30T18:54:30.998533+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/grass/1/ja.html"
+  },
+  "1amUYqhacfH6Vq8JGQjCjAimy-yCSEGRJ": {
+    "error": null,
+    "finished_at": "2026-07-26T14:56:07.045189+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-26T13:49:15.000Z",
+    "name": "BANK_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 768.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/lorenzo-protocol/latest/en.html",
+    "report_id": "be44296e-a264-46fe-947f-49575cec9d3d",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "lorenzo-protocol",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/BANK_MAT_en.pdf",
+    "started_at": "2026-07-26T14:55:56.340573+00:00",
+    "status": "published",
+    "updated_at": "2026-07-26T14:56:07.045207+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/lorenzo-protocol/1/en.html"
   },
   "1aqaGBKFKR04m_chHhU_G9QzzEByMP_sO": {
     "error": null,
@@ -55003,7 +55093,7 @@
     "source_path": "Slide2/mat/RVN_MAT_cn.pdf",
     "started_at": "2026-07-26T07:19:56.886062+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:56:16.840316+00:00",
+    "updated_at": "2026-07-26T14:57:54.888245+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ravencoin/1/zh.html"
   },
@@ -56324,7 +56414,7 @@
     "source_path": "Slide2/mat/USDsui_MAT_jp.pdf",
     "started_at": "2026-07-26T10:59:42.566529+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:55:16.377252+00:00",
+    "updated_at": "2026-07-26T14:56:56.896762+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usdsui/1/ja.html"
   },
@@ -57196,7 +57286,7 @@
     "source_path": "Slide2/mat/USDsui_MAT_ko.pdf",
     "started_at": "2026-07-26T11:00:00.743630+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:55:21.895774+00:00",
+    "updated_at": "2026-07-26T14:57:01.724940+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usdsui/1/ko.html"
   },
@@ -57583,7 +57673,7 @@
     "source_path": "Slide2/mat/DOG_MAT_cn.pdf",
     "started_at": "2026-07-26T09:29:12.110552+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:55:47.061989+00:00",
+    "updated_at": "2026-07-26T14:57:25.328616+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/dog-go-to-the-moon-rune/1/zh.html"
   },
@@ -59346,7 +59436,7 @@
     "source_path": "Slide2/mat/HOT_MAT_jp.pdf",
     "started_at": "2026-07-26T11:00:37.654676+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:55:27.767325+00:00",
+    "updated_at": "2026-07-26T14:57:06.932706+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/holo/1/ja.html"
   },
@@ -65665,7 +65755,7 @@
     "source_path": "Slide2/mat/PLTRX_MAT_ko.pdf",
     "started_at": "2026-07-26T09:31:24.731713+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:56:04.740693+00:00",
+    "updated_at": "2026-07-26T14:57:42.983207+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/palantir-tokenized-stock-xstock/1/ko.html"
   },
@@ -69263,7 +69353,7 @@
     "source_path": "Slide2/mat/FIDD_MAT_en.pdf",
     "started_at": "2026-07-26T09:28:36.045956+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:55:40.975670+00:00",
+    "updated_at": "2026-07-26T14:57:20.101174+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/fidelity-digital-dollar/1/en.html"
   },
@@ -69433,7 +69523,7 @@
     "source_path": "Slide2/mat/MSFTX_MAT_cn.pdf",
     "started_at": "2026-07-26T13:51:59.607351+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:52:20.395261+00:00",
+    "updated_at": "2026-07-26T14:56:31.966111+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/microsoft-tokenized-stock-xstock/1/zh.html"
   },
@@ -72346,7 +72436,7 @@
     "source_path": "Slide2/mat/HOT_MAT_cn.pdf",
     "started_at": "2026-07-26T11:00:20.084851+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:55:24.845052+00:00",
+    "updated_at": "2026-07-26T14:57:04.515051+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/holo/1/zh.html"
   },
@@ -80329,7 +80419,7 @@
     "source_path": "Slide2/mat/PLTRX_MAT_jp.pdf",
     "started_at": "2026-07-26T09:30:55.709901+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:55:59.736797+00:00",
+    "updated_at": "2026-07-26T14:57:37.833111+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/palantir-tokenized-stock-xstock/1/ja.html"
   },
@@ -80424,7 +80514,7 @@
     "source_path": "Slide2/mat/ASTAR_MAT_ko.pdf",
     "started_at": "2026-07-26T13:54:57.754897+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:55:09.855075+00:00",
+    "updated_at": "2026-07-26T14:56:51.841691+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/astar/1/ko.html"
   },
@@ -81126,6 +81216,36 @@
     "status": "language_mismatch",
     "updated_at": "2026-05-12T18:03:56.379346+00:00"
   },
+  "1uVT1gpDokMmra05Ce3oSCO_MpJoBvxox": {
+    "error": null,
+    "finished_at": "2026-07-26T14:55:54.667422+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-26T13:49:22.000Z",
+    "name": "BANK_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 768.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/lorenzo-protocol/latest/ja.html",
+    "report_id": "a779c81b-6422-497b-8289-38872024ee8a",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "lorenzo-protocol",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/BANK_MAT_jp.pdf",
+    "started_at": "2026-07-26T14:55:42.743446+00:00",
+    "status": "published",
+    "updated_at": "2026-07-26T14:55:54.667442+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/lorenzo-protocol/1/ja.html"
+  },
   "1uXKIITKOFsMI3vuTn9Ro_1fH5L8bE-61": {
     "error": null,
     "finished_at": "2026-07-17T08:41:35.428422+00:00",
@@ -81629,7 +81749,7 @@
     "source_path": "Slide2/mat/ASTAR_MAT_cn.pdf",
     "started_at": "2026-07-26T13:53:37.081227+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:53:53.023363+00:00",
+    "updated_at": "2026-07-26T14:56:43.551917+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/astar/1/zh.html"
   },
@@ -83598,7 +83718,7 @@
     "source_path": "Slide2/mat/DOG_MAT_jp.pdf",
     "started_at": "2026-07-26T09:29:40.999366+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:55:49.652848+00:00",
+    "updated_at": "2026-07-26T14:57:28.435040+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/dog-go-to-the-moon-rune/1/ja.html"
   },
@@ -84225,7 +84345,7 @@
     "source_path": "Slide2/mat/ASTAR_MAT_en.pdf",
     "started_at": "2026-07-26T13:54:26.300500+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:54:35.334580+00:00",
+    "updated_at": "2026-07-26T14:56:48.872796+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/astar/1/en.html"
   },
@@ -84495,7 +84615,7 @@
     "source_path": "Slide2/mat/USDsui_MAT_en.pdf",
     "started_at": "2026-07-26T10:59:48.779178+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:55:19.690829+00:00",
+    "updated_at": "2026-07-26T14:56:59.316196+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/usdsui/1/en.html"
   },
@@ -86375,7 +86495,7 @@
     "source_path": "Slide2/mat/RVN_MAT_en.pdf",
     "started_at": "2026-07-26T07:20:33.050209+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:56:21.691231+00:00",
+    "updated_at": "2026-07-26T14:57:59.822252+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ravencoin/1/en.html"
   },
@@ -86452,7 +86572,7 @@
     "source_path": "Slide2/mat/MSFTX_MAT_jp.pdf",
     "started_at": "2026-07-26T13:52:32.438179+00:00",
     "status": "published",
-    "updated_at": "2026-07-26T13:52:43.653671+00:00",
+    "updated_at": "2026-07-26T14:56:34.696957+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/microsoft-tokenized-stock-xstock/1/ja.html"
   },
