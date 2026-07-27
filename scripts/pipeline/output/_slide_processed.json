@@ -853,7 +853,7 @@
     "source_path": "Slide2/mat/Comedian(BAN)_MAT_cn.pdf",
     "started_at": "2026-07-27T11:48:42.055337+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T14:02:10.191763+00:00",
+    "updated_at": "2026-07-27T16:28:30.414453+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/comedian/1/zh.html"
   },
@@ -12526,7 +12526,7 @@
     "source_path": "Slide2/mat/Plume_MAT_en.pdf",
     "started_at": "2026-07-27T11:46:49.210191+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T14:01:50.772650+00:00",
+    "updated_at": "2026-07-27T16:28:13.327535+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/plume/1/en.html"
   },
@@ -14582,7 +14582,7 @@
     "source_path": "Slide2/mat/Comedian(BAN)_MAT_jp.pdf",
     "started_at": "2026-07-27T11:49:13.093233+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T14:02:12.790498+00:00",
+    "updated_at": "2026-07-27T16:28:32.795124+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/comedian/1/ja.html"
   },
@@ -18154,6 +18154,36 @@
     "updated_at": "2026-06-09T04:11:21.113941+00:00",
     "version": 3,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/tether/3/en.html"
+  },
+  "1C6-gEJbSIg9zdQdrDQU2_hLJlp5LdHyI": {
+    "error": null,
+    "finished_at": "2026-07-27T16:27:53.559126+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-27T14:52:14.000Z",
+    "name": "PGX_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/procter-gamble-tokenized-stock-xstock/latest/ko.html",
+    "report_id": "346db583-c7a5-438e-bfd7-3c53aa23ab03",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "procter-gamble-tokenized-stock-xstock",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/PGX_MAT_ko.pdf",
+    "started_at": "2026-07-27T16:27:44.114822+00:00",
+    "status": "published",
+    "updated_at": "2026-07-27T16:27:53.559139+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/procter-gamble-tokenized-stock-xstock/1/ko.html"
   },
   "1C7ELjnTeXyr26Zpr0zSSxQ3HrFpaiNQD": {
     "error": null,
@@ -22566,7 +22596,7 @@
     "source_path": "Slide2/mat/Plume_MAT_ko.pdf",
     "started_at": "2026-07-27T11:47:12.074178+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T14:01:53.275797+00:00",
+    "updated_at": "2026-07-27T16:28:17.276223+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/plume/1/ko.html"
   },
@@ -25929,7 +25959,7 @@
     "source_path": "Slide2/mat/MUX_MAT_cn.pdf",
     "started_at": "2026-07-27T11:50:04.926672+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T14:02:21.908865+00:00",
+    "updated_at": "2026-07-27T16:28:40.023769+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/micron-technology-tokenized-stock-xstock/1/zh.html"
   },
@@ -29697,7 +29727,7 @@
     "source_path": "Slide2/mat/Plume_MAT_jp.pdf",
     "started_at": "2026-07-27T11:46:35.946783+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T14:01:48.140816+00:00",
+    "updated_at": "2026-07-27T16:28:10.615980+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/plume/1/ja.html"
   },
@@ -31286,7 +31316,7 @@
     "source_path": "Slide2/mat/Plume_MAT_cn.pdf",
     "started_at": "2026-07-27T11:45:56.177156+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T14:01:45.326859+00:00",
+    "updated_at": "2026-07-27T16:28:07.445241+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/plume/1/zh.html"
   },
@@ -31746,7 +31776,7 @@
     "source_path": "Slide2/mat/GMX_MAT_cn.pdf",
     "started_at": "2026-07-27T14:00:15.048593+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T14:00:38.130306+00:00",
+    "updated_at": "2026-07-27T16:27:57.054528+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gmx/1/zh.html"
   },
@@ -35481,6 +35511,36 @@
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bitcoin-sv/2/en.html"
   },
+  "1NSBLifoiulE0LaluuO3lYIeArVBrMude": {
+    "error": null,
+    "finished_at": "2026-07-27T16:26:58.873043+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-27T14:52:28.000Z",
+    "name": "PGX_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/procter-gamble-tokenized-stock-xstock/latest/zh.html",
+    "report_id": "a1f4cd90-8185-4cd3-b08a-7ea74397dfd7",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "procter-gamble-tokenized-stock-xstock",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/PGX_MAT_cn.pdf",
+    "started_at": "2026-07-27T16:26:36.472569+00:00",
+    "status": "published",
+    "updated_at": "2026-07-27T16:26:58.873059+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/procter-gamble-tokenized-stock-xstock/1/zh.html"
+  },
   "1NSRi8ow79kLElwZeOs0ptVU4nnanSR-J": {
     "error": null,
     "finished_at": "2026-06-08T16:20:16.824977+00:00",
@@ -36918,7 +36978,7 @@
     "source_path": "Slide2/mat/Comedian(BAN)_MAT_en.pdf",
     "started_at": "2026-07-27T11:49:23.894050+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T14:02:16.133196+00:00",
+    "updated_at": "2026-07-27T16:28:35.018284+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/comedian/1/en.html"
   },
@@ -53133,7 +53193,7 @@
     "source_path": "Slide2/mat/PFEx_MAT_ko.pdf",
     "started_at": "2026-07-27T11:48:20.016819+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T14:02:07.146055+00:00",
+    "updated_at": "2026-07-27T16:28:27.428355+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/pfizer-tokenized-stock-xstock/1/ko.html"
   },
@@ -53223,7 +53283,7 @@
     "source_path": "Slide2/mat/MUX_MAT_ko.pdf",
     "started_at": "2026-07-27T11:51:02.568923+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T14:02:29.700070+00:00",
+    "updated_at": "2026-07-27T16:28:46.895094+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/micron-technology-tokenized-stock-xstock/1/ko.html"
   },
@@ -54431,7 +54491,7 @@
     "source_path": "Slide2/mat/PFEx_MAT_jp.pdf",
     "started_at": "2026-07-27T11:48:05.264648+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T14:02:04.321097+00:00",
+    "updated_at": "2026-07-27T16:28:25.027761+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/pfizer-tokenized-stock-xstock/1/ja.html"
   },
@@ -55479,7 +55539,7 @@
     "source_path": "Slide2/mat/GMX_MAT_ko.pdf",
     "started_at": "2026-07-27T14:01:28.250373+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T14:01:41.377013+00:00",
+    "updated_at": "2026-07-27T16:28:04.582791+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gmx/1/ko.html"
   },
@@ -60381,7 +60441,7 @@
     "source_path": "Slide2/mat/MUX_MAT_en.pdf",
     "started_at": "2026-07-27T11:50:45.332220+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T14:02:27.123890+00:00",
+    "updated_at": "2026-07-27T16:28:44.942852+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/micron-technology-tokenized-stock-xstock/1/en.html"
   },
@@ -62065,7 +62125,7 @@
     "source_path": "Slide2/mat/GMX_MAT_en.pdf",
     "started_at": "2026-07-27T14:00:39.690367+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T14:00:50.098670+00:00",
+    "updated_at": "2026-07-27T16:27:59.367289+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gmx/1/en.html"
   },
@@ -63412,7 +63472,7 @@
     "source_path": "Slide2/mat/PFEx_MAT_en.pdf",
     "started_at": "2026-07-27T11:47:46.582338+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T14:02:01.491730+00:00",
+    "updated_at": "2026-07-27T16:28:22.727560+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/pfizer-tokenized-stock-xstock/1/en.html"
   },
@@ -64666,7 +64726,7 @@
     "source_path": "Slide2/mat/MUX_MAT_jp.pdf",
     "started_at": "2026-07-27T11:50:32.721093+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T14:02:24.643275+00:00",
+    "updated_at": "2026-07-27T16:28:42.276965+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/micron-technology-tokenized-stock-xstock/1/ja.html"
   },
@@ -64779,6 +64839,36 @@
     "updated_at": "2026-06-25T17:28:23.703965+00:00",
     "version": null,
     "versioned_url": null
+  },
+  "1hs-RCpy1AAsZ26ikuBAX7IOhtNJGboYY": {
+    "error": null,
+    "finished_at": "2026-07-27T16:27:20.944496+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-27T14:52:24.000Z",
+    "name": "PGX_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/procter-gamble-tokenized-stock-xstock/latest/ja.html",
+    "report_id": "5bdf05d1-f691-4d82-a529-b93bf04db4c3",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "procter-gamble-tokenized-stock-xstock",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/PGX_MAT_jp.pdf",
+    "started_at": "2026-07-27T16:27:09.367540+00:00",
+    "status": "published",
+    "updated_at": "2026-07-27T16:27:20.944514+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/procter-gamble-tokenized-stock-xstock/1/ja.html"
   },
   "1hsM_17YumF1QF3lDmF39uZVLwdNFV0k_": {
     "error": null,
@@ -65219,6 +65309,36 @@
     "updated_at": "2026-06-13T15:11:26.211260+00:00",
     "version": null,
     "versioned_url": null
+  },
+  "1i87ttcStiQM5c-c7Haf-oYrqry8cHtUv": {
+    "error": null,
+    "finished_at": "2026-07-27T16:27:34.649222+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-27T14:52:20.000Z",
+    "name": "PGX_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/procter-gamble-tokenized-stock-xstock/latest/en.html",
+    "report_id": "18d56f4c-2906-4c42-8f8c-2e898766d830",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "procter-gamble-tokenized-stock-xstock",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/PGX_MAT_en.pdf",
+    "started_at": "2026-07-27T16:27:23.421925+00:00",
+    "status": "published",
+    "updated_at": "2026-07-27T16:27:34.649238+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/procter-gamble-tokenized-stock-xstock/1/en.html"
   },
   "1i8IsiV0o9GlsAAziu0OupqyXRLOjI7O3": {
     "error": null,
@@ -66694,7 +66814,7 @@
     "source_path": "Slide2/mat/GMX_MAT_jp.pdf",
     "started_at": "2026-07-27T14:01:04.014778+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T14:01:14.742584+00:00",
+    "updated_at": "2026-07-27T16:28:01.835347+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gmx/1/ja.html"
   },
@@ -78056,7 +78176,7 @@
     "source_path": "Slide2/mat/PFEx_MAT_cn.pdf",
     "started_at": "2026-07-27T11:47:28.124410+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T14:01:57.743627+00:00",
+    "updated_at": "2026-07-27T16:28:20.386112+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/pfizer-tokenized-stock-xstock/1/zh.html"
   },
@@ -79956,7 +80076,7 @@
     "source_path": "Slide2/mat/Comedian(BAN)_MAT_ko.pdf",
     "started_at": "2026-07-27T11:49:45.540856+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T14:02:18.434425+00:00",
+    "updated_at": "2026-07-27T16:28:37.523437+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/comedian/1/ko.html"
   },
