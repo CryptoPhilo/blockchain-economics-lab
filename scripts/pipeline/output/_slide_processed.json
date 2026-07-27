@@ -14984,7 +14984,7 @@
     "source_path": "Slide2/mat/JELLYJELLY_MAT_cn.pdf",
     "started_at": "2026-07-27T19:49:50.288882+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T22:04:18.624266+00:00",
+    "updated_at": "2026-07-27T23:19:03.214849+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/jelly-my-jelly/1/zh.html"
   },
@@ -18211,7 +18211,7 @@
     "source_path": "Slide2/mat/PGX_MAT_ko.pdf",
     "started_at": "2026-07-27T16:27:44.114822+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T22:04:36.289664+00:00",
+    "updated_at": "2026-07-27T23:19:22.159715+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/procter-gamble-tokenized-stock-xstock/1/ko.html"
   },
@@ -23366,6 +23366,36 @@
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bankr-coin/2/ko.html"
   },
+  "1FFo220OUlK8hjc78Lul7IXDnS_kSR0Bj": {
+    "error": null,
+    "finished_at": "2026-07-27T23:18:12.194738+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-27T21:06:59.000Z",
+    "name": "VVV_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777778649907954,
+      "height": 388.79998779296875,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 691.2000122070312
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/venice-token/latest/ja.html",
+    "report_id": "a9b0acd1-0997-4797-84fa-64a9f02543e2",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "venice-token",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/VVV_MAT_jp.pdf",
+    "started_at": "2026-07-27T23:17:58.668753+00:00",
+    "status": "published",
+    "updated_at": "2026-07-27T23:18:12.194758+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/venice-token/2/ja.html"
+  },
   "1FHqc3JUul7RutiY5UKKpA-6X2JHfGCGp": {
     "error": null,
     "finished_at": "2026-05-12T23:18:13.598719+00:00",
@@ -27826,7 +27856,7 @@
     "source_path": "Slide2/mat/JELLYJELLY_MAT_jp.pdf",
     "started_at": "2026-07-27T19:50:21.539946+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T22:04:21.282060+00:00",
+    "updated_at": "2026-07-27T23:19:06.498102+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/jelly-my-jelly/1/ja.html"
   },
@@ -31836,7 +31866,7 @@
     "source_path": "Slide2/mat/GMX_MAT_cn.pdf",
     "started_at": "2026-07-27T14:00:15.048593+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T22:04:38.550438+00:00",
+    "updated_at": "2026-07-27T23:19:24.584512+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gmx/1/zh.html"
   },
@@ -34551,6 +34581,36 @@
     "version": null,
     "versioned_url": null
   },
+  "1MXfu3Irz_VW3ZLJpeaN4yuwTaDpkdAHQ": {
+    "error": null,
+    "finished_at": "2026-07-27T23:17:50.448900+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-27T21:07:00.000Z",
+    "name": "VVV_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777778649907954,
+      "height": 388.79998779296875,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 691.2000122070312
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/venice-token/latest/zh.html",
+    "report_id": "9cf1cfcc-1620-4842-85cd-3cfb784e12a8",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "venice-token",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/VVV_MAT_cn.pdf",
+    "started_at": "2026-07-27T23:17:28.412570+00:00",
+    "status": "published",
+    "updated_at": "2026-07-27T23:17:50.448919+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/venice-token/2/zh.html"
+  },
   "1Maoa-ZzHO3M5Lm0U8Ch8JaIlvZqqLVUj": {
     "error": null,
     "finished_at": "2026-07-10T10:48:48.517329+00:00",
@@ -35597,7 +35657,7 @@
     "source_path": "Slide2/mat/PGX_MAT_cn.pdf",
     "started_at": "2026-07-27T16:26:36.472569+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T22:04:29.303259+00:00",
+    "updated_at": "2026-07-27T23:19:14.875680+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/procter-gamble-tokenized-stock-xstock/1/zh.html"
   },
@@ -39334,7 +39394,7 @@
     "source_path": "Slide2/mat/JELLYJELLY_MAT_en.pdf",
     "started_at": "2026-07-27T19:50:37.011313+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T22:04:23.936927+00:00",
+    "updated_at": "2026-07-27T23:19:09.064967+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/jelly-my-jelly/1/en.html"
   },
@@ -40039,6 +40099,36 @@
     "updated_at": "2026-05-17T18:01:07.216115+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/algorand/2/ko.html"
+  },
+  "1QlDXCpXN_o3wUC4-dR_qzbpNVUgAuUu4": {
+    "error": null,
+    "finished_at": "2026-07-27T23:16:46.150064+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-27T22:43:04.000Z",
+    "name": "KSM_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 768.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/kusama/latest/ja.html",
+    "report_id": "0c1cd22b-b61a-4a06-9f9a-9288b7a8ba50",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "kusama",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/KSM_MAT_jp.pdf",
+    "started_at": "2026-07-27T23:16:35.892958+00:00",
+    "status": "published",
+    "updated_at": "2026-07-27T23:16:46.150083+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/kusama/1/ja.html"
   },
   "1QnLjqsjehi1HzjU5e_G4XGckFbEho9Zk": {
     "error": null,
@@ -45179,6 +45269,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/maplestory-universe/1/ko.html"
   },
+  "1UeKwZQApEsme0V2LfIBSCiO2L-II59xW": {
+    "error": null,
+    "finished_at": "2026-07-27T23:18:25.437241+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-27T21:06:58.000Z",
+    "name": "VVV_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777778649907954,
+      "height": 388.79998779296875,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 691.2000122070312
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/venice-token/latest/en.html",
+    "report_id": "e575fab7-68ae-4725-a9ce-b67d3c4bc8e9",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "venice-token",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/VVV_MAT_en.pdf",
+    "started_at": "2026-07-27T23:18:13.581347+00:00",
+    "status": "published",
+    "updated_at": "2026-07-27T23:18:25.437260+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/venice-token/2/en.html"
+  },
   "1UfV66gqvznLpoKddzx_Dx-Vufdrpvw4g": {
     "error": null,
     "finished_at": "2026-07-10T23:51:39.993983+00:00",
@@ -47386,7 +47506,7 @@
     "source_path": "Slide2/mat/XPIN_MAT_en.pdf",
     "started_at": "2026-07-27T19:49:05.618551+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T22:04:13.490828+00:00",
+    "updated_at": "2026-07-27T23:18:57.294440+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/xpin-network/1/en.html"
   },
@@ -47571,6 +47691,36 @@
     "updated_at": "2026-06-05T13:30:45.117765+00:00",
     "version": null,
     "versioned_url": null
+  },
+  "1Wt7O4SkKxLbqw9XZTr5T2UzXfxGgrTQq": {
+    "error": null,
+    "finished_at": "2026-07-27T23:17:21.611634+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-27T22:43:01.000Z",
+    "name": "KSM_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 768.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/kusama/latest/ko.html",
+    "report_id": "7d8b3369-f520-4e1a-84c6-0f77b0c358ad",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "kusama",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/KSM_MAT_ko.pdf",
+    "started_at": "2026-07-27T23:17:10.831864+00:00",
+    "status": "published",
+    "updated_at": "2026-07-27T23:17:21.611652+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/kusama/1/ko.html"
   },
   "1WtCG3NJQPwNhqmQ0BtSgrZZ5c73Rbitc": {
     "error": null,
@@ -48643,6 +48793,36 @@
     "updated_at": "2026-05-17T17:58:27.070393+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/hyperliquid/2/ko.html"
+  },
+  "1XZsxEzyfN0-sXRIr4lqsSG6dsByn7Dng": {
+    "error": null,
+    "finished_at": "2026-07-27T23:16:58.714818+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-27T22:43:02.000Z",
+    "name": "KSM_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 768.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/kusama/latest/en.html",
+    "report_id": "62c834c7-3122-4811-a978-0e3aab8ac38b",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "kusama",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/KSM_MAT_en.pdf",
+    "started_at": "2026-07-27T23:16:47.611937+00:00",
+    "status": "published",
+    "updated_at": "2026-07-27T23:16:58.714853+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/kusama/1/en.html"
   },
   "1Xcaoi6PyBOilgm8F1EN758NNL8-LBhgm": {
     "error": "unresolved (slug=? via filename_unresolved; lang=zh via filename)",
@@ -55659,7 +55839,7 @@
     "source_path": "Slide2/mat/GMX_MAT_ko.pdf",
     "started_at": "2026-07-27T14:01:28.250373+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T22:04:45.552019+00:00",
+    "updated_at": "2026-07-27T23:19:31.639135+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gmx/1/ko.html"
   },
@@ -62245,7 +62425,7 @@
     "source_path": "Slide2/mat/GMX_MAT_en.pdf",
     "started_at": "2026-07-27T14:00:39.690367+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T22:04:40.846554+00:00",
+    "updated_at": "2026-07-27T23:19:26.981722+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gmx/1/en.html"
   },
@@ -62764,6 +62944,36 @@
     "updated_at": "2026-07-07T10:42:34.599917+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/magiceden/1/ja.html"
+  },
+  "1geoa04nYJMy3aAg3o3JLfq_RfWUrna6K": {
+    "error": null,
+    "finished_at": "2026-07-27T23:16:21.968515+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-27T22:43:06.000Z",
+    "name": "KSM_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 768.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/kusama/latest/zh.html",
+    "report_id": "6b32bfdf-5c16-4bc1-919a-79d8faf42437",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "kusama",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/KSM_MAT_cn.pdf",
+    "started_at": "2026-07-27T23:15:59.977797+00:00",
+    "status": "published",
+    "updated_at": "2026-07-27T23:16:21.968534+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/kusama/1/zh.html"
   },
   "1gg3-9U4ZJeK_LDjfHGE5jic890Dd-n5G": {
     "error": null,
@@ -64503,7 +64713,7 @@
     "source_path": "Slide2/mat/XPIN_MAT_cn.pdf",
     "started_at": "2026-07-27T19:48:02.185247+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T22:04:08.377647+00:00",
+    "updated_at": "2026-07-27T23:18:51.805079+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/xpin-network/1/zh.html"
   },
@@ -65016,7 +65226,7 @@
     "source_path": "Slide2/mat/PGX_MAT_jp.pdf",
     "started_at": "2026-07-27T16:27:09.367540+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T22:04:31.701105+00:00",
+    "updated_at": "2026-07-27T23:19:17.384171+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/procter-gamble-tokenized-stock-xstock/1/ja.html"
   },
@@ -65486,7 +65696,7 @@
     "source_path": "Slide2/mat/PGX_MAT_en.pdf",
     "started_at": "2026-07-27T16:27:23.421925+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T22:04:34.042928+00:00",
+    "updated_at": "2026-07-27T23:19:19.734686+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/procter-gamble-tokenized-stock-xstock/1/en.html"
   },
@@ -66964,7 +67174,7 @@
     "source_path": "Slide2/mat/GMX_MAT_jp.pdf",
     "started_at": "2026-07-27T14:01:04.014778+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T22:04:43.386406+00:00",
+    "updated_at": "2026-07-27T23:19:29.401909+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gmx/1/ja.html"
   },
@@ -77859,7 +78069,7 @@
     "source_path": "Slide2/mat/XPIN_MAT_jp.pdf",
     "started_at": "2026-07-27T19:48:36.621158+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T22:04:10.937063+00:00",
+    "updated_at": "2026-07-27T23:18:54.381971+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/xpin-network/1/ja.html"
   },
@@ -80059,7 +80269,7 @@
     "source_path": "Slide2/mat/XPIN_MAT_ko.pdf",
     "started_at": "2026-07-27T19:49:28.603386+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T22:04:15.930222+00:00",
+    "updated_at": "2026-07-27T23:19:00.249094+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/xpin-network/1/ko.html"
   },
@@ -82926,6 +83136,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/aioz-network/1/en.html"
   },
+  "1u_6j9Ye5OsvZzFycmtIdNSfkU9xxG16A": {
+    "error": null,
+    "finished_at": "2026-07-27T23:18:46.873553+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-27T21:06:57.000Z",
+    "name": "VVV_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777778649907954,
+      "height": 388.79998779296875,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 691.2000122070312
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/venice-token/latest/ko.html",
+    "report_id": "2fdc09fa-0e7a-424e-a21c-0beb2db11a14",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "venice-token",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/VVV_MAT_ko.pdf",
+    "started_at": "2026-07-27T23:18:34.858171+00:00",
+    "status": "published",
+    "updated_at": "2026-07-27T23:18:46.873573+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/venice-token/2/ko.html"
+  },
   "1u_c9MBb3puBP0VQh-mlNnTd0FG8UlU99": {
     "error": null,
     "finished_at": "2026-06-28T15:54:46.915771+00:00",
@@ -84614,7 +84854,7 @@
     "source_path": "Slide2/mat/JELLYJELLY_MAT_ko.pdf",
     "started_at": "2026-07-27T19:50:57.373928+00:00",
     "status": "published",
-    "updated_at": "2026-07-27T22:04:26.913389+00:00",
+    "updated_at": "2026-07-27T23:19:12.227446+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/jelly-my-jelly/1/ko.html"
   },
