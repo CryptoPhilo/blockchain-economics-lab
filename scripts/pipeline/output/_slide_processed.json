@@ -1324,6 +1324,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/xpin-network/1/zh.html"
   },
+  "1-phgPsZNHkBNw7f8JomCSGxGqVMnwzi5": {
+    "error": null,
+    "finished_at": "2026-07-28T17:03:11.638702+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-28T15:19:57.000Z",
+    "name": "CCD_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 768.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/concordium/latest/zh.html",
+    "report_id": "6fe9bf0d-952d-4557-9b52-2f65a14b9ade",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "concordium",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/CCD_MAT_cn.pdf",
+    "started_at": "2026-07-28T17:03:03.357690+00:00",
+    "status": "published",
+    "updated_at": "2026-07-28T17:03:11.638721+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/concordium/2/zh.html"
+  },
   "1-qGOlORnnJJQJOoZ-VEy3FhGYlORDlll": {
     "error": null,
     "finished_at": "2026-06-09T19:04:46.585417+00:00",
@@ -2206,7 +2236,7 @@
     "source_path": "Slide2/econ/DGB_ECON_ko.pdf",
     "started_at": "2026-07-28T09:06:45.999653+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T15:31:20.592186+00:00",
+    "updated_at": "2026-07-28T17:02:53.362118+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/digibyte/2/ko.html"
   },
@@ -7211,7 +7241,7 @@
     "source_path": "Slide2/mat/HTX_MAT_en.pdf",
     "started_at": "2026-07-28T15:32:24.940768+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T15:32:30.677870+00:00",
+    "updated_at": "2026-07-28T17:04:01.224000+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/htx-dao/2/en.html"
   },
@@ -8616,7 +8646,7 @@
     "source_path": "Slide2/mat/HTX_MAT_cn.pdf",
     "started_at": "2026-07-28T15:31:34.928122+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T15:31:57.260475+00:00",
+    "updated_at": "2026-07-28T17:03:57.740992+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/htx-dao/2/zh.html"
   },
@@ -11660,7 +11690,7 @@
     "source_path": "Slide2/for/EUL_FOR_cn.pdf",
     "started_at": "2026-07-28T09:09:33.996281+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T15:33:04.248890+00:00",
+    "updated_at": "2026-07-28T17:04:12.908126+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/euler-finance/2/zh.html"
   },
@@ -12992,7 +13022,7 @@
     "source_path": "Slide2/for/EUL_FOR_ko.pdf",
     "started_at": "2026-07-28T09:10:51.501557+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T15:33:07.297943+00:00",
+    "updated_at": "2026-07-28T17:04:16.499974+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/euler-finance/2/ko.html"
   },
@@ -15280,7 +15310,7 @@
     "source_path": "Slide2/mat/Vanguard Total World xStock(VTx)_MAT_ko.pdf",
     "started_at": "2026-07-28T09:08:09.992274+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T15:33:00.834996+00:00",
+    "updated_at": "2026-07-28T17:04:09.445227+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/vanguard-total-world-tokenised-etf-xstock/1/ko.html"
   },
@@ -18382,7 +18412,7 @@
     "source_path": "Slide2/econ/RPL_ECON_cn.pdf",
     "started_at": "2026-07-28T09:04:33.081020+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T15:31:15.054680+00:00",
+    "updated_at": "2026-07-28T17:02:47.307116+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/rocket-pool/2/zh.html"
   },
@@ -20864,7 +20894,7 @@
     "source_path": "Slide2/mat/Vanguard Total World xStock(VTx)_MAT_jp.pdf",
     "started_at": "2026-07-28T09:07:40.280981+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T15:32:58.772687+00:00",
+    "updated_at": "2026-07-28T17:04:07.530323+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/vanguard-total-world-tokenised-etf-xstock/1/ja.html"
   },
@@ -21894,6 +21924,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/conflux-network/1/ko.html"
   },
+  "1EBDfnW2rYOUhWfY5lDPYampqWCd3c5ee": {
+    "error": null,
+    "finished_at": "2026-07-28T17:03:42.002426+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-28T15:19:55.000Z",
+    "name": "CCD_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 768.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/concordium/latest/en.html",
+    "report_id": "4aa1c112-58d8-434f-b6a5-e0a847cb9610",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "concordium",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/CCD_MAT_en.pdf",
+    "started_at": "2026-07-28T17:03:35.316958+00:00",
+    "status": "published",
+    "updated_at": "2026-07-28T17:03:42.002444+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/concordium/2/en.html"
+  },
   "1EBcQiNbTGMogHqovQTc9gwBvrEcALRcM": {
     "error": null,
     "finished_at": "2026-07-23T09:48:32.560187+00:00",
@@ -22090,7 +22150,7 @@
     "source_path": "Slide2/for/EUL_FOR_en.pdf",
     "started_at": "2026-07-28T09:10:24.774615+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T15:33:06.301001+00:00",
+    "updated_at": "2026-07-28T17:04:15.298190+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/euler-finance/2/en.html"
   },
@@ -22832,7 +22892,7 @@
     "source_path": "Slide2/econ/RPL_ECON_jp.pdf",
     "started_at": "2026-07-28T09:05:02.597816+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T15:31:16.121132+00:00",
+    "updated_at": "2026-07-28T17:02:48.446043+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/rocket-pool/2/ja.html"
   },
@@ -23094,7 +23154,7 @@
     "source_path": "Slide2/mat/Vanguard Total World xStock(VTx)_MAT_en.pdf",
     "started_at": "2026-07-28T09:06:55.700829+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T15:32:56.401031+00:00",
+    "updated_at": "2026-07-28T17:04:05.408217+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/vanguard-total-world-tokenised-etf-xstock/1/en.html"
   },
@@ -23264,7 +23324,7 @@
     "source_path": "Slide2/econ/DGB_ECON_jp.pdf",
     "started_at": "2026-07-28T09:06:15.392805+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T15:31:19.141801+00:00",
+    "updated_at": "2026-07-28T17:02:51.761749+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/digibyte/2/ja.html"
   },
@@ -24078,6 +24138,36 @@
     "updated_at": "2026-06-09T14:14:39.026206+00:00",
     "version": null,
     "versioned_url": null
+  },
+  "1FTshAuZXn0YBbw0L7HuB-3IyWyXYF8sO": {
+    "error": null,
+    "finished_at": "2026-07-28T17:03:55.905280+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-28T15:19:54.000Z",
+    "name": "CCD_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 768.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/concordium/latest/ko.html",
+    "report_id": "3b0f61a1-051b-485b-b873-35aae895ab3a",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "concordium",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/CCD_MAT_ko.pdf",
+    "started_at": "2026-07-28T17:03:49.686403+00:00",
+    "status": "published",
+    "updated_at": "2026-07-28T17:03:55.905296+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/concordium/2/ko.html"
   },
   "1FUJ1EYdiPmLmf67uQEOo0VZPEd3o0GCr": {
     "error": null,
@@ -32332,7 +32422,7 @@
     "source_path": "Slide2/econ/RPL_ECON_ko.pdf",
     "started_at": "2026-07-28T09:05:32.722694+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T15:31:17.586578+00:00",
+    "updated_at": "2026-07-28T17:02:50.119390+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/rocket-pool/2/ko.html"
   },
@@ -50184,7 +50274,7 @@
     "source_path": "Slide2/mat/HTX_MAT_ko.pdf",
     "started_at": "2026-07-28T15:32:44.343684+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T15:32:53.294401+00:00",
+    "updated_at": "2026-07-28T17:04:02.975775+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/htx-dao/2/ko.html"
   },
@@ -53703,7 +53793,7 @@
     "source_path": "Slide2/econ/DGB_ECON_cn.pdf",
     "started_at": "2026-07-28T09:05:50.768476+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T15:31:18.422164+00:00",
+    "updated_at": "2026-07-28T17:02:50.933532+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/digibyte/2/zh.html"
   },
@@ -61811,7 +61901,7 @@
     "source_path": "Slide2/for/EUL_FOR_jp.pdf",
     "started_at": "2026-07-28T09:10:10.647618+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T15:33:05.298556+00:00",
+    "updated_at": "2026-07-28T17:04:14.124297+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/euler-finance/2/ja.html"
   },
@@ -64919,7 +65009,7 @@
     "source_path": "Slide2/mat/Vanguard Total World xStock(VTx)_MAT_cn.pdf",
     "started_at": "2026-07-28T09:08:42.158229+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T15:33:02.896909+00:00",
+    "updated_at": "2026-07-28T17:04:11.363648+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/vanguard-total-world-tokenised-etf-xstock/1/zh.html"
   },
@@ -67153,7 +67243,7 @@
     "source_path": "Slide2/econ/RPL_ECON_en.pdf",
     "started_at": "2026-07-28T09:05:15.772122+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T15:31:16.842240+00:00",
+    "updated_at": "2026-07-28T17:02:49.247275+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/rocket-pool/2/en.html"
   },
@@ -70238,7 +70328,7 @@
     "source_path": "Slide2/mat/HTX_MAT_jp.pdf",
     "started_at": "2026-07-28T15:32:15.662967+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T15:32:23.776278+00:00",
+    "updated_at": "2026-07-28T17:03:59.556527+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/htx-dao/2/ja.html"
   },
@@ -73208,7 +73298,7 @@
     "source_path": "Slide2/econ/DGB_ECON_en.pdf",
     "started_at": "2026-07-28T09:06:29.155015+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T15:31:19.877218+00:00",
+    "updated_at": "2026-07-28T17:02:52.571815+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/digibyte/2/en.html"
   },
@@ -75805,6 +75895,36 @@
     "updated_at": "2026-07-19T17:13:17.071176+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/berkshire-hathaway-tokenized-stock-xstock/1/en.html"
+  },
+  "1pF3nt2k8HKqBCrD9gvqlhgeg1iw0-mqs": {
+    "error": null,
+    "finished_at": "2026-07-28T17:03:33.392762+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-28T15:19:56.000Z",
+    "name": "CCD_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 768.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/concordium/latest/ja.html",
+    "report_id": "9c0d1aa4-3c03-47db-b7f8-e6bef745b881",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "concordium",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/CCD_MAT_jp.pdf",
+    "started_at": "2026-07-28T17:03:23.523641+00:00",
+    "status": "published",
+    "updated_at": "2026-07-28T17:03:33.392781+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/concordium/2/ja.html"
   },
   "1pHKBh3dxrPqRP5vn5WWCVTilDciIWVZr": {
     "error": null,
