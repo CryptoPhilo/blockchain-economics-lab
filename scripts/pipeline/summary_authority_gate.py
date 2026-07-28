@@ -267,6 +267,7 @@ def promote_job_atomically(
     *,
     actor: str,
     authority_mode: str,
+    expected_project_report_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     response = sb.rpc(
         "promote_report_summary_job",
@@ -291,6 +292,11 @@ def promote_job_atomically(
             "authority_state": result.get("authority_state"),
             "promoted_project_report_id": result.get("project_report_id"),
         })
+    if expected_project_report_id and result.get("project_report_id") != expected_project_report_id:
+        raise GateError(
+            "promotion RPC returned mismatched project_report_id: "
+            f"expected {expected_project_report_id}, got {result.get('project_report_id')}"
+        )
     return result
 
 
@@ -340,8 +346,16 @@ def promote_job(
         target = find_target_report(sb, job)
         build_project_report_update(job, target)
         return GateDecision("promote", "promoted", False, "dry-run promotion would call atomic DB RPC", target["id"])
+    target = find_target_report(sb, job)
+    build_project_report_update(job, target)
     try:
-        result = promote_job_atomically(sb, job, actor=actor, authority_mode=authority_mode)
+        result = promote_job_atomically(
+            sb,
+            job,
+            actor=actor,
+            authority_mode=authority_mode,
+            expected_project_report_id=target["id"],
+        )
     except Exception as exc:
         message = str(exc)
         if "active promotion lock exists" in message:

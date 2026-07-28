@@ -1,4 +1,5 @@
 import importlib.util
+import re
 import sys
 from pathlib import Path
 
@@ -215,7 +216,16 @@ class FakeSupabase:
                 "language": "en",
                 "status": "published",
                 "card_data": {"legacy_en": True},
-            }
+            },
+            "report-3": {
+                "id": "report-3",
+                "project_id": "project-1",
+                "report_type": "econ",
+                "version": 2,
+                "language": "ko",
+                "status": "published",
+                "card_data": {"legacy_v2": True},
+            },
         }
         self.active_locks = set()
         self.fail_rpc = None
@@ -354,3 +364,30 @@ def test_atomic_promotion_failure_does_not_leave_pending_or_project_update():
     assert sb.jobs["job-1"]["authority_state"] == "validation_passed"
     assert "card_summary_ko" not in sb.reports["report-1"]
     assert not any(op[0] == "report_summary_jobs" and op[1] == "update" for op in sb.operations)
+
+
+def test_llm_active_rejects_rpc_target_version_mismatch():
+    module = load_gate()
+    job = valid_job()
+    job["candidate_patch"]["card_data"]["source_md"]["version"] = 2
+    sb = FakeSupabase(job)
+
+    with pytest.raises(module.GateError, match="mismatched project_report_id"):
+        module.promote_job(sb, sb.jobs["job-1"], actor="agent", authority_mode="llm_active", dry_run=False)
+
+    assert sb.jobs["job-1"]["authority_state"] == "promoted"
+    assert sb.jobs["job-1"]["promoted_project_report_id"] == "report-1"
+    assert sb.reports["report-3"]["card_data"]["legacy_v2"] is True
+
+
+def test_summary_authority_rpc_migration_is_version_scoped():
+    migration = (
+        Path(__file__).resolve().parents[2]
+        / "supabase"
+        / "migrations"
+        / "20260728083000_redeploy_summary_authority_gate_version_scope.sql"
+    ).read_text()
+
+    assert "v_candidate_version := NULLIF(v_job.candidate_patch #>> '{card_data,source_md,version}', '')::integer;" in migration
+    assert len(re.findall(r"AND \(v_candidate_version IS NULL OR version = v_candidate_version\)", migration)) == 2
+    assert "updated_project_report_count" in migration

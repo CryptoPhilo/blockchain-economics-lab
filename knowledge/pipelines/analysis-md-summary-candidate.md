@@ -6,6 +6,1195 @@ Owner: DataPlatformEngineer
 Status: candidate
 Last reconciliation: 2026-06-28
 
+## Production Promotion Log
+
+### BCE-2942 Summary Authority Gate RPC Version Scope Fix (2026-07-28 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `27e9d64` before this fix.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Recurrence/current-state check:
+  [BCE-2940](/BCE/issues/BCE-2940) already identified the production symptom:
+  deployed `promote_report_summary_job` updated the latest language siblings
+  during `theta-fuel/maturity` v1/v2 promotion, while the repository gate and
+  intended migration scope the target by
+  `candidate_patch.card_data.source_md.version`.
+- Code fix:
+  added `supabase/migrations/20260728083000_redeploy_summary_authority_gate_version_scope.sql`
+  to re-apply `promote_report_summary_job` with the same-version predicate in
+  both the KO target lookup and all-language sibling update. The function audit
+  and return payload now include `candidate_version`.
+- Guard/test fix:
+  `scripts/pipeline/summary_authority_gate.py` verifies that the RPC returned
+  the same `project_report_id` as the local version-scoped target resolver.
+  `scripts/pipeline/test_summary_authority_gate.py` covers stale-RPC mismatch
+  detection and asserts the redeploy migration keeps both SQL predicates
+  version-scoped.
+- Verification:
+  `python3 -m pytest scripts/pipeline/test_summary_authority_gate.py` passed
+  with 9 tests.
+- Deployment/cache implication:
+  this is a database function redeploy, not a website cache/content update.
+  Production smoke should confirm same slug/type multi-version promotion leaves
+  non-candidate versions untouched after the migration workflow applies.
+- Manifest change:
+  no manifest change needed. The existing manifest already models the
+  `summary_authority_gate` promotion boundary.
+- Pipeline state wiki:
+  updated in this entry because this task changes the executable promotion
+  boundary used by production summary authority.
+
+### BCE-2940 CRO New Published Source-Matched Summary Promotion (2026-07-28 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `27e9d64`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  [BCE-2940](/BCE/issues/BCE-2940)는 critical `in_progress` CRO task였고,
+  harness가 이미 checkout한 상태였으므로 중복 checkout 없이 진행했다.
+  신규 pending comment는 없었다.
+- Scope:
+  `scripts/pipeline/output/cro_new_report_summary_authority_audit_2026-07-28T072926442Z.json`
+  기준 2026-07-24T11:02:52.135Z 이후 신규
+  `published + source_matched` 후보 41개를 대상으로, 비
+  `llm_active` 요약을 CRO 로컬 Paperclip 경로로 생성/검증/승격했다.
+- Pipeline execution:
+  - Candidate ingest:
+    `scripts/pipeline/analysis_md_summary_candidate.py` with
+    `--agent-output-json --require-agent-output --force`.
+  - Summary Authority Gate:
+    `scripts/pipeline/summary_authority_gate.py --authority-mode llm_active --write`.
+  - Local CRO source copies:
+    `scripts/pipeline/output/bce-2940_sources/`.
+  - CRO JSON artifacts:
+    `scripts/pipeline/output/paperclip_cro_summary_*_bce2940.json`.
+  - Ingest logs:
+    `scripts/pipeline/output/bce-2940_ingest_*`.
+  - Gate logs:
+    `scripts/pipeline/output/bce-2940_gate_*`.
+- Processed/promoted:
+  all 41 input candidates reached website-visible `llm_active` authority:
+  `digibyte/econ/v1`, `euler-finance/forensic/v2`,
+  `theta-fuel/maturity/v1-v3`, `kusama/maturity/v1`,
+  `venice-token/maturity/v2`, `xpin-network/maturity/v1`,
+  `jelly-my-jelly/maturity/v1`,
+  `procter-gamble-tokenized-stock-xstock/maturity/v1`,
+  `gmx/maturity/v1`, `pfizer-tokenized-stock-xstock/maturity/v1`,
+  `comedian/maturity/v1`, `plume/maturity/v1`,
+  `micron-technology-tokenized-stock-xstock/maturity/v1`,
+  `goldman-sachs-tokenized-stock-xstock/maturity/v1`,
+  `venus-busd/maturity/v1`, `venice-ai/maturity/v1`,
+  `astrazeneca-tokenized-stock-xstock/maturity/v1`,
+  `real-finance/maturity/v1`, `iren-tokenized-stock-xstock/maturity/v1`,
+  `derive/econ/v2`, `derive/econ/v1`,
+  `ast-spacemobile-tokenized-stock-xstock/maturity/v1`,
+  `chainopera-ai/maturity/v1`,
+  `abbvie-tokenized-stock-xstock/maturity/v1`,
+  `lorenzo-protocol/maturity/v1`,
+  `microsoft-tokenized-stock-xstock/maturity/v1`,
+  `astar/maturity/v1`, `holo/maturity/v1`, `usdsui/maturity/v1`,
+  `fidelity-digital-dollar/maturity/v1`,
+  `palantir-tokenized-stock-xstock/maturity/v1`,
+  `dog-go-to-the-moon-rune/maturity/v1`,
+  `visa-tokenized-stock-xstock/maturity/v1`,
+  `ravencoin/maturity/v1`,
+  `ishares-semiconductor-tokenized-etf-xstock/maturity/v1`,
+  `unitedhealth-tokenized-stock-xstock/maturity/v1`,
+  `microsoft-tokenized-stock-xstock/econ/v1`, and
+  `micron-technology-tokenized-stock-xstock/econ/v1`.
+- Special handling:
+  - `quantixai/maturity/v1` was already `llm_active` from
+    [BCE-2939](/BCE/issues/BCE-2939) during this task window and remained
+    complete in the final audit.
+  - `jelly-my-jelly/maturity/v1` required a corrected display string
+    (`Jelly My Jelly`) because hyphen-heavy display text triggered the card
+    raw-format validator.
+  - `theta-fuel/maturity` v1/v2/v3 exposed a deployed
+    `promote_report_summary_job` RPC/version-boundary mismatch: the repository
+    gate code reads `candidate_patch.card_data.source_md.version`, but the
+    production RPC updated the latest language siblings instead of the intended
+    older versions. The three Theta Fuel versions were repaired with explicit
+    version-scoped `project_reports` updates from already validated candidate
+    jobs, and their job audit records note the repair reason.
+- Final verification:
+  `scripts/pipeline/output/bce-2940_final_authority_audit.json` reports
+  `candidate_count=41`, `complete_count=41`, `remaining_count=0`.
+- Deployment/cache implication:
+  code deploy was not required for content publication. Supabase
+  `project_reports` rows were updated directly; website-visible content should
+  reflect the DB rows subject to application cache/revalidation behavior.
+- Manifest change:
+  no manifest change needed. The existing manifest already models the
+  `analysis-md-summary-candidate` candidate and `llm_active` Summary Authority
+  Gate promotion boundary.
+- Pipeline state wiki:
+  updated in this entry because this task changed production publication state
+  and identified a deployed RPC/version-boundary mismatch to consider for a
+  follow-up engineering fix.
+
+### BCE-2939 CRO Analysis MD Summary JSON Ingestion Routine Promotion (2026-07-28 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `27e9d64`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  [BCE-2939](/BCE/issues/BCE-2939)는 critical `in_progress` CRO routine
+  ingestion task였고, harness가 이미 checkout한 상태였으므로 중복 checkout
+  없이 현재 run에서 계속 진행했다. 신규 pending comment는 없었다.
+- Recurrence/current-state check:
+  [BCE-2938](/BCE/issues/BCE-2938)의
+  `pfizer-tokenized-stock-xstock/econ` promotion 이후 같은
+  워크스페이스/SHA에서 Drive revision-aware metadata와 Supabase promoted
+  상태를 다시 조회했다. 전체 Drive analysis Markdown 후보를 새로 스캔해
+  이미 promoted 된 source identity를 제외했고, 현재 최신
+  targetable/unpromoted 후보를 선별했다.
+- Selected source under limit=1:
+  - Drive source:
+    `quantixai_mat_v1_ko.md`
+  - Source identity:
+    `drive:1RkwD-cJKcH0Sevin-TQ_gyfNrwUfxTbI:0B8HYgThT3NByNHRkRWE3NnRWWmowcDVXRDdQaGl3RFZIQkRnPQ`
+  - Drive modified time:
+    `2026-07-26T03:51:34.000Z`
+  - Source SHA-256:
+    `7edab3d2d7d98858b9b6ae8a97e4591ef5bbbc6846b70d8743c93d1b46180b5c`
+  - Target:
+    `quantixai` maturity KO v1, promoted `project_report_id`
+    `387a2500-aef5-447e-bb4c-3457e70b4954`.
+- Agent JSON and ingest:
+  - Local CRO/Paperclip JSON:
+    `scripts/pipeline/output/paperclip_cro_summary_mat_quantixai_bce2939.json`
+  - Source copy:
+    `scripts/pipeline/output/paperclip_cro_source_mat_quantixai_bce2939.md`
+  - Ingest command:
+    `python3 scripts/pipeline/analysis_md_summary_candidate.py --type mat --slug quantixai --drive-root-scope all --agent-output-json scripts/pipeline/output/paperclip_cro_summary_mat_quantixai_bce2939.json --require-agent-output --limit 1 --force`
+  - Ingest result:
+    valid, `write=updated_existing`, `job_id`
+    `addecc33-f141-44b8-95f0-7f4dfc6e8122`.
+  - Note:
+    the first ingest attempt inserted the same job with validator reasons
+    caused by card-format fragments; the CRO JSON was corrected and the same
+    idempotency key was force-updated to `validation_status=valid` with
+    validator errors `[]`.
+  - Ingest artifact:
+    `scripts/pipeline/output/analysis_md_summary_candidate_mat_quantixai.json`.
+- Summary Authority Gate publication:
+  - Command:
+    `python3 scripts/pipeline/summary_authority_gate.py --job-id addecc33-f141-44b8-95f0-7f4dfc6e8122 --authority-mode llm_active --actor "paperclip-routine:CRO:0e410cd5-cfd5-410b-9dc5-632f8a669e0f" --write`
+  - Gate decision:
+    `action=promote`, `state=promoted`, `wrote_project_report=true`,
+    `project_report_id=387a2500-aef5-447e-bb4c-3457e70b4954`.
+- Verification:
+  - `report_summary_jobs.authority_state=promoted`
+  - `report_summary_jobs.authority_mode=llm_active`
+  - `report_summary_jobs.validation_status=valid`
+  - validator warnings/errors: `[]`
+  - `promoted_project_report_id=387a2500-aef5-447e-bb4c-3457e70b4954`
+  - `project_reports.card_data.summary_authority.job_id`
+    matches `addecc33-f141-44b8-95f0-7f4dfc6e8122`.
+  - `project_reports.card_data.source_md.source_identity` matches the job
+    source identity.
+  - Promoted `report_summary_jobs` counts after publication:
+    `econ=341`, `maturity=501`, `forensic=76`.
+  - Website-visible KO `project_reports` rows after publication: `1000`.
+- Artifacts:
+  - `scripts/pipeline/output/bce-2939_drive_targetable_probe.json`
+  - `scripts/pipeline/output/paperclip_cro_source_mat_quantixai_bce2939.md`
+  - `scripts/pipeline/output/paperclip_cro_summary_mat_quantixai_bce2939.json`
+  - `scripts/pipeline/output/bce-2939_ingest_quantixai_mat.log`
+  - `scripts/pipeline/output/bce-2939_gate_quantixai_mat.log`
+  - `scripts/pipeline/output/bce-2939_publication_verification.json`
+- Deployment/cache implication:
+  code deploy was not required. Summary Authority Gate `--write` updated
+  Supabase `project_reports` directly; website-visible content should reflect
+  the DB row subject to application cache/revalidation behavior.
+- Manifest change:
+  no manifest change needed. The existing manifest already models the
+  `analysis-md-summary-candidate` candidate and `llm_active` Summary Authority
+  Gate promotion boundary.
+- Pipeline state wiki:
+  updated in this entry because the routine made a production publication
+  decision and wrote website-visible summary fields.
+
+### BCE-2928 CRO Summary Backfill Continuation Resume 9 (2026-07-24 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `27e9d64`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  보드는 [BCE-2928](/BCE/issues/BCE-2928)에서 직전 run
+  `265cc73f-d469-4fdf-a518-4fc701a011c7`이 succeeded로
+  `astrazeneca-tokenized-stock-xstock/econ` v2, `vana/maturity` v2,
+  `bsquared-network/maturity` v2, `victoria-vr/maturity` v2를
+  `llm_active`로 promote했다고 확인했다. 최신 audit는
+  `complete=35`, `pending=34`였고, 표시상 next pending인
+  `amber-tokenized-stock-xstock/maturity` v2는 이미 job/promote가 있는
+  KO-only row라 반복하지 말고 `mastercard-tokenized-stock-xstock/econ` v2부터
+  source-matched published 후보를 계속 소진하라고 지시했다. 기존 제외
+  조건인 FOR `coming_soon`, `payprotocol/econ`, `aivive/econ` 제외는
+  유지했다.
+- Current continuation processed targets:
+  - `mastercard-tokenized-stock-xstock/econ` v2, Drive file id
+    `1w0S-89EsLhBZbqyNTHSY0OuBMdialQbA`.
+    - Source identity:
+      `drive:1w0S-89EsLhBZbqyNTHSY0OuBMdialQbA:0B8HYgThT3NByaHJ2ZjRLK3ZybEVIZzRHK05jUjRqZG9vWUNZPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_econ_mastercard-tokenized-stock-xstock_bce2928.json`.
+    - Candidate job:
+      `14790b45-8080-477f-9471-8b27676a0e42`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=2a0052c6-8db3-4126-ae6c-b032d5920b87`.
+  - `home-depot-tokenized-stock-xstock/econ` v2, Drive file id
+    `1dmom1Yg920uVYFY_B-LSIwH9uHkbiE6T`.
+    - Source identity:
+      `drive:1dmom1Yg920uVYFY_B-LSIwH9uHkbiE6T:0B8HYgThT3NByOVFpeFB1ZThlSTJNRXNnOXU3czVTbzBJS01VPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_econ_home-depot-tokenized-stock-xstock_bce2928.json`.
+    - Candidate job:
+      `a25f0e35-1e6d-4d40-a764-2d71fa02ae73`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=73476f75-3cee-4d27-bce3-af28b545c39f`.
+  - `real-finance/econ` v1, Drive file id
+    `1eR6g1UF2DwlF0yG8m_LuYH0Fi-4QZFAk`.
+    - Source identity:
+      `drive:1eR6g1UF2DwlF0yG8m_LuYH0Fi-4QZFAk:0B8HYgThT3NByRUtqZXZ4Tmg1WHpKK05iWCs2WUhzcEgvUWpnPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_econ_real-finance_bce2928.json`.
+    - Candidate job:
+      `0e263131-fca1-4a27-804b-68165653c9da`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=60b183a1-bf91-46d3-a9cd-f095110e3b16`.
+  - `gemini-dollar/econ` v1, Drive file id
+    `11T-oVcRoecvKcN_2hdVUmbhmN0PuHtDA`.
+    - Source identity:
+      `drive:11T-oVcRoecvKcN_2hdVUmbhmN0PuHtDA:0B8HYgThT3NBySjgwY2JQSGlHSTlFUHduYXFuOUpYL1M4WFFrPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_econ_gemini-dollar_bce2928.json`.
+    - Candidate job:
+      `cc9daf7d-6c2a-4564-8d40-bca237af425c`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=0e2bc1e5-53e2-4078-bbac-65d969497098`.
+  - `gemini-dollar/maturity` v1, Drive file id
+    `1BE_PUHHlR1QoT-TMFnpCpDAdrBWcGtio`.
+    - Source identity:
+      `drive:1BE_PUHHlR1QoT-TMFnpCpDAdrBWcGtio:0B8HYgThT3NByWjJ1OG1sM3QvbUlxNjBkYjBLZjBFTVRMYW1vPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_mat_gemini-dollar_bce2928.json`.
+    - Candidate job:
+      `1793aed0-658d-45c2-af51-4706b29ba3e8`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=c6e78167-7720-4fde-844c-af2ef88c6a44`.
+- Post-write compact audit:
+  - Artifact:
+    `scripts/pipeline/output/bce-2928_full_scope_audit_compact_after_gemini-dollar_mat.json`.
+  - Count after this continuation:
+    `complete=37`, `pending=32`.
+  - Audit next pending remains:
+    `amber-tokenized-stock-xstock/maturity` v2 using source file id
+    `1-ozy8GoXotv6XNvky8CAxyCNpOZM9kfY`, with job id
+    `17098d87-ed09-4fbe-8269-abac6060b931`, because KO-only v2 rows are still
+    counted pending by the compact audit `len(rows)>=4` rule.
+  - Next actionable source-matched target with missing summaries or quality
+    errors:
+    none found in the current compact audit. Remaining pending head entries are
+    already-promoted KO-only v2 rows or non-source-matched v1 rows with empty
+    summaries.
+- Deployment/cache implication:
+  code deploy was not required. Summary Authority Gate `--write` updated
+  Supabase `project_reports` directly; website-visible rows should reflect
+  the DB row subject to application cache/revalidation behavior.
+- Manifest change:
+  no manifest change needed. The existing manifest already models the
+  `analysis-md-summary-candidate` candidate and `llm_active` Summary Authority
+  Gate promotion boundary.
+- Pipeline state wiki:
+  updated in this entry because this continuation changed production
+  publication state and recorded that no additional actionable
+  source-matched published candidate was found by the compact audit.
+
+### BCE-2928 CRO Summary Backfill Continuation Resume 8 (2026-07-24 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `27e9d64`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  보드는 [BCE-2928](/BCE/issues/BCE-2928)에서 직전 run
+  `c6e8e109-c538-43bd-bbad-45aadfd30793`의 processPid가 사라져 실행 소실
+  상태였지만 `visa-tokenized-stock-xstock/econ` v2,
+  `holo/econ` v2, `storx-network/maturity` v2,
+  `impossible-cloud-network/econ` v2까지 promote 완료가 확인되었다고 알렸다.
+  표시상 next pending인 `amber-tokenized-stock-xstock/maturity` v2는 이미
+  job/promote가 있는 KO-only row라 반복하지 않고, 다음 실제
+  `source_matched + published` 후보부터 처리했다. 기존 제외 조건인 FOR
+  `coming_soon`, `payprotocol/econ`, `aivive/econ` 제외는 유지했다.
+- Confirmed lost-run promoted targets now treated as already processed:
+  - `visa-tokenized-stock-xstock/econ` v2, candidate job
+    `f71cb704-d5b7-4533-bac3-2177f33e16e8`.
+  - `holo/econ` v2, candidate job
+    `6e3fa40d-1055-489c-a24b-040b45a88b18`.
+  - `storx-network/maturity` v2, candidate job
+    `c8d62402-5114-4712-adb2-5554e2b8133f`.
+  - `impossible-cloud-network/econ` v2, candidate job
+    `b4b2a62b-010b-470a-b822-2984649a94b4`.
+- Current continuation processed targets:
+  - `astrazeneca-tokenized-stock-xstock/econ` v2, Drive file id
+    `16k_iFtLKsrrbAzqIfVB5G5tvQBq50KZg`.
+    - Source identity:
+      `drive:16k_iFtLKsrrbAzqIfVB5G5tvQBq50KZg:0B8HYgThT3NByazY4dTJGa2JvKzk3WTlySld1N1lCOVEyMkJJPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_econ_astrazeneca-tokenized-stock-xstock_bce2928.json`.
+    - Candidate job:
+      `95fedb4f-f5bd-49e9-b3b3-97fadb027b3b`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=bc17ac4c-084f-4bb7-b68e-da732a5eeee0`.
+  - `vana/maturity` v2, Drive file id
+    `1jm90rDRf5gYm8CWUrusURRSDKgF3jh_X`.
+    - Source identity:
+      `drive:1jm90rDRf5gYm8CWUrusURRSDKgF3jh_X:0B8HYgThT3NByNy9DdmlDQXRIb1N0R3JlWTV4RkZmK1NCYmpnPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_mat_vana_bce2928.json`.
+    - Candidate job:
+      `c2cc3783-6992-4d85-8db3-053d0505d3a6`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=6812de57-d871-4a45-b022-86841396e92e`.
+  - `bsquared-network/maturity` v2, Drive file id
+    `1Lfe1f5cQCLDYuDJkYfnzVJoGAv5bIrxr`.
+    - Source identity:
+      `drive:1Lfe1f5cQCLDYuDJkYfnzVJoGAv5bIrxr:0B8HYgThT3NByUHNwTlAyRDlUWUNmclJQRHVOS2pZV3BGdUlFPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_mat_bsquared-network_bce2928.json`.
+    - Candidate job:
+      `97604d6c-dd5e-44e9-af43-c99c0b15fc78`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=267f67a3-e967-4148-9129-3b3a8fee3f6b`.
+  - `victoria-vr/maturity` v2, Drive file id
+    `1k4N9IfyGOUFOuZQernVkYiye6WszerhG`.
+    - Source identity:
+      `drive:1k4N9IfyGOUFOuZQernVkYiye6WszerhG:0B8HYgThT3NByb3hHQ3BjMmltQkROemZvalVBVEM5bjNMakFFPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_mat_victoria-vr_bce2928.json`.
+    - Candidate job:
+      `32052a9c-5c06-4a4d-b572-99404af1acdd`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=77568e8a-68fa-4dba-83bd-1d25bb09e65d`.
+- Post-write compact audit:
+  - Artifact:
+    `scripts/pipeline/output/bce-2928_full_scope_audit_compact_after_victoria-vr_mat.json`.
+  - Count after this continuation:
+    `complete=35`, `pending=34`.
+  - Audit next pending remains:
+    `amber-tokenized-stock-xstock/maturity` v2 using source file id
+    `1-ozy8GoXotv6XNvky8CAxyCNpOZM9kfY`, with job id
+    `17098d87-ed09-4fbe-8269-abac6060b931`, because KO-only v2 rows are still
+    counted pending by the compact audit `len(rows)>=4` rule.
+  - Next actionable source-matched target with missing summaries or quality
+    errors:
+    `mastercard-tokenized-stock-xstock/econ` v2 using source file id
+    `1w0S-89EsLhBZbqyNTHSY0OuBMdialQbA`.
+- Deployment/cache implication:
+  code deploy was not required. Summary Authority Gate `--write` updated
+  Supabase `project_reports` directly; website-visible rows should reflect
+  the DB row subject to application cache/revalidation behavior.
+- Manifest change:
+  no manifest change needed. The existing manifest already models the
+  `analysis-md-summary-candidate` candidate and `llm_active` Summary Authority
+  Gate promotion boundary.
+- Pipeline state wiki:
+  updated in this entry because this continuation changed production
+  publication state, reconciled a lost-run handoff, and recorded the next
+  actionable candidate.
+
+### BCE-2928 CRO Quality Summary Backfill Continuation Resume 7 (2026-07-24 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `27e9d64`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  보드는 [BCE-2928](/BCE/issues/BCE-2928)에서 최신 audit 기준
+  `complete=31`, `pending=38`라고 알렸고, 이미 job/promote가 있는
+  KO-only pending head는 반복하지 말라고 지시했다. 이번 continuation부터는
+  `published_count=4`이고 `source_matched=true`이지만 citation fragment,
+  table/raw fragment, empty 등 품질 오류가 남은 후보도 처리 범위에 포함했다.
+  기존 제외 조건인 FOR `coming_soon`, `payprotocol/econ`, `aivive/econ`
+  제외는 유지했다.
+- Current continuation processed targets:
+  - `proton/maturity` v1, Drive file id
+    `1zjWttp9jZJQ-ww_-t3iNbCQIyG6VC0iu`.
+    - Source identity:
+      `drive:1zjWttp9jZJQ-ww_-t3iNbCQIyG6VC0iu:0B8HYgThT3NByK3B5MXc3WnZDaFErS2I4OFFRSldYeFltY3pZPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_mat_proton_bce2928.json`.
+    - Candidate job:
+      `aca22c06-3441-4e87-b1eb-9e3036baf537`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=325820e3-f68f-47d8-a9ec-7e19f56032c3`.
+  - `celo/maturity` v1, Drive file id
+    `1aqDiqH1xI5WgOJGKMecNxUsD3ZKiObIO`.
+    - Source identity:
+      `drive:1aqDiqH1xI5WgOJGKMecNxUsD3ZKiObIO:0B8HYgThT3NBySi84UXV0dHlQY2d3cG5hMno2N0ZrRUVlSzNzPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_mat_celo_bce2928.json`.
+    - Candidate job:
+      `4a55272f-d52f-40ef-8ad3-8c184b69fd60`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=3051978a-379f-46c8-8457-b4cf69fc476c`.
+  - `nvidia-tokenized-stock-ondo/maturity` v1, Drive file id
+    `1cg0OmtlDs-x8WBkY9IImIkZMGqlnTkRC`.
+    - Source identity:
+      `drive:1cg0OmtlDs-x8WBkY9IImIkZMGqlnTkRC:0B8HYgThT3NByT3FpZ29XUWgxOWFVWUR0TXdONUZDMisxVzZRPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_mat_nvidia-tokenized-stock-ondo_bce2928.json`.
+    - Candidate job:
+      `4a3ff8c3-3838-43de-b148-24f1441a4f57`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=97029fff-856e-4e40-813d-fb1c580b7493`.
+  - `celo-dollar/maturity` v1, Drive file id
+    `1uYZ3WR1v3puvxRbo5MnzXBJciFq4BiHL`.
+    - Source identity:
+      `drive:1uYZ3WR1v3puvxRbo5MnzXBJciFq4BiHL:0B8HYgThT3NByT1hGMXJzUGYrTGJ1Qy9HMUdTSVNPM1BoNTZVPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_mat_celo-dollar_bce2928.json`.
+    - Candidate job:
+      `fc5df110-a2c8-4e46-8bbd-d9522fa417c0`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=5fc3f9be-a314-41a2-a4b9-306d552ca3c3`.
+- Post-write compact audit:
+  - Artifact:
+    `scripts/pipeline/output/bce-2928_full_scope_audit_compact_after_celo-dollar_mat.json`.
+  - Count after this continuation:
+    `complete=35`, `pending=34`.
+  - Audit next pending remains:
+    `amber-tokenized-stock-xstock/maturity` v2 using source file id
+    `1-ozy8GoXotv6XNvky8CAxyCNpOZM9kfY`, with job id
+    `17098d87-ed09-4fbe-8269-abac6060b931`, because KO-only v2 rows are still
+    counted pending by the compact audit `len(rows)>=4` rule.
+  - Next actionable source-matched target with missing summaries or quality
+    errors:
+    `visa-tokenized-stock-xstock/econ` v2 using source file id
+    `1lHQb7JmpqrE_bBoyiyLgiT0mphcrUQuM`.
+- Deployment/cache implication:
+  code deploy was not required. Summary Authority Gate `--write` updated
+  Supabase `project_reports` directly; website-visible rows should reflect
+  the DB row subject to application cache/revalidation behavior.
+- Manifest change:
+  no manifest change needed. The existing manifest already models the
+  `analysis-md-summary-candidate` candidate and `llm_active` Summary Authority
+  Gate promotion boundary.
+- Pipeline state wiki:
+  updated in this entry because this continuation changed production
+  publication state and expanded the runbook context to quality-error refreshes.
+
+### BCE-2928 CRO Summary Backfill Continuation Resume 6 (2026-07-24 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `27e9d64`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  보드는 [BCE-2928](/BCE/issues/BCE-2928)에서 stale run
+  `4a11aea8-f7d7-4ecc-b47e-0cf7c8eec0c8`이 control plane에서 cancelled
+  처리되었지만, 확정 산출은 `openledger/econ` v2, `janction/econ` v2,
+  `velo/econ` v2 promotion 완료까지라고 알렸다. 최신 compact audit는
+  `complete=29`, `pending=40`로 보이나 v2 KO-only rows 때문에 count가
+  증가하지 않는 상태였고, 이미 job/promote가 있는 pending head는 반복하지
+  말고 `talus-network/econ` v2부터 계속 소진하라고 지시했다.
+- Confirmed stale-run promoted targets now treated as already processed:
+  - `openledger/econ` v2, candidate job
+    `f68c6c34-9e1c-45bc-8e34-aa74c06a72f7`, promoted
+    `project_report_id=0d3aa168-920b-47fb-bc8b-9a23affbe8d1`.
+  - `janction/econ` v2, candidate job
+    `21afc8c8-8de5-4304-9d67-e81cbd96e5ca`, promoted
+    `project_report_id=d2f149fa-b7b1-40d4-814f-0ddc04d6082b`.
+  - `velo/econ` v2, candidate job
+    `5d3bef00-213b-4b7a-bd27-78e58d436037`, promoted
+    `project_report_id=bee1f9a5-d152-4cb5-b8b1-40bf74b3cffc`.
+- Current continuation processed targets:
+  - `talus-network/econ` v2, Drive file id
+    `1OQDPzfvgesIU4YAczz6xM3uzgCscIBEy`.
+    - Source identity:
+      `drive:1OQDPzfvgesIU4YAczz6xM3uzgCscIBEy:0B8HYgThT3NByRkxQd25FaDd6UnNVVGh4VXkvSWV5V2pBKzZBPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_econ_talus-network_bce2928.json`.
+    - Candidate job:
+      `8d840cd2-3830-4294-a8c4-80ce564188c8`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=3f93205c-37d7-444c-9ec5-28f4450c80be`.
+  - `decimal/econ` v1, Drive file id
+    `1LNDhwZw2yJ3tE17_xi0PQiuf4cQVjUxj`.
+    - Source identity:
+      `drive:1LNDhwZw2yJ3tE17_xi0PQiuf4cQVjUxj:0B8HYgThT3NByRUpLeTVaQmNIajVaZVJkeW1CdjJMTXVJeWg0PQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_econ_decimal_bce2928.json`.
+    - Candidate job:
+      `f8dc6f2c-76be-478d-8872-90834e0229b5`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=f80ff678-0f3f-44cb-943b-b73c06967110`.
+- Post-write compact audit:
+  - Artifact:
+    `scripts/pipeline/output/bce-2928_full_scope_audit_compact_after_decimal_econ.json`.
+  - Count after this continuation:
+    `complete=31`, `pending=38`.
+  - Audit next pending remains:
+    `amber-tokenized-stock-xstock/maturity` v2 using source file id
+    `1-ozy8GoXotv6XNvky8CAxyCNpOZM9kfY`, with job id
+    `17098d87-ed09-4fbe-8269-abac6060b931`, because the current compact audit
+    still marks KO-only v2 rows as pending under `len(rows)>=4`.
+  - Next source-matched target without a job in the pending head:
+    `celo-dollar/maturity` v1 using source file id
+    `1uYZ3WR1v3puvxRbo5MnzXBJciFq4BiHL`.
+- Deployment/cache implication:
+  code deploy was not required. Summary Authority Gate `--write` updated
+  Supabase `project_reports` directly; website-visible rows should reflect
+  the DB row subject to application cache/revalidation behavior.
+- Manifest change:
+  no manifest change needed. The existing manifest already models the
+  `analysis-md-summary-candidate` candidate and `llm_active` Summary Authority
+  Gate promotion boundary.
+- Pipeline state wiki:
+  updated in this entry because this continuation made production promotion
+  decisions and reconciled the confirmed outputs from the cancelled stale run.
+
+### BCE-2928 CRO Summary Backfill Continuation Resume 5 (2026-07-24 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `27e9d64`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  보드는 [BCE-2928](/BCE/issues/BCE-2928)에서 최신 audit 기준
+  `complete=29`, `pending=40`,
+  `next_pending=amber-tokenized-stock-xstock/maturity/v2`라고 알렸고,
+  직전 run이 `aivive/maturity`, `akedo/maturity`, `comedian/econ`까지
+  처리했으나 active run 없이 잔여 후보가 남아 계속 소진하라고 지시했다.
+  기존 조건대로 published/source-matched 대상만 처리하고 FOR
+  `coming_soon`, `payprotocol/econ`, `aivive/econ` 제외 조건을 유지했다.
+- Current continuation processed targets:
+  - `amber-tokenized-stock-xstock/maturity` v2, Drive file id
+    `1-ozy8GoXotv6XNvky8CAxyCNpOZM9kfY`.
+    - Source identity:
+      `drive:1-ozy8GoXotv6XNvky8CAxyCNpOZM9kfY:0B8HYgThT3NBybzdOMWx1QVVGZWJvVUM5TmNVRTgwWXFTSm5NPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_mat_amber-tokenized-stock-xstock_bce2928.json`.
+    - Candidate job:
+      `17098d87-ed09-4fbe-8269-abac6060b931`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=939368db-57f4-472c-a70a-90bc7343235c`.
+  - `bitdca/econ` v2, Drive file id
+    `1A9l8EYsXJHbthakOm36XhucZBQvxxSxa`.
+    - Source identity:
+      `drive:1A9l8EYsXJHbthakOm36XhucZBQvxxSxa:0B8HYgThT3NByZnRIc1lUVEtaK0prWWZocVB6K0tJS0tvK3QwPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_econ_bitdca_bce2928.json`.
+    - Candidate job:
+      `d9fa2013-22a2-4057-bd3c-464c08f4c260`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=343cb516-ee88-4dde-8908-64d480be22b6`.
+  - `purr/econ` v2, Drive file id
+    `1zUZ1redNEpRC52emSoNddeCYQcr-N73r`.
+    - Source identity:
+      `drive:1zUZ1redNEpRC52emSoNddeCYQcr-N73r:0B8HYgThT3NByRDgrREp2RUhkWTVSMnlaS1RqVUlMejhYbGRVPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_econ_purr_bce2928.json`.
+    - Candidate job:
+      `65398766-6aaa-4493-bb6c-3be770ba8512`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=e2482337-ff63-48b2-b8f0-62e7810917b7`.
+- Post-write compact audit:
+  - Artifact:
+    `scripts/pipeline/output/bce-2928_full_scope_audit_compact_after_purr_econ.json`.
+  - Count after this continuation:
+    `complete=29`, `pending=40`.
+  - Count did not increase because these three v2 source-matched targets each
+    currently have only one published `project_reports` row. The current compact
+    audit marks complete only when `len(rows)>=4`; quality errors were cleared
+    and `llm_active` job IDs are now present on the KO published rows.
+  - Audit next pending remains:
+    `amber-tokenized-stock-xstock/maturity` v2 using source file id
+    `1-ozy8GoXotv6XNvky8CAxyCNpOZM9kfY`, with job id
+    `17098d87-ed09-4fbe-8269-abac6060b931`.
+  - Next source-matched target without a job in the pending head:
+    `openledger/econ` v2 using source file id
+    `1RJeBejM3cJBHyuoT27A1mQ37LpTUuVTE`.
+- Deployment/cache implication:
+  code deploy was not required. Summary Authority Gate `--write` updated
+  Supabase `project_reports` directly; website-visible KO rows should reflect
+  the DB row subject to application cache/revalidation behavior.
+- Manifest change:
+  no manifest change needed. The existing manifest already models the
+  `analysis-md-summary-candidate` candidate and `llm_active` Summary Authority
+  Gate promotion boundary.
+- Pipeline state wiki:
+  updated in this entry because this continuation made production promotion
+  decisions and wrote website-visible summary fields.
+
+### BCE-2928 CRO Summary Backfill Continuation Resume 4 (2026-07-24 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `27e9d64`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  보드는 [BCE-2928](/BCE/issues/BCE-2928)에서 최신 audit 기준
+  `complete=26`, `pending=43`, `next_pending=aivive/maturity`라고
+  알렸고, `aivive/econ`은 제외하지만 `aivive/maturity`는 범위 포함임을
+  명시했다. 기존 조건대로 published/source-matched 대상만 처리하고 FOR
+  `coming_soon`, `payprotocol/econ`, `aivive/econ` 제외 조건을 유지했다.
+- Current continuation processed targets:
+  - `aivive/maturity` v1, Drive file id
+    `1jvsYSbwmWuMTPAkIurog9-cdbFqPCp0u`.
+    - Source identity:
+      `drive:1jvsYSbwmWuMTPAkIurog9-cdbFqPCp0u:0B8HYgThT3NByTis4WE1zY1B3Y3RaM1FsTk95NzNtaWlEYmVJPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_mat_aivive_bce2928.json`.
+    - Candidate job:
+      `676ab72c-35f0-4ffc-ae3e-9fea186e9e9a`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=94cc7a82-34cb-4356-9994-aab41920c8fc`.
+  - `akedo/maturity` v1, Drive file id
+    `199zKs1PeDZfGC009yKHO3ZCGoEmNqacN`.
+    - Source identity:
+      `drive:199zKs1PeDZfGC009yKHO3ZCGoEmNqacN:0B8HYgThT3NByOEkxZXBTM0xCWGh1aldWZy9ET3lIYXAxSXN3PQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_mat_akedo_bce2928.json`.
+    - Candidate job:
+      `fa5293a7-f017-48f7-aadb-69e2cef78024`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=04227f4c-adb0-43db-ae66-48f76d936b36`.
+  - `comedian/econ` v1, Drive file id
+    `1Kz1-hABS41XbCJpgKJ1I_bWwdZzaMdMc`.
+    - Source identity:
+      `drive:1Kz1-hABS41XbCJpgKJ1I_bWwdZzaMdMc:0B8HYgThT3NBySUJWRWJOaElhY3pwbzRYN2h4dzg1RVVYekJFPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_econ_comedian_bce2928.json`.
+    - Candidate job:
+      `3ecd220b-aa5a-45b4-b85c-ab617761c39e`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=a01cd388-239a-4a3f-9bf5-ed1e85c38bb5`.
+- Post-write compact audit:
+  - Artifact:
+    `scripts/pipeline/output/bce-2928_full_scope_audit_compact_after_comedian_econ.json`.
+  - Count after this continuation:
+    `complete=29`, `pending=40`.
+  - Next pending target:
+    `amber-tokenized-stock-xstock/maturity` v2 using source file id
+    `1-ozy8GoXotv6XNvky8CAxyCNpOZM9kfY`.
+- Deployment/cache implication:
+  code deploy was not required. Summary Authority Gate `--write` updated
+  Supabase `project_reports` directly; website-visible content should reflect
+  the DB row subject to application cache/revalidation behavior.
+- Manifest change:
+  no manifest change needed. The existing manifest already models the
+  `analysis-md-summary-candidate` candidate and `llm_active` Summary Authority
+  Gate promotion boundary.
+- Pipeline state wiki:
+  updated in this entry because this continuation made production promotion
+  decisions and wrote website-visible summary fields.
+
+### BCE-2928 CRO Summary Backfill Continuation Resume 3 (2026-07-24 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `27e9d64`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  [BCE-2928](/BCE/issues/BCE-2928)는 active run 없이 잔여 후보가 남아
+  보드가 backfill continuation 재개를 요청했다. 범위는
+  published/source-matched만이며, FOR `coming_soon`, `payprotocol/econ`,
+  `aivive/econ` 제외 조건을 유지했다.
+- Current continuation processed targets:
+  - `celium/econ` v1, Drive file id
+    `18CmjJyOSBZrbAI-8BLNFFoBrV7x5CqmM`.
+    - Source identity:
+      `drive:18CmjJyOSBZrbAI-8BLNFFoBrV7x5CqmM:0B8HYgThT3NByQmR0dmlGVW0wQ0ZuTEcrTGU2NkIxN3JCWEc0PQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_econ_celium_bce2928.json`.
+    - Candidate job:
+      `a07316e8-dc5a-462f-bb68-cda2eeb30091`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=0bfd2cfa-0047-4077-a71a-b4c48cfe049b`.
+  - `oracle-tokenized-stock-xstock/econ` v1, Drive file id
+    `1FykBo_6qXieeHdPytrVbYejftwnk0z3i`.
+    - Source identity:
+      `drive:1FykBo_6qXieeHdPytrVbYejftwnk0z3i:0B8HYgThT3NByODFhNXkzSVR6TXdXN0NDbStBeFFMaVBFSzlZPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_econ_oracle-tokenized-stock-xstock_bce2928.json`.
+    - Candidate job:
+      `dd0a50c7-cb58-4a81-a225-bf84403f559a`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=6b886ed0-ca1c-45ca-b3f5-49d388a00c6a`.
+- Post-write compact audit:
+  - Artifact:
+    `scripts/pipeline/output/bce-2928_full_scope_audit_compact_after_oracle-tokenized-stock-xstock_econ.json`.
+  - Count after this continuation:
+    `complete=26`, `pending=43`.
+  - Next pending target:
+    `aivive/maturity` v1 using source file id
+    `1jvsYSbwmWuMTPAkIurog9-cdbFqPCp0u`.
+- Deployment/cache implication:
+  code deploy was not required. Summary Authority Gate `--write` updated
+  Supabase `project_reports` directly; website-visible content should reflect
+  the DB row subject to application cache/revalidation behavior.
+- Manifest change:
+  no manifest change needed. The existing manifest already models the
+  `analysis-md-summary-candidate` candidate and `llm_active` Summary Authority
+  Gate promotion boundary.
+- Pipeline state wiki:
+  updated in this entry because this continuation made production promotion
+  decisions and wrote website-visible summary fields.
+
+### BCE-2928 CRO Summary Backfill Continuation Resume 2 (2026-07-24 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `27e9d64`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  [BCE-2928](/BCE/issues/BCE-2928)는 heartbeat reconciliation으로 다시
+  blocked 처리되었으나, 보드는 남은 published/source-matched 후보를 계속
+  처리하고 각 런 종료 시 complete/pending/next_pending을 남기라고
+  지시했다. 기존 제외 조건인 `payprotocol/econ`, `aivive/econ`, FOR
+  `coming_soon`은 유지했다.
+- Current continuation processed targets:
+  - `apro/maturity` v1, Drive file id
+    `1-BC5pgu_T52aPcw9Wp72fLRRj9Wya_O-`.
+    - Source identity:
+      `drive:1-BC5pgu_T52aPcw9Wp72fLRRj9Wya_O-:0B8HYgThT3NBydjgreUhNWEJyOThvOVRpQnJJKzJRMWdwbGY4PQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_mat_apro_bce2928.json`.
+    - Candidate job:
+      `971440e5-5362-41de-9a90-20d005b5d895`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=5410026a-63ce-4bd7-b2a0-cd1a471b93db`.
+  - `core-msci-emerging-markets-tokenised-etf-xstock/econ` v1, Drive file id
+    `1rCcIWkRAwh9tyc106LNBb-Q54-1yQcUd`.
+    - Source identity:
+      `drive:1rCcIWkRAwh9tyc106LNBb-Q54-1yQcUd:0B8HYgThT3NBydUQrNGRicGVqYTV3STB3Z0RKSTVrbUVuaWVrPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_econ_core-msci-emerging-markets-tokenised-etf-xstock_bce2928.json`.
+    - Candidate job:
+      `c7d6a91b-7016-4388-b338-3cfd73da20f5`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=45b87071-1ff1-488c-8fc4-07a82c19d904`.
+- Post-write compact audit:
+  - Artifact:
+    `scripts/pipeline/output/bce-2928_full_scope_audit_compact_after_core-msci-emerging-markets-tokenised-etf-xstock_econ.json`.
+  - Count after this continuation:
+    `complete=24`, `pending=45`.
+  - Next pending target:
+    `celium/econ` v1 using source file id
+    `18CmjJyOSBZrbAI-8BLNFFoBrV7x5CqmM`.
+- Deployment/cache implication:
+  code deploy was not required. Summary Authority Gate `--write` updated
+  Supabase `project_reports` directly; website-visible content should reflect
+  the DB row subject to application cache/revalidation behavior.
+- Manifest change:
+  no manifest change needed. The existing manifest already models the
+  `analysis-md-summary-candidate` candidate and `llm_active` Summary Authority
+  Gate promotion boundary.
+- Pipeline state wiki:
+  updated in this entry because this continuation made production promotion
+  decisions and wrote website-visible summary fields.
+
+### BCE-2938 CRO Analysis MD Summary JSON Ingestion Routine Promotion (2026-07-24 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `27e9d64`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  [BCE-2938](/BCE/issues/BCE-2938)는 critical `in_progress` CRO routine
+  ingestion task였고, harness가 이미 checkout한 상태에서 중복 checkout 없이
+  현재 run에서 계속 진행했다.
+- Recurrence/current-state check:
+  [BCE-2937](/BCE/issues/BCE-2937)의 `gemini-dollar/econ` promotion 이후
+  같은 워크스페이스/SHA에서 Drive revision-aware metadata와 Supabase
+  promoted/project_reports 상태를 다시 조회했다. 정규 routine 기준으로
+  전체 Drive analysis Markdown 후보를 새로 스캔해 이미 promoted 된 source
+  identity를 제외했고, 현재 최신 targetable/unpromoted 후보를 선별했다.
+- Selected source under limit=1:
+  - Drive source:
+    `pfizer-tokenized-stock-xstock_econ_v1_ko.md`
+  - Source identity:
+    `drive:1zUn089YTNl8wor3D-tOsjyTPmlK4ftK6:0B8HYgThT3NByYWRRQng1NnZieks4VU9vdWpqSGdmRnc4Qnp3PQ`
+  - Drive modified time:
+    `2026-07-24T02:01:28.174Z`
+  - Target:
+    `pfizer-tokenized-stock-xstock` econ KO v1, `project_report_id`
+    `a43762a8-02ab-46ed-ba0e-bb6752c4b089`.
+- Agent JSON and ingest:
+  - Local CRO/Paperclip JSON:
+    `scripts/pipeline/output/paperclip_cro_summary_econ_pfizer-tokenized-stock-xstock_bce2938.json`
+  - Source copy:
+    `scripts/pipeline/output/paperclip_cro_source_econ_pfizer-tokenized-stock-xstock_bce2938.md`
+  - Ingest command:
+    `python3 scripts/pipeline/analysis_md_summary_candidate.py --type econ --slug pfizer-tokenized-stock-xstock --drive-root-scope all --agent-output-json scripts/pipeline/output/paperclip_cro_summary_econ_pfizer-tokenized-stock-xstock_bce2938.json --require-agent-output --limit 1 --force`
+  - Ingest result:
+    valid, `write=inserted`, `job_id`
+    `685df351-9b2f-4589-9fd3-1d7a73a1eef6`.
+  - Ingest artifact:
+    `scripts/pipeline/output/analysis_md_summary_candidate_econ_pfizer-tokenized-stock-xstock.json`.
+- Summary Authority Gate publication:
+  - Command:
+    `python3 scripts/pipeline/summary_authority_gate.py --job-id 685df351-9b2f-4589-9fd3-1d7a73a1eef6 --authority-mode llm_active --actor "paperclip-routine:CRO:da59ce27-0c22-4763-9dbf-3279d45bb47b" --write`
+  - Gate decision:
+    `action=promote`, `state=promoted`, `wrote_project_report=true`,
+    `project_report_id=a43762a8-02ab-46ed-ba0e-bb6752c4b089`.
+- Verification:
+  - `report_summary_jobs.authority_state=promoted`
+  - `report_summary_jobs.authority_mode=llm_active`
+  - `report_summary_jobs.validation_status=valid`
+  - validator warnings/errors: `[]`
+  - `promoted_project_report_id=a43762a8-02ab-46ed-ba0e-bb6752c4b089`
+  - `project_reports.card_data.summary_authority.job_id`
+    matches `685df351-9b2f-4589-9fd3-1d7a73a1eef6`.
+  - `project_reports.card_data.source_md.source_identity` matches the job
+    source identity.
+  - Promoted `report_summary_jobs` counts after publication:
+    `econ=322`, `maturity=487`, `forensic=76`.
+  - Website-visible KO `project_reports` rows after publication: `1121`.
+- Artifacts:
+  - `scripts/pipeline/output/paperclip_cro_source_econ_pfizer-tokenized-stock-xstock_bce2938.md`
+  - `scripts/pipeline/output/paperclip_cro_summary_econ_pfizer-tokenized-stock-xstock_bce2938.json`
+  - `scripts/pipeline/output/bce-2938_ingest_pfizer-tokenized-stock-xstock_econ.log`
+  - `scripts/pipeline/output/bce-2938_gate_pfizer-tokenized-stock-xstock_econ.log`
+  - `scripts/pipeline/output/bce-2938_publication_verification.json`
+- Deployment/cache implication:
+  code deploy was not required. Summary Authority Gate `--write` updated
+  Supabase `project_reports` directly; website-visible content should reflect
+  the DB row subject to application cache/revalidation behavior.
+- Manifest change:
+  no manifest change needed. The existing manifest already models the
+  `analysis-md-summary-candidate` candidate and `llm_active` Summary Authority
+  Gate promotion boundary.
+- Pipeline state wiki:
+  updated in this entry because the routine made a production publication
+  decision and wrote website-visible summary fields.
+
+### BCE-2937 CRO Analysis MD Summary JSON Ingestion Routine Promotion (2026-07-24 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `27e9d64`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  [BCE-2937](/BCE/issues/BCE-2937)는 critical `in_progress` CRO routine
+  ingestion task였고, checkout 후 현재 run에서 계속 진행했다.
+- Recurrence/current-state check:
+  [BCE-2928](/BCE/issues/BCE-2928) backfill continuation 이후 같은
+  워크스페이스/SHA에서 현재 Drive revision-aware metadata와 Supabase
+  promoted/project_reports 상태를 다시 조회했다. 정규 routine 기준으로
+  전체 Drive analysis Markdown 후보를 새로 스캔해 이전 선별 결과를
+  재사용하지 않았다.
+- Selected source under limit=1:
+  - Drive source:
+    `gemini-dollar_econ_v1_ko.md`
+  - Source identity:
+    `drive:11T-oVcRoecvKcN_2hdVUmbhmN0PuHtDA:0B8HYgThT3NBySjgwY2JQSGlHSTlFUHduYXFuOUpYL1M4WFFrPQ`
+  - Drive modified time:
+    `2026-07-22T08:48:58.415Z`
+  - Target:
+    `gemini-dollar` econ KO v1, `project_report_id`
+    `0e2bc1e5-53e2-4078-bbac-65d969497098`.
+- Agent JSON and ingest:
+  - Local CRO/Paperclip JSON:
+    `scripts/pipeline/output/paperclip_cro_summary_econ_gemini-dollar_bce2937.json`
+  - Source copy:
+    `scripts/pipeline/output/paperclip_cro_source_econ_gemini-dollar_bce2937.md`
+  - Ingest command:
+    `python3 scripts/pipeline/analysis_md_summary_candidate.py --type econ --slug gemini-dollar --drive-root-scope all --agent-output-json scripts/pipeline/output/paperclip_cro_summary_econ_gemini-dollar_bce2937.json --require-agent-output --limit 1 --force`
+  - Ingest result:
+    valid, `write=inserted`, `job_id`
+    `ea8011a1-007c-43a8-9557-df37186b0dfe`.
+  - Ingest artifact:
+    `scripts/pipeline/output/analysis_md_summary_candidate_econ_gemini-dollar.json`.
+- Summary Authority Gate publication:
+  - Command:
+    `python3 scripts/pipeline/summary_authority_gate.py --job-id ea8011a1-007c-43a8-9557-df37186b0dfe --authority-mode llm_active --actor "paperclip-routine:CRO:bc83188c-ea0d-45ba-b083-b78aad1cb993" --write`
+  - Gate decision:
+    `action=promote`, `state=promoted`, `wrote_project_report=true`,
+    `project_report_id=0e2bc1e5-53e2-4078-bbac-65d969497098`.
+- Verification:
+  - `report_summary_jobs.authority_state=promoted`
+  - `report_summary_jobs.authority_mode=llm_active`
+  - `report_summary_jobs.validation_status=valid`
+  - validator warnings/errors: `[]`
+  - `promoted_project_report_id=0e2bc1e5-53e2-4078-bbac-65d969497098`
+  - `project_reports.card_data.summary_authority.job_id`
+    matches `ea8011a1-007c-43a8-9557-df37186b0dfe`.
+  - `project_reports.card_data.source_md.source_identity` matches the job
+    source identity.
+  - Promoted `report_summary_jobs` counts after publication:
+    `econ=321`, `maturity=481`, `forensic=76`.
+  - Website-visible KO `project_reports` rows after publication: `1118`.
+- Artifacts:
+  - `scripts/pipeline/output/bce-2937_drive_latest_raw.json`
+  - `scripts/pipeline/output/bce-2937_drive_targetable_probe.json`
+  - `scripts/pipeline/output/paperclip_cro_source_econ_gemini-dollar_bce2937.md`
+  - `scripts/pipeline/output/paperclip_cro_summary_econ_gemini-dollar_bce2937.json`
+  - `scripts/pipeline/output/bce-2937_ingest_gemini-dollar_econ.log`
+  - `scripts/pipeline/output/bce-2937_gate_gemini-dollar_econ.log`
+  - `scripts/pipeline/output/bce-2937_publication_verification.json`
+- Deployment/cache implication:
+  code deploy was not required. Summary Authority Gate `--write` updated
+  Supabase `project_reports` directly; website-visible content should reflect
+  the DB row subject to application cache/revalidation behavior.
+- Manifest change:
+  no manifest change needed. The existing manifest already models the
+  `analysis-md-summary-candidate` candidate and `llm_active` Summary Authority
+  Gate promotion boundary.
+- Pipeline state wiki:
+  updated in this entry because the routine made a production publication
+  decision and wrote website-visible summary fields.
+
+### BCE-2928 CRO Summary Backfill Continuation (2026-07-24 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `27e9d64`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  [BCE-2928](/BCE/issues/BCE-2928)는 critical `in_progress` CRO 요약문
+  backfill task이며, 보드는 새로 업로드/백필된 보고서 중 아직 CRO 요약문
+  생성이 완료되지 않은 published/source-matched 대상을 계속 처리하라고
+  지시했다. `payprotocol/econ`, `aivive/econ`, FOR `coming_soon` 대상은
+  제외한다.
+- Full-scope audit source:
+  `scripts/pipeline/output/bce-2928_issue_snapshot.json`에서 69개 report
+  group을 파싱해 compact audit를 생성했다.
+- Current continuation processed targets:
+  - `danaher-tokenized-stock-xstock/maturity` v1, Drive file id
+    `19cfvh1cNFtrrlIcCfmMk7p_mz3mCX9Uq`.
+    - Source identity:
+      `drive:19cfvh1cNFtrrlIcCfmMk7p_mz3mCX9Uq:0B8HYgThT3NBySnpwSExFc3ZSSWt4c0x0LzNrR2duem5EN0trPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_mat_danaher-tokenized-stock-xstock_bce2928.json`.
+    - Candidate job:
+      `a8216303-1372-481b-9de2-aef2a2558ccd`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=55e43526-5fea-48e2-aeb9-e5e944d8f686`.
+  - `merck-tokenized-stock-xstock/maturity` v1, Drive file id
+    `10EjurTR3jZsWp0UHlL7_cuT5H2OMercK`.
+    - Source identity:
+      `drive:10EjurTR3jZsWp0UHlL7_cuT5H2OMercK:0B8HYgThT3NBybUxRNHl0Z3ZSYVJCdHNoVWpMZXIxeFgraEp3PQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_mat_merck-tokenized-stock-xstock_bce2928.json`.
+    - Candidate job:
+      `fd4e7306-6299-4ccf-8645-092414a54be5`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=4cf0fbbb-8db2-4ed8-8dfc-5dbebb54d975`.
+  - `ishares-bitcoin-trust-tokenized-stock-ondo/maturity` v1, Drive file id
+    `1lHDOk5_guWI6xFV2P06OK3rl652IbsaH`.
+    - Source identity:
+      `drive:1lHDOk5_guWI6xFV2P06OK3rl652IbsaH:0B8HYgThT3NByYlpJR2lqNzdGNHdkQlZHdi94UDVyVTNmbFZRPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_mat_ishares-bitcoin-trust-tokenized-stock-ondo_bce2928.json`.
+    - Candidate job:
+      `80015775-4d68-4a1f-9260-cfb3565e63ca`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=79f0b3d4-e917-40ca-a4c7-9cf18bd06e09`.
+  - `eli-lilly-tokenized-stock-xstock/maturity` v1, Drive file id
+    `1III4hkaJtgJoNrAb-wnhISyRYwbJqIXn`.
+    - Source identity:
+      `drive:1III4hkaJtgJoNrAb-wnhISyRYwbJqIXn:0B8HYgThT3NByTWNEYjN2cmZCSHQ5QVRCZk9kRkFncGlMR3JVPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_mat_eli-lilly-tokenized-stock-xstock_bce2928.json`.
+    - Candidate job:
+      `c71a3a59-eb7d-4703-aa85-8d750a83b043`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=0261a99b-e3b1-4398-b28c-a01adb7a7977`.
+  - `aegis-yusd/maturity` v1, Drive file id
+    `1huPfWjK6gQUF02_W3GgY3CwgWQUMT8VD`.
+    - Source identity:
+      `drive:1huPfWjK6gQUF02_W3GgY3CwgWQUMT8VD:0B8HYgThT3NBybUl1S1NEWXZFb3A4bm5pb2tYL245Y2hRQ2hNPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_mat_aegis-yusd_bce2928.json`.
+    - Candidate job:
+      `1699bbbd-ec4c-49c4-9a8c-25424579cb88`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=53ab9bf9-f736-4ed7-9819-423349222261`.
+- Post-write compact audit:
+  - Artifacts:
+    `scripts/pipeline/output/bce-2928_full_scope_audit_compact_after_aegis-yusd_mat.json`.
+  - Count after this continuation:
+    `complete=19`, `pending=50`.
+  - Next pending target:
+    `jpmorgan-chase-tokenized-stock-xstock/maturity` v1 using source file id
+    `1f9q0SzSF61S65LIRHY4_znUlnMfeMtMu`.
+- Deployment/cache implication:
+  code deploy was not required. Summary Authority Gate `--write` updated
+  Supabase `project_reports` directly; website-visible content should reflect
+  the DB row subject to application cache/revalidation behavior.
+- Manifest change:
+  no manifest change needed. The existing manifest already models the
+  `analysis-md-summary-candidate` candidate and `llm_active` Summary Authority
+  Gate promotion boundary.
+- Pipeline state wiki:
+  updated in this entry because this continuation made production promotion
+  decisions and wrote website-visible summary fields.
+
+### BCE-2928 CRO Summary Backfill Continuation Resume (2026-07-24 KST)
+
+- 사용 워크스페이스/SHA:
+  `/Users/Kuku/Documents/Claude/Projects/블록체인경제연구소/blockchain-economics-lab`
+  at `27e9d64`.
+- 실행 전 1차 컨텍스트:
+  `knowledge/pipelines/analysis-md-summary-candidate.md` 및
+  `pipelines/bcelab-runtime-pipelines.json`.
+- Wake context:
+  [BCE-2928](/BCE/issues/BCE-2928)는 critical `in_progress` CRO 요약문
+  backfill continuation이며, 보드는 남은 published/source-matched 대상을
+  연속 처리하되 `payprotocol/econ`, `aivive/econ`, FOR `coming_soon`은
+  제외하고 이슈를 blocked로 남기지 말라고 지시했다.
+- Current continuation processed targets:
+  - `jpmorgan-chase-tokenized-stock-xstock/maturity` v1, Drive file id
+    `1f9q0SzSF61S65LIRHY4_znUlnMfeMtMu`.
+    - Source identity:
+      `drive:1f9q0SzSF61S65LIRHY4_znUlnMfeMtMu:0B8HYgThT3NByUUw2VGVEVk96LzRmRWJsSU8rb1I0dGh3QnZFPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_mat_jpmorgan-chase-tokenized-stock-xstock_bce2928.json`.
+    - Candidate job:
+      `59b5720d-8b7d-4143-aa38-8c89ae8b2d4a`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=e50a4423-ae77-4687-b804-22613d789690`.
+  - `mask-network/maturity` v1, Drive file id
+    `1YobQ7hze2AxJ8gY22TA9K6n4knnEvtfD`.
+    - Source identity:
+      `drive:1YobQ7hze2AxJ8gY22TA9K6n4knnEvtfD:0B8HYgThT3NByNEYvNlVldUs3UWpKamFoaFQrME9USWpRYXRJPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_mat_mask-network_bce2928.json`.
+    - Candidate job:
+      `d8eb56d7-a26a-48de-a433-193c649a01e3`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=248a7a25-7d90-4d98-a6ad-7919cad6c877`.
+  - `oracle-tokenized-stock-xstock/maturity` v1, Drive file id
+    `12H8hrUaduV4nNItSz0Txow8vSfKNVKKd`.
+    - Source identity:
+      `drive:12H8hrUaduV4nNItSz0Txow8vSfKNVKKd:0B8HYgThT3NByei9PK3o0QlZ1VXY4QkU3anY4T3pBSnNiVjBvPQ`.
+    - Local CRO/Paperclip JSON:
+      `scripts/pipeline/output/paperclip_cro_summary_mat_oracle-tokenized-stock-xstock_bce2928.json`.
+    - Candidate job:
+      `40ac1d1b-7387-466e-b396-a3d8087f427f`, final
+      `validation_status=valid`, validator errors `[]`.
+    - Summary Authority Gate publication:
+      `action=promote`, `state=promoted`, `wrote_project_report=true`,
+      `project_report_id=ecd922e4-2e13-41a3-954e-5a104921d6ce`.
+- Post-write compact audit:
+  - Artifact:
+    `scripts/pipeline/output/bce-2928_full_scope_audit_compact_after_oracle-tokenized-stock-xstock_mat.json`.
+  - Count after this continuation:
+    `complete=22`, `pending=47`.
+  - Next pending target:
+    `apro/maturity` v1 using source file id
+    `1-BC5pgu_T52aPcw9Wp72fLRRj9Wya_O-`.
+- Deployment/cache implication:
+  code deploy was not required. Summary Authority Gate `--write` updated
+  Supabase `project_reports` directly; website-visible content should reflect
+  the DB row subject to application cache/revalidation behavior.
+- Manifest change:
+  no manifest change needed. The existing manifest already models the
+  `analysis-md-summary-candidate` candidate and `llm_active` Summary Authority
+  Gate promotion boundary.
+- Pipeline state wiki:
+  updated in this entry because this continuation made production promotion
+  decisions and wrote website-visible summary fields.
+
 ## Operating Definition
 
 This candidate pipeline evaluates Drive analysis Markdown as a pre-publication
