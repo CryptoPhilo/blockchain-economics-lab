@@ -3600,6 +3600,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/cheems-pet/1/zh.html"
   },
+  "11YvYHziHZqRbHPZPxt5754h-wdQ_zK_e": {
+    "error": null,
+    "finished_at": "2026-07-28T03:36:52.948839+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-28T00:09:17.000Z",
+    "name": "TFUEL_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/theta-fuel/latest/ja.html",
+    "report_id": "ace430cf-1166-412d-9199-be6d18ef672c",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "theta-fuel",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/TFUEL_MAT_jp.pdf",
+    "started_at": "2026-07-28T03:36:29.421794+00:00",
+    "status": "published",
+    "updated_at": "2026-07-28T03:36:52.948855+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/theta-fuel/1/ja.html"
+  },
   "11YyGzmKrkROUS_KDFop6MfCt7cn51vTF": {
     "error": null,
     "finished_at": "2026-07-17T10:27:10.776215+00:00",
@@ -7437,6 +7467,32 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/backpack-exchange/1/ja.html"
   },
+  "13zcR2LxJs4vzxnaebnjtRF3pOWkDSIxl": {
+    "error": "slug/content mismatch — filename resolved 'theta-fuel' (body score 0) but body strongly matches 'theta-network' (score 26)",
+    "lang": "ko",
+    "lang_source": "filename",
+    "mismatch": {
+      "detected_score": 26,
+      "detected_slug": "theta-network",
+      "expected_score": 0,
+      "expected_slug": "theta-fuel"
+    },
+    "modifiedTime": "2026-07-28T00:09:15.000Z",
+    "name": "TFUEL_MAT_ko.pdf",
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": null,
+    "report_id": null,
+    "rtype": "mat",
+    "slug": "theta-fuel",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/TFUEL_MAT_ko.pdf",
+    "status": "mismatch",
+    "updated_at": "2026-07-28T03:37:32.929924+00:00",
+    "version": null,
+    "versioned_url": null
+  },
   "14-NFymmIurTJp819qHbbIP_pM7wAJN-s": {
     "error": null,
     "finished_at": "2026-05-31T10:33:56.863637+00:00",
@@ -7466,6 +7522,36 @@
     "updated_at": "2026-05-31T20:59:45.424924+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/safe1/1/ko.html"
+  },
+  "141lzxRDPM1kJNiS7R2FOBvoNjAfUjWO3": {
+    "error": null,
+    "finished_at": "2026-07-28T03:37:24.187203+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-28T00:09:16.000Z",
+    "name": "TFUEL_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/theta-fuel/latest/en.html",
+    "report_id": "8c77e6b0-9e90-4af7-b5d6-d05801c5d539",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "theta-fuel",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/TFUEL_MAT_en.pdf",
+    "started_at": "2026-07-28T03:37:14.823458+00:00",
+    "status": "published",
+    "updated_at": "2026-07-28T03:37:24.187218+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/theta-fuel/1/en.html"
   },
   "141wbnjp5YTyAJ966RWdy2SB-VT2NdxaD": {
     "error": null,
@@ -10696,6 +10782,36 @@
     "updated_at": "2026-06-10T20:46:44.279327+00:00",
     "version": null,
     "versioned_url": null
+  },
+  "16Wnd-mlEKauq6e3kFpauk07l90DOYLNJ": {
+    "error": null,
+    "finished_at": "2026-07-28T03:37:13.904513+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-28T00:09:17.000Z",
+    "name": "TFUEL_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/theta-fuel/latest/zh.html",
+    "report_id": "337bf1e2-31ab-4195-bc8c-8466800dc50a",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "theta-fuel",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/TFUEL_MAT_cn.pdf",
+    "started_at": "2026-07-28T03:37:01.091142+00:00",
+    "status": "published",
+    "updated_at": "2026-07-28T03:37:13.904528+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/theta-fuel/1/zh.html"
   },
   "16Z9FS6aLU1e-CIDfbai04ywp8A-JUqMH": {
     "error": null,
@@ -14984,7 +15100,7 @@
     "source_path": "Slide2/mat/JELLYJELLY_MAT_cn.pdf",
     "started_at": "2026-07-27T19:49:50.288882+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T00:14:00.956936+00:00",
+    "updated_at": "2026-07-28T03:38:12.441608+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/jelly-my-jelly/1/zh.html"
   },
@@ -23392,7 +23508,7 @@
     "source_path": "Slide2/mat/VVV_MAT_jp.pdf",
     "started_at": "2026-07-27T23:17:58.668753+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T00:13:44.503001+00:00",
+    "updated_at": "2026-07-28T03:37:53.563610+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/venice-token/2/ja.html"
   },
@@ -27856,7 +27972,7 @@
     "source_path": "Slide2/mat/JELLYJELLY_MAT_jp.pdf",
     "started_at": "2026-07-27T19:50:21.539946+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T00:14:03.328843+00:00",
+    "updated_at": "2026-07-28T03:38:15.143522+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/jelly-my-jelly/1/ja.html"
   },
@@ -34607,7 +34723,7 @@
     "source_path": "Slide2/mat/VVV_MAT_cn.pdf",
     "started_at": "2026-07-27T23:17:28.412570+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T00:13:42.176524+00:00",
+    "updated_at": "2026-07-28T03:37:51.307825+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/venice-token/2/zh.html"
   },
@@ -39394,7 +39510,7 @@
     "source_path": "Slide2/mat/JELLYJELLY_MAT_en.pdf",
     "started_at": "2026-07-27T19:50:37.011313+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T00:14:05.263907+00:00",
+    "updated_at": "2026-07-28T03:38:17.416337+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/jelly-my-jelly/1/en.html"
   },
@@ -40126,7 +40242,7 @@
     "source_path": "Slide2/mat/KSM_MAT_jp.pdf",
     "started_at": "2026-07-27T23:16:35.892958+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T00:13:35.371813+00:00",
+    "updated_at": "2026-07-28T03:37:41.988196+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/kusama/1/ja.html"
   },
@@ -45295,7 +45411,7 @@
     "source_path": "Slide2/mat/VVV_MAT_en.pdf",
     "started_at": "2026-07-27T23:18:13.581347+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T00:13:46.856815+00:00",
+    "updated_at": "2026-07-28T03:37:56.225010+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/venice-token/2/en.html"
   },
@@ -47506,7 +47622,7 @@
     "source_path": "Slide2/mat/XPIN_MAT_en.pdf",
     "started_at": "2026-07-27T19:49:05.618551+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T00:13:56.667248+00:00",
+    "updated_at": "2026-07-28T03:38:07.701133+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/xpin-network/1/en.html"
   },
@@ -47718,7 +47834,7 @@
     "source_path": "Slide2/mat/KSM_MAT_ko.pdf",
     "started_at": "2026-07-27T23:17:10.831864+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T00:13:39.899406+00:00",
+    "updated_at": "2026-07-28T03:37:48.485260+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/kusama/1/ko.html"
   },
@@ -48820,7 +48936,7 @@
     "source_path": "Slide2/mat/KSM_MAT_en.pdf",
     "started_at": "2026-07-27T23:16:47.611937+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T00:13:37.591423+00:00",
+    "updated_at": "2026-07-28T03:37:45.277794+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/kusama/1/en.html"
   },
@@ -62971,7 +63087,7 @@
     "source_path": "Slide2/mat/KSM_MAT_cn.pdf",
     "started_at": "2026-07-27T23:15:59.977797+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T00:13:33.052018+00:00",
+    "updated_at": "2026-07-28T03:37:37.997284+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/kusama/1/zh.html"
   },
@@ -64713,7 +64829,7 @@
     "source_path": "Slide2/mat/XPIN_MAT_cn.pdf",
     "started_at": "2026-07-27T19:48:02.185247+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T00:13:52.169998+00:00",
+    "updated_at": "2026-07-28T03:38:01.408349+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/xpin-network/1/zh.html"
   },
@@ -78069,7 +78185,7 @@
     "source_path": "Slide2/mat/XPIN_MAT_jp.pdf",
     "started_at": "2026-07-27T19:48:36.621158+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T00:13:54.504324+00:00",
+    "updated_at": "2026-07-28T03:38:04.169775+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/xpin-network/1/ja.html"
   },
@@ -80269,7 +80385,7 @@
     "source_path": "Slide2/mat/XPIN_MAT_ko.pdf",
     "started_at": "2026-07-27T19:49:28.603386+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T00:13:58.748481+00:00",
+    "updated_at": "2026-07-28T03:38:10.012173+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/xpin-network/1/ko.html"
   },
@@ -83162,7 +83278,7 @@
     "source_path": "Slide2/mat/VVV_MAT_ko.pdf",
     "started_at": "2026-07-27T23:18:34.858171+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T00:13:49.895865+00:00",
+    "updated_at": "2026-07-28T03:37:58.553404+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/venice-token/2/ko.html"
   },
@@ -84854,7 +84970,7 @@
     "source_path": "Slide2/mat/JELLYJELLY_MAT_ko.pdf",
     "started_at": "2026-07-27T19:50:57.373928+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T00:14:07.327926+00:00",
+    "updated_at": "2026-07-28T03:38:19.723222+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/jelly-my-jelly/1/ko.html"
   },
