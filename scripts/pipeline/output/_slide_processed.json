@@ -9242,6 +9242,36 @@
     "version": null,
     "versioned_url": null
   },
+  "15G6h3LtnarvG3t_a9eYM77MzD-AX_0TZ": {
+    "error": null,
+    "finished_at": "2026-07-29T17:58:09.423586+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-29T16:40:23.000Z",
+    "name": "COTI_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 768.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/coti/latest/zh.html",
+    "report_id": "87bac6f6-6114-4a3b-8779-991869572320",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "coti",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/COTI_FOR_cn.pdf",
+    "started_at": "2026-07-29T17:57:59.578924+00:00",
+    "status": "published",
+    "updated_at": "2026-07-29T17:58:09.423607+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/coti/2/zh.html"
+  },
   "15H3cvFXYxGKqNe2q7IU1SaFbq_ZFvIr9": {
     "error": null,
     "finished_at": "2026-06-10T11:59:23.839166+00:00",
@@ -13026,6 +13056,36 @@
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/euler-finance/2/ko.html"
   },
+  "17ux_yCrH_hLQ4yJMLqsEkEcrbMaRcZu4": {
+    "error": null,
+    "finished_at": "2026-07-29T17:58:35.473975+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-29T16:40:17.000Z",
+    "name": "COTI_FOR_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 768.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/coti/latest/ja.html",
+    "report_id": "816b8b7e-d43d-4ede-a0db-9aaa945833bd",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "coti",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/COTI_FOR_jp.pdf",
+    "started_at": "2026-07-29T17:58:24.812173+00:00",
+    "status": "published",
+    "updated_at": "2026-07-29T17:58:35.473994+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/coti/2/ja.html"
+  },
   "17vC9YX9ASKLRl0njfB-_LhEGOuGQ7Flq": {
     "error": null,
     "finished_at": "2026-07-12T10:36:46.650379+00:00",
@@ -14878,7 +14938,7 @@
     "source_path": "Slide2/for/DELLx_FOR_ko.pdf",
     "started_at": "2026-07-29T15:24:31.377275+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T16:45:19.340298+00:00",
+    "updated_at": "2026-07-29T17:59:05.557333+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/dell-technologies-inc-tokenized-stock-xstock/2/ko.html"
   },
@@ -16657,7 +16717,7 @@
     "source_path": "Slide2/for/DELLx_FOR_jp.pdf",
     "started_at": "2026-07-29T15:24:08.304823+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T16:45:17.960054+00:00",
+    "updated_at": "2026-07-29T17:59:03.737308+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/dell-technologies-inc-tokenized-stock-xstock/2/ja.html"
   },
@@ -19395,7 +19455,7 @@
     "source_path": "Slide2/for/DELLx_FOR_en.pdf",
     "started_at": "2026-07-29T15:24:16.320088+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T16:45:18.653178+00:00",
+    "updated_at": "2026-07-29T17:59:04.641984+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/dell-technologies-inc-tokenized-stock-xstock/2/en.html"
   },
@@ -28282,7 +28342,7 @@
     "source_path": "Slide2/for/DELLx_FOR_cn.pdf",
     "started_at": "2026-07-29T15:23:51.900627+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T16:45:17.209159+00:00",
+    "updated_at": "2026-07-29T17:59:02.333818+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/dell-technologies-inc-tokenized-stock-xstock/2/zh.html"
   },
@@ -55751,6 +55811,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/janction/1/ja.html"
   },
+  "1ahoboMijIt1g6fdNt7v0QCmk-yY0dxQ4": {
+    "error": null,
+    "finished_at": "2026-07-29T17:58:44.022950+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-29T16:40:06.000Z",
+    "name": "COTI_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 768.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/coti/latest/en.html",
+    "report_id": "d003cb4a-ccb3-465a-8299-9258edc98b40",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "coti",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/COTI_FOR_en.pdf",
+    "started_at": "2026-07-29T17:58:36.821238+00:00",
+    "status": "published",
+    "updated_at": "2026-07-29T17:58:44.022971+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/coti/2/en.html"
+  },
   "1ahwsD8V3gGFMA1rzqW6KYOYCAL_HFoL3": {
     "error": null,
     "finished_at": "2026-05-17T13:15:20.954616+00:00",
@@ -57869,6 +57959,36 @@
     "updated_at": "2026-06-14T00:08:47.369112+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/yooldo/1/zh.html"
+  },
+  "1cGsVfnK11Dw1BRJmc8v3ITcsIZazknUn": {
+    "error": null,
+    "finished_at": "2026-07-29T17:59:00.684250+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-29T16:39:59.000Z",
+    "name": "COTI_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 768.0
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/coti/latest/ko.html",
+    "report_id": "9637e17a-e7b1-4e7f-b0ee-705fd35590f3",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "coti",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/COTI_FOR_ko.pdf",
+    "started_at": "2026-07-29T17:58:54.585062+00:00",
+    "status": "published",
+    "updated_at": "2026-07-29T17:59:00.684271+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/coti/2/ko.html"
   },
   "1cIMF5OrDbco-w75uPNrk_Cjp2PYdbMTb": {
     "error": null,
