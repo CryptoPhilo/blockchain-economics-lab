@@ -17595,7 +17595,7 @@
     "source_path": "Slide2/mat/Turbo_MAT_cn.pdf",
     "started_at": "2026-07-29T00:12:29.864509+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T03:39:32.745943+00:00",
+    "updated_at": "2026-07-29T06:19:30.065011+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/turbo/2/zh.html"
   },
@@ -32738,7 +32738,7 @@
     "source_path": "Slide2/mat/ENJ_MAT_en.pdf",
     "started_at": "2026-07-28T21:06:54.864426+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T03:39:42.255467+00:00",
+    "updated_at": "2026-07-29T06:19:42.120110+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/enjin-coin/2/en.html"
   },
@@ -43609,6 +43609,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/linde-tokenized-stock-xstock/1/zh.html"
   },
+  "1T-UiIM80rBKehe-Nw0b1EJAi3vKmy7sQ": {
+    "error": null,
+    "finished_at": "2026-07-29T06:18:45.339128+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-29T05:03:54.000Z",
+    "name": "BabyDoge_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/baby-doge-coin/latest/ja.html",
+    "report_id": "ce910582-48f6-4da8-be43-645fe75fe802",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "baby-doge-coin",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/BabyDoge_MAT_jp.pdf",
+    "started_at": "2026-07-29T06:18:35.183895+00:00",
+    "status": "published",
+    "updated_at": "2026-07-29T06:18:45.339149+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/baby-doge-coin/2/ja.html"
+  },
   "1T0k8omMeUYfjUBbWbIouPbExivavLc5B": {
     "error": null,
     "finished_at": "2026-06-09T17:01:43.227915+00:00",
@@ -44549,7 +44579,7 @@
     "source_path": "Slide2/mat/ENJ_MAT_ko.pdf",
     "started_at": "2026-07-28T21:07:14.485031+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T03:39:43.667549+00:00",
+    "updated_at": "2026-07-29T06:19:43.574012+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/enjin-coin/2/ko.html"
   },
@@ -46272,6 +46302,36 @@
     "updated_at": "2026-07-27T08:21:10.691454+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ast-spacemobile-tokenized-stock-xstock/1/ko.html"
+  },
+  "1Utcex-zUeCwO9MddGUUNI1hmb34lk02z": {
+    "error": null,
+    "finished_at": "2026-07-29T06:18:24.499309+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-29T05:03:58.000Z",
+    "name": "BabyDoge_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/baby-doge-coin/latest/zh.html",
+    "report_id": "2a9bbda5-ba89-413a-90e7-b53575729449",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "baby-doge-coin",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/BabyDoge_MAT_cn.pdf",
+    "started_at": "2026-07-29T06:18:11.321845+00:00",
+    "status": "published",
+    "updated_at": "2026-07-29T06:18:24.499329+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/baby-doge-coin/2/zh.html"
   },
   "1Uv0V2oW2Jb4JcmdbIOYgSKGEvJPI_4i9": {
     "error": null,
@@ -49226,7 +49286,7 @@
     "source_path": "Slide2/mat/MINA_MAT_en.pdf",
     "started_at": "2026-07-28T21:08:02.019609+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T03:39:48.109403+00:00",
+    "updated_at": "2026-07-29T06:19:48.583468+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/mina/2/en.html"
   },
@@ -53148,7 +53208,7 @@
     "source_path": "Slide2/mat/ENJ_MAT_cn.pdf",
     "started_at": "2026-07-28T21:06:15.605427+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T03:39:39.321997+00:00",
+    "updated_at": "2026-07-29T06:19:38.354627+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/enjin-coin/2/zh.html"
   },
@@ -62439,7 +62499,7 @@
     "source_path": "Slide2/mat/MINA_MAT_jp.pdf",
     "started_at": "2026-07-28T21:07:51.774460+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T03:39:46.586898+00:00",
+    "updated_at": "2026-07-29T06:19:46.721539+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/mina/2/ja.html"
   },
@@ -69877,6 +69937,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/wefi/1/ko.html"
   },
+  "1kiTq2RoqASNQU8_napFiFaYKjKhnaaDV": {
+    "error": null,
+    "finished_at": "2026-07-29T06:19:28.178255+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-29T05:03:47.000Z",
+    "name": "BabyDoge_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/baby-doge-coin/latest/ko.html",
+    "report_id": "e1529bdb-a0ef-447f-b204-19a053003c4c",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "baby-doge-coin",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/BabyDoge_MAT_ko.pdf",
+    "started_at": "2026-07-29T06:19:11.400589+00:00",
+    "status": "published",
+    "updated_at": "2026-07-29T06:19:28.178275+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/baby-doge-coin/2/ko.html"
+  },
   "1ki__YanbHW7j08RXabMUy21W6DzKr-yI": {
     "error": null,
     "finished_at": "2026-06-13T16:48:38.523310+00:00",
@@ -75115,6 +75205,36 @@
     "updated_at": "2026-05-17T17:41:56.231274+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/trueusd/1/en.html"
+  },
+  "1oSMkC7htGyLmD5D95vSrTU_WR0gj_ahl": {
+    "error": null,
+    "finished_at": "2026-07-29T06:18:57.500546+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-29T05:03:51.000Z",
+    "name": "BabyDoge_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/baby-doge-coin/latest/en.html",
+    "report_id": "4d9c917e-9c1b-4bc1-8c49-f8ea132dcef5",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "baby-doge-coin",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/BabyDoge_MAT_en.pdf",
+    "started_at": "2026-07-29T06:18:47.623724+00:00",
+    "status": "published",
+    "updated_at": "2026-07-29T06:18:57.500567+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/baby-doge-coin/2/en.html"
   },
   "1oTjjykMTV2Ta5tHlKwKo-_Nq7jsFJC9J": {
     "error": null,
@@ -80462,7 +80582,7 @@
     "source_path": "Slide2/mat/ENJ_MAT_jp.pdf",
     "started_at": "2026-07-28T21:06:42.480846+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T03:39:40.823915+00:00",
+    "updated_at": "2026-07-29T06:19:40.246878+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/enjin-coin/2/ja.html"
   },
@@ -81165,7 +81285,7 @@
     "source_path": "Slide2/mat/MINA_MAT_cn.pdf",
     "started_at": "2026-07-28T21:07:33.984180+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T03:39:45.063989+00:00",
+    "updated_at": "2026-07-29T06:19:45.058330+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/mina/2/zh.html"
   },
@@ -87892,7 +88012,7 @@
     "source_path": "Slide2/mat/Turbo_MAT_ko.pdf",
     "started_at": "2026-07-29T00:13:29.949247+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T03:39:37.907508+00:00",
+    "updated_at": "2026-07-29T06:19:36.899648+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/turbo/2/ko.html"
   },
@@ -88217,7 +88337,7 @@
     "source_path": "Slide2/mat/Turbo_MAT_en.pdf",
     "started_at": "2026-07-29T00:13:05.541401+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T03:39:36.344448+00:00",
+    "updated_at": "2026-07-29T06:19:34.550384+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/turbo/2/en.html"
   },
@@ -88683,7 +88803,7 @@
     "source_path": "Slide2/mat/Turbo_MAT_jp.pdf",
     "started_at": "2026-07-29T00:12:53.015416+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T03:39:34.893483+00:00",
+    "updated_at": "2026-07-29T06:19:32.860130+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/turbo/2/ja.html"
   },
@@ -91141,7 +91261,7 @@
     "source_path": "Slide2/mat/MINA_MAT_ko.pdf",
     "started_at": "2026-07-28T21:08:19.554529+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T03:39:49.587942+00:00",
+    "updated_at": "2026-07-29T06:19:50.044233+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/mina/2/ko.html"
   },
