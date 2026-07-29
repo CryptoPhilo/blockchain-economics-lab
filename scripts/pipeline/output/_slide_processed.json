@@ -1350,7 +1350,7 @@
     "source_path": "Slide2/mat/CCD_MAT_cn.pdf",
     "started_at": "2026-07-28T17:03:03.357690+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T23:17:35.658765+00:00",
+    "updated_at": "2026-07-29T00:13:55.155718+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/concordium/2/zh.html"
   },
@@ -7241,7 +7241,7 @@
     "source_path": "Slide2/mat/HTX_MAT_en.pdf",
     "started_at": "2026-07-28T15:32:24.940768+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T23:17:45.487237+00:00",
+    "updated_at": "2026-07-29T00:14:08.752219+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/htx-dao/2/en.html"
   },
@@ -8646,7 +8646,7 @@
     "source_path": "Slide2/mat/HTX_MAT_cn.pdf",
     "started_at": "2026-07-28T15:31:34.928122+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T23:17:41.407555+00:00",
+    "updated_at": "2026-07-29T00:14:03.170893+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/htx-dao/2/zh.html"
   },
@@ -17569,6 +17569,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/kucoin/1/ko.html"
   },
+  "1BYi-bme4kAeSzcH5yil6V83il6M-gk9a": {
+    "error": null,
+    "finished_at": "2026-07-29T00:12:40.559152+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-28T23:52:08.000Z",
+    "name": "Turbo_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 768.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/turbo/latest/zh.html",
+    "report_id": "bd064bfb-0e1e-4d22-be28-1789e35cf989",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "turbo",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/Turbo_MAT_cn.pdf",
+    "started_at": "2026-07-29T00:12:29.864509+00:00",
+    "status": "published",
+    "updated_at": "2026-07-29T00:12:40.559167+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/turbo/2/zh.html"
+  },
   "1BYvEIjpIMfRE5Gm2UY-w6l6_67dIV6eM": {
     "error": "Storage upload failed for slides/econ/vechain/1/en_assets/page-001.png: {'statusCode': 415, 'error': invalid_mime_type, 'message': mime type image/png is not supported}",
     "lang": "en",
@@ -21950,7 +21980,7 @@
     "source_path": "Slide2/mat/CCD_MAT_en.pdf",
     "started_at": "2026-07-28T17:03:35.316958+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T23:17:38.114303+00:00",
+    "updated_at": "2026-07-29T00:13:58.824005+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/concordium/2/en.html"
   },
@@ -24165,7 +24195,7 @@
     "source_path": "Slide2/mat/CCD_MAT_ko.pdf",
     "started_at": "2026-07-28T17:03:49.686403+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T23:17:39.314934+00:00",
+    "updated_at": "2026-07-29T00:14:00.345229+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/concordium/2/ko.html"
   },
@@ -32708,7 +32738,7 @@
     "source_path": "Slide2/mat/ENJ_MAT_en.pdf",
     "started_at": "2026-07-28T21:06:54.864426+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T23:17:28.416383+00:00",
+    "updated_at": "2026-07-29T00:13:45.789377+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/enjin-coin/2/en.html"
   },
@@ -44519,7 +44549,7 @@
     "source_path": "Slide2/mat/ENJ_MAT_ko.pdf",
     "started_at": "2026-07-28T21:07:14.485031+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T23:17:29.600951+00:00",
+    "updated_at": "2026-07-29T00:13:47.288174+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/enjin-coin/2/ko.html"
   },
@@ -49196,7 +49226,7 @@
     "source_path": "Slide2/mat/MINA_MAT_en.pdf",
     "started_at": "2026-07-28T21:08:02.019609+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T23:17:33.330809+00:00",
+    "updated_at": "2026-07-29T00:13:51.895508+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/mina/2/en.html"
   },
@@ -50364,7 +50394,7 @@
     "source_path": "Slide2/mat/HTX_MAT_ko.pdf",
     "started_at": "2026-07-28T15:32:44.343684+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T23:17:47.255344+00:00",
+    "updated_at": "2026-07-29T00:14:10.891031+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/htx-dao/2/ko.html"
   },
@@ -53118,7 +53148,7 @@
     "source_path": "Slide2/mat/ENJ_MAT_cn.pdf",
     "started_at": "2026-07-28T21:06:15.605427+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T23:17:24.711309+00:00",
+    "updated_at": "2026-07-29T00:13:42.680595+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/enjin-coin/2/zh.html"
   },
@@ -62409,7 +62439,7 @@
     "source_path": "Slide2/mat/MINA_MAT_jp.pdf",
     "started_at": "2026-07-28T21:07:51.774460+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T23:17:32.145709+00:00",
+    "updated_at": "2026-07-29T00:13:50.427815+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/mina/2/ja.html"
   },
@@ -70478,7 +70508,7 @@
     "source_path": "Slide2/mat/HTX_MAT_jp.pdf",
     "started_at": "2026-07-28T15:32:15.662967+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T23:17:43.455828+00:00",
+    "updated_at": "2026-07-29T00:14:05.438258+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/htx-dao/2/ja.html"
   },
@@ -76072,7 +76102,7 @@
     "source_path": "Slide2/mat/CCD_MAT_jp.pdf",
     "started_at": "2026-07-28T17:03:23.523641+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T23:17:36.947792+00:00",
+    "updated_at": "2026-07-29T00:13:56.835503+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/concordium/2/ja.html"
   },
@@ -80432,7 +80462,7 @@
     "source_path": "Slide2/mat/ENJ_MAT_jp.pdf",
     "started_at": "2026-07-28T21:06:42.480846+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T23:17:26.982684+00:00",
+    "updated_at": "2026-07-29T00:13:44.173858+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/enjin-coin/2/ja.html"
   },
@@ -81135,7 +81165,7 @@
     "source_path": "Slide2/mat/MINA_MAT_cn.pdf",
     "started_at": "2026-07-28T21:07:33.984180+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T23:17:30.948281+00:00",
+    "updated_at": "2026-07-29T00:13:48.858755+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/mina/2/zh.html"
   },
@@ -87836,6 +87866,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gravity-token/1/ja.html"
   },
+  "1xKvjk0V3oXvRKPpCvA0RYfZDhae5O5qJ": {
+    "error": null,
+    "finished_at": "2026-07-29T00:13:40.358690+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-28T23:51:23.000Z",
+    "name": "Turbo_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 768.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/turbo/latest/ko.html",
+    "report_id": "d0c87783-bc49-4181-87cc-b271e02ad2f1",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "turbo",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/Turbo_MAT_ko.pdf",
+    "started_at": "2026-07-29T00:13:29.949247+00:00",
+    "status": "published",
+    "updated_at": "2026-07-29T00:13:40.358706+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/turbo/2/ko.html"
+  },
   "1xMfjb7Ed5XFLNqG7lG3_Tm3yQJPKslXe": {
     "error": null,
     "finished_at": "2026-07-10T23:52:43.342701+00:00",
@@ -88130,6 +88190,36 @@
     "updated_at": "2026-06-09T16:53:00.264983+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/solstice/1/ja.html"
+  },
+  "1xSZ6uXwTrlaOOd2MyYM7MXqgOJ_2Hwcq": {
+    "error": null,
+    "finished_at": "2026-07-29T00:13:17.201899+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-28T23:51:40.000Z",
+    "name": "Turbo_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 768.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/turbo/latest/en.html",
+    "report_id": "97e48250-3810-43d6-8be6-fd40882f043b",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "turbo",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/Turbo_MAT_en.pdf",
+    "started_at": "2026-07-29T00:13:05.541401+00:00",
+    "status": "published",
+    "updated_at": "2026-07-29T00:13:17.201916+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/turbo/2/en.html"
   },
   "1xVVXzU1ETT3k6_qYIc58urYKpVzukHdi": {
     "error": null,
@@ -88566,6 +88656,36 @@
     "started_at": "2026-06-09T04:43:25.445842+00:00",
     "status": "failed",
     "updated_at": "2026-06-09T04:43:34.180991+00:00"
+  },
+  "1xr7IPuPSEmgP4EQhR_TELud6qKd28vqd": {
+    "error": null,
+    "finished_at": "2026-07-29T00:13:04.155443+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-28T23:51:54.000Z",
+    "name": "Turbo_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 768.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/turbo/latest/ja.html",
+    "report_id": "1e1e2f41-abcc-49a4-90dd-a7ced3dcf271",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "turbo",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/Turbo_MAT_jp.pdf",
+    "started_at": "2026-07-29T00:12:53.015416+00:00",
+    "status": "published",
+    "updated_at": "2026-07-29T00:13:04.155459+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/turbo/2/ja.html"
   },
   "1xrD_mct_Zvk_5rKWXX8gkvDeVrXRpj9k": {
     "error": null,
@@ -91021,7 +91141,7 @@
     "source_path": "Slide2/mat/MINA_MAT_ko.pdf",
     "started_at": "2026-07-28T21:08:19.554529+00:00",
     "status": "published",
-    "updated_at": "2026-07-28T23:17:34.466406+00:00",
+    "updated_at": "2026-07-29T00:13:53.530435+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/mina/2/ko.html"
   },
