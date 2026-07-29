@@ -9268,7 +9268,7 @@
     "source_path": "Slide2/for/COTI_FOR_cn.pdf",
     "started_at": "2026-07-29T17:57:59.578924+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T22:15:30.040542+00:00",
+    "updated_at": "2026-07-29T23:18:00.256310+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/coti/2/zh.html"
   },
@@ -13082,7 +13082,7 @@
     "source_path": "Slide2/for/COTI_FOR_jp.pdf",
     "started_at": "2026-07-29T17:58:24.812173+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T22:15:32.537809+00:00",
+    "updated_at": "2026-07-29T23:18:01.019687+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/coti/2/ja.html"
   },
@@ -14938,7 +14938,7 @@
     "source_path": "Slide2/for/DELLx_FOR_ko.pdf",
     "started_at": "2026-07-29T15:24:31.377275+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T22:15:41.257316+00:00",
+    "updated_at": "2026-07-29T23:18:05.806140+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/dell-technologies-inc-tokenized-stock-xstock/2/ko.html"
   },
@@ -16546,6 +16546,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/eurite/1/ja.html"
   },
+  "1AY15370XMpe_WZuWTelWSI67SY_TWieX": {
+    "error": null,
+    "finished_at": "2026-07-29T23:17:59.464581+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-29T21:20:37.000Z",
+    "name": "ON_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/orochi-network/latest/ko.html",
+    "report_id": "ec1ce225-4998-4175-b10f-e3e73df883c0",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "orochi-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/ON_FOR_ko.pdf",
+    "started_at": "2026-07-29T23:17:53.191552+00:00",
+    "status": "published",
+    "updated_at": "2026-07-29T23:17:59.464595+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/orochi-network/1/ko.html"
+  },
   "1AZz19rUctE6fWnX9P-NtnC1x-2WE_uxM": {
     "error": null,
     "finished_at": "2026-07-23T09:46:43.982760+00:00",
@@ -16717,7 +16747,7 @@
     "source_path": "Slide2/for/DELLx_FOR_jp.pdf",
     "started_at": "2026-07-29T15:24:08.304823+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T22:15:38.816332+00:00",
+    "updated_at": "2026-07-29T23:18:04.213662+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/dell-technologies-inc-tokenized-stock-xstock/2/ja.html"
   },
@@ -19455,7 +19485,7 @@
     "source_path": "Slide2/for/DELLx_FOR_en.pdf",
     "started_at": "2026-07-29T15:24:16.320088+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T22:15:39.818082+00:00",
+    "updated_at": "2026-07-29T23:18:04.998516+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/dell-technologies-inc-tokenized-stock-xstock/2/en.html"
   },
@@ -25457,6 +25487,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/pol-ex-matic/1/ko.html"
   },
+  "1GIa2S_Xrqrmp3lBL4VNITDnOvvZXCSb-": {
+    "error": null,
+    "finished_at": "2026-07-29T23:17:08.475296+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-29T21:20:46.000Z",
+    "name": "ON_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/orochi-network/latest/zh.html",
+    "report_id": "dca99ba4-6ee1-4580-9f3d-eb10429c1468",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "orochi-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/ON_FOR_cn.pdf",
+    "started_at": "2026-07-29T23:16:59.910153+00:00",
+    "status": "published",
+    "updated_at": "2026-07-29T23:17:08.475311+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/orochi-network/1/zh.html"
+  },
   "1GKXmJULFi_bt4jiPQvKSzSNurD9y4vvn": {
     "error": null,
     "finished_at": "2026-05-17T07:59:12.081706+00:00",
@@ -28342,7 +28402,7 @@
     "source_path": "Slide2/for/DELLx_FOR_cn.pdf",
     "started_at": "2026-07-29T15:23:51.900627+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T22:15:37.418918+00:00",
+    "updated_at": "2026-07-29T23:18:03.437419+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/dell-technologies-inc-tokenized-stock-xstock/2/zh.html"
   },
@@ -40630,6 +40690,36 @@
     "updated_at": "2026-05-12T18:13:04.388549+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/jupiter-ag/latest/ja.html"
+  },
+  "1QczwhsrQW49tkH2EGIB1s6NYW3d8Stcj": {
+    "error": null,
+    "finished_at": "2026-07-29T23:17:38.873443+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-29T21:20:40.000Z",
+    "name": "ON_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/orochi-network/latest/en.html",
+    "report_id": "72860baa-6267-40f3-b1e5-f9364f572c1f",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "orochi-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/ON_FOR_en.pdf",
+    "started_at": "2026-07-29T23:17:33.654199+00:00",
+    "status": "published",
+    "updated_at": "2026-07-29T23:17:38.873459+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/orochi-network/2/en.html"
   },
   "1QdtrC8uKXugVV9eLSgnfb-ptpwDNAZh_": {
     "error": null,
@@ -55837,7 +55927,7 @@
     "source_path": "Slide2/for/COTI_FOR_en.pdf",
     "started_at": "2026-07-29T17:58:36.821238+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T22:15:33.985880+00:00",
+    "updated_at": "2026-07-29T23:18:01.815358+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/coti/2/en.html"
   },
@@ -57986,7 +58076,7 @@
     "source_path": "Slide2/for/COTI_FOR_ko.pdf",
     "started_at": "2026-07-29T17:58:54.585062+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T22:15:34.978719+00:00",
+    "updated_at": "2026-07-29T23:18:02.639486+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/coti/2/ko.html"
   },
@@ -66028,6 +66118,36 @@
     "updated_at": "2026-06-17T03:43:42.391372+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/qtum/1/ko.html"
+  },
+  "1hgwJR9nihQgIkvk0LJ_3A4s8yB9G-6IJ": {
+    "error": null,
+    "finished_at": "2026-07-29T23:17:32.168009+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-29T21:20:42.000Z",
+    "name": "ON_FOR_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/orochi-network/latest/ja.html",
+    "report_id": "53c05712-3072-4432-892e-256470bdfa6d",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "orochi-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/ON_FOR_jp.pdf",
+    "started_at": "2026-07-29T23:17:24.853778+00:00",
+    "status": "published",
+    "updated_at": "2026-07-29T23:17:32.168023+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/orochi-network/1/ja.html"
   },
   "1hi9e8H7tvVezarWRbarYsIj-Irusb6nt": {
     "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
