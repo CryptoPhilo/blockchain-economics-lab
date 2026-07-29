@@ -14852,6 +14852,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/aelf/1/ja.html"
   },
+  "19ME3FQAqwo75KiQVpti-x2MuR8sF4lpj": {
+    "error": null,
+    "finished_at": "2026-07-29T15:24:39.622249+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-29T12:26:46.000Z",
+    "name": "DELLx_FOR_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/dell-technologies-inc-tokenized-stock-xstock/latest/ko.html",
+    "report_id": "8872d024-3186-493b-bac5-25e5c8f1396f",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "dell-technologies-inc-tokenized-stock-xstock",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/DELLx_FOR_ko.pdf",
+    "started_at": "2026-07-29T15:24:31.377275+00:00",
+    "status": "published",
+    "updated_at": "2026-07-29T15:24:39.622267+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/dell-technologies-inc-tokenized-stock-xstock/2/ko.html"
+  },
   "19MQVeskYap-vn6NGCA3JsmHY-wWbq8g4": {
     "error": null,
     "finished_at": "2026-07-27T11:49:22.006709+00:00",
@@ -16600,6 +16630,36 @@
     "updated_at": "2026-06-12T01:41:44.750602+00:00",
     "version": null,
     "versioned_url": null
+  },
+  "1AnG82Qty5rMZUhgh8VEENNrWS4vMfjdM": {
+    "error": null,
+    "finished_at": "2026-07-29T15:24:14.942475+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-29T12:26:47.000Z",
+    "name": "DELLx_FOR_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/dell-technologies-inc-tokenized-stock-xstock/latest/ja.html",
+    "report_id": "87c1eeec-7a5b-4d5a-8a36-af09950d0a72",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "dell-technologies-inc-tokenized-stock-xstock",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/DELLx_FOR_jp.pdf",
+    "started_at": "2026-07-29T15:24:08.304823+00:00",
+    "status": "published",
+    "updated_at": "2026-07-29T15:24:14.942493+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/dell-technologies-inc-tokenized-stock-xstock/2/ja.html"
   },
   "1AnuUKuX20Z6o5vmzqKAek7vDEa1P2Uxt": {
     "error": null,
@@ -19308,6 +19368,36 @@
     "updated_at": "2026-06-13T21:55:36.148297+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ribbita-by-virtuals/1/ja.html"
+  },
+  "1CctuZqdnbfH4wTT_AF2TCtg_K01YoGmy": {
+    "error": null,
+    "finished_at": "2026-07-29T15:24:22.118009+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-29T12:26:46.000Z",
+    "name": "DELLx_FOR_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/dell-technologies-inc-tokenized-stock-xstock/latest/en.html",
+    "report_id": "5f73790e-3f96-49ab-b724-31de045d907a",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "dell-technologies-inc-tokenized-stock-xstock",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/DELLx_FOR_en.pdf",
+    "started_at": "2026-07-29T15:24:16.320088+00:00",
+    "status": "published",
+    "updated_at": "2026-07-29T15:24:22.118025+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/dell-technologies-inc-tokenized-stock-xstock/2/en.html"
   },
   "1CgShZnlddC_sMItJ7kR_jj1ilhGjLAOW": {
     "error": null,
@@ -28165,6 +28255,36 @@
     "updated_at": "2026-06-12T10:49:08.841964+00:00",
     "version": null,
     "versioned_url": null
+  },
+  "1IIff004Y4fyASOJhjb4QCPFVNU6MaZ-Z": {
+    "error": null,
+    "finished_at": "2026-07-29T15:23:58.591445+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-29T12:26:48.000Z",
+    "name": "DELLx_FOR_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1JaOGWbzA7vunrvOiF63rzRoNG-gDr5hO",
+    "parent_folder_name": "for",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/dell-technologies-inc-tokenized-stock-xstock/latest/zh.html",
+    "report_id": "fcde0885-6e44-486c-9425-1fe16b7eca83",
+    "retry_count": 0,
+    "rtype": "for",
+    "slug": "dell-technologies-inc-tokenized-stock-xstock",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/for/DELLx_FOR_cn.pdf",
+    "started_at": "2026-07-29T15:23:51.900627+00:00",
+    "status": "published",
+    "updated_at": "2026-07-29T15:23:58.591461+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/dell-technologies-inc-tokenized-stock-xstock/2/zh.html"
   },
   "1IIu39iCLI0NajD7NfSwoEZxYkAVf8bB_": {
     "error": "unresolved (slug=? via filename_unresolved; lang=ko via filename)",
@@ -43635,7 +43755,7 @@
     "source_path": "Slide2/mat/BabyDoge_MAT_jp.pdf",
     "started_at": "2026-07-29T06:18:35.183895+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T13:19:45.360195+00:00",
+    "updated_at": "2026-07-29T15:23:38.334778+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/baby-doge-coin/2/ja.html"
   },
@@ -46329,7 +46449,7 @@
     "source_path": "Slide2/mat/BabyDoge_MAT_cn.pdf",
     "started_at": "2026-07-29T06:18:11.321845+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T13:19:44.123220+00:00",
+    "updated_at": "2026-07-29T15:23:36.792417+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/baby-doge-coin/2/zh.html"
   },
@@ -69963,7 +70083,7 @@
     "source_path": "Slide2/mat/BabyDoge_MAT_ko.pdf",
     "started_at": "2026-07-29T06:19:11.400589+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T13:19:47.756494+00:00",
+    "updated_at": "2026-07-29T15:23:41.887784+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/baby-doge-coin/2/ko.html"
   },
@@ -75232,7 +75352,7 @@
     "source_path": "Slide2/mat/BabyDoge_MAT_en.pdf",
     "started_at": "2026-07-29T06:18:47.623724+00:00",
     "status": "published",
-    "updated_at": "2026-07-29T13:19:46.596417+00:00",
+    "updated_at": "2026-07-29T15:23:40.511112+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/baby-doge-coin/2/en.html"
   },
