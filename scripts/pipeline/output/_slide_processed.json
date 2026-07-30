@@ -175,7 +175,7 @@
     "source_path": "Slide2/mat/ZIL_MAT_en.pdf",
     "started_at": "2026-07-30T14:40:58.076686+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:18:37.735051+00:00",
+    "updated_at": "2026-07-30T17:52:02.674352+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zilliqa/2/en.html"
   },
@@ -1303,7 +1303,7 @@
     "source_path": "Slide2/mat/XOMX_MAT_jp.pdf",
     "started_at": "2026-07-30T16:17:50.998593+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:17:58.135850+00:00",
+    "updated_at": "2026-07-30T17:51:45.292034+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/exxon-mobil-tokenized-stock-xstock/2/ja.html"
   },
@@ -2209,6 +2209,36 @@
     "updated_at": "2026-06-11T09:08:41.246446+00:00",
     "version": null,
     "versioned_url": null
+  },
+  "10NFitahVfRvmP6hOiJKcYlZyAmj-yQoz": {
+    "error": null,
+    "finished_at": "2026-07-30T17:50:41.774794+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-30T15:04:52.000Z",
+    "name": "Ampleforth_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ampleforth/latest/ja.html",
+    "report_id": "7fd3ad85-e148-46b0-ad19-7a15f5a18a82",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "ampleforth",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/Ampleforth_MAT_jp.pdf",
+    "started_at": "2026-07-30T17:50:30.236130+00:00",
+    "status": "published",
+    "updated_at": "2026-07-30T17:50:41.774815+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ampleforth/2/ja.html"
   },
   "10P4cGxCLUAyvKDA_hpcTcbxMbnMIP6gL": {
     "error": null,
@@ -6154,7 +6184,7 @@
     "source_path": "Slide2/mat/BRK.BX_MAT_ko.pdf",
     "started_at": "2026-07-30T14:40:06.523146+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:18:33.567293+00:00",
+    "updated_at": "2026-07-30T17:51:57.437333+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/berkshire-hathaway-tokenized-stock-xstock/2/ko.html"
   },
@@ -9124,6 +9154,36 @@
     "updated_at": "2026-06-07T16:04:12.581957+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/canton-network/1/ja.html"
+  },
+  "151yPKbzm-1QkODH5GPIJB1cUvA-QMDs3": {
+    "error": null,
+    "finished_at": "2026-07-30T17:51:23.811604+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-30T15:04:35.000Z",
+    "name": "Ampleforth_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ampleforth/latest/ko.html",
+    "report_id": "d27a5ff9-0b43-4681-8b00-1d095930fae8",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "ampleforth",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/Ampleforth_MAT_ko.pdf",
+    "started_at": "2026-07-30T17:51:12.137316+00:00",
+    "status": "published",
+    "updated_at": "2026-07-30T17:51:23.811625+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ampleforth/2/ko.html"
   },
   "154jsQSrLkAky24kb7ZtZnF4qgmvaboT_": {
     "error": null,
@@ -17012,7 +17072,7 @@
     "source_path": "Slide2/mat/OMI_MAT_en.pdf",
     "started_at": "2026-07-30T16:16:35.503897+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:16:42.842234+00:00",
+    "updated_at": "2026-07-30T17:51:39.147194+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ecomi-new/2/en.html"
   },
@@ -18130,7 +18190,7 @@
     "source_path": "Slide2/mat/BRK.BX_MAT_en.pdf",
     "started_at": "2026-07-30T14:39:44.205385+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:18:32.414213+00:00",
+    "updated_at": "2026-07-30T17:51:55.492735+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/berkshire-hathaway-tokenized-stock-xstock/2/en.html"
   },
@@ -18632,7 +18692,7 @@
     "source_path": "Slide2/mat/BRK.BX_MAT_jp.pdf",
     "started_at": "2026-07-30T14:39:22.727326+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:18:31.209259+00:00",
+    "updated_at": "2026-07-30T17:51:53.673749+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/berkshire-hathaway-tokenized-stock-xstock/2/ja.html"
   },
@@ -22233,7 +22293,7 @@
     "source_path": "Slide2/mat/HONX_MAT_en.pdf",
     "started_at": "2026-07-30T14:42:03.673659+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:18:42.741448+00:00",
+    "updated_at": "2026-07-30T17:52:09.359976+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/honeywell-tokenized-stock-xstock/2/en.html"
   },
@@ -30379,7 +30439,7 @@
     "source_path": "Slide2/mat/XOMX_MAT_cn.pdf",
     "started_at": "2026-07-30T16:17:27.174198+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:17:34.349237+00:00",
+    "updated_at": "2026-07-30T17:51:43.731623+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/exxon-mobil-tokenized-stock-xstock/2/zh.html"
   },
@@ -34961,7 +35021,7 @@
     "source_path": "Slide2/mat/HONX_MAT_jp.pdf",
     "started_at": "2026-07-30T14:41:56.580353+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:18:41.565572+00:00",
+    "updated_at": "2026-07-30T17:52:07.725133+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/honeywell-tokenized-stock-xstock/2/ja.html"
   },
@@ -36095,7 +36155,7 @@
     "source_path": "Slide2/mat/XOMX_MAT_ko.pdf",
     "started_at": "2026-07-30T16:18:21.436225+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:18:26.820324+00:00",
+    "updated_at": "2026-07-30T17:51:49.646081+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/exxon-mobil-tokenized-stock-xstock/2/ko.html"
   },
@@ -38598,6 +38658,36 @@
     "updated_at": "2026-07-07T13:05:26.876638+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/fogo/1/ko.html"
+  },
+  "1OiKcwIqwYTngTAraBZOnVCBQKHTko0YA": {
+    "error": null,
+    "finished_at": "2026-07-30T17:50:05.906317+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-30T15:04:56.000Z",
+    "name": "Ampleforth_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ampleforth/latest/zh.html",
+    "report_id": "3c83a022-9f74-4c57-8b2f-d3f199fa77bd",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "ampleforth",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/Ampleforth_MAT_cn.pdf",
+    "started_at": "2026-07-30T17:49:50.528413+00:00",
+    "status": "published",
+    "updated_at": "2026-07-30T17:50:05.906337+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ampleforth/2/zh.html"
   },
   "1OjMX97rDHOgQN8-zUAObCyG51-KSAQ9z": {
     "error": null,
@@ -44939,7 +45029,7 @@
     "source_path": "Slide2/mat/HONX_MAT_ko.pdf",
     "started_at": "2026-07-30T14:42:22.290270+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:18:43.936067+00:00",
+    "updated_at": "2026-07-30T17:52:10.842624+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/honeywell-tokenized-stock-xstock/2/ko.html"
   },
@@ -50288,7 +50378,7 @@
     "source_path": "Slide2/mat/XOMX_MAT_en.pdf",
     "started_at": "2026-07-30T16:17:59.944910+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:18:05.656789+00:00",
+    "updated_at": "2026-07-30T17:51:47.236005+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/exxon-mobil-tokenized-stock-xstock/2/en.html"
   },
@@ -53572,7 +53662,7 @@
     "source_path": "Slide2/mat/BUSD_MAT_jp.pdf",
     "started_at": "2026-07-30T16:14:41.634607+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:14:50.880295+00:00",
+    "updated_at": "2026-07-30T17:51:28.903740+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/binance-usd/2/ja.html"
   },
@@ -54293,7 +54383,7 @@
     "source_path": "Slide2/mat/BUSD_MAT_cn.pdf",
     "started_at": "2026-07-30T16:14:02.801134+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:14:15.548949+00:00",
+    "updated_at": "2026-07-30T17:51:26.390191+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/binance-usd/2/zh.html"
   },
@@ -54373,7 +54463,7 @@
     "source_path": "Slide2/mat/ZIL_MAT_cn.pdf",
     "started_at": "2026-07-30T14:40:26.493021+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:18:35.113716+00:00",
+    "updated_at": "2026-07-30T17:51:59.059979+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zilliqa/2/zh.html"
   },
@@ -58084,7 +58174,7 @@
     "source_path": "Slide2/mat/BRK.BX_MAT_cn.pdf",
     "started_at": "2026-07-30T14:39:01.358302+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:18:29.152332+00:00",
+    "updated_at": "2026-07-30T17:51:51.977563+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/berkshire-hathaway-tokenized-stock-xstock/2/zh.html"
   },
@@ -63279,7 +63369,7 @@
     "source_path": "Slide2/mat/OMI_MAT_cn.pdf",
     "started_at": "2026-07-30T16:15:54.957134+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:16:02.977441+00:00",
+    "updated_at": "2026-07-30T17:51:35.585692+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ecomi-new/2/zh.html"
   },
@@ -75720,7 +75810,7 @@
     "source_path": "Slide2/mat/ZIL_MAT_ko.pdf",
     "started_at": "2026-07-30T14:41:15.497775+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:18:39.028565+00:00",
+    "updated_at": "2026-07-30T17:52:04.221088+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zilliqa/2/ko.html"
   },
@@ -80692,7 +80782,7 @@
     "source_path": "Slide2/mat/BUSD_MAT_en.pdf",
     "started_at": "2026-07-30T16:14:52.023791+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:15:01.691908+00:00",
+    "updated_at": "2026-07-30T17:51:31.017170+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/binance-usd/2/en.html"
   },
@@ -81172,7 +81262,7 @@
     "source_path": "Slide2/mat/BUSD_MAT_ko.pdf",
     "started_at": "2026-07-30T16:15:23.207594+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:15:33.598375+00:00",
+    "updated_at": "2026-07-30T17:51:33.096470+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/binance-usd/2/ko.html"
   },
@@ -82280,7 +82370,7 @@
     "source_path": "Slide2/mat/OMI_MAT_ko.pdf",
     "started_at": "2026-07-30T16:17:04.490491+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:17:11.566040+00:00",
+    "updated_at": "2026-07-30T17:51:40.712668+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ecomi-new/2/ko.html"
   },
@@ -82956,6 +83046,36 @@
     "version": null,
     "versioned_url": null
   },
+  "1t5DoWYJG1fjptQE5JO-Hr0MlpEJxBmCz": {
+    "error": null,
+    "finished_at": "2026-07-30T17:50:52.135083+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-30T15:04:40.000Z",
+    "name": "Ampleforth_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ampleforth/latest/en.html",
+    "report_id": "460fba6a-426a-472d-a327-2b09ef2d5db9",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "ampleforth",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/Ampleforth_MAT_en.pdf",
+    "started_at": "2026-07-30T17:50:43.262874+00:00",
+    "status": "published",
+    "updated_at": "2026-07-30T17:50:52.135104+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ampleforth/2/en.html"
+  },
   "1t7VSjL7POHRXWccMX1EqWTdUH9cGsQ0i": {
     "error": null,
     "finished_at": "2026-05-17T10:12:32.171917+00:00",
@@ -83342,7 +83462,7 @@
     "source_path": "Slide2/mat/HONX_MAT_cn.pdf",
     "started_at": "2026-07-30T14:41:35.466577+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:18:40.271325+00:00",
+    "updated_at": "2026-07-30T17:52:05.817916+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/honeywell-tokenized-stock-xstock/2/zh.html"
   },
@@ -91399,7 +91519,7 @@
     "source_path": "Slide2/mat/OMI_MAT_jp.pdf",
     "started_at": "2026-07-30T16:16:27.253026+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:16:33.816535+00:00",
+    "updated_at": "2026-07-30T17:51:37.593237+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ecomi-new/2/ja.html"
   },
@@ -92551,7 +92671,7 @@
     "source_path": "Slide2/mat/ZIL_MAT_jp.pdf",
     "started_at": "2026-07-30T14:40:50.840037+00:00",
     "status": "published",
-    "updated_at": "2026-07-30T16:18:36.537375+00:00",
+    "updated_at": "2026-07-30T17:52:01.162654+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zilliqa/2/ja.html"
   },
