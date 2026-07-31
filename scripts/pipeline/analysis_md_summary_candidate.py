@@ -33,6 +33,7 @@ from marketing_content_pipeline import (  # noqa: E402
     CardCopy,
     DerivedContent,
     MarkdownSource,
+    WEBSITE_VISIBLE_REPORT_STATUSES,
     _download_drive_text,
     _get_drive_service,
     _limit_words,
@@ -43,6 +44,7 @@ from marketing_content_pipeline import (  # noqa: E402
     build_project_report_patch,
     derive_card_copy,
     derive_content,
+    report_row_supports_locale,
     score_drive_source_for_project,
     validate_card_summary,
 )
@@ -254,32 +256,42 @@ def list_drive_candidates(
     service: Any,
     promoted_source_identities: Optional[Iterable[str]] = None,
     include_promoted_sources: bool = False,
+    version_override: Optional[int] = None,
 ) -> List[AnalysisMdCandidate]:
     folder_ids = _source_folder_ids_for_report_type(report_type, source_scope=source_scope, service=service)
     items: List[Dict[str, Any]] = []
     for folder_id in folder_ids:
         items.extend(_list_drive_markdown_sources_with_revision(service, folder_id))
 
-    project = fetch_project(None, slug) if slug else None
+    sb = get_supabase_client()
+    project = fetch_project(sb, slug) if slug else None
+    target_version = latest_target_report_version(
+        sb,
+        project=project,
+        report_type=report_type,
+    )
     promoted_identities = set(promoted_source_identities or ())
     candidates: List[Tuple[int, AnalysisMdCandidate]] = []
     for item in items:
         name = str(item.get("name") or "")
         parsed = _parse_markdown_name(name)
-        inferred_slug = slug or ""
+        inferred_slug = ""
         version = 1
         if parsed:
             parsed_slug, parsed_type, parsed_version, lang = parsed
             if parsed_type != report_type or lang != "ko":
                 continue
             inferred_slug = parsed_slug
-            version = parsed_version
-        if slug and inferred_slug and inferred_slug != slug:
+            version = version_override or parsed_version
+            score = score_drive_source_for_project(name, project or {"slug": slug})
+            if inferred_slug != slug and score < 60:
+                continue
+        elif slug:
             score = score_drive_source_for_project(name, project or {"slug": slug})
             if score < 60:
                 continue
-        if slug and not inferred_slug:
             inferred_slug = slug
+            version = version_override or target_version or 1
 
         revision_id = item.get("headRevisionId") or item.get("md5Checksum")
         revision_identity = (
@@ -346,10 +358,16 @@ def _list_drive_markdown_sources_with_revision(service: Any, folder_id: str) -> 
     return rows
 
 
-def load_local_candidate(path: str, *, report_type: str, slug: str) -> AnalysisMdCandidate:
+def load_local_candidate(
+    path: str,
+    *,
+    report_type: str,
+    slug: str,
+    version_override: Optional[int] = None,
+) -> AnalysisMdCandidate:
     text = Path(path).read_text(encoding="utf-8")
     parsed = _parse_markdown_name(Path(path).name)
-    version = parsed[2] if parsed else 1
+    version = version_override or (parsed[2] if parsed else 1)
     source_hash = markdown_sha256(text)
     source = MarkdownSource(
         slug=slug,
@@ -377,6 +395,43 @@ def fetch_project(sb: Any, slug: Optional[str]) -> Optional[Dict[str, Any]]:
     res = sb.table("tracked_projects").select("id, slug, name, symbol, aliases").eq("slug", slug).limit(1).execute()
     rows = res.data or []
     return rows[0] if rows else {"slug": slug}
+
+
+def latest_target_report_version(
+    sb: Any,
+    *,
+    project: Optional[Dict[str, Any]],
+    report_type: str,
+    locale: str = "ko",
+) -> Optional[int]:
+    if not sb or not project or not project.get("id"):
+        return None
+    try:
+        res = (
+            sb.table("project_reports")
+            .select(
+                "id, project_id, report_type, version, language, status, "
+                "gdrive_url, file_url, gdrive_urls_by_lang, file_urls_by_lang, "
+                "slide_html_urls_by_lang"
+            )
+            .eq("project_id", project["id"])
+            .eq("report_type", REPORT_TYPE_TO_DB[report_type])
+            .eq("language", locale)
+            .in_("status", list(WEBSITE_VISIBLE_REPORT_STATUSES))
+            .execute()
+        )
+    except Exception:
+        return None
+
+    versions: List[int] = []
+    for row in res.data or []:
+        if row.get("language") in LANGUAGES and not report_row_supports_locale(row, locale):
+            continue
+        try:
+            versions.append(int(row.get("version") or 0))
+        except Exception:
+            continue
+    return max(versions) if versions else None
 
 
 def existing_job(sb: Any, idempotency_key: str) -> Optional[Dict[str, Any]]:
@@ -619,6 +674,11 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--force", action="store_true", default=False)
     parser.add_argument("--source-path", help="Local Korean analysis Markdown for development dry-runs")
     parser.add_argument(
+        "--version",
+        type=int,
+        help="Explicit target project_reports version for natural-language or manual source filenames.",
+    )
+    parser.add_argument(
         "--agent-output-json",
         help="Paperclip local agent JSON output to validate and persist as a summary candidate",
     )
@@ -652,7 +712,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 2
 
     if args.source_path:
-        candidates = [load_local_candidate(args.source_path, report_type=args.type, slug=args.slug)]
+        candidates = [
+            load_local_candidate(
+                args.source_path,
+                report_type=args.type,
+                slug=args.slug,
+                version_override=args.version,
+            )
+        ]
     else:
         service = _get_drive_service()
         candidates = list_drive_candidates(
@@ -661,7 +728,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             source_scope=source_scope,
             service=service,
             promoted_source_identities=promoted_source_identities(sb, report_type=args.type),
-            include_promoted_sources=args.force,
+            include_promoted_sources=False,
+            version_override=args.version,
         )
     candidates = candidates[: max(1, args.limit)]
 

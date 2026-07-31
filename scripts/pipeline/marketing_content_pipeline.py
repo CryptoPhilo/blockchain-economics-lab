@@ -94,9 +94,11 @@ MAX_WORDS = int(os.environ.get("BCE_MARKETING_MAX_WORDS", "100"))
 CARD_SUMMARY_MAX_WORDS = int(os.environ.get("BCE_CARD_SUMMARY_MAX_WORDS", "48"))
 CARD_SUMMARY_MAX_CHARS = int(os.environ.get("BCE_CARD_SUMMARY_MAX_CHARS", "260"))
 CARD_SUMMARY_MIN_CHARS = int(os.environ.get("BCE_CARD_SUMMARY_MIN_CHARS", "36"))
+ALLOW_DIRECT_PROJECT_REPORT_SUMMARY_WRITES_ENV = "BCE_ALLOW_DIRECT_SUMMARY_PROJECT_REPORT_WRITES"
 BLOCKED_LOCAL_SOURCE_DIRS = (PIPELINE_DIR / "output",)
 SOURCE_ALIAS_REGISTRY = {
     "bittensor": ("비텐서",),
+    "cisco-tokenized-stock-xstock": ("cisco xstock", "cisco tokenized stock", "cscox"),
     "cosmos-hub": ("cosmos",),
     "dogecoin": ("도지코인",),
     "flare-networks": ("flare",),
@@ -106,8 +108,10 @@ SOURCE_ALIAS_REGISTRY = {
     "mantle": ("맨틀",),
     "matic-network": ("polygon", "폴리곤"),
     "monero": ("모네로",),
+    "ondas-tokenized-stock-xstock": ("xonds",),
     "polkadot": ("폴카닷",),
     "shiba-inu": ("시바이누",),
+    "sk-hynix-tokenized-bstocks": ("sk hynix", "sk hynix tokenized stock"),
     "stellar": ("스텔라",),
     "tether-gold": ("테더골드", "tether gold"),
     "the-open-network": ("ton",),
@@ -117,6 +121,11 @@ SOURCE_ALIAS_REGISTRY = {
 }
 
 FILENAME_RE = re.compile(r"^(?P<slug>.+)_(?P<type>econ|mat|for)_v(?P<version>\d+)_(?P<lang>[a-z]{2})\.md$", re.I)
+TOKENIZED_STOCK_FILENAME_RE = re.compile(r"\b(?:tokeni[sz]ed\s+stock|xstock)\b", re.I)
+KOREAN_REPORT_TITLE_FRAGMENT_RE = re.compile(
+    r"\s*크립토\s*이코노미\s*(?:설계\s*분석|성숙도\s*평가|발전\s*단계\s*및\s*서사\s*진화)?\s*보고서.*$",
+    re.I,
+)
 HEADING_RE = re.compile(r"^\s{0,3}#{1,6}\s+(?P<title>.+?)\s*$", re.M)
 SUMMARY_BOILERPLATE_RE = re.compile(
     r"("
@@ -157,6 +166,13 @@ CARD_SUMMARY_FORBIDDEN_RE = re.compile(
     r"내부\s*프롬프트|"
     r"평가\s*자료|"
     r"백서\s*부재|"
+    r"업로드\s*된|"
+    r"아래\s*보고서|"
+    r"인라인\s*인용|"
+    r"참고\s*문헌|"
+    r"평가\s*방법론|"
+    r"\d+\s*단계\s*평가\s*구조|"
+    r"목표\s*세부\s*KPI|"
     r"분석\s*목적|"
     r"개요\s*및\s*개념\s*정의|"
     r"프로젝트\s*기본\s*정보|"
@@ -380,11 +396,66 @@ def _source_folder_ids_for_report_type(
         if scope == "legacy"
         else [by_type[report_type]["active"], by_type[report_type]["legacy"]]
     )
-    return [folder_id for folder_id in candidates if folder_id]
+    seen = set()
+    return [
+        folder_id
+        for folder_id in candidates
+        if folder_id and not (folder_id in seen or seen.add(folder_id))
+    ]
+
+
+def _filename_subject_text(file_name: str) -> str:
+    subject = _normalize_text(file_name)
+    subject = re.sub(r"\.md$", "", subject, flags=re.I).strip()
+    if "_" in subject:
+        prefix, suffix = (part.strip() for part in subject.rsplit("_", 1))
+        if not re.fullmatch(r"[\d\s.\-/~–—]+", suffix):
+            subject = suffix
+        else:
+            subject = prefix
+    subject = KOREAN_REPORT_TITLE_FRAGMENT_RE.sub("", subject).strip()
+    subject = re.sub(r"\([^)]*\)", " ", subject)
+    subject = re.sub(r"\[[^\]]*\]", " ", subject)
+    return " ".join(subject.split())
+
+
+def _normalized_token_in_text(token: str, text: str) -> bool:
+    normalized_token = _normalize_subject_token(token)
+    normalized_text = _normalize_subject_token(text)
+    if not normalized_token or not normalized_text:
+        return False
+    token_parts = normalized_token.split()
+    if len(token_parts) > 1:
+        return all(re.search(rf"(?<![a-z0-9가-힣]){re.escape(part)}(?![a-z0-9가-힣])", normalized_text) for part in token_parts)
+    return bool(re.search(rf"(?<![a-z0-9가-힣]){re.escape(normalized_token)}(?![a-z0-9가-힣])", normalized_text))
+
+
+def source_filename_subject_matches_project(file_name: str, project: Dict[str, Any]) -> bool:
+    """Guard tokenized-stock filenames against issuer/project subject mismatch."""
+    if not TOKENIZED_STOCK_FILENAME_RE.search(_normalize_text(file_name)):
+        return True
+
+    subject = _filename_subject_text(file_name)
+    slug = str(project.get("slug") or "")
+    values: List[Any] = [
+        project.get("name"),
+        project.get("symbol"),
+        slug,
+        slug.replace("-", " "),
+        *SOURCE_ALIAS_REGISTRY.get(slug, ()),
+    ]
+    aliases = project.get("aliases")
+    if isinstance(aliases, list):
+        values.extend(aliases)
+
+    return any(_normalized_token_in_text(str(value or ""), subject) for value in values)
 
 
 def score_drive_source_for_project(file_name: str, project: Dict[str, Any]) -> int:
     """Score whether a natural-language Drive source filename belongs to a project."""
+    if not source_filename_subject_matches_project(file_name, project):
+        return 0
+
     file_lower = _normalize_text(file_name).lower()
     score = 0
 
@@ -399,6 +470,12 @@ def score_drive_source_for_project(file_name: str, project: Dict[str, Any]) -> i
             score = max(score, 90)
         elif re.search(rf"(?<![a-z0-9]){re.escape(value_lower)}(?![a-z0-9])", file_lower):
             score = max(score, 60)
+        else:
+            value_parts = [part for part in value_lower.split() if len(part) >= 4]
+            if len(value_parts) > 1:
+                first_part = value_parts[0]
+                if file_lower.startswith(f"{first_part}의") or file_lower.startswith(f"{first_part} "):
+                    score = max(score, 80)
 
     slug = str(project.get("slug") or "")
     parts = _slug_parts(slug)
@@ -655,6 +732,10 @@ def validate_card_summary(
         reasons.append("too_many_sentences")
     if CARD_SUMMARY_FORBIDDEN_RE.search(text) or SUMMARY_BOILERPLATE_RE.search(text):
         reasons.append("forbidden_phrase")
+    if re.search(r"(?:^|\s)(?:단계|Step)\s*\d+\s*[:：]", text, re.I):
+        reasons.append("forbidden_phrase")
+    if re.search(r"\[\d+(?:\]\[\d+)*\]", text):
+        reasons.append("citation_fragment")
     if CARD_RAW_FORMAT_RE.search(text) or CARD_FORMULA_FRAGMENT_RE.search(text):
         reasons.append("raw_format_fragment")
     if (
@@ -666,6 +747,7 @@ def validate_card_summary(
         or text.count(":") >= 2
         or re.search(r"\s\d+\.\s*$", text)
         or re.search(r"(?:다음과\s*같다|다음)\.?\s*$", text)
+        or re.search(r"항목\s*내용\s*출처|목표\s*세부\s*KPI\s*비중", text)
     ):
         reasons.append("table_or_list_fragment")
     if re.search(r"프로젝트\s*기본\s*정보|항목\s*상세\s*내용|프로젝트\s*(?:이름|명칭|분류)\s*[:：]", text, re.I):
@@ -742,7 +824,7 @@ def _card_sentence_candidates(source: MarkdownSource, project: Optional[Dict[str
         ):
             continue
         reasons = validate_card_summary(sentence, locale="ko", source=source)
-        if any(reason in reasons for reason in ("too_short", "too_long", "forbidden_phrase", "raw_format_fragment", "table_or_list_fragment", "metadata_fragment", "sentence_fragment")):
+        if any(reason in reasons for reason in ("too_short", "too_long", "forbidden_phrase", "citation_fragment", "raw_format_fragment", "table_or_list_fragment", "metadata_fragment", "sentence_fragment")):
             continue
         score = 100 - min(index, 60)
         score += _report_type_score(sentence, source.report_type) * 8
@@ -784,7 +866,7 @@ def derive_card_copy(source: MarkdownSource, *, project: Optional[Dict[str, Any]
     for _score, index, sentence in candidates:
         candidate = " ".join([*selected, sentence]).strip()
         reasons = validate_card_summary(candidate, locale="ko", source=source, project=project)
-        if any(reason in reasons for reason in ("too_long", "too_many_sentences", "forbidden_phrase", "raw_format_fragment", "table_or_list_fragment")):
+        if any(reason in reasons for reason in ("too_long", "too_many_sentences", "forbidden_phrase", "citation_fragment", "raw_format_fragment", "table_or_list_fragment")):
             continue
         selected.append(sentence)
         selected_ids.append(index)
@@ -1467,6 +1549,13 @@ def build_project_report_patch(
 
 
 def persist_content(sb, row: Dict[str, Any], source: MarkdownSource, content: DerivedContent, archived: Optional[Dict[str, Any]]) -> None:
+    if os.environ.get(ALLOW_DIRECT_PROJECT_REPORT_SUMMARY_WRITES_ENV) != "1":
+        raise RuntimeError(
+            "Direct project_reports summary writes are disabled. "
+            "Use analysis_md_summary_candidate.py to create a report_summary_jobs row "
+            "and promote it through summary_authority_gate.py. "
+            f"Set {ALLOW_DIRECT_PROJECT_REPORT_SUMMARY_WRITES_ENV}=1 only for an approved emergency override."
+        )
     existing_card = row.get("card_data") if isinstance(row.get("card_data"), dict) else {}
     project = row.get("_matched_project") if isinstance(row.get("_matched_project"), dict) else None
     card_copy = derive_card_copy(source, project=project)

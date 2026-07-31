@@ -49,6 +49,10 @@ class FakeTable:
         self.filters.append((column, value))
         return self
 
+    def in_(self, column, values):
+        self.filters.append((column, tuple(values)))
+        return self
+
     def limit(self, _value):
         return self
 
@@ -59,13 +63,28 @@ class FakeTable:
             key = next((value for column, value in self.filters if column == "idempotency_key"), None)
             row = self.supabase.existing_jobs.get(key)
             return FakeExecuteResult([row] if row else [])
+        if self.action == "select" and self.name in self.supabase.table_rows:
+            rows = []
+            for row in self.supabase.table_rows[self.name]:
+                matched = True
+                for column, value in self.filters:
+                    if isinstance(value, tuple):
+                        matched = row.get(column) in value
+                    else:
+                        matched = row.get(column) == value
+                    if not matched:
+                        break
+                if matched:
+                    rows.append(row)
+            return FakeExecuteResult(rows)
         return FakeExecuteResult([])
 
 
 class FakeSupabase:
-    def __init__(self, existing_jobs=None):
+    def __init__(self, existing_jobs=None, table_rows=None):
         self.operations = []
         self.existing_jobs = existing_jobs or {}
+        self.table_rows = table_rows or {}
 
     def table(self, name):
         return FakeTable(self, name)
@@ -239,13 +258,13 @@ def test_drive_candidate_selection_skips_promoted_source_identity_before_downloa
     rows = [
         {
             "id": "file-promoted",
-            "name": "promoted.md",
+            "name": "Solana 크립토 이코노미 설계 분석 보고서.md",
             "headRevisionId": "rev-promoted",
             "modifiedTime": "2026-06-24T00:00:00Z",
         },
         {
             "id": "file-new",
-            "name": "new.md",
+            "name": "Solana 크립토 이코노미 설계 분석 보고서 copy.md",
             "headRevisionId": "rev-new",
             "modifiedTime": "2026-06-24T00:01:00Z",
         },
@@ -277,7 +296,7 @@ def test_drive_candidate_selection_force_includes_promoted_source(monkeypatch):
     rows = [
         {
             "id": "file-promoted",
-            "name": "promoted.md",
+            "name": "Solana 크립토 이코노미 설계 분석 보고서.md",
             "headRevisionId": "rev-promoted",
             "modifiedTime": "2026-06-24T00:00:00Z",
         },
@@ -303,6 +322,272 @@ def test_drive_candidate_selection_force_includes_promoted_source(monkeypatch):
     assert [candidate.source_identity for candidate in candidates] == ["drive:file-promoted:rev-promoted"]
 
 
+def test_drive_candidate_selection_force_skips_unmatched_natural_filename(monkeypatch):
+    module = load_candidate_pipeline()
+    downloaded = []
+    rows = [
+        {
+            "id": "fogo-file",
+            "name": "Fogo 크립토 이코노미 설계 분석 보고서.md",
+            "headRevisionId": "fogo-rev",
+            "modifiedTime": "2026-07-07T00:00:00Z",
+        },
+        {
+            "id": "toshi-file",
+            "name": "Toshi 크립토 이코노미 설계 분석 보고서.md",
+            "headRevisionId": "toshi-rev",
+            "modifiedTime": "2026-07-07T00:01:00Z",
+        },
+    ]
+
+    monkeypatch.setattr(module, "_source_folder_ids_for_report_type", lambda *_args, **_kwargs: ["folder"])
+    monkeypatch.setattr(
+        module,
+        "fetch_project",
+        lambda *_args, **_kwargs: {
+            "slug": "toshithecat",
+            "name": "Toshi",
+            "symbol": "TOSHI",
+            "aliases": [],
+        },
+    )
+
+    def fake_download(_service, file_id):
+        downloaded.append(file_id)
+        return "# Toshi ECON\n\nToshi source text for guarded candidate selection.\n"
+
+    monkeypatch.setattr(module, "_download_drive_text", fake_download)
+
+    candidates = module.list_drive_candidates(
+        report_type="econ",
+        slug="toshithecat",
+        source_scope="all",
+        service=FakeDriveService(rows),
+        promoted_source_identities={"drive:fogo-file:fogo-rev"},
+        include_promoted_sources=True,
+    )
+
+    assert downloaded == ["toshi-file"]
+    assert [candidate.source.drive_file_id for candidate in candidates] == ["toshi-file"]
+    assert [candidate.source.slug for candidate in candidates] == ["toshithecat"]
+
+
+def test_drive_candidate_selection_skips_tokenized_stock_subject_mismatch_before_download(monkeypatch):
+    module = load_candidate_pipeline()
+    downloaded = []
+    rows = [
+        {
+            "id": "pmx-file",
+            "name": "PMX 크립토 이코노미 성숙도 평가 보고서_ Philip Morris tokenized stock (xStock).md",
+            "headRevisionId": "pmx-rev",
+            "modifiedTime": "2026-07-09T00:00:00Z",
+        },
+        {
+            "id": "himson-file",
+            "name": "HIMSON 크립토 이코노미 성숙도 평가 보고서_ Hims & Hers Health Tokenized Stock (Ondo).md",
+            "headRevisionId": "himson-rev",
+            "modifiedTime": "2026-07-09T00:01:00Z",
+        },
+    ]
+
+    monkeypatch.setattr(module, "_source_folder_ids_for_report_type", lambda *_args, **_kwargs: ["folder"])
+    monkeypatch.setattr(
+        module,
+        "fetch_project",
+        lambda *_args, **_kwargs: {
+            "slug": "mx-token",
+            "name": "MX Token",
+            "symbol": "MX",
+            "aliases": [],
+        },
+    )
+
+    def fake_download(_service, file_id):
+        downloaded.append(file_id)
+        return "# False positive\n\nThis should not be downloaded for candidate generation.\n"
+
+    monkeypatch.setattr(module, "_download_drive_text", fake_download)
+
+    candidates = module.list_drive_candidates(
+        report_type="mat",
+        slug="mx-token",
+        source_scope="all",
+        service=FakeDriveService(rows),
+        include_promoted_sources=True,
+    )
+
+    assert downloaded == []
+    assert candidates == []
+
+
+def test_natural_drive_filename_uses_latest_korean_website_visible_target_version(monkeypatch):
+    module = load_candidate_pipeline()
+    downloaded = []
+    rows = [
+        {
+            "id": "sk-hynix-file",
+            "name": "SK Hynix 시장 무결성 및 심층 포렌식 리스크 보고서.md",
+            "headRevisionId": "sk-hynix-rev",
+            "modifiedTime": "2026-07-31T00:00:00Z",
+        },
+    ]
+    project = {
+        "id": "project-sk-hynix",
+        "slug": "sk-hynix-tokenized-bstocks",
+        "name": "SK Hynix Tokenized Stock",
+        "symbol": "SKHX",
+        "aliases": [],
+    }
+    sb = FakeSupabase(table_rows={
+        "project_reports": [
+            {
+                "id": "stale-v1",
+                "project_id": "project-sk-hynix",
+                "report_type": "forensic",
+                "version": 1,
+                "language": "ko",
+                "status": "published",
+                "gdrive_url": "https://drive.example/v1.pdf",
+            },
+            {
+                "id": "latest-v2",
+                "project_id": "project-sk-hynix",
+                "report_type": "forensic",
+                "version": 2,
+                "language": "ko",
+                "status": "published",
+                "gdrive_url": "https://drive.example/v2.pdf",
+            },
+        ],
+    })
+
+    monkeypatch.setattr(module, "_source_folder_ids_for_report_type", lambda *_args, **_kwargs: ["folder"])
+    monkeypatch.setattr(module, "get_supabase_client", lambda: sb)
+    monkeypatch.setattr(module, "fetch_project", lambda *_args, **_kwargs: project)
+
+    def fake_download(_service, file_id):
+        downloaded.append(file_id)
+        return "# SK Hynix FOR\n\nSK Hynix source text for target version selection.\n"
+
+    monkeypatch.setattr(module, "_download_drive_text", fake_download)
+
+    candidates = module.list_drive_candidates(
+        report_type="for",
+        slug="sk-hynix-tokenized-bstocks",
+        source_scope="active",
+        service=FakeDriveService(rows),
+        include_promoted_sources=True,
+    )
+
+    assert downloaded == ["sk-hynix-file"]
+    assert [candidate.source.version for candidate in candidates] == [2]
+
+
+def test_natural_for_filename_uses_static_source_alias(monkeypatch):
+    module = load_candidate_pipeline()
+    downloaded = []
+    rows = [
+        {
+            "id": "xonds-file",
+            "name": "xONDS 시장 무결성 및 심층 포렌식 리스크 보고서.md",
+            "headRevisionId": "xonds-rev",
+            "modifiedTime": "2026-07-31T03:22:09Z",
+        },
+    ]
+    project = {
+        "id": "project-ondas",
+        "slug": "ondas-tokenized-stock-xstock",
+        "name": "Ondas tokenized stock (xStock)",
+        "symbol": "ONDSx",
+        "aliases": ["onds", "ondsx", "ondas"],
+    }
+    sb = FakeSupabase(table_rows={
+        "project_reports": [
+            {
+                "id": "ondas-for-v2",
+                "project_id": "project-ondas",
+                "report_type": "forensic",
+                "version": 2,
+                "language": "ko",
+                "status": "published",
+                "gdrive_url": "https://drive.example/ondas-v2.pdf",
+            },
+        ],
+    })
+
+    monkeypatch.setattr(module, "_source_folder_ids_for_report_type", lambda *_args, **_kwargs: ["folder"])
+    monkeypatch.setattr(module, "get_supabase_client", lambda: sb)
+    monkeypatch.setattr(module, "fetch_project", lambda *_args, **_kwargs: project)
+
+    def fake_download(_service, file_id):
+        downloaded.append(file_id)
+        return "# xONDS FOR\n\nxONDS source text for alias-backed target selection.\n"
+
+    monkeypatch.setattr(module, "_download_drive_text", fake_download)
+
+    candidates = module.list_drive_candidates(
+        report_type="for",
+        slug="ondas-tokenized-stock-xstock",
+        source_scope="active",
+        service=FakeDriveService(rows),
+        include_promoted_sources=True,
+    )
+
+    assert downloaded == ["xonds-file"]
+    assert [candidate.source.version for candidate in candidates] == [2]
+
+
+def test_explicit_version_override_wins_for_natural_drive_and_local_sources(monkeypatch, tmp_path):
+    module = load_candidate_pipeline()
+    rows = [
+        {
+            "id": "sk-hynix-file",
+            "name": "SK Hynix 시장 무결성 및 심층 포렌식 리스크 보고서.md",
+            "headRevisionId": "sk-hynix-rev",
+            "modifiedTime": "2026-07-31T00:00:00Z",
+        },
+    ]
+
+    monkeypatch.setattr(module, "_source_folder_ids_for_report_type", lambda *_args, **_kwargs: ["folder"])
+    monkeypatch.setattr(module, "get_supabase_client", lambda: None)
+    monkeypatch.setattr(
+        module,
+        "fetch_project",
+        lambda *_args, **_kwargs: {
+            "slug": "sk-hynix-tokenized-bstocks",
+            "name": "SK Hynix Tokenized Stock",
+            "symbol": "SKHX",
+            "aliases": [],
+        },
+    )
+    monkeypatch.setattr(
+        module,
+        "_download_drive_text",
+        lambda *_args, **_kwargs: "# SK Hynix FOR\n\nSK Hynix source text for explicit version selection.\n",
+    )
+
+    drive_candidates = module.list_drive_candidates(
+        report_type="for",
+        slug="sk-hynix-tokenized-bstocks",
+        source_scope="active",
+        service=FakeDriveService(rows),
+        include_promoted_sources=True,
+        version_override=3,
+    )
+
+    local_path = tmp_path / "SK Hynix 시장 무결성 및 심층 포렌식 리스크 보고서.md"
+    local_path.write_text("# SK Hynix FOR\n\nLocal text.\n", encoding="utf-8")
+    local_candidate = module.load_local_candidate(
+        str(local_path),
+        report_type="for",
+        slug="sk-hynix-tokenized-bstocks",
+        version_override=3,
+    )
+
+    assert [candidate.source.version for candidate in drive_candidates] == [3]
+    assert local_candidate.source.version == 3
+
+
 def test_no_candidates_prints_no_op_without_error(monkeypatch, tmp_path, capsys):
     module = load_candidate_pipeline()
 
@@ -314,6 +599,25 @@ def test_no_candidates_prints_no_op_without_error(monkeypatch, tmp_path, capsys)
 
     assert module.main(["--type", "econ", "--slug", "solana", "--drive-root-scope", "all"]) == 0
     assert "no-op: no new analysis markdown" in capsys.readouterr().out
+
+
+def test_main_force_does_not_include_promoted_sources_during_drive_selection(monkeypatch, tmp_path):
+    module = load_candidate_pipeline()
+    captured = {}
+
+    monkeypatch.setattr(module, "get_supabase_client", lambda: None)
+    monkeypatch.setattr(module, "_get_drive_service", lambda: object())
+    monkeypatch.setattr(module, "write_artifact", lambda *_args, **_kwargs: tmp_path / "artifact.json")
+    monkeypatch.setattr(module, "complete_telemetry", lambda *_args, **_kwargs: None)
+
+    def fake_list_drive_candidates(**kwargs):
+        captured.update(kwargs)
+        return []
+
+    monkeypatch.setattr(module, "list_drive_candidates", fake_list_drive_candidates)
+
+    assert module.main(["--type", "econ", "--slug", "solana", "--drive-root-scope", "all", "--force"]) == 0
+    assert captured["include_promoted_sources"] is False
 
 
 def test_telemetry_uses_existing_supabase_column_contract(tmp_path):
