@@ -2919,7 +2919,7 @@
     "source_path": "Slide2/mat/PURR_MAT_cn.pdf",
     "started_at": "2026-07-31T12:17:21.077065+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T14:40:40.870254+00:00",
+    "updated_at": "2026-07-31T16:25:03.938644+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/purr/2/zh.html"
   },
@@ -3516,7 +3516,7 @@
     "source_path": "Slide2/mat/BIM_MAT_cn.pdf",
     "started_at": "2026-07-31T12:19:06.780280+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T14:40:50.671024+00:00",
+    "updated_at": "2026-07-31T16:25:15.073706+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bim/2/zh.html"
   },
@@ -16620,7 +16620,7 @@
     "source_path": "Slide2/mat/BIM_MAT_en.pdf",
     "started_at": "2026-07-31T12:20:04.249225+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T14:40:55.449957+00:00",
+    "updated_at": "2026-07-31T16:25:19.759822+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bim/2/en.html"
   },
@@ -24588,7 +24588,7 @@
     "source_path": "Slide2/mat/PURR_MAT_ko.pdf",
     "started_at": "2026-07-31T12:18:37.317823+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T14:40:48.369153+00:00",
+    "updated_at": "2026-07-31T16:25:12.655010+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/purr/2/ko.html"
   },
@@ -25065,7 +25065,7 @@
     "source_path": "Slide2/for/SKHYB_FOR_jp.pdf",
     "started_at": "2026-07-31T10:15:51.585629+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T14:41:41.101306+00:00",
+    "updated_at": "2026-07-31T16:26:01.752099+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/sk-hynix-tokenized-bstocks/2/ja.html"
   },
@@ -36575,7 +36575,7 @@
     "source_path": "Slide2/mat/SN51_MAT_en.pdf",
     "started_at": "2026-07-31T10:13:58.372221+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T14:41:04.086854+00:00",
+    "updated_at": "2026-07-31T16:25:29.608430+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/celium/2/en.html"
   },
@@ -45286,6 +45286,36 @@
     "version": null,
     "versioned_url": null
   },
+  "1TE1_YOz2UB1RDnrp2cVErZETMVO_k35G": {
+    "error": null,
+    "finished_at": "2026-07-31T16:25:00.497256+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-31T11:48:36.000Z",
+    "name": "BRETT_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/based-brett/latest/ko.html",
+    "report_id": "d70fda25-c125-4b2a-a116-44a5491fdd5a",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "based-brett",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/BRETT_MAT_ko.pdf",
+    "started_at": "2026-07-31T16:24:37.153777+00:00",
+    "status": "published",
+    "updated_at": "2026-07-31T16:25:00.497276+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/based-brett/1/ko.html"
+  },
   "1TF4Mkk8Gr7kR872mAawlKrRWNNYRR-O9": {
     "error": null,
     "finished_at": "2026-06-09T03:44:44.375307+00:00",
@@ -48129,7 +48159,7 @@
     "source_path": "Slide2/mat/SN51_MAT_cn.pdf",
     "started_at": "2026-07-31T10:13:08.371893+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T14:40:59.622500+00:00",
+    "updated_at": "2026-07-31T16:25:24.955939+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/celium/2/zh.html"
   },
@@ -53186,7 +53216,7 @@
     "source_path": "Slide2/for/SKHYB_FOR_ko.pdf",
     "started_at": "2026-07-31T10:16:20.221863+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T14:41:42.473365+00:00",
+    "updated_at": "2026-07-31T16:26:07.348980+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/sk-hynix-tokenized-bstocks/2/ko.html"
   },
@@ -53276,7 +53306,7 @@
     "source_path": "Slide2/mat/PURR_MAT_en.pdf",
     "started_at": "2026-07-31T12:18:10.695782+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T14:40:45.414507+00:00",
+    "updated_at": "2026-07-31T16:25:09.660917+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/purr/2/en.html"
   },
@@ -55626,6 +55656,36 @@
     "updated_at": "2026-06-29T01:59:23.947699+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/synapse-2/1/zh.html"
+  },
+  "1_eN_nMUgQMPY7QWKBCqgrmOI9fGVP6Ev": {
+    "error": null,
+    "finished_at": "2026-07-31T16:23:34.498092+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-31T11:48:43.000Z",
+    "name": "BRETT_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/based-brett/latest/zh.html",
+    "report_id": "e2160f54-ac1d-4c3f-a2eb-5920f3fdaddb",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "based-brett",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/BRETT_MAT_cn.pdf",
+    "started_at": "2026-07-31T16:23:22.648463+00:00",
+    "status": "published",
+    "updated_at": "2026-07-31T16:23:34.498113+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/based-brett/1/zh.html"
   },
   "1_g913Nezhxmu345kcqkB6aonYtNkk_UM": {
     "error": null,
@@ -60826,7 +60886,7 @@
     "source_path": "Slide2/for/SKHYB_FOR_cn.pdf",
     "started_at": "2026-07-31T10:15:28.649078+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T14:41:40.390910+00:00",
+    "updated_at": "2026-07-31T16:26:00.700798+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/sk-hynix-tokenized-bstocks/2/zh.html"
   },
@@ -63669,7 +63729,7 @@
     "source_path": "Slide2/mat/SN51_MAT_ko.pdf",
     "started_at": "2026-07-31T10:14:22.533091+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T14:41:06.120972+00:00",
+    "updated_at": "2026-07-31T16:25:57.654181+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/celium/2/ko.html"
   },
@@ -64332,6 +64392,36 @@
     "updated_at": "2026-06-19T01:49:24.868182+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zigcoin/1/ja.html"
+  },
+  "1f_cH_ruRLO44BQIdUlpHVu3futQOZa_l": {
+    "error": null,
+    "finished_at": "2026-07-31T16:24:05.198192+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-31T11:48:40.000Z",
+    "name": "BRETT_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/based-brett/latest/ja.html",
+    "report_id": "35ac3aff-9820-40dc-a7f9-40543657a8c9",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "based-brett",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/BRETT_MAT_jp.pdf",
+    "started_at": "2026-07-31T16:23:55.104089+00:00",
+    "status": "published",
+    "updated_at": "2026-07-31T16:24:05.198212+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/based-brett/1/ja.html"
   },
   "1f_yAsaOg8cJFnOnibKhqETECEWoTkLGs": {
     "error": null,
@@ -65987,7 +66077,7 @@
     "source_path": "Slide2/mat/PURR_MAT_jp.pdf",
     "started_at": "2026-07-31T12:17:59.841731+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T14:40:43.355445+00:00",
+    "updated_at": "2026-07-31T16:25:07.295400+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/purr/2/ja.html"
   },
@@ -68432,7 +68522,7 @@
     "source_path": "Slide2/mat/BIM_MAT_jp.pdf",
     "started_at": "2026-07-31T12:19:53.222517+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T14:40:53.262920+00:00",
+    "updated_at": "2026-07-31T16:25:17.363013+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bim/2/ja.html"
   },
@@ -77656,6 +77746,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/micron-technology-tokenized-stock-xstock/1/en.html"
   },
+  "1obt6Icxhf8vvHJZgpxQF-sGM8gvMKgSs": {
+    "error": null,
+    "finished_at": "2026-07-31T16:24:17.151789+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-31T11:48:37.000Z",
+    "name": "BRETT_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7734628062551434,
+      "height": 444.9599914550781,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 789.1199951171875
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/based-brett/latest/en.html",
+    "report_id": "413b700b-27de-42d0-b821-2e61534481fe",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "based-brett",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/BRETT_MAT_en.pdf",
+    "started_at": "2026-07-31T16:24:07.716152+00:00",
+    "status": "published",
+    "updated_at": "2026-07-31T16:24:17.151809+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/based-brett/1/en.html"
+  },
   "1obyj4McSfd3fWPbCefa0G1w__4T5Tek1": {
     "error": "unresolved (slug=? via filename_unresolved; lang=ko via filename)",
     "lang": "ko",
@@ -79784,7 +79904,7 @@
     "source_path": "Slide2/mat/SN51_MAT_jp.pdf",
     "started_at": "2026-07-31T10:13:47.855169+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T14:41:01.989845+00:00",
+    "updated_at": "2026-07-31T16:25:27.386691+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/celium/2/ja.html"
   },
@@ -81595,7 +81715,7 @@
     "source_path": "Slide2/mat/BIM_MAT_ko.pdf",
     "started_at": "2026-07-31T12:20:34.232551+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T14:40:57.387044+00:00",
+    "updated_at": "2026-07-31T16:25:22.507010+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bim/2/ko.html"
   },
@@ -83558,7 +83678,7 @@
     "source_path": "Slide2/for/SKHYB_FOR_en.pdf",
     "started_at": "2026-07-31T10:15:59.046548+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T14:41:41.787860+00:00",
+    "updated_at": "2026-07-31T16:26:02.840838+00:00",
     "version": 3,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/sk-hynix-tokenized-bstocks/3/en.html"
   },
