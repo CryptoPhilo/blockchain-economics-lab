@@ -2893,6 +2893,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/artificial-superintelligence-alliance/1/ko.html"
   },
+  "10ufAUmf48Qnb8mAhSXrVbuwkjJadA3W7": {
+    "error": null,
+    "finished_at": "2026-07-31T12:17:40.728999+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-31T10:16:11.000Z",
+    "name": "PURR_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/purr/latest/zh.html",
+    "report_id": "6c233cb9-891c-4f07-bb53-26a697c82f7e",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "purr",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/PURR_MAT_cn.pdf",
+    "started_at": "2026-07-31T12:17:21.077065+00:00",
+    "status": "published",
+    "updated_at": "2026-07-31T12:17:40.729017+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/purr/2/zh.html"
+  },
   "10unLT3sx-fo04zbuIfgxmkI3OqsAuQgO": {
     "error": null,
     "finished_at": "2026-06-09T16:53:44.776929+00:00",
@@ -3459,6 +3489,36 @@
     "updated_at": "2026-05-17T17:58:57.461660+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/cardano/1/ja.html"
+  },
+  "11KHrgFE3jqrlP7jOsSjHE774mCdseaNz": {
+    "error": null,
+    "finished_at": "2026-07-31T12:19:28.534838+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-31T10:07:36.000Z",
+    "name": "BIM_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bim/latest/zh.html",
+    "report_id": "e6cf3625-da0a-4759-8e5d-9ae7efede34b",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "bim",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/BIM_MAT_cn.pdf",
+    "started_at": "2026-07-31T12:19:06.780280+00:00",
+    "status": "published",
+    "updated_at": "2026-07-31T12:19:28.534854+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bim/2/zh.html"
   },
   "11KcKYvKZ8zHq7OJHbdhQ1uMJUILs7x47": {
     "error": null,
@@ -7789,7 +7849,7 @@
     "source_path": "Slide2/mat/VTIX_MAT_cn.pdf",
     "started_at": "2026-07-31T04:45:31.499965+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:14:34.191632+00:00",
+    "updated_at": "2026-07-31T12:20:52.036090+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/vanguard-tokenized-etf-xstock/2/zh.html"
   },
@@ -11119,7 +11179,7 @@
     "source_path": "Slide2/mat/BR_MAT_cn.pdf",
     "started_at": "2026-07-31T04:49:57.581948+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:14:50.851614+00:00",
+    "updated_at": "2026-07-31T12:21:06.785180+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bedrock-dao/1/zh.html"
   },
@@ -12310,7 +12370,7 @@
     "source_path": "Slide2/mat/BR_MAT_jp.pdf",
     "started_at": "2026-07-31T04:50:43.397296+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:14:52.765818+00:00",
+    "updated_at": "2026-07-31T12:21:08.524330+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bedrock-dao/1/ja.html"
   },
@@ -16534,6 +16594,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/usd1/1/ja.html"
   },
+  "1AJUl-1K_r_JmDIfX5X2eOmGGremALDgN": {
+    "error": null,
+    "finished_at": "2026-07-31T12:20:13.428453+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-31T10:07:32.000Z",
+    "name": "BIM_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bim/latest/en.html",
+    "report_id": "0974e25b-3873-4276-86f0-a8a6320e44c2",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "bim",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/BIM_MAT_en.pdf",
+    "started_at": "2026-07-31T12:20:04.249225+00:00",
+    "status": "published",
+    "updated_at": "2026-07-31T12:20:13.428470+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bim/2/en.html"
+  },
   "1AK3aNgGYUD6SVWyIrton0zA8EdmW4Ta8": {
     "error": null,
     "finished_at": "2026-05-14T06:50:50.008430+00:00",
@@ -20175,7 +20265,7 @@
     "source_path": "Slide2/mat/CYS_MAT_en.pdf",
     "started_at": "2026-07-31T04:52:41.392749+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:15:03.993976+00:00",
+    "updated_at": "2026-07-31T12:21:24.787791+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/cysic/2/en.html"
   },
@@ -24472,6 +24562,36 @@
     "status": "failed",
     "updated_at": "2026-05-17T17:54:16.763336+00:00"
   },
+  "1FFG2MmfjAK6O92sWlzi4VQktOKwFqXqC": {
+    "error": null,
+    "finished_at": "2026-07-31T12:18:45.456454+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-31T10:16:09.000Z",
+    "name": "PURR_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/purr/latest/ko.html",
+    "report_id": "699314a5-2e40-46e6-9db1-9779d2b78063",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "purr",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/PURR_MAT_ko.pdf",
+    "started_at": "2026-07-31T12:18:37.317823+00:00",
+    "status": "published",
+    "updated_at": "2026-07-31T12:18:45.456471+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/purr/2/ko.html"
+  },
   "1FFLgB7Q8bfukhaTHceN2fkDItzeGil02": {
     "error": null,
     "finished_at": "2026-07-21T11:25:18.006611+00:00",
@@ -24945,7 +25065,7 @@
     "source_path": "Slide2/for/SKHYB_FOR_jp.pdf",
     "started_at": "2026-07-31T10:15:51.585629+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:15:57.310741+00:00",
+    "updated_at": "2026-07-31T12:21:28.460014+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/sk-hynix-tokenized-bstocks/2/ja.html"
   },
@@ -36455,7 +36575,7 @@
     "source_path": "Slide2/mat/SN51_MAT_en.pdf",
     "started_at": "2026-07-31T10:13:58.372221+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:14:08.700778+00:00",
+    "updated_at": "2026-07-31T12:20:48.676648+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/celium/2/en.html"
   },
@@ -37363,7 +37483,7 @@
     "source_path": "Slide2/econ/VAM_ECON_jp.pdf",
     "started_at": "2026-07-31T01:16:11.247824+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:12:45.249091+00:00",
+    "updated_at": "2026-07-31T12:17:03.788717+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/vitalum/2/ja.html"
   },
@@ -40051,7 +40171,7 @@
     "source_path": "Slide2/econ/VAM_ECON_ko.pdf",
     "started_at": "2026-07-31T01:16:38.995607+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:12:47.172800+00:00",
+    "updated_at": "2026-07-31T12:17:05.191617+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/vitalum/2/ko.html"
   },
@@ -43548,7 +43668,7 @@
     "source_path": "Slide2/mat/CYS_MAT_cn.pdf",
     "started_at": "2026-07-31T04:51:50.596068+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:14:59.570794+00:00",
+    "updated_at": "2026-07-31T12:21:19.687532+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/cysic/1/zh.html"
   },
@@ -45869,7 +45989,7 @@
     "source_path": "Slide2/mat/VTIX_MAT_jp.pdf",
     "started_at": "2026-07-31T04:46:15.522260+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:14:36.213111+00:00",
+    "updated_at": "2026-07-31T12:20:53.670620+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/vanguard-tokenized-etf-xstock/2/ja.html"
   },
@@ -48009,7 +48129,7 @@
     "source_path": "Slide2/mat/SN51_MAT_cn.pdf",
     "started_at": "2026-07-31T10:13:08.371893+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:13:30.501434+00:00",
+    "updated_at": "2026-07-31T12:20:44.873976+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/celium/2/zh.html"
   },
@@ -53066,7 +53186,7 @@
     "source_path": "Slide2/for/SKHYB_FOR_ko.pdf",
     "started_at": "2026-07-31T10:16:20.221863+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:16:26.920735+00:00",
+    "updated_at": "2026-07-31T12:21:30.024679+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/sk-hynix-tokenized-bstocks/2/ko.html"
   },
@@ -53129,6 +53249,36 @@
     "updated_at": "2026-06-08T18:11:06.140282+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/beldex/1/ko.html"
+  },
+  "1ZRY7hOMQWH6N3tKuvBYFF1zleilcB9AH": {
+    "error": null,
+    "finished_at": "2026-07-31T12:18:20.676892+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-31T10:16:09.000Z",
+    "name": "PURR_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/purr/latest/en.html",
+    "report_id": "17161a5e-424f-4d30-86bc-31689805b259",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "purr",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/PURR_MAT_en.pdf",
+    "started_at": "2026-07-31T12:18:10.695782+00:00",
+    "status": "published",
+    "updated_at": "2026-07-31T12:18:20.676907+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/purr/2/en.html"
   },
   "1ZSaZbylC2ZGxFHrMhV_N8FbM0XYd4iqn": {
     "error": null,
@@ -60676,7 +60826,7 @@
     "source_path": "Slide2/for/SKHYB_FOR_cn.pdf",
     "started_at": "2026-07-31T10:15:28.649078+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:15:36.762601+00:00",
+    "updated_at": "2026-07-31T12:21:27.693325+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/sk-hynix-tokenized-bstocks/2/zh.html"
   },
@@ -62335,7 +62485,7 @@
     "source_path": "Slide2/mat/ZETA_MAT_ko.pdf",
     "started_at": "2026-07-31T04:49:22.985050+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:14:48.548827+00:00",
+    "updated_at": "2026-07-31T12:21:04.342520+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zetachain/1/ko.html"
   },
@@ -63519,7 +63669,7 @@
     "source_path": "Slide2/mat/SN51_MAT_ko.pdf",
     "started_at": "2026-07-31T10:14:22.533091+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:14:31.620633+00:00",
+    "updated_at": "2026-07-31T12:20:50.236709+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/celium/2/ko.html"
   },
@@ -65811,6 +65961,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bitcoin-sv/1/zh.html"
   },
+  "1gnHKd4yfn4L5Megd-HhPWyGFbQ8uGLNQ": {
+    "error": null,
+    "finished_at": "2026-07-31T12:18:08.604958+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-31T10:16:10.000Z",
+    "name": "PURR_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/purr/latest/ja.html",
+    "report_id": "9c1ab552-cf43-4b19-87f3-6f2640fdf2ea",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "purr",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/PURR_MAT_jp.pdf",
+    "started_at": "2026-07-31T12:17:59.841731+00:00",
+    "status": "published",
+    "updated_at": "2026-07-31T12:18:08.604975+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/purr/2/ja.html"
+  },
   "1gnxw-UmzAY-uZtbPAakB6CamhVxGXEe7": {
     "error": null,
     "finished_at": "2026-06-11T05:03:35.757265+00:00",
@@ -65867,7 +66047,7 @@
     "source_path": "Slide2/mat/ZETA_MAT_en.pdf",
     "started_at": "2026-07-31T04:48:54.356502+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:14:46.442105+00:00",
+    "updated_at": "2026-07-31T12:21:02.593589+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zetachain/1/en.html"
   },
@@ -68225,6 +68405,36 @@
     "updated_at": "2026-06-19T16:44:06.005260+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/re-protocol/1/ja.html"
+  },
+  "1i1NEzjgWUD_dxfqzR-_vmCAqv37x7STG": {
+    "error": null,
+    "finished_at": "2026-07-31T12:20:02.050000+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-31T10:07:34.000Z",
+    "name": "BIM_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bim/latest/ja.html",
+    "report_id": "ff1a6bd1-e206-4e3f-bd01-16351874c87b",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "bim",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/BIM_MAT_jp.pdf",
+    "started_at": "2026-07-31T12:19:53.222517+00:00",
+    "status": "published",
+    "updated_at": "2026-07-31T12:20:02.050017+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bim/2/ja.html"
   },
   "1i234n0o6G0TAHnFC5KiPxlGH6TABMH4w": {
     "error": null,
@@ -73335,7 +73545,7 @@
     "source_path": "Slide2/mat/BR_MAT_en.pdf",
     "started_at": "2026-07-31T04:50:55.553782+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:14:55.147623+00:00",
+    "updated_at": "2026-07-31T12:21:11.589822+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bedrock-dao/1/en.html"
   },
@@ -73395,7 +73605,7 @@
     "source_path": "Slide2/econ/VAM_ECON_cn.pdf",
     "started_at": "2026-07-31T01:15:50.732173+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:12:44.147048+00:00",
+    "updated_at": "2026-07-31T12:17:02.968114+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/vitalum/2/zh.html"
   },
@@ -79574,7 +79784,7 @@
     "source_path": "Slide2/mat/SN51_MAT_jp.pdf",
     "started_at": "2026-07-31T10:13:47.855169+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:13:56.788654+00:00",
+    "updated_at": "2026-07-31T12:20:46.976197+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/celium/2/ja.html"
   },
@@ -81125,7 +81335,7 @@
     "source_path": "Slide2/econ/VAM_ECON_en.pdf",
     "started_at": "2026-07-31T01:16:19.889434+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:12:46.216962+00:00",
+    "updated_at": "2026-07-31T12:17:04.498381+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/vitalum/2/en.html"
   },
@@ -81358,6 +81568,36 @@
     "updated_at": "2026-06-11T05:05:05.145396+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/apple-tokenized-stock-xstock/1/ja.html"
+  },
+  "1rL5Dw1nGcg_hBJ0ROEfYatoGCeoiGQvO": {
+    "error": null,
+    "finished_at": "2026-07-31T12:20:43.015132+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-07-31T10:07:30.000Z",
+    "name": "BIM_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bim/latest/ko.html",
+    "report_id": "47e2da71-0995-477b-b5b6-d6ce5ce42cac",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "bim",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/BIM_MAT_ko.pdf",
+    "started_at": "2026-07-31T12:20:34.232551+00:00",
+    "status": "published",
+    "updated_at": "2026-07-31T12:20:43.015149+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bim/2/ko.html"
   },
   "1rLEkDI2Xb2grnFfbUkBYktczeqz2qeZO": {
     "error": null,
@@ -82222,7 +82462,7 @@
     "source_path": "Slide2/mat/CYS_MAT_ko.pdf",
     "started_at": "2026-07-31T04:53:06.533802+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:15:06.129550+00:00",
+    "updated_at": "2026-07-31T12:21:26.709838+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/cysic/2/ko.html"
   },
@@ -83318,7 +83558,7 @@
     "source_path": "Slide2/for/SKHYB_FOR_en.pdf",
     "started_at": "2026-07-31T10:15:59.046548+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:16:04.990842+00:00",
+    "updated_at": "2026-07-31T12:21:29.233722+00:00",
     "version": 3,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/sk-hynix-tokenized-bstocks/3/en.html"
   },
@@ -84930,7 +85170,7 @@
     "source_path": "Slide2/mat/ZETA_MAT_jp.pdf",
     "started_at": "2026-07-31T04:48:41.397989+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:14:44.352789+00:00",
+    "updated_at": "2026-07-31T12:21:00.825077+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zetachain/1/ja.html"
   },
@@ -89271,7 +89511,7 @@
     "source_path": "Slide2/mat/VTIX_MAT_ko.pdf",
     "started_at": "2026-07-31T04:46:58.519099+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:14:39.977930+00:00",
+    "updated_at": "2026-07-31T12:20:56.882639+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/vanguard-tokenized-etf-xstock/2/ko.html"
   },
@@ -90302,7 +90542,7 @@
     "source_path": "Slide2/mat/ZETA_MAT_cn.pdf",
     "started_at": "2026-07-31T04:47:48.995720+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:14:42.368450+00:00",
+    "updated_at": "2026-07-31T12:20:59.027195+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/zetachain/1/zh.html"
   },
@@ -91743,7 +91983,7 @@
     "source_path": "Slide2/mat/BR_MAT_ko.pdf",
     "started_at": "2026-07-31T04:51:25.385741+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:14:57.173880+00:00",
+    "updated_at": "2026-07-31T12:21:15.834356+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/bedrock-dao/1/ko.html"
   },
@@ -92593,7 +92833,7 @@
     "source_path": "Slide2/mat/CYS_MAT_jp.pdf",
     "started_at": "2026-07-31T04:52:28.989141+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:15:01.886687+00:00",
+    "updated_at": "2026-07-31T12:21:22.898355+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/cysic/1/ja.html"
   },
@@ -93739,7 +93979,7 @@
     "source_path": "Slide2/mat/VTIX_MAT_en.pdf",
     "started_at": "2026-07-31T04:46:28.562796+00:00",
     "status": "published",
-    "updated_at": "2026-07-31T10:14:38.000187+00:00",
+    "updated_at": "2026-07-31T12:20:55.266300+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/vanguard-tokenized-etf-xstock/2/en.html"
   },
