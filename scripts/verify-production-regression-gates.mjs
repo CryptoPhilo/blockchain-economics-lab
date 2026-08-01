@@ -117,6 +117,12 @@ requireCondition(scoreBitcoinSnippet.length > 0, 'Top500 page includes Bitcoin r
 requireCondition(hasCmcRankOne(scoreBitcoinSnippet), 'Top500 Bitcoin row includes CMC rank')
 requireCondition(/ECON/.test(scoreBitcoinSnippet), 'Top500 Bitcoin row includes ECON badge')
 requireCondition(/MAT/.test(scoreBitcoinSnippet), 'Top500 Bitcoin row includes MAT badge')
+requireCondition(
+  /type="search"[^>]+aria-label="종목 검색"/.test(scorePage.body)
+    || scorePage.body.includes('종목명, 심볼, CMC 순위 검색')
+    || scorePage.body.includes('Search asset, symbol, or CMC rank'),
+  'Top500 page includes asset search input',
+)
 
 const exchangesApi = await fetchJson('/api/exchanges')
 const exchanges = extractRows(exchangesApi.json)

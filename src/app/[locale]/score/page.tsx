@@ -956,12 +956,22 @@ export default async function ScorePage({
     ? buildReportAvailabilityByProjectSlug(canonicalAliasReportResult.reports, locale)
     : undefined
 
+  const trackedProjectLookup = buildTrackedProjectLookup(trackedProjects, { includeProjectAliases: false })
+  const trackedProjectIdentityLookup = buildTrackedProjectIdentityLookup(trackedProjects)
+
   const rows = snapshotRowsToScoreRows(
     pageSnapshotRows,
-    buildTrackedProjectLookup(trackedProjects, { includeProjectAliases: false }),
+    trackedProjectLookup,
     canonicalAliasReportResult.loaded ? new Map() : undefined,
     reportAvailabilityByProjectSlug,
-    buildTrackedProjectIdentityLookup(trackedProjects),
+    trackedProjectIdentityLookup,
+  )
+  const searchRows = snapshotRowsToScoreRows(
+    canonicalScoreSnapshotRows,
+    trackedProjectLookup,
+    undefined,
+    undefined,
+    trackedProjectIdentityLookup,
   )
   const totalPages = Math.ceil(Math.min(canonicalScoreSnapshotRows.length, MAX_RANK) / ITEMS_PER_PAGE)
 
@@ -993,6 +1003,7 @@ export default async function ScorePage({
       {rows.length > 0 ? (
         <ScoreTableGate
           rows={rows}
+          searchRows={searchRows}
           freeLimit={500}
           locale={locale}
           currentPage={currentPage}
