@@ -1775,7 +1775,7 @@
     "source_path": "Slide2/mat/Targon_MAT_cn.pdf",
     "started_at": "2026-08-02T18:44:47.968042+00:00",
     "status": "published",
-    "updated_at": "2026-08-02T18:44:53.751414+00:00",
+    "updated_at": "2026-08-02T19:55:16.920893+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/targon/1/zh.html"
   },
@@ -3926,7 +3926,7 @@
     "source_path": "Slide2/mat/Targon_MAT_jp.pdf",
     "started_at": "2026-08-02T18:45:12.997366+00:00",
     "status": "published",
-    "updated_at": "2026-08-02T18:45:20.694151+00:00",
+    "updated_at": "2026-08-02T19:55:18.738219+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/targon/1/ja.html"
   },
@@ -27293,6 +27293,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/sentismai/1/ko.html"
   },
+  "1GzQWgp_Nla4MtjexrXJNiD6ghubj7dSI": {
+    "error": null,
+    "finished_at": "2026-08-02T19:56:19.282136+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-02T10:13:41.000Z",
+    "name": "aelf_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aelf/latest/en.html",
+    "report_id": "465e7c05-2364-4fbb-ae76-d3fdcc0bb9e9",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "aelf",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/aelf_MAT_en.pdf",
+    "started_at": "2026-08-02T19:56:13.606479+00:00",
+    "status": "published",
+    "updated_at": "2026-08-02T19:56:19.282155+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aelf/1/en.html"
+  },
   "1H-Mw0BF0odOqiEtR05OiyQxHVCFG6jsU": {
     "error": null,
     "finished_at": "2026-08-01T18:45:10.841391+00:00",
@@ -30042,7 +30072,7 @@
     "source_path": "Slide2/mat/Targon_MAT_en.pdf",
     "started_at": "2026-08-02T18:45:22.474772+00:00",
     "status": "published",
-    "updated_at": "2026-08-02T18:45:30.495326+00:00",
+    "updated_at": "2026-08-02T19:55:20.537990+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/targon/1/en.html"
   },
@@ -34148,7 +34178,7 @@
     "source_path": "Slide2/mat/Targon_MAT_ko.pdf",
     "started_at": "2026-08-02T18:45:46.816827+00:00",
     "status": "published",
-    "updated_at": "2026-08-02T18:45:52.399668+00:00",
+    "updated_at": "2026-08-02T19:55:22.223851+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/targon/1/ko.html"
   },
@@ -57428,6 +57458,36 @@
     "version": null,
     "versioned_url": null
   },
+  "1a4IDo3o0OnyvtpeokydNTC2nk1a7EMf3": {
+    "error": null,
+    "finished_at": "2026-08-02T19:56:12.172383+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-02T10:13:42.000Z",
+    "name": "aelf_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aelf/latest/ja.html",
+    "report_id": "8d6aef00-5e87-493c-bdcd-58b0da7fef4d",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "aelf",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/aelf_MAT_jp.pdf",
+    "started_at": "2026-08-02T19:56:04.115949+00:00",
+    "status": "published",
+    "updated_at": "2026-08-02T19:56:12.172402+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aelf/1/ja.html"
+  },
   "1a64iTUvaMDTTsgFtexNNqvTWVjdtNyUJ": {
     "error": null,
     "finished_at": "2026-06-01T05:31:08.746131+00:00",
@@ -58691,6 +58751,36 @@
     "updated_at": "2026-07-27T01:16:39.965856+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/lorenzo-protocol/1/en.html"
+  },
+  "1apabj7tOM9a2cZglFqZvbSGOHayQa2AR": {
+    "error": null,
+    "finished_at": "2026-08-02T19:55:47.268512+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-02T10:13:43.000Z",
+    "name": "aelf_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aelf/latest/zh.html",
+    "report_id": "4c13ed91-667a-43bb-a6d7-6e7837ed3161",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "aelf",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/aelf_MAT_cn.pdf",
+    "started_at": "2026-08-02T19:55:38.451241+00:00",
+    "status": "published",
+    "updated_at": "2026-08-02T19:55:47.268530+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aelf/1/zh.html"
   },
   "1aqaGBKFKR04m_chHhU_G9QzzEByMP_sO": {
     "error": null,
@@ -93041,6 +93131,36 @@
     "updated_at": "2026-06-12T10:50:11.931290+00:00",
     "version": null,
     "versioned_url": null
+  },
+  "1xjVGU9eXb03sQ5V8pWaRAk8y3pzrbgeN": {
+    "error": null,
+    "finished_at": "2026-08-02T19:56:38.404590+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-02T10:13:40.000Z",
+    "name": "aelf_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aelf/latest/ko.html",
+    "report_id": "23d4b5bc-3151-4ee8-bb31-088aa7ae6426",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "aelf",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/aelf_MAT_ko.pdf",
+    "started_at": "2026-08-02T19:56:32.143922+00:00",
+    "status": "published",
+    "updated_at": "2026-08-02T19:56:38.404609+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aelf/1/ko.html"
   },
   "1xkQIaTalXAH9rnSJGJOAtIlWA-ezlnfQ": {
     "error": null,
