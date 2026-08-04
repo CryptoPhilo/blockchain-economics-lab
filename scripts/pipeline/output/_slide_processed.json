@@ -1989,6 +1989,36 @@
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ethereum/2/ja.html"
   },
+  "1094pLWdQKsR_tcuVRY4FykLLVXoG56_5": {
+    "error": null,
+    "finished_at": "2026-08-04T07:07:38.614978+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-04T04:45:29.000Z",
+    "name": "MASK_ECON_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/mask-network/latest/zh.html",
+    "report_id": "cc4c74a0-bea5-4895-8ef7-db91076e539c",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "mask-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/MASK_ECON_cn.pdf",
+    "started_at": "2026-08-04T07:07:28.966740+00:00",
+    "status": "published",
+    "updated_at": "2026-08-04T07:07:38.614993+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/mask-network/1/zh.html"
+  },
   "10AFdRbhttDW_g8aD2dxr18n9kxbBiS6U": {
     "error": null,
     "finished_at": "2026-06-08T10:37:01.618159+00:00",
@@ -10027,6 +10057,36 @@
     "updated_at": "2026-05-17T17:02:38.280946+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bitcoin-sv/1/zh.html"
+  },
+  "15Nd1TDCjrLlheVTK7Xqlaj7xQjN5rUCL": {
+    "error": null,
+    "finished_at": "2026-08-04T07:08:40.905641+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-04T04:45:21.000Z",
+    "name": "MASK_ECON_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/mask-network/latest/ko.html",
+    "report_id": "baaa414e-ef10-4fa4-9e47-04472e518a8a",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "mask-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/MASK_ECON_ko.pdf",
+    "started_at": "2026-08-04T07:08:34.993233+00:00",
+    "status": "published",
+    "updated_at": "2026-08-04T07:08:40.905657+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/mask-network/1/ko.html"
   },
   "15OGs73ojsa_XTLIF0h_p8-uQ3p5WRFpt": {
     "error": null,
@@ -21787,7 +21847,7 @@
     "source_path": "Slide2/econ/AMPL_ECON_jp.pdf",
     "started_at": "2026-08-04T04:24:53.936535+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T04:25:03.124003+00:00",
+    "updated_at": "2026-08-04T07:08:43.065273+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ampleforth/1/ja.html"
   },
@@ -34292,7 +34352,7 @@
     "source_path": "Slide2/mat/ROSE_MAT_cn.pdf",
     "started_at": "2026-08-04T01:05:41.681142+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T04:26:54.148483+00:00",
+    "updated_at": "2026-08-04T07:08:58.317556+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/oasis-network/1/zh.html"
   },
@@ -34572,7 +34632,7 @@
     "source_path": "Slide2/mat/AZTEC_MAT_en.pdf",
     "started_at": "2026-08-04T04:26:23.826896+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T04:26:29.876596+00:00",
+    "updated_at": "2026-08-04T07:08:52.010184+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aztec/1/en.html"
   },
@@ -37076,7 +37136,7 @@
     "source_path": "Slide2/econ/AMPL_ECON_cn.pdf",
     "started_at": "2026-08-04T04:24:10.741366+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T04:24:32.131783+00:00",
+    "updated_at": "2026-08-04T07:08:42.142482+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ampleforth/1/zh.html"
   },
@@ -58465,7 +58525,7 @@
     "source_path": "Slide2/mat/ROSE_MAT_en.pdf",
     "started_at": "2026-08-04T01:06:10.003716+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T04:26:58.927565+00:00",
+    "updated_at": "2026-08-04T07:09:02.215641+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/oasis-network/1/en.html"
   },
@@ -58695,7 +58755,7 @@
     "source_path": "Slide2/econ/AMPL_ECON_en.pdf",
     "started_at": "2026-08-04T04:25:04.867107+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T04:25:13.709774+00:00",
+    "updated_at": "2026-08-04T07:08:43.980762+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ampleforth/1/en.html"
   },
@@ -59993,6 +60053,36 @@
     "updated_at": "2026-05-17T17:54:35.488705+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ripple-usd/1/zh.html"
+  },
+  "1b5RaoSbPs8iyAc0ernLiiF8MHT7kTE0p": {
+    "error": null,
+    "finished_at": "2026-08-04T07:08:06.610872+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-04T04:45:27.000Z",
+    "name": "MASK_ECON_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/mask-network/latest/ja.html",
+    "report_id": "836d62d5-0c82-460a-9a9f-58beba95e5b9",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "mask-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/MASK_ECON_jp.pdf",
+    "started_at": "2026-08-04T07:07:59.641756+00:00",
+    "status": "published",
+    "updated_at": "2026-08-04T07:08:06.610889+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/mask-network/1/ja.html"
   },
   "1b5UGbBLbukXDrWocwzdqj3WDoykzhyDq": {
     "error": "unresolved (slug=? via filename_unresolved; lang=en via filename)",
@@ -66991,7 +67081,7 @@
     "source_path": "Slide2/mat/ROSE_MAT_jp.pdf",
     "started_at": "2026-08-04T01:06:00.211941+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T04:26:56.716090+00:00",
+    "updated_at": "2026-08-04T07:09:00.165280+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/oasis-network/1/ja.html"
   },
@@ -70982,7 +71072,7 @@
     "source_path": "Slide2/mat/AZTEC_MAT_ko.pdf",
     "started_at": "2026-08-04T04:26:42.588515+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T04:26:49.456282+00:00",
+    "updated_at": "2026-08-04T07:08:53.998401+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aztec/1/ko.html"
   },
@@ -72720,7 +72810,7 @@
     "source_path": "Slide2/mat/ROSE_MAT_ko.pdf",
     "started_at": "2026-08-04T01:05:10.917685+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T04:26:52.219815+00:00",
+    "updated_at": "2026-08-04T07:08:56.227844+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/oasis-network/1/ko.html"
   },
@@ -74249,6 +74339,36 @@
     "updated_at": "2026-07-17T17:59:00.326701+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/mocaverse/1/en.html"
+  },
+  "1kNtP9CWfjllNrnDYDSB91i3zyRVe8KkO": {
+    "error": null,
+    "finished_at": "2026-08-04T07:08:15.923708+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-04T04:45:24.000Z",
+    "name": "MASK_ECON_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/mask-network/latest/en.html",
+    "report_id": "b23475f4-4006-4cee-a0bf-4fce4278febe",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "mask-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/MASK_ECON_en.pdf",
+    "started_at": "2026-08-04T07:08:09.071435+00:00",
+    "status": "published",
+    "updated_at": "2026-08-04T07:08:15.923726+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/mask-network/1/en.html"
   },
   "1kOKQUgaEm6Qrf4nI48ISXrVwX_l8bqsV": {
     "error": "language/content mismatch — resolved 'zh' via filename but ocr body script indicates 'ja'",
@@ -75955,7 +76075,7 @@
     "source_path": "Slide2/econ/AMPL_ECON_ko.pdf",
     "started_at": "2026-08-04T04:25:32.771689+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T04:25:40.355111+00:00",
+    "updated_at": "2026-08-04T07:08:44.909785+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ampleforth/1/ko.html"
   },
@@ -76223,7 +76343,7 @@
     "source_path": "Slide2/mat/AZTEC_MAT_jp.pdf",
     "started_at": "2026-08-04T04:26:15.305409+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T04:26:21.977789+00:00",
+    "updated_at": "2026-08-04T07:08:49.975127+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aztec/1/ja.html"
   },
@@ -91082,7 +91202,7 @@
     "source_path": "Slide2/mat/AZTEC_MAT_cn.pdf",
     "started_at": "2026-08-04T04:25:54.735853+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T04:26:00.865216+00:00",
+    "updated_at": "2026-08-04T07:08:47.708061+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aztec/1/zh.html"
   },
