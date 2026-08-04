@@ -9661,7 +9661,7 @@
     "source_path": "Slide2/econ/NESA_ECON_jp.pdf",
     "started_at": "2026-08-04T17:43:11.726021+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T19:15:17.932365+00:00",
+    "updated_at": "2026-08-04T20:44:44.871825+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/nesa/1/ja.html"
   },
@@ -19132,7 +19132,7 @@
     "source_path": "Slide2/econ/NESA_ECON_en.pdf",
     "started_at": "2026-08-04T17:43:38.097127+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T19:15:20.919640+00:00",
+    "updated_at": "2026-08-04T20:44:47.058906+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/nesa/1/en.html"
   },
@@ -24512,7 +24512,7 @@
     "source_path": "Slide2/econ/NESA_ECON_cn.pdf",
     "started_at": "2026-08-04T17:42:39.747221+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T19:15:15.763413+00:00",
+    "updated_at": "2026-08-04T20:44:43.764730+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/nesa/1/zh.html"
   },
@@ -27799,7 +27799,7 @@
     "source_path": "Slide2/mat/MSTRx_MAT_cn.pdf",
     "started_at": "2026-08-04T19:17:22.865406+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T19:17:38.486894+00:00",
+    "updated_at": "2026-08-04T20:44:53.492830+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/microstrategy-tokenized-stock-xstock/1/zh.html"
   },
@@ -41611,7 +41611,7 @@
     "source_path": "Slide2/mat/MSTRx_MAT_jp.pdf",
     "started_at": "2026-08-04T19:18:09.727931+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T19:18:24.983915+00:00",
+    "updated_at": "2026-08-04T20:44:55.493022+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/microstrategy-tokenized-stock-xstock/1/ja.html"
   },
@@ -48126,7 +48126,7 @@
     "source_path": "Slide2/econ/IVVON_ECON_jp.pdf",
     "started_at": "2026-08-04T19:13:44.918848+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T19:14:00.718523+00:00",
+    "updated_at": "2026-08-04T20:44:40.495301+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ishares-core-sp-500-tokenized-etf-ondo/1/ja.html"
   },
@@ -52037,10 +52037,10 @@
   },
   "1X0GgV0lVgpCUDQcPa0YOC4eIvRfRQPoK": {
     "error": null,
-    "finished_at": "2026-08-04T17:44:14.625454+00:00",
+    "finished_at": "2026-08-04T20:43:41.350669+00:00",
     "lang": "zh",
     "lang_source": "filename",
-    "modifiedTime": "2026-08-04T16:00:11.000Z",
+    "modifiedTime": "2026-08-04T19:39:47.477Z",
     "name": "CKB_ECON_cn.pdf",
     "page_profile": {
       "aspect_ratio": 1.7768331796238679,
@@ -52059,9 +52059,9 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide2/econ/CKB_ECON_cn.pdf",
-    "started_at": "2026-08-04T17:43:58.545838+00:00",
+    "started_at": "2026-08-04T20:43:22.128753+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T19:15:22.206478+00:00",
+    "updated_at": "2026-08-04T20:43:41.350687+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/nervos-network/1/zh.html"
   },
@@ -52576,7 +52576,7 @@
     "source_path": "Slide2/econ/IVVON_ECON_ko.pdf",
     "started_at": "2026-08-04T19:14:57.700753+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T19:15:13.164254+00:00",
+    "updated_at": "2026-08-04T20:44:42.668058+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ishares-core-sp-500-tokenized-etf-ondo/2/ko.html"
   },
@@ -57206,7 +57206,7 @@
     "source_path": "Slide2/mat/MSTRx_MAT_ko.pdf",
     "started_at": "2026-08-04T19:16:00.788973+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T19:16:24.781241+00:00",
+    "updated_at": "2026-08-04T20:44:49.480873+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/microstrategy-tokenized-stock-xstock/2/ko.html"
   },
@@ -64295,10 +64295,10 @@
   },
   "1dqXaGSq9P2GcXHVsiM49IQrsNDwc4eq-": {
     "error": null,
-    "finished_at": "2026-08-04T17:44:46.524546+00:00",
+    "finished_at": "2026-08-04T20:43:52.398934+00:00",
     "lang": "en",
     "lang_source": "filename",
-    "modifiedTime": "2026-08-04T16:00:08.000Z",
+    "modifiedTime": "2026-08-04T19:39:44.842Z",
     "name": "CKB_ECON_en.pdf",
     "page_profile": {
       "aspect_ratio": 1.7768331796238679,
@@ -64317,9 +64317,9 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide2/econ/CKB_ECON_en.pdf",
-    "started_at": "2026-08-04T17:44:38.861132+00:00",
+    "started_at": "2026-08-04T20:43:43.306041+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T19:15:24.951607+00:00",
+    "updated_at": "2026-08-04T20:43:52.398949+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/nervos-network/1/en.html"
   },
@@ -72930,7 +72930,7 @@
     "source_path": "Slide2/econ/IVVON_ECON_cn.pdf",
     "started_at": "2026-08-04T19:12:40.051578+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T19:13:08.618106+00:00",
+    "updated_at": "2026-08-04T20:44:39.395388+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ishares-core-sp-500-tokenized-etf-ondo/1/zh.html"
   },
@@ -75043,7 +75043,7 @@
     "source_path": "Slide2/econ/IVVON_ECON_en.pdf",
     "started_at": "2026-08-04T19:14:04.175378+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T19:14:19.595701+00:00",
+    "updated_at": "2026-08-04T20:44:41.588901+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ishares-core-sp-500-tokenized-etf-ondo/1/en.html"
   },
@@ -83544,7 +83544,7 @@
     "source_path": "Slide2/econ/NESA_ECON_ko.pdf",
     "started_at": "2026-08-04T17:43:28.772625+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T19:15:19.235648+00:00",
+    "updated_at": "2026-08-04T20:44:45.967463+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/nesa/2/ko.html"
   },
@@ -84313,7 +84313,7 @@
     "source_path": "Slide2/mat/MSTRx_MAT_en.pdf",
     "started_at": "2026-08-04T19:16:26.755400+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T19:16:43.605793+00:00",
+    "updated_at": "2026-08-04T20:44:51.498814+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/microstrategy-tokenized-stock-xstock/1/en.html"
   },
@@ -86695,10 +86695,10 @@
   },
   "1sTezAaTJowJL8tDFeLfzHXrWfAvD8JU5": {
     "error": null,
-    "finished_at": "2026-08-04T17:44:37.339154+00:00",
+    "finished_at": "2026-08-04T20:44:38.302572+00:00",
     "lang": "ja",
     "lang_source": "filename",
-    "modifiedTime": "2026-08-04T16:00:10.000Z",
+    "modifiedTime": "2026-08-04T19:39:39.126Z",
     "name": "CKB_ECON_jp.pdf",
     "page_profile": {
       "aspect_ratio": 1.7768331796238679,
@@ -86717,9 +86717,9 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide2/econ/CKB_ECON_jp.pdf",
-    "started_at": "2026-08-04T17:44:29.078005+00:00",
+    "started_at": "2026-08-04T20:44:28.448340+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T19:15:23.690325+00:00",
+    "updated_at": "2026-08-04T20:44:38.302588+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/nervos-network/1/ja.html"
   },
@@ -96785,10 +96785,10 @@
   },
   "1z7yf9UVtgBdlX9KCh1xefJEyDF-dcIlI": {
     "error": null,
-    "finished_at": "2026-08-04T17:45:07.290396+00:00",
+    "finished_at": "2026-08-04T20:44:13.823938+00:00",
     "lang": "ko",
     "lang_source": "filename",
-    "modifiedTime": "2026-08-04T16:00:06.000Z",
+    "modifiedTime": "2026-08-04T19:39:41.849Z",
     "name": "CKB_ECON_ko.pdf",
     "page_profile": {
       "aspect_ratio": 1.7768331796238679,
@@ -96807,9 +96807,9 @@
     "slug_source": "filename",
     "source_depth": 0,
     "source_path": "Slide2/econ/CKB_ECON_ko.pdf",
-    "started_at": "2026-08-04T17:45:00.029117+00:00",
+    "started_at": "2026-08-04T20:44:06.032974+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T19:15:26.243234+00:00",
+    "updated_at": "2026-08-04T20:44:13.823954+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/nervos-network/1/ko.html"
   },
