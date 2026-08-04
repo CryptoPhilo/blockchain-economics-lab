@@ -175,7 +175,7 @@
     "source_path": "Slide2/econ/MBG_ECON_en.pdf",
     "started_at": "2026-08-03T16:36:10.277545+00:00",
     "status": "published",
-    "updated_at": "2026-08-03T23:37:59.172653+00:00",
+    "updated_at": "2026-08-04T01:04:46.292457+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/multibank-group/1/en.html"
   },
@@ -2889,7 +2889,7 @@
     "source_path": "Slide2/econ/MBG_ECON_cn.pdf",
     "started_at": "2026-08-03T16:35:28.365830+00:00",
     "status": "published",
-    "updated_at": "2026-08-03T23:37:57.677207+00:00",
+    "updated_at": "2026-08-04T01:04:43.933772+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/multibank-group/1/zh.html"
   },
@@ -4766,7 +4766,7 @@
     "source_path": "Slide2/mat/CASHCAT_MAT_jp.pdf",
     "started_at": "2026-08-03T20:08:15.843809+00:00",
     "status": "published",
-    "updated_at": "2026-08-03T23:38:20.716021+00:00",
+    "updated_at": "2026-08-04T01:06:31.207164+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/cash-cat/1/ja.html"
   },
@@ -17762,7 +17762,7 @@
     "source_path": "Slide2/econ/CELO_ECON_ko.pdf",
     "started_at": "2026-08-03T16:40:16.821394+00:00",
     "status": "published",
-    "updated_at": "2026-08-03T23:38:07.180480+00:00",
+    "updated_at": "2026-08-04T01:04:57.011376+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/celo/1/ko.html"
   },
@@ -25091,7 +25091,7 @@
     "source_path": "Slide2/mat/VAM_MAT_cn.pdf",
     "started_at": "2026-08-03T20:06:10.282900+00:00",
     "status": "published",
-    "updated_at": "2026-08-03T23:38:10.429267+00:00",
+    "updated_at": "2026-08-04T01:06:19.875477+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/vitalum/1/zh.html"
   },
@@ -28755,7 +28755,7 @@
     "source_path": "Slide2/mat/VAM_MAT_en.pdf",
     "started_at": "2026-08-03T20:07:02.036552+00:00",
     "status": "published",
-    "updated_at": "2026-08-03T23:38:14.371294+00:00",
+    "updated_at": "2026-08-04T01:06:24.203251+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/vitalum/1/en.html"
   },
@@ -30718,7 +30718,7 @@
     "source_path": "Slide2/econ/CELO_ECON_cn.pdf",
     "started_at": "2026-08-03T16:38:45.962508+00:00",
     "status": "published",
-    "updated_at": "2026-08-03T23:38:04.485286+00:00",
+    "updated_at": "2026-08-04T01:04:53.078219+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/celo/1/zh.html"
   },
@@ -34235,6 +34235,36 @@
     "updated_at": "2026-07-07T08:04:50.644468+00:00",
     "version": null,
     "versioned_url": null
+  },
+  "1KfTgz1AxvBH9746hRg9UnZkWcLLbs6Co": {
+    "error": null,
+    "finished_at": "2026-08-04T01:05:50.562331+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-03T22:31:04.000Z",
+    "name": "ROSE_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/oasis-network/latest/zh.html",
+    "report_id": "f1ce54e2-7350-49f6-a9f7-98346290986d",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "oasis-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/ROSE_MAT_cn.pdf",
+    "started_at": "2026-08-04T01:05:41.681142+00:00",
+    "status": "published",
+    "updated_at": "2026-08-04T01:05:50.562344+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/oasis-network/1/zh.html"
   },
   "1KgJVdOIM0yZzMPwqFh6LQajg199U_Sh6": {
     "error": null,
@@ -39704,7 +39734,7 @@
     "source_path": "Slide2/mat/VAM_MAT_jp.pdf",
     "started_at": "2026-08-03T20:06:49.710898+00:00",
     "status": "published",
-    "updated_at": "2026-08-03T23:38:12.467644+00:00",
+    "updated_at": "2026-08-04T01:06:22.176098+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/vitalum/1/ja.html"
   },
@@ -58319,6 +58349,36 @@
     "status": "failed",
     "updated_at": "2026-05-17T18:05:27.145416+00:00"
   },
+  "1aBKApcNhmQhx5TAYLyw8xokDWBRuPrOX": {
+    "error": null,
+    "finished_at": "2026-08-04T01:06:17.221864+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-03T22:31:02.000Z",
+    "name": "ROSE_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7777777777777777,
+      "height": 432.0,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 768.0
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/oasis-network/latest/en.html",
+    "report_id": "6a8de18f-6994-47cb-be52-94cd3f4779a6",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "oasis-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/ROSE_MAT_en.pdf",
+    "started_at": "2026-08-04T01:06:10.003716+00:00",
+    "status": "published",
+    "updated_at": "2026-08-04T01:06:17.221877+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/oasis-network/1/en.html"
+  },
   "1aBM1IaiYGavp7i8UJu4U8JkE4TwTNcSo": {
     "error": null,
     "finished_at": "2026-05-18T11:25:54.956974+00:00",
@@ -58910,7 +58970,7 @@
     "source_path": "Slide2/econ/AT_ECON_ko.pdf",
     "started_at": "2026-08-03T16:38:13.039500+00:00",
     "status": "published",
-    "updated_at": "2026-08-03T23:38:03.595678+00:00",
+    "updated_at": "2026-08-04T01:04:52.231491+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/apro/1/ko.html"
   },
@@ -59438,7 +59498,7 @@
     "source_path": "Slide2/econ/CELO_ECON_jp.pdf",
     "started_at": "2026-08-03T16:39:32.454998+00:00",
     "status": "published",
-    "updated_at": "2026-08-03T23:38:05.379823+00:00",
+    "updated_at": "2026-08-04T01:04:54.471801+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/celo/1/ja.html"
   },
@@ -60609,7 +60669,7 @@
     "source_path": "Slide2/econ/AT_ECON_jp.pdf",
     "started_at": "2026-08-03T16:37:34.016646+00:00",
     "status": "published",
-    "updated_at": "2026-08-03T23:38:01.772582+00:00",
+    "updated_at": "2026-08-04T01:04:50.462953+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/apro/1/ja.html"
   },
@@ -62138,7 +62198,7 @@
     "source_path": "Slide2/mat/CASHCAT_MAT_ko.pdf",
     "started_at": "2026-08-03T20:08:45.743807+00:00",
     "status": "published",
-    "updated_at": "2026-08-03T23:38:24.356464+00:00",
+    "updated_at": "2026-08-04T01:06:35.046120+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/cash-cat/1/ko.html"
   },
@@ -66785,6 +66845,36 @@
     "status": "skipped_legacy_portrait_pdf",
     "updated_at": "2026-06-09T04:48:22.461085+00:00"
   },
+  "1fl6kzF1rLrwWGAxevu_b8SPZGmB22H6O": {
+    "error": null,
+    "finished_at": "2026-08-04T01:06:08.797385+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-03T22:31:03.000Z",
+    "name": "ROSE_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/oasis-network/latest/ja.html",
+    "report_id": "bcc0259b-d84e-454b-ad44-15984e4a39c5",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "oasis-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/ROSE_MAT_jp.pdf",
+    "started_at": "2026-08-04T01:06:00.211941+00:00",
+    "status": "published",
+    "updated_at": "2026-08-04T01:06:08.797397+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/oasis-network/1/ja.html"
+  },
   "1flZWNaHRdufLCu29uIRUqsUCwtS_0RI5": {
     "error": null,
     "finished_at": "2026-07-19T23:12:45.871409+00:00",
@@ -70362,7 +70452,7 @@
     "source_path": "Slide2/econ/MBG_ECON_jp.pdf",
     "started_at": "2026-08-03T16:35:58.657683+00:00",
     "status": "published",
-    "updated_at": "2026-08-03T23:37:58.421855+00:00",
+    "updated_at": "2026-08-04T01:04:45.539170+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/multibank-group/1/ja.html"
   },
@@ -72454,6 +72544,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/gmx/1/ja.html"
   },
+  "1jGNij0W6MjO5YQOF90E9bsDA53Kt1-Vx": {
+    "error": null,
+    "finished_at": "2026-08-04T01:05:32.277699+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-03T22:52:14.000Z",
+    "name": "ROSE_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/oasis-network/latest/ko.html",
+    "report_id": "2535e3eb-488a-4e2a-9c0c-527015f0ecc0",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "oasis-network",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/ROSE_MAT_ko.pdf",
+    "started_at": "2026-08-04T01:05:10.917685+00:00",
+    "status": "published",
+    "updated_at": "2026-08-04T01:05:32.277714+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/oasis-network/1/ko.html"
+  },
   "1jHMqWfKMWA00419Jot8-m9Dlj8ZtqKte": {
     "error": null,
     "finished_at": "2026-05-17T13:41:23.305512+00:00",
@@ -72972,7 +73092,7 @@
     "source_path": "Slide2/mat/CASHCAT_MAT_cn.pdf",
     "started_at": "2026-08-03T20:07:43.421192+00:00",
     "status": "published",
-    "updated_at": "2026-08-03T23:38:18.585444+00:00",
+    "updated_at": "2026-08-04T01:06:28.961539+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/cash-cat/1/zh.html"
   },
@@ -74433,7 +74553,7 @@
     "source_path": "Slide2/mat/CASHCAT_MAT_en.pdf",
     "started_at": "2026-08-03T20:08:26.816969+00:00",
     "status": "published",
-    "updated_at": "2026-08-03T23:38:22.535786+00:00",
+    "updated_at": "2026-08-04T01:06:33.259620+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/cash-cat/1/en.html"
   },
@@ -78894,7 +79014,7 @@
     "source_path": "Slide2/econ/MBG_ECON_ko.pdf",
     "started_at": "2026-08-03T16:36:35.640422+00:00",
     "status": "published",
-    "updated_at": "2026-08-03T23:37:59.899671+00:00",
+    "updated_at": "2026-08-04T01:04:47.000684+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/multibank-group/1/ko.html"
   },
@@ -81665,7 +81785,7 @@
     "source_path": "Slide2/econ/CELO_ECON_en.pdf",
     "started_at": "2026-08-03T16:39:44.249874+00:00",
     "status": "published",
-    "updated_at": "2026-08-03T23:38:06.293865+00:00",
+    "updated_at": "2026-08-04T01:04:56.161568+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/celo/1/en.html"
   },
@@ -84682,7 +84802,7 @@
     "source_path": "Slide2/econ/AT_ECON_cn.pdf",
     "started_at": "2026-08-03T16:36:59.020131+00:00",
     "status": "published",
-    "updated_at": "2026-08-03T23:38:00.845600+00:00",
+    "updated_at": "2026-08-04T01:04:48.748513+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/apro/1/zh.html"
   },
@@ -94127,7 +94247,7 @@
     "source_path": "Slide2/econ/AT_ECON_en.pdf",
     "started_at": "2026-08-03T16:37:45.283447+00:00",
     "status": "published",
-    "updated_at": "2026-08-03T23:38:02.679207+00:00",
+    "updated_at": "2026-08-04T01:04:51.347678+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/apro/1/en.html"
   },
@@ -96109,7 +96229,7 @@
     "source_path": "Slide2/mat/VAM_MAT_ko.pdf",
     "started_at": "2026-08-03T20:07:24.414733+00:00",
     "status": "published",
-    "updated_at": "2026-08-03T23:38:16.359214+00:00",
+    "updated_at": "2026-08-04T01:06:26.438785+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/vitalum/1/ko.html"
   },
