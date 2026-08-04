@@ -4766,7 +4766,7 @@
     "source_path": "Slide2/mat/CASHCAT_MAT_jp.pdf",
     "started_at": "2026-08-03T20:08:15.843809+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T01:06:31.207164+00:00",
+    "updated_at": "2026-08-04T04:27:12.839305+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/cash-cat/1/ja.html"
   },
@@ -21761,6 +21761,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/bnb/1/ko.html"
   },
+  "1DS0uPqiWn4PVYs395en8Wvg8JMFDwUSa": {
+    "error": null,
+    "finished_at": "2026-08-04T04:25:03.123988+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-04T00:51:56.000Z",
+    "name": "AMPL_ECON_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ampleforth/latest/ja.html",
+    "report_id": "24e617e5-e264-4486-b74c-eb6eb985358b",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "ampleforth",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/AMPL_ECON_jp.pdf",
+    "started_at": "2026-08-04T04:24:53.936535+00:00",
+    "status": "published",
+    "updated_at": "2026-08-04T04:25:03.124003+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ampleforth/1/ja.html"
+  },
   "1DSFzVBbLVEUtb2jBHQNJ9q_j6ropcfBa": {
     "error": null,
     "finished_at": "2026-07-13T07:04:34.042224+00:00",
@@ -25091,7 +25121,7 @@
     "source_path": "Slide2/mat/VAM_MAT_cn.pdf",
     "started_at": "2026-08-03T20:06:10.282900+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T01:06:19.875477+00:00",
+    "updated_at": "2026-08-04T04:27:01.152769+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/vitalum/1/zh.html"
   },
@@ -28755,7 +28785,7 @@
     "source_path": "Slide2/mat/VAM_MAT_en.pdf",
     "started_at": "2026-08-03T20:07:02.036552+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T01:06:24.203251+00:00",
+    "updated_at": "2026-08-04T04:27:05.587547+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/vitalum/1/en.html"
   },
@@ -34262,7 +34292,7 @@
     "source_path": "Slide2/mat/ROSE_MAT_cn.pdf",
     "started_at": "2026-08-04T01:05:41.681142+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T01:05:50.562344+00:00",
+    "updated_at": "2026-08-04T04:26:54.148483+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/oasis-network/1/zh.html"
   },
@@ -34515,6 +34545,36 @@
     "updated_at": "2026-06-14T05:08:01.660348+00:00",
     "version": null,
     "versioned_url": null
+  },
+  "1KtRTRGuRCYTIDVGe01LpjEGVmTa-TOQr": {
+    "error": null,
+    "finished_at": "2026-08-04T04:26:29.876581+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-04T01:55:16.000Z",
+    "name": "AZTEC_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aztec/latest/en.html",
+    "report_id": "8d326eae-c47f-487e-a8e9-33deea5db005",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "aztec",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/AZTEC_MAT_en.pdf",
+    "started_at": "2026-08-04T04:26:23.826896+00:00",
+    "status": "published",
+    "updated_at": "2026-08-04T04:26:29.876596+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aztec/1/en.html"
   },
   "1KubY4YVfhmgTZWPYd66AZWMBXUGQjU-P": {
     "error": null,
@@ -36989,6 +37049,36 @@
     "updated_at": "2026-05-17T17:59:08.718030+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/binancecoin/1/zh.html"
+  },
+  "1MN3p1Npk3sQj7B5duzOaQWmXxzO45T3r": {
+    "error": null,
+    "finished_at": "2026-08-04T04:24:32.131768+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-04T00:51:57.000Z",
+    "name": "AMPL_ECON_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ampleforth/latest/zh.html",
+    "report_id": "d8d4d1ed-70a9-4d86-a1d1-9ecf6fd8978e",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "ampleforth",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/AMPL_ECON_cn.pdf",
+    "started_at": "2026-08-04T04:24:10.741366+00:00",
+    "status": "published",
+    "updated_at": "2026-08-04T04:24:32.131783+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ampleforth/1/zh.html"
   },
   "1MOkBJRYfya2y-WJjtrlb5ZGLL65UvUUu": {
     "error": "language/content mismatch — resolved 'en' via filename but ocr body script indicates 'ko'",
@@ -39734,7 +39824,7 @@
     "source_path": "Slide2/mat/VAM_MAT_jp.pdf",
     "started_at": "2026-08-03T20:06:49.710898+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T01:06:22.176098+00:00",
+    "updated_at": "2026-08-04T04:27:03.251511+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/vitalum/1/ja.html"
   },
@@ -58375,7 +58465,7 @@
     "source_path": "Slide2/mat/ROSE_MAT_en.pdf",
     "started_at": "2026-08-04T01:06:10.003716+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T01:06:17.221877+00:00",
+    "updated_at": "2026-08-04T04:26:58.927565+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/oasis-network/1/en.html"
   },
@@ -58578,6 +58668,36 @@
     "updated_at": "2026-07-19T17:13:20.039130+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/c8ntinuum/1/zh.html"
+  },
+  "1aHO8j8kWEwF8dkqyr25yySS6dWr9bgw2": {
+    "error": null,
+    "finished_at": "2026-08-04T04:25:13.709759+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-04T00:51:55.000Z",
+    "name": "AMPL_ECON_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ampleforth/latest/en.html",
+    "report_id": "1cc5687f-12ce-4353-9813-fd0ae52b8591",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "ampleforth",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/AMPL_ECON_en.pdf",
+    "started_at": "2026-08-04T04:25:04.867107+00:00",
+    "status": "published",
+    "updated_at": "2026-08-04T04:25:13.709774+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ampleforth/1/en.html"
   },
   "1aIRAb_wlgk-kwoQzjX5HS3d6j6MQC8s6": {
     "error": null,
@@ -62198,7 +62318,7 @@
     "source_path": "Slide2/mat/CASHCAT_MAT_ko.pdf",
     "started_at": "2026-08-03T20:08:45.743807+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T01:06:35.046120+00:00",
+    "updated_at": "2026-08-04T04:27:18.677782+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/cash-cat/1/ko.html"
   },
@@ -66871,7 +66991,7 @@
     "source_path": "Slide2/mat/ROSE_MAT_jp.pdf",
     "started_at": "2026-08-04T01:06:00.211941+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T01:06:08.797397+00:00",
+    "updated_at": "2026-08-04T04:26:56.716090+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/oasis-network/1/ja.html"
   },
@@ -70836,6 +70956,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/re-protocol/1/ja.html"
   },
+  "1i0WhgA0iAvd-exNkBIYmZZNZ-QRwRNX5": {
+    "error": null,
+    "finished_at": "2026-08-04T04:26:49.456266+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-04T01:55:14.000Z",
+    "name": "AZTEC_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aztec/latest/ko.html",
+    "report_id": "1b4a9d90-7d4c-4969-818a-1d6cb18ae124",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "aztec",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/AZTEC_MAT_ko.pdf",
+    "started_at": "2026-08-04T04:26:42.588515+00:00",
+    "status": "published",
+    "updated_at": "2026-08-04T04:26:49.456282+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aztec/1/ko.html"
+  },
   "1i1NEzjgWUD_dxfqzR-_vmCAqv37x7STG": {
     "error": null,
     "finished_at": "2026-07-31T12:20:02.050000+00:00",
@@ -72570,7 +72720,7 @@
     "source_path": "Slide2/mat/ROSE_MAT_ko.pdf",
     "started_at": "2026-08-04T01:05:10.917685+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T01:05:32.277714+00:00",
+    "updated_at": "2026-08-04T04:26:52.219815+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/oasis-network/1/ko.html"
   },
@@ -73092,7 +73242,7 @@
     "source_path": "Slide2/mat/CASHCAT_MAT_cn.pdf",
     "started_at": "2026-08-03T20:07:43.421192+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T01:06:28.961539+00:00",
+    "updated_at": "2026-08-04T04:27:10.519888+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/cash-cat/1/zh.html"
   },
@@ -74553,7 +74703,7 @@
     "source_path": "Slide2/mat/CASHCAT_MAT_en.pdf",
     "started_at": "2026-08-03T20:08:26.816969+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T01:06:33.259620+00:00",
+    "updated_at": "2026-08-04T04:27:15.008336+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/cash-cat/1/en.html"
   },
@@ -75779,6 +75929,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/akedo/1/ja.html"
   },
+  "1lemV4vU4gT1IFQfF_5hmmKb8NeLx3QRk": {
+    "error": null,
+    "finished_at": "2026-08-04T04:25:40.355098+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-04T00:51:54.000Z",
+    "name": "AMPL_ECON_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ampleforth/latest/ko.html",
+    "report_id": "b13a0f9d-390b-4ce8-986c-6cc3389bf94d",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "ampleforth",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/AMPL_ECON_ko.pdf",
+    "started_at": "2026-08-04T04:25:32.771689+00:00",
+    "status": "published",
+    "updated_at": "2026-08-04T04:25:40.355111+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ampleforth/1/ko.html"
+  },
   "1lfhSy22zbhONzP9tXQP4F-3BhryTaMlR": {
     "error": null,
     "finished_at": "2026-06-12T10:55:27.618063+00:00",
@@ -76016,6 +76196,36 @@
     "updated_at": "2026-05-17T17:05:47.944555+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/gnosis/1/zh.html"
+  },
+  "1lqQR7frXDh3jzQhatX2xTfPNW9LIusgW": {
+    "error": null,
+    "finished_at": "2026-08-04T04:26:21.977772+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-04T01:55:18.000Z",
+    "name": "AZTEC_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aztec/latest/ja.html",
+    "report_id": "7d04b951-d33d-4694-ba9a-6129aaae991c",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "aztec",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/AZTEC_MAT_jp.pdf",
+    "started_at": "2026-08-04T04:26:15.305409+00:00",
+    "status": "published",
+    "updated_at": "2026-08-04T04:26:21.977789+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aztec/1/ja.html"
   },
   "1lqw17_suFU0V0B4_LJBp-PBuvO-PUpYm": {
     "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
@@ -90846,6 +91056,36 @@
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/dexe/latest/ko.html"
   },
+  "1vVK3LOd6J5u6ee3kwPE-5tGOmt10Zudx": {
+    "error": null,
+    "finished_at": "2026-08-04T04:26:00.865202+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-04T01:55:21.000Z",
+    "name": "AZTEC_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aztec/latest/zh.html",
+    "report_id": "12d23b2c-698b-4218-a95f-282777f762bc",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "aztec",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/AZTEC_MAT_cn.pdf",
+    "started_at": "2026-08-04T04:25:54.735853+00:00",
+    "status": "published",
+    "updated_at": "2026-08-04T04:26:00.865216+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/aztec/1/zh.html"
+  },
   "1vWuw8HQ8lKjpAicpO-l7NmikmBQ9qoc2": {
     "error": null,
     "finished_at": "2026-06-11T04:53:28.195049+00:00",
@@ -96229,7 +96469,7 @@
     "source_path": "Slide2/mat/VAM_MAT_ko.pdf",
     "started_at": "2026-08-03T20:07:24.414733+00:00",
     "status": "published",
-    "updated_at": "2026-08-04T01:06:26.438785+00:00",
+    "updated_at": "2026-08-04T04:27:07.859406+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/vitalum/1/ko.html"
   },
