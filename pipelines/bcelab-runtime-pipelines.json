@@ -308,11 +308,19 @@
         {
           "key": "exchange_listing_backfill",
           "paperclipLabel": "Approved exchange listing backfill",
+          "cadence": {
+            "kind": "scheduled",
+            "workflow": ".github/workflows/exchange-listing-backfill.yml",
+            "cron": "0 18 * * 0",
+            "timezoneNote": "Monday 03:00 Asia/Seoul",
+            "expectedIntervalDays": 7
+          },
           "inputs": {
-            "seedCmcTop30": "workflow_dispatch input seed_cmc_top30 seeds the 2026-06-15 CoinMarketCap spot exchange Top 30 snapshot, including zero-listing exchanges.",
+            "seedCmcTop30": "workflow_dispatch input seed_cmc_top30 seeds source-backed entries from the 2026-06-15 CoinMarketCap spot exchange Top 30 snapshot. Top 30 entries without a supported listing source are not activated and are deactivated on apply. schedule events force seed_cmc_top30=true.",
             "exchanges": "Optional comma-separated CoinGecko ids or internal slugs for scoped listing refreshes.",
-            "pageLimit": "CoinGecko ticker pages per mapped exchange; validated from 1 to 10 and defaults to 3. Production apply requires page_limit >= 3 for seed_cmc_top30 and Upbit so core assets like BTC are not missed by unstable ticker ordering.",
-            "requestDelayMs": "Delay between CoinGecko requests in milliseconds; validated from 0 to 60000 and defaults to 2500 for public API rate-limit recovery."
+            "mode": "workflow_dispatch input mode controls dry_run/apply. schedule events force mode=apply for the weekly all-exchange refresh.",
+            "pageLimit": "CoinGecko ticker pages per mapped exchange; validated from 1 to 10 and defaults to 3. Weekly schedule and production apply require page_limit >= 3 for seed_cmc_top30 and Upbit so core assets like BTC are not missed by unstable ticker ordering.",
+            "requestDelayMs": "Delay between CoinGecko requests in milliseconds; validated from 0 to 60000 and defaults to 2500 for manual dispatches. schedule events force requestDelayMs=10000 for the weekly all-exchange refresh to reduce CoinGecko 429 pressure."
           },
           "execution": {
             "mode": "github_actions",
