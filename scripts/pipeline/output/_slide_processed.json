@@ -5751,6 +5751,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/litecoin/1/ja.html"
   },
+  "12ZRY10NqlHp-ktpgJzl5qguOKeU2iJYm": {
+    "error": null,
+    "finished_at": "2026-08-06T15:37:56.479297+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-06T11:18:15.000Z",
+    "name": "MOCA_ECON_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/mocaverse/latest/zh.html",
+    "report_id": "a18eae28-1ec9-41c9-950c-ad1b84a99bba",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "mocaverse",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/MOCA_ECON_cn.pdf",
+    "started_at": "2026-08-06T15:37:46.512971+00:00",
+    "status": "published",
+    "updated_at": "2026-08-06T15:37:56.479318+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/mocaverse/1/zh.html"
+  },
   "12ZSM1RGOc1gO8AauQdbqPIe1w7BXGTJc": {
     "error": null,
     "finished_at": "2026-06-23T06:10:39.044345+00:00",
@@ -8526,7 +8556,7 @@
     "source_path": "Slide2/econ/ALT_ECON_cn.pdf",
     "started_at": "2026-08-06T09:30:13.219236+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:19:55.855545+00:00",
+    "updated_at": "2026-08-06T15:39:59.649915+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/altlayer/2/zh.html"
   },
@@ -8619,6 +8649,36 @@
     "updated_at": "2026-05-12T18:20:48.507028+00:00",
     "version": null,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/filecoin/latest/ja.html"
+  },
+  "14KdDk7zfXYUz0Z14-Ld1JRkZswSGdakY": {
+    "error": null,
+    "finished_at": "2026-08-06T15:36:27.525682+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-06T11:58:56.000Z",
+    "name": "COTI_ECON_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/coti/latest/ja.html",
+    "report_id": "36ff7c16-fc24-41e1-bc19-a2428fa7a736",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "coti",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/COTI_ECON_jp.pdf",
+    "started_at": "2026-08-06T15:36:16.214533+00:00",
+    "status": "published",
+    "updated_at": "2026-08-06T15:36:27.525711+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/coti/1/ja.html"
   },
   "14Kg2gs2PlcODiBAw8JEbwKczqm1kWzMV": {
     "error": null,
@@ -13170,7 +13230,7 @@
     "source_path": "Slide2/econ/ON_ECON_cn.pdf",
     "started_at": "2026-08-06T09:32:54.061774+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:20:03.254460+00:00",
+    "updated_at": "2026-08-06T15:40:10.633618+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/orochi-network/1/zh.html"
   },
@@ -18156,6 +18216,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ape-and-pepe/1/zh.html"
   },
+  "1BAFisaFPU8dW5thEDoVxaZeDFdqccTgX": {
+    "error": null,
+    "finished_at": "2026-08-06T15:38:30.142796+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-06T11:18:14.000Z",
+    "name": "MOCA_ECON_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/mocaverse/latest/ko.html",
+    "report_id": "0279e7f2-ed54-4c56-8b2c-6b744435bd1f",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "mocaverse",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/MOCA_ECON_ko.pdf",
+    "started_at": "2026-08-06T15:38:20.570144+00:00",
+    "status": "published",
+    "updated_at": "2026-08-06T15:38:30.142817+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/mocaverse/1/ko.html"
+  },
   "1BC_myv0ppQKzZ_joQLBbAalQixdNsY-c": {
     "error": null,
     "finished_at": "2026-06-13T09:37:04.183144+00:00",
@@ -20578,7 +20668,7 @@
     "source_path": "Slide2/econ/BNKR_ECON_ko.pdf",
     "started_at": "2026-08-06T09:36:02.941695+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:20:15.594340+00:00",
+    "updated_at": "2026-08-06T15:40:26.299141+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bankr-coin/1/ko.html"
   },
@@ -24944,7 +25034,7 @@
     "source_path": "Slide2/econ/ALT_ECON_ko.pdf",
     "started_at": "2026-08-06T09:31:02.062711+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:19:58.548795+00:00",
+    "updated_at": "2026-08-06T15:40:04.817342+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/altlayer/2/ko.html"
   },
@@ -26671,6 +26761,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/synthetix/1/ja.html"
   },
+  "1FvHssHsNf9IH17Pr85ZMoYJHAI7ZNnKm": {
+    "error": null,
+    "finished_at": "2026-08-06T15:38:07.045758+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-06T11:18:14.000Z",
+    "name": "MOCA_ECON_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/mocaverse/latest/en.html",
+    "report_id": "5e395ad6-05e6-4531-bbfa-fc0aecf58864",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "mocaverse",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/MOCA_ECON_en.pdf",
+    "started_at": "2026-08-06T15:37:58.426219+00:00",
+    "status": "published",
+    "updated_at": "2026-08-06T15:38:07.045780+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/mocaverse/1/en.html"
+  },
   "1FwVoLQ1KNxrQdm6NwrGOC2USQzmuzUdm": {
     "error": null,
     "finished_at": "2026-06-09T04:32:20.299845+00:00",
@@ -27113,7 +27233,7 @@
     "source_path": "Slide2/econ/DUSK_ECON_jp.pdf",
     "started_at": "2026-08-06T09:34:29.966691+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:20:08.666447+00:00",
+    "updated_at": "2026-08-06T15:40:18.114369+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/dusk/1/ja.html"
   },
@@ -27399,7 +27519,7 @@
     "source_path": "Slide2/econ/DUSK_ECON_ko.pdf",
     "started_at": "2026-08-06T09:34:58.244666+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:20:11.238403+00:00",
+    "updated_at": "2026-08-06T15:40:21.082907+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/dusk/1/ko.html"
   },
@@ -32209,7 +32329,7 @@
     "source_path": "Slide2/econ/AMP_ECON_ko.pdf",
     "started_at": "2026-08-06T09:32:31.422899+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:20:02.154639+00:00",
+    "updated_at": "2026-08-06T15:40:09.404316+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/amp/2/ko.html"
   },
@@ -34325,6 +34445,36 @@
     "updated_at": "2026-07-19T17:13:21.209292+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/c8ntinuum/1/ja.html"
+  },
+  "1KNgQB7Sc9SpKZ--xFsDjRwZMFbPRjaY1": {
+    "error": null,
+    "finished_at": "2026-08-06T15:37:30.258279+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-06T11:18:15.000Z",
+    "name": "MOCA_ECON_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/mocaverse/latest/ja.html",
+    "report_id": "e2db656a-61f3-4602-bb81-17880383f374",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "mocaverse",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/MOCA_ECON_jp.pdf",
+    "started_at": "2026-08-06T15:37:21.688969+00:00",
+    "status": "published",
+    "updated_at": "2026-08-06T15:37:30.258300+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/mocaverse/1/ja.html"
   },
   "1KP257PvAjeeK7pjNdJymT5PE2lzfG21X": {
     "error": "unresolved (slug=? via filename_unresolved; lang=en via filename)",
@@ -37351,7 +37501,7 @@
     "source_path": "Slide2/econ/DUSK_ECON_en.pdf",
     "started_at": "2026-08-06T09:34:37.709398+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:20:09.765089+00:00",
+    "updated_at": "2026-08-06T15:40:19.785878+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/dusk/1/en.html"
   },
@@ -40368,6 +40518,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/superfortune/1/en.html"
   },
+  "1ODPcR8QKQax-ktWXPQmjwVa7WaaclUkU": {
+    "error": null,
+    "finished_at": "2026-08-06T15:38:56.200156+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-06T09:03:20.000Z",
+    "name": "IRYS_ECON_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/irys/latest/zh.html",
+    "report_id": "a8cbc8d1-08c2-4f63-a02f-43e65d692402",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "irys",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/IRYS_ECON_cn.pdf",
+    "started_at": "2026-08-06T15:38:45.092242+00:00",
+    "status": "published",
+    "updated_at": "2026-08-06T15:38:56.200175+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/irys/1/zh.html"
+  },
   "1ODw_bM2w8_ojPzRVVh9lgga0XpM-KLmY": {
     "error": null,
     "finished_at": "2026-07-20T07:00:00.421586+00:00",
@@ -40727,6 +40907,36 @@
     "updated_at": "2026-06-07T16:03:59.784319+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/soon-network/1/en.html"
+  },
+  "1OTQaTNkWgHT3g2iLs7hSe3pQxcFaNDOE": {
+    "error": null,
+    "finished_at": "2026-08-06T15:36:39.784244+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-06T11:58:55.000Z",
+    "name": "COTI_ECON_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/coti/latest/en.html",
+    "report_id": "2bc38c47-d7b6-452b-9527-21ce17ede6c0",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "coti",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/COTI_ECON_en.pdf",
+    "started_at": "2026-08-06T15:36:29.317964+00:00",
+    "status": "published",
+    "updated_at": "2026-08-06T15:36:39.784266+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/coti/1/en.html"
   },
   "1OX0Cz4VsBFJ3URDDb_EDTfGhoHdJbJkN": {
     "error": null,
@@ -42608,7 +42818,7 @@
     "source_path": "Slide2/econ/ALT_ECON_en.pdf",
     "started_at": "2026-08-06T09:30:44.795942+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:19:57.674293+00:00",
+    "updated_at": "2026-08-06T15:40:02.518292+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/altlayer/2/en.html"
   },
@@ -43398,6 +43608,36 @@
     "updated_at": "2026-07-06T16:30:52.502994+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/goplus-security/1/ko.html"
+  },
+  "1QW0X_Okr5QQlPcx3o_ChniWqts22NEJp": {
+    "error": null,
+    "finished_at": "2026-08-06T15:35:58.913105+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-06T11:58:58.000Z",
+    "name": "COTI_ECON_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/coti/latest/zh.html",
+    "report_id": "e2a82951-0d5b-48c3-8661-2af6c981c484",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "coti",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/COTI_ECON_cn.pdf",
+    "started_at": "2026-08-06T15:35:45.312550+00:00",
+    "status": "published",
+    "updated_at": "2026-08-06T15:35:58.913125+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/coti/1/zh.html"
   },
   "1QW1vLkJnFQZZ1Fom7lnld08sCtUF3sSY": {
     "error": "legacy portrait PDF is not publishable as slide HTML (aspect=0.707)",
@@ -47759,7 +47999,7 @@
     "source_path": "Slide2/econ/AMP_ECON_en.pdf",
     "started_at": "2026-08-06T09:32:08.315289+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:20:01.276061+00:00",
+    "updated_at": "2026-08-06T15:40:08.395405+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/amp/2/en.html"
   },
@@ -53883,7 +54123,7 @@
     "source_path": "Slide2/econ/CSPR_ECON_jp.pdf",
     "started_at": "2026-08-06T09:36:20.899476+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:20:16.695531+00:00",
+    "updated_at": "2026-08-06T15:40:27.542940+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/casper/1/ja.html"
   },
@@ -54976,6 +55216,36 @@
     "status": "language_mismatch",
     "updated_at": "2026-05-12T18:27:09.248726+00:00"
   },
+  "1YnSUu0NBSUYlwGvQdXiXw2YrvjAje9K0": {
+    "error": null,
+    "finished_at": "2026-08-06T15:37:05.642913+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-06T11:58:51.000Z",
+    "name": "COTI_ECON_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/coti/latest/ko.html",
+    "report_id": "a7d37e1d-c0f7-4264-97b7-7f57499b1e63",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "coti",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/COTI_ECON_ko.pdf",
+    "started_at": "2026-08-06T15:36:55.267178+00:00",
+    "status": "published",
+    "updated_at": "2026-08-06T15:37:05.642934+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/coti/1/ko.html"
+  },
   "1YoNesLIspTEi_YNytaSuVfA3E4-sn7Wl": {
     "error": null,
     "finished_at": "2026-06-07T06:07:51.436571+00:00",
@@ -55546,7 +55816,7 @@
     "source_path": "Slide2/econ/AMP_ECON_cn.pdf",
     "started_at": "2026-08-06T09:31:24.164309+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:19:59.455713+00:00",
+    "updated_at": "2026-08-06T15:40:05.864108+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/amp/2/zh.html"
   },
@@ -56172,7 +56442,7 @@
     "source_path": "Slide2/econ/DUSK_ECON_cn.pdf",
     "started_at": "2026-08-06T09:34:06.849562+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:20:07.597111+00:00",
+    "updated_at": "2026-08-06T15:40:16.870478+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/dusk/1/zh.html"
   },
@@ -58459,7 +58729,7 @@
     "source_path": "Slide2/econ/CSPR_ECON_en.pdf",
     "started_at": "2026-08-06T09:37:07.354734+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:20:19.946734+00:00",
+    "updated_at": "2026-08-06T15:40:31.220459+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/casper/1/en.html"
   },
@@ -63480,7 +63750,7 @@
     "source_path": "Slide2/econ/CSPR_ECON_cn.pdf",
     "started_at": "2026-08-06T09:36:38.795426+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:20:17.783252+00:00",
+    "updated_at": "2026-08-06T15:40:28.754791+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/casper/1/zh.html"
   },
@@ -66742,7 +67012,7 @@
     "source_path": "Slide2/econ/ON_ECON_ko.pdf",
     "started_at": "2026-08-06T09:33:46.813943+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:20:06.492912+00:00",
+    "updated_at": "2026-08-06T15:40:15.659851+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/orochi-network/1/ko.html"
   },
@@ -71576,6 +71846,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/soon-network/1/ko.html"
   },
+  "1huICc0m5y9vbOVkTQJMpp4PwAujZUVVo": {
+    "error": null,
+    "finished_at": "2026-08-06T15:39:22.429933+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-06T09:03:19.000Z",
+    "name": "IRYS_ECON_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/irys/latest/ja.html",
+    "report_id": "bb0a75c8-344b-477b-9e7b-22017ba3d230",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "irys",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/IRYS_ECON_jp.pdf",
+    "started_at": "2026-08-06T15:39:12.763195+00:00",
+    "status": "published",
+    "updated_at": "2026-08-06T15:39:22.429953+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/irys/1/ja.html"
+  },
   "1huL4UMlkSzichj1SzQrhd9VL0UskLCTZ": {
     "error": null,
     "finished_at": "2026-06-08T07:21:09.405204+00:00",
@@ -72399,7 +72699,7 @@
     "source_path": "Slide2/econ/AMP_ECON_jp.pdf",
     "started_at": "2026-08-06T09:31:58.687927+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:20:00.362679+00:00",
+    "updated_at": "2026-08-06T15:40:06.935223+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/amp/2/ja.html"
   },
@@ -72787,7 +73087,7 @@
     "source_path": "Slide2/econ/ON_ECON_en.pdf",
     "started_at": "2026-08-06T09:33:25.466915+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:20:05.410079+00:00",
+    "updated_at": "2026-08-06T15:40:14.360163+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/orochi-network/1/en.html"
   },
@@ -74853,7 +75153,7 @@
     "source_path": "Slide2/econ/BNKR_ECON_cn.pdf",
     "started_at": "2026-08-06T09:35:21.221534+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:20:12.327964+00:00",
+    "updated_at": "2026-08-06T15:40:22.361836+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bankr-coin/1/zh.html"
   },
@@ -75503,7 +75803,7 @@
     "source_path": "Slide2/econ/BNKR_ECON_jp.pdf",
     "started_at": "2026-08-06T09:35:46.330838+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:20:14.507527+00:00",
+    "updated_at": "2026-08-06T15:40:25.054881+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bankr-coin/1/ja.html"
   },
@@ -78645,7 +78945,7 @@
     "source_path": "Slide2/econ/CSPR_ECON_ko.pdf",
     "started_at": "2026-08-06T09:36:55.817807+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:20:18.860112+00:00",
+    "updated_at": "2026-08-06T15:40:29.987874+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/casper/1/ko.html"
   },
@@ -84973,7 +85273,7 @@
     "source_path": "Slide2/econ/ALT_ECON_jp.pdf",
     "started_at": "2026-08-06T09:30:35.999779+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:19:56.773768+00:00",
+    "updated_at": "2026-08-06T15:40:00.631894+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/altlayer/2/ja.html"
   },
@@ -93592,7 +93892,7 @@
     "source_path": "Slide2/econ/ON_ECON_jp.pdf",
     "started_at": "2026-08-06T09:33:18.675977+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:20:04.320034+00:00",
+    "updated_at": "2026-08-06T15:40:12.687897+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/orochi-network/1/ja.html"
   },
@@ -94995,6 +95295,36 @@
     "updated_at": "2026-07-08T04:20:27.829527+00:00",
     "version": null,
     "versioned_url": null
+  },
+  "1xA8SrTBvHp9YtNHkgWyE_QQA1SFEs3jI": {
+    "error": null,
+    "finished_at": "2026-08-06T15:39:33.313530+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-06T09:03:16.000Z",
+    "name": "IRYS_ECON_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/irys/latest/en.html",
+    "report_id": "fa73c3de-e678-47fc-a2aa-7e3b4088d4d1",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "irys",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/IRYS_ECON_en.pdf",
+    "started_at": "2026-08-06T15:39:24.155951+00:00",
+    "status": "published",
+    "updated_at": "2026-08-06T15:39:33.313551+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/irys/1/en.html"
   },
   "1xAl8jd2rUh5gat-OjVNlrIEOb1DJJtVc": {
     "error": null,
@@ -97589,7 +97919,7 @@
     "source_path": "Slide2/econ/BNKR_ECON_en.pdf",
     "started_at": "2026-08-06T09:35:28.268973+00:00",
     "status": "published",
-    "updated_at": "2026-08-06T13:20:13.434928+00:00",
+    "updated_at": "2026-08-06T15:40:23.624708+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/bankr-coin/1/en.html"
   },
@@ -97682,6 +98012,36 @@
     "updated_at": "2026-07-03T18:53:32.928017+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/unifai-network/1/en.html"
+  },
+  "1zB1WiIJK4GTJPyaZZSFBTcdmThLk6NI_": {
+    "error": null,
+    "finished_at": "2026-08-06T15:39:57.810853+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-06T09:03:15.000Z",
+    "name": "IRYS_ECON_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 8,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/irys/latest/ko.html",
+    "report_id": "e705eb52-612a-4835-9e91-0b72bae09930",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "irys",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/IRYS_ECON_ko.pdf",
+    "started_at": "2026-08-06T15:39:48.625159+00:00",
+    "status": "published",
+    "updated_at": "2026-08-06T15:39:57.810872+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/irys/1/ko.html"
   },
   "1zBBeUcAVM3lBRgd-KwarH09sLawHXlcO": {
     "error": null,
