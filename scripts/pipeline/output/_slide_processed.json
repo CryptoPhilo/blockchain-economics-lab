@@ -421,7 +421,7 @@
     "source_path": "Slide2/mat/SPCXX_MAT_jp.pdf",
     "started_at": "2026-08-09T03:55:38.679322+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:53.477719+00:00",
+    "updated_at": "2026-08-09T11:00:01.449221+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/spacex-tokenized-stock-xtock/2/ja.html"
   },
@@ -1141,6 +1141,36 @@
     "updated_at": "2026-05-17T17:55:14.052906+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/ondo-finance/1/ja.html"
+  },
+  "1-ZGhsrfPqhiQCsJmdoG36Mvk0FpLly9C": {
+    "error": null,
+    "finished_at": "2026-08-09T10:59:26.155312+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-09T10:48:28.000Z",
+    "name": "PRESPCX_ECON_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/spacex-pre-ipo-stock-republic/latest/ja.html",
+    "report_id": "ad380855-cf70-42e1-b1dc-972db4e11193",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "spacex-pre-ipo-stock-republic",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/PRESPCX_ECON_jp.pdf",
+    "started_at": "2026-08-09T10:59:16.742771+00:00",
+    "status": "published",
+    "updated_at": "2026-08-09T10:59:26.155329+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/spacex-pre-ipo-stock-republic/2/ja.html"
   },
   "1-a3DHWSYIRCbOfY_eQZO5_aKjfxM9b0X": {
     "error": null,
@@ -2646,7 +2676,7 @@
     "source_path": "Slide2/mat/SPCXX_MAT_en.pdf",
     "started_at": "2026-08-09T03:55:48.476332+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:54.963673+00:00",
+    "updated_at": "2026-08-09T11:00:03.029055+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/spacex-tokenized-stock-xtock/2/en.html"
   },
@@ -3369,7 +3399,7 @@
     "source_path": "Slide2/econ/PROM_ECON_jp.pdf",
     "started_at": "2026-08-09T08:22:43.725099+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:28.289287+00:00",
+    "updated_at": "2026-08-09T10:59:33.743972+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/prom/2/ja.html"
   },
@@ -14492,7 +14522,7 @@
     "source_path": "Slide2/econ/PROM_ECON_ko.pdf",
     "started_at": "2026-08-09T08:23:21.530648+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:30.064125+00:00",
+    "updated_at": "2026-08-09T10:59:35.801184+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/prom/2/ko.html"
   },
@@ -22329,7 +22359,7 @@
     "source_path": "Slide2/mat/ESP_MAT_cn.pdf",
     "started_at": "2026-08-09T08:26:54.176487+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:46.662735+00:00",
+    "updated_at": "2026-08-09T10:59:53.418953+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/espresso/2/zh.html"
   },
@@ -24646,7 +24676,7 @@
     "source_path": "Slide2/mat/ESP_MAT_en.pdf",
     "started_at": "2026-08-09T08:27:30.305711+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:49.423301+00:00",
+    "updated_at": "2026-08-09T10:59:56.625540+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/espresso/2/en.html"
   },
@@ -25784,7 +25814,7 @@
     "source_path": "Slide2/mat/PROM_MAT_jp.pdf",
     "started_at": "2026-08-09T08:25:58.228709+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:42.510295+00:00",
+    "updated_at": "2026-08-09T10:59:48.968017+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/prom/2/ja.html"
   },
@@ -26104,7 +26134,7 @@
     "source_path": "Slide2/mat/ESP_MAT_ko.pdf",
     "started_at": "2026-08-09T08:27:52.393726+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:50.761337+00:00",
+    "updated_at": "2026-08-09T10:59:58.202247+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/espresso/2/ko.html"
   },
@@ -33263,6 +33293,36 @@
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/exxon-mobil-tokenized-stock-xstock/2/zh.html"
   },
+  "1J9MyiWbSl5x5LMvAzuQVbq2RHgY4gzE9": {
+    "error": null,
+    "finished_at": "2026-08-09T10:58:15.795372+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-09T10:48:28.000Z",
+    "name": "PRESPCX_ECON_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/spacex-pre-ipo-stock-republic/latest/ko.html",
+    "report_id": "93ad256d-566f-4207-b06c-d6b868593209",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "spacex-pre-ipo-stock-republic",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/PRESPCX_ECON_ko.pdf",
+    "started_at": "2026-08-09T10:58:02.966641+00:00",
+    "status": "published",
+    "updated_at": "2026-08-09T10:58:15.795389+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/spacex-pre-ipo-stock-republic/2/ko.html"
+  },
   "1JA_9sidaiWZ55FR-pDqSv62UCq5aicr5": {
     "error": null,
     "finished_at": "2026-05-17T06:37:55.205327+00:00",
@@ -37424,6 +37484,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/ishares-semiconductor-tokenized-etf-xstock/1/zh.html"
   },
+  "1LhB4uUPBDQEzvzsuXiodrdFTUE3qCipc": {
+    "error": null,
+    "finished_at": "2026-08-09T10:58:26.191531+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-09T10:48:28.000Z",
+    "name": "PRESPCX_ECON_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/spacex-pre-ipo-stock-republic/latest/en.html",
+    "report_id": "3c4bb0f0-e082-41fa-a38c-aa2e41dc5456",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "spacex-pre-ipo-stock-republic",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/PRESPCX_ECON_en.pdf",
+    "started_at": "2026-08-09T10:58:17.156394+00:00",
+    "status": "published",
+    "updated_at": "2026-08-09T10:58:26.191548+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/spacex-pre-ipo-stock-republic/2/en.html"
+  },
   "1Lk7GyWQsycOOKoU-f7UE4aML68HoKSkf": {
     "error": "unresolved (slug=? via filename_unresolved; lang=ko via filename)",
     "lang": "ko",
@@ -40849,7 +40939,7 @@
     "source_path": "Slide2/econ/PROM_ECON_en.pdf",
     "started_at": "2026-08-09T08:22:54.671937+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:29.173551+00:00",
+    "updated_at": "2026-08-09T10:59:34.785740+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/prom/2/en.html"
   },
@@ -46285,6 +46375,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/c8ntinuum/1/ko.html"
   },
+  "1RTzKjmocKKRUgUPC3Z5W17F13Yw9MTyK": {
+    "error": null,
+    "finished_at": "2026-08-09T10:58:57.039628+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-09T10:48:28.000Z",
+    "name": "PRESPCX_ECON_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1NRMWYROs7cRe3i-9xLIb16SEnLaJ6Da2",
+    "parent_folder_name": "econ",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/spacex-pre-ipo-stock-republic/latest/zh.html",
+    "report_id": "58a7ab6b-91d4-4fcc-a393-e85835cfb90f",
+    "retry_count": 0,
+    "rtype": "econ",
+    "slug": "spacex-pre-ipo-stock-republic",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/econ/PRESPCX_ECON_cn.pdf",
+    "started_at": "2026-08-09T10:58:47.616100+00:00",
+    "status": "published",
+    "updated_at": "2026-08-09T10:58:57.039645+00:00",
+    "version": 2,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/spacex-pre-ipo-stock-republic/2/zh.html"
+  },
   "1RUHeS6kwLW9GSQyf6zMkykhmBKh2AJJs": {
     "error": null,
     "finished_at": "2026-06-09T14:18:41.502731+00:00",
@@ -47765,7 +47885,7 @@
     "source_path": "Slide2/mat/MY_MAT_cn.pdf",
     "started_at": "2026-08-09T08:23:49.564864+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:33.551112+00:00",
+    "updated_at": "2026-08-09T10:59:39.365227+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/metya/2/zh.html"
   },
@@ -49824,7 +49944,7 @@
     "source_path": "Slide2/econ/PROM_ECON_cn.pdf",
     "started_at": "2026-08-09T08:22:18.711544+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:27.336740+00:00",
+    "updated_at": "2026-08-09T10:59:32.706709+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/prom/2/zh.html"
   },
@@ -50076,7 +50196,7 @@
     "source_path": "Slide2/mat/ESP_MAT_jp.pdf",
     "started_at": "2026-08-09T08:27:19.190407+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:48.022060+00:00",
+    "updated_at": "2026-08-09T10:59:54.984227+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/espresso/2/ja.html"
   },
@@ -52772,7 +52892,7 @@
     "source_path": "Slide2/econ/MY_ECON_cn.pdf",
     "started_at": "2026-08-09T08:20:50.980568+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:23.693790+00:00",
+    "updated_at": "2026-08-09T10:59:27.677571+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/metya/2/zh.html"
   },
@@ -54281,7 +54401,7 @@
     "source_path": "Slide2/econ/MY_ECON_ko.pdf",
     "started_at": "2026-08-09T08:21:53.147938+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:26.447281+00:00",
+    "updated_at": "2026-08-09T10:59:31.191267+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/metya/2/ko.html"
   },
@@ -66799,7 +66919,7 @@
     "source_path": "Slide2/mat/SPCXX_MAT_ko.pdf",
     "started_at": "2026-08-09T03:56:11.525477+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:56.245295+00:00",
+    "updated_at": "2026-08-09T11:00:04.640995+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/spacex-tokenized-stock-xtock/2/ko.html"
   },
@@ -67349,7 +67469,7 @@
     "source_path": "Slide2/mat/SPCXX_MAT_cn.pdf",
     "started_at": "2026-08-09T03:55:13.960442+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:52.130856+00:00",
+    "updated_at": "2026-08-09T10:59:59.764966+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/spacex-tokenized-stock-xtock/2/zh.html"
   },
@@ -74642,7 +74762,7 @@
     "source_path": "Slide2/mat/MY_MAT_ko.pdf",
     "started_at": "2026-08-09T08:25:05.805888+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:39.647193+00:00",
+    "updated_at": "2026-08-09T10:59:45.904987+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/metya/2/ko.html"
   },
@@ -75051,7 +75171,7 @@
     "source_path": "Slide2/econ/MY_ECON_jp.pdf",
     "started_at": "2026-08-09T08:21:23.178891+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:24.637670+00:00",
+    "updated_at": "2026-08-09T10:59:28.699863+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/metya/2/ja.html"
   },
@@ -77584,7 +77704,7 @@
     "source_path": "Slide2/mat/PROM_MAT_en.pdf",
     "started_at": "2026-08-09T08:26:08.243215+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:43.893794+00:00",
+    "updated_at": "2026-08-09T10:59:50.447719+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/prom/2/en.html"
   },
@@ -77913,7 +78033,7 @@
     "source_path": "Slide2/mat/MY_MAT_jp.pdf",
     "started_at": "2026-08-09T08:24:25.840146+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:35.415595+00:00",
+    "updated_at": "2026-08-09T10:59:41.383548+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/metya/2/ja.html"
   },
@@ -78343,7 +78463,7 @@
     "source_path": "Slide2/mat/PROM_MAT_ko.pdf",
     "started_at": "2026-08-09T08:26:33.587052+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:45.356471+00:00",
+    "updated_at": "2026-08-09T10:59:51.966865+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/prom/2/ko.html"
   },
@@ -85845,7 +85965,7 @@
     "source_path": "Slide2/mat/PROM_MAT_cn.pdf",
     "started_at": "2026-08-09T08:25:33.422786+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:41.002145+00:00",
+    "updated_at": "2026-08-09T10:59:47.459777+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/prom/2/zh.html"
   },
@@ -88225,7 +88345,7 @@
     "source_path": "Slide2/econ/MY_ECON_en.pdf",
     "started_at": "2026-08-09T08:21:35.635978+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:25.537636+00:00",
+    "updated_at": "2026-08-09T10:59:30.174963+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/metya/2/en.html"
   },
@@ -88857,7 +88977,7 @@
     "source_path": "Slide2/mat/MY_MAT_en.pdf",
     "started_at": "2026-08-09T08:24:39.518550+00:00",
     "status": "published",
-    "updated_at": "2026-08-09T09:53:37.434152+00:00",
+    "updated_at": "2026-08-09T10:59:43.764009+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/metya/2/en.html"
   },
