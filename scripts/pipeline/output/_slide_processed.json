@@ -9295,7 +9295,7 @@
     "source_path": "Slide2/for/PEOPLE_FOR_cn.pdf",
     "started_at": "2026-08-10T07:58:11.942680+00:00",
     "status": "published",
-    "updated_at": "2026-08-10T07:58:21.652294+00:00",
+    "updated_at": "2026-08-10T09:24:05.340106+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/constitutiondao/1/zh.html"
   },
@@ -11773,6 +11773,36 @@
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/ondas-tokenized-stock-xstock/2/zh.html"
   },
+  "16CmvmxSCytEttSKDXrJ8V9wyKFsEp6XT": {
+    "error": null,
+    "finished_at": "2026-08-10T09:23:30.249758+00:00",
+    "lang": "en",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-10T06:12:07.000Z",
+    "name": "SNDKB_MAT_en.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/sandisk-tokenized-bstocks/latest/en.html",
+    "report_id": "ac46da62-be3c-464d-b8c4-6d79c53e3d6a",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "sandisk-tokenized-bstocks",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/SNDKB_MAT_en.pdf",
+    "started_at": "2026-08-10T09:23:09.596489+00:00",
+    "status": "published",
+    "updated_at": "2026-08-10T09:23:30.249778+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/sandisk-tokenized-bstocks/1/en.html"
+  },
   "16DyslIj_JuXDXZZqqaLMaTKJG73ZGY_6": {
     "error": null,
     "finished_at": "2026-07-16T03:41:37.921749+00:00",
@@ -13850,7 +13880,7 @@
     "source_path": "Slide2/for/PEOPLE_FOR_jp.pdf",
     "started_at": "2026-08-10T07:58:36.622268+00:00",
     "status": "published",
-    "updated_at": "2026-08-10T07:58:46.684775+00:00",
+    "updated_at": "2026-08-10T09:24:06.511789+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/constitutiondao/1/ja.html"
   },
@@ -36894,6 +36924,36 @@
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/light/1/ko.html"
   },
+  "1LDEU9q3_6XhyU9qTIJoIE705EqeFGQ7x": {
+    "error": null,
+    "finished_at": "2026-08-10T09:23:07.834124+00:00",
+    "lang": "ja",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-10T06:12:12.000Z",
+    "name": "SNDKB_MAT_jp.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/sandisk-tokenized-bstocks/latest/ja.html",
+    "report_id": "94dd7d5e-0b26-4140-a40d-54bc00000e7e",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "sandisk-tokenized-bstocks",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/SNDKB_MAT_jp.pdf",
+    "started_at": "2026-08-10T09:22:45.883827+00:00",
+    "status": "published",
+    "updated_at": "2026-08-10T09:23:07.834143+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/sandisk-tokenized-bstocks/1/ja.html"
+  },
   "1LDd2YzH3P1BUnzjk8BNTarbgFSAUqmGi": {
     "error": null,
     "finished_at": "2026-06-09T03:51:46.991680+00:00",
@@ -38819,6 +38879,36 @@
     "updated_at": "2026-05-17T17:59:08.718030+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/econ/binancecoin/1/zh.html"
+  },
+  "1MN0WuPJWJ-RjBXa9E06Wg8Wi_0gkPv-z": {
+    "error": null,
+    "finished_at": "2026-08-10T09:24:00.365338+00:00",
+    "lang": "ko",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-10T06:12:04.000Z",
+    "name": "SNDKB_MAT_ko.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/sandisk-tokenized-bstocks/latest/ko.html",
+    "report_id": "6a5a4f30-a2b0-4f1f-88fe-db1f2bd9f734",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "sandisk-tokenized-bstocks",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/SNDKB_MAT_ko.pdf",
+    "started_at": "2026-08-10T09:23:44.437044+00:00",
+    "status": "published",
+    "updated_at": "2026-08-10T09:24:00.365358+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/sandisk-tokenized-bstocks/1/ko.html"
   },
   "1MN3p1Npk3sQj7B5duzOaQWmXxzO45T3r": {
     "error": null,
@@ -50911,6 +51001,36 @@
     "updated_at": "2026-06-14T18:04:31.169892+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/geodnet/1/ja.html"
+  },
+  "1UO6GpsP4kdGZDZ4Ikch5fprlZhqEr-MA": {
+    "error": null,
+    "finished_at": "2026-08-10T09:22:28.255034+00:00",
+    "lang": "zh",
+    "lang_source": "filename",
+    "modifiedTime": "2026-08-10T06:12:15.000Z",
+    "name": "SNDKB_MAT_cn.pdf",
+    "page_profile": {
+      "aspect_ratio": 1.7768331796238679,
+      "height": 451.67999267578125,
+      "is_landscape_slide": true,
+      "page_count": 10,
+      "width": 802.5599975585938
+    },
+    "parent_folder_id": "1ScxhzZFVqsh9NBJdQAg3-WhPnEbTPq8D",
+    "parent_folder_name": "mat",
+    "public_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/sandisk-tokenized-bstocks/latest/zh.html",
+    "report_id": "f4f708d0-8f83-4731-b83c-64f16bea8829",
+    "retry_count": 0,
+    "rtype": "mat",
+    "slug": "sandisk-tokenized-bstocks",
+    "slug_source": "filename",
+    "source_depth": 0,
+    "source_path": "Slide2/mat/SNDKB_MAT_cn.pdf",
+    "started_at": "2026-08-10T09:22:18.972225+00:00",
+    "status": "published",
+    "updated_at": "2026-08-10T09:22:28.255054+00:00",
+    "version": 1,
+    "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/mat/sandisk-tokenized-bstocks/1/zh.html"
   },
   "1UOygoZMiziqaIitx7ugqzPk21H7eCzz4": {
     "error": null,
@@ -71957,7 +72077,7 @@
     "source_path": "Slide2/for/PEOPLE_FOR_en.pdf",
     "started_at": "2026-08-10T07:58:47.917768+00:00",
     "status": "published",
-    "updated_at": "2026-08-10T07:58:57.834516+00:00",
+    "updated_at": "2026-08-10T09:24:07.878108+00:00",
     "version": 2,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/constitutiondao/2/en.html"
   },
@@ -84802,7 +84922,7 @@
     "source_path": "Slide2/for/PEOPLE_FOR_ko.pdf",
     "started_at": "2026-08-10T07:59:13.665361+00:00",
     "status": "published",
-    "updated_at": "2026-08-10T07:59:21.985127+00:00",
+    "updated_at": "2026-08-10T09:24:09.037187+00:00",
     "version": 1,
     "versioned_url": "https://wbqponoiyoeqlepxogcb.supabase.co/storage/v1/object/public/slides/for/constitutiondao/1/ko.html"
   },
