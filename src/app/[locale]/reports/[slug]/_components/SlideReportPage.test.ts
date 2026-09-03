@@ -14,6 +14,9 @@ const mockNotFound = jest.fn(() => {
   throw new Error('NEXT_NOT_FOUND')
 })
 const mockCreateServerSupabaseClient = jest.fn()
+const mockCreateSupabaseAdminClient = jest.fn()
+const mockUserHasActiveYouTubeMembership = jest.fn()
+let mockAuthenticatedUser: { id: string } | null = { id: 'user-1' }
 
 jest.mock('next/navigation', () => ({
   notFound: () => mockNotFound(),
@@ -27,6 +30,14 @@ jest.mock('next-intl/server', () => ({
 
 jest.mock('@/lib/supabase-server', () => ({
   createServerSupabaseClient: () => mockCreateServerSupabaseClient(),
+}))
+
+jest.mock('@/lib/supabase-admin', () => ({
+  createSupabaseAdminClient: () => mockCreateSupabaseAdminClient(),
+}))
+
+jest.mock('@/lib/youtube-membership', () => ({
+  userHasActiveYouTubeMembership: (...args: unknown[]) => mockUserHasActiveYouTubeMembership(...args),
 }))
 
 jest.mock('@/components/SlideViewer', () => ({
@@ -58,6 +69,9 @@ function mockReportQueries(project: unknown, reports: unknown[]) {
   const reportsQuery = createQuery(reports, 'order')
 
   mockCreateServerSupabaseClient.mockResolvedValue({
+    auth: {
+      getUser: jest.fn(async () => ({ data: { user: mockAuthenticatedUser } })),
+    },
     from: jest.fn((table: string) => {
       if (table === 'tracked_projects') return projectQuery
       if (table === 'project_reports') return reportsQuery
@@ -72,6 +86,9 @@ function mockReportQueriesWithProjectReportResults(project: unknown, reportResul
   let reportQueryIndex = 0
 
   mockCreateServerSupabaseClient.mockResolvedValue({
+    auth: {
+      getUser: jest.fn(async () => ({ data: { user: mockAuthenticatedUser } })),
+    },
     from: jest.fn((table: string) => {
       if (table === 'tracked_projects') return projectQuery
       if (table === 'project_reports') {
@@ -87,6 +104,9 @@ function mockReportQueriesWithProjectReportResults(project: unknown, reportResul
 describe('SlideReportPage locale availability', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockAuthenticatedUser = { id: 'user-1' }
+    mockCreateSupabaseAdminClient.mockReturnValue({ from: jest.fn() })
+    mockUserHasActiveYouTubeMembership.mockResolvedValue(true)
   })
 
   it('uses the duplicate slug candidate that owns the requested report rows', async () => {
@@ -325,6 +345,40 @@ describe('SlideReportPage locale availability', () => {
     expect(screen.getByText('요약 문장')).toBeTruthy()
     expect(screen.getByText('투자 관점')).toBeTruthy()
     expect(screen.getByText('장기 투자 관점 문장')).toBeTruthy()
+  })
+
+  it('does not render the HTML slide viewer for non-YouTube paid members', async () => {
+    mockUserHasActiveYouTubeMembership.mockResolvedValue(false)
+    mockReportQueries(
+      { id: 'project-1', slug: 'megaeth', name: 'MegaETH', symbol: 'MEGA' },
+      [
+        {
+          id: 'report-en',
+          project_id: 'project-1',
+          language: 'en',
+          report_type: 'econ',
+          status: 'published',
+          version: 1,
+          card_summary_en: 'MegaETH report summary.',
+          slide_html_urls_by_lang: {
+            en: 'https://example.supabase.co/storage/v1/object/public/slides/econ/megaeth/latest/en.html',
+          },
+        },
+      ],
+    )
+
+    const page = await SlideReportPage({ locale: 'en', slug: 'megaeth', reportType: 'econ' })
+    render(page)
+
+    expect(screen.queryByTestId('slide-viewer')).toBeNull()
+    expect(screen.getByTestId('youtube-member-only-gate')).toBeTruthy()
+    expect(screen.getByRole('link', { name: /Join on YouTube/ }).getAttribute('href')).toBe(
+      'https://www.youtube.com/@BCELAB/join',
+    )
+    expect(document.body.innerHTML).not.toContain(
+      'https://example.supabase.co/storage/v1/object/public/slides/econ/megaeth/latest/en.html',
+    )
+    expect(mockUserHasActiveYouTubeMembership).toHaveBeenCalledWith(expect.anything(), 'user-1')
   })
 
   it('renders forensic slide reports through the shared report viewer', async () => {

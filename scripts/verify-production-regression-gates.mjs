@@ -1,3 +1,5 @@
+import { accessSync, readFileSync } from 'fs'
+
 const DEFAULT_BASE_URL = 'https://bcelab.xyz'
 const DEFAULT_SCORE_PAGE_MAX_MS = 7000
 const DEFAULT_SCORE_PAGE_MAX_BYTES = 650000
@@ -13,6 +15,52 @@ const maxScorePageBytes = Number(
 )
 const cacheBust = process.env.GITHUB_RUN_ID || Date.now().toString()
 const failures = []
+
+function verifyWorkspaceGate() {
+  const cwd = process.cwd()
+  const expectedRepoName = 'blockchain-economics-lab'
+  const packageJson = awaitableReadJson(new URL('../package.json', import.meta.url))
+  const requiredFiles = [
+    'src/app/[locale]/reports/[slug]/_components/SlideReportPage.tsx',
+    'src/components/SlideViewer.tsx',
+    'src/lib/report-versioning.ts',
+  ]
+
+  requireCondition(
+    packageJson?.name === expectedRepoName,
+    'Workspace package identity matches production website',
+    `package name ${packageJson?.name || '(missing)'} is not ${expectedRepoName}`,
+  )
+  requireCondition(
+    cwd.split('/').pop() === expectedRepoName || cwd.split('/').pop() === 'blockchain-economics-lab-youtube-member-gate',
+    'Workspace path is an approved BCE Lab website checkout',
+    cwd,
+  )
+
+  for (const file of requiredFiles) {
+    requireCondition(
+      awaitableExists(new URL(`../${file}`, import.meta.url)),
+      `Workspace contains ${file}`,
+    )
+  }
+}
+
+function awaitableReadJson(url) {
+  try {
+    return JSON.parse(readFileSync(url, 'utf8'))
+  } catch {
+    return null
+  }
+}
+
+function awaitableExists(url) {
+  try {
+    accessSync(url)
+    return true
+  } catch {
+    return false
+  }
+}
 
 function normalizeBaseUrl(value) {
   const trimmed = value.trim().replace(/\/+$/, '')
@@ -86,6 +134,8 @@ function extractRows(payload) {
   if (Array.isArray(payload?.data)) return payload.data
   return []
 }
+
+verifyWorkspaceGate()
 
 const scorePage = await fetchText('/ko/score')
 requireCondition(scorePage.ok, 'Top500 page responds successfully', `${scorePage.status} ${scorePage.url}`)

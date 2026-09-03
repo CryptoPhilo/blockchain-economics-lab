@@ -3,9 +3,12 @@ import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 
 import SlideViewer from '@/components/SlideViewer'
+import YouTubeMemberOnlyGate from '@/components/YouTubeMemberOnlyGate'
 import { getLocalizedMarketingContent } from '@/lib/report-marketing-content'
 import { cleanCardSummary } from '@/lib/report-summary'
+import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { userHasActiveYouTubeMembership } from '@/lib/youtube-membership'
 import {
   pickRequestedOrLatestReport,
   sortReportsLatestFirst,
@@ -80,6 +83,15 @@ function asStringArray(value: unknown): string[] {
   return value.filter(isNonEmptyString)
 }
 
+async function canUserViewMemberSlides(userId: string) {
+  try {
+    return await userHasActiveYouTubeMembership(createSupabaseAdminClient(), userId)
+  } catch (error) {
+    console.error('[slide-report] YouTube membership gate failed:', error)
+    return false
+  }
+}
+
 function getLocalizedKeywords(
   locale: string,
   report: ReportRecord,
@@ -144,6 +156,7 @@ export async function SlideReportPage({
 }: SlideReportPageProps) {
   const t = await getTranslations('slideReportDetail')
   const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
   const { data: projectRows } = await supabase
     .from('tracked_projects')
@@ -220,6 +233,10 @@ export async function SlideReportPage({
   const cardData = report?.card_data as CardDataRecord | null
   const slideUrl = report ? resolveSlideUrl(mergedSlideUrls, locale) : null
   const reportPdfUrl = report ? resolveReportPdfUrl(report, locale) : null
+  let canViewSlides = false
+  if (slideUrl && user) {
+    canViewSlides = await canUserViewMemberSlides(user.id)
+  }
 
   const keywords = report ? getLocalizedKeywords(locale, report, cardData) : []
   const summary = report ? cleanCardSummary(getLocalizedSummary(locale, report, cardData)) : ''
@@ -300,11 +317,18 @@ export async function SlideReportPage({
       <div className="max-w-5xl mx-auto px-6 py-12">
         {/* Slide viewer or fallback */}
         <div className="mb-10">
-          {slideUrl ? (
+          {slideUrl && canViewSlides ? (
             <SlideViewer
               htmlUrl={slideUrl}
               title={`${project.name} ${reportLabel}`}
               projectName={project.name}
+            />
+          ) : slideUrl ? (
+            <YouTubeMemberOnlyGate
+              locale={locale}
+              projectName={project.name}
+              reportLabel={reportLabel}
+              isAuthenticated={Boolean(user)}
             />
           ) : isLocalePending ? (
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-10 text-center">
@@ -327,7 +351,7 @@ export async function SlideReportPage({
           )}
         </div>
 
-        {slideUrl && reportPdfUrl && (
+        {slideUrl && canViewSlides && reportPdfUrl && (
           <div className="mb-10 rounded-xl border border-white/10 bg-white/[0.03] p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
