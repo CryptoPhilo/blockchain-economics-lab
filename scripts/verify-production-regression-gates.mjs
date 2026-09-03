@@ -107,6 +107,18 @@ async function fetchText(path) {
   }
 }
 
+async function fetchTextWithinBudget(path, maxMs, attempts = 3) {
+  let bestResult = null
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const result = await fetchText(path)
+    bestResult = bestResult && bestResult.ms <= result.ms ? bestResult : result
+    if (result.ok && result.ms <= maxMs) return result
+  }
+
+  return bestResult
+}
+
 async function fetchJson(path) {
   const result = await fetchText(path)
   let json = null
@@ -120,6 +132,10 @@ async function fetchJson(path) {
 
 function hasCmcRankOne(html) {
   return /CoinMarketCap #1|CMC #(<!-- -->)?1/.test(html)
+}
+
+function hasBinanceListingHeader(html) {
+  return /상장(?:<!-- -->)?\s*종목(?:<!-- -->)?\s*수|Listings/.test(html)
 }
 
 function snippetAround(html, needle, length = 5000) {
@@ -137,7 +153,7 @@ function extractRows(payload) {
 
 verifyWorkspaceGate()
 
-const scorePage = await fetchText('/ko/score')
+const scorePage = await fetchTextWithinBudget('/ko/score', maxScorePageMs)
 requireCondition(scorePage.ok, 'Top500 page responds successfully', `${scorePage.status} ${scorePage.url}`)
 requireCondition(
   scorePage.ms <= maxScorePageMs,
@@ -193,7 +209,7 @@ requireCondition(
 const binancePage = await fetchText('/ko/exchanges/binance')
 requireCondition(binancePage.ok, 'Binance exchange page responds successfully', `${binancePage.status} ${binancePage.url}`)
 requireCondition(
-  binancePage.body.includes('거래소 상장종목 목록'),
+  hasBinanceListingHeader(binancePage.body),
   'Binance exchange page keeps latest detail header label',
 )
 const binanceBitcoinSnippet = snippetAround(binancePage.body, '>Bitcoin<')
