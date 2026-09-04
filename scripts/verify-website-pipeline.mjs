@@ -104,6 +104,9 @@ requireText('src/app/[locale]/projects/[slug]/page.tsx', 'in_review', 'src/app/[
 requireText('src/app/[locale]/projects/[slug]/page.tsx', 'reportSupportsLocale', 'src/app/[locale]/projects/[slug]/page.tsx delegates locale asset checks')
 requireText('src/lib/report-locale.ts', 'slide_html_urls_by_lang', 'src/lib/report-locale.ts requires slide HTML assets')
 requireText('src/lib/repositories/exchanges.ts', 'listedProjectCount > 0', 'Exchange repository suppresses zero-listing aggregates')
+requireText('src/components/ScoreTableGate.tsx', 'type="search"', 'Top500 table keeps search input control')
+requireText('src/components/ScoreTableGate.tsx', 'matchesScoreSearch', 'Top500 table keeps client search filtering')
+requireText('src/app/[locale]/score/page.tsx', 'searchRows={searchRows}', 'Top500 page passes full search rows to table')
 
 if (failures.length > 0) {
   console.error('\nWebsite pipeline alignment failed:')

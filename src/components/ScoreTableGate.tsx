@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState, useTransition } from 'react'
+import { Search, X } from 'lucide-react'
+import { useMemo, useState, useTransition } from 'react'
 
 /**
  * CMC-Style Market Cap Ranking Table with Email Gate
@@ -34,6 +35,7 @@ interface ScoreRow {
 
 interface ScoreTableGateProps {
   rows: ScoreRow[]
+  searchRows?: ScoreRow[]
   freeLimit?: number
   locale: string
   className?: string
@@ -107,8 +109,25 @@ function getRankRangeLabel(page: number) {
   return `${start}-${end}`
 }
 
+function normalizeSearchValue(value: string) {
+  return value.trim().toLowerCase()
+}
+
+function matchesScoreSearch(row: ScoreRow, query: string) {
+  if (!query) return true
+  const haystack = [
+    row.name,
+    row.symbol,
+    row.slug,
+    row.cmcRank != null ? `cmc ${row.cmcRank}` : '',
+    row.cmcRank != null ? `#${row.cmcRank}` : '',
+  ].join(' ').toLowerCase()
+  return haystack.includes(query)
+}
+
 export default function ScoreTableGate({
   rows,
+  searchRows,
   freeLimit = 20,
   locale,
   className,
@@ -127,11 +146,26 @@ export default function ScoreTableGate({
     return 'locked'
   })
   const [email, setEmail] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [isPending, startTransition] = useTransition()
 
-  const freeRows = rows.slice(0, freeLimit)
-  const gatedRows = rows.slice(freeLimit)
+  const normalizedSearchQuery = normalizeSearchValue(searchQuery)
+  const searchableRows = searchRows?.length ? searchRows : rows
+  const isSearching = normalizedSearchQuery.length > 0
+  const filteredSearchRows = useMemo(
+    () => searchableRows.filter((row) => matchesScoreSearch(row, normalizedSearchQuery)),
+    [searchableRows, normalizedSearchQuery],
+  )
+  const suggestionRows = useMemo(
+    () => filteredSearchRows.slice(0, 6),
+    [filteredSearchRows],
+  )
+  const visibleRows = isSearching ? filteredSearchRows : rows
+  const freeRows = isSearching ? visibleRows : visibleRows.slice(0, freeLimit)
+  const gatedRows = isSearching ? [] : visibleRows.slice(freeLimit)
   const isLocked = status !== 'unlocked' && gatedRows.length > 0
+  const showSuggestions = isSearchFocused && isSearching && suggestionRows.length > 0
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -338,6 +372,78 @@ export default function ScoreTableGate({
 
   return (
     <div className={className}>
+      <div className="mb-3 flex flex-col gap-2 rounded-lg border border-white/10 bg-white/[0.03] p-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-md">
+          <Search
+            aria-hidden="true"
+            size={16}
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+          />
+          <input
+            type="search"
+            value={searchQuery}
+            onBlur={() => setIsSearchFocused(false)}
+            onChange={(event) => {
+              setSearchQuery(event.target.value)
+              setIsSearchFocused(true)
+            }}
+            onFocus={() => setIsSearchFocused(true)}
+            placeholder={isKo ? '종목명, 심볼, CMC 순위 검색' : 'Search asset, symbol, or CMC rank'}
+            className="h-10 w-full rounded-md border border-white/10 bg-slate-950/80 pl-9 pr-10 text-sm font-medium text-white outline-none transition-colors placeholder:text-slate-600 focus:border-indigo-400/60"
+            aria-label={isKo ? '종목 검색' : 'Search assets'}
+            aria-autocomplete="list"
+          />
+          {searchQuery.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('')
+                setIsSearchFocused(false)
+              }}
+              className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-slate-500 hover:bg-white/10 hover:text-white"
+              aria-label={isKo ? '검색어 지우기' : 'Clear search'}
+            >
+              <X aria-hidden="true" size={14} />
+            </button>
+          )}
+          {showSuggestions && (
+            <div
+              id="score-search-suggestions"
+              role="listbox"
+              className="absolute left-0 right-0 top-12 z-30 overflow-hidden rounded-md border border-white/10 bg-slate-950 shadow-2xl shadow-black/50"
+            >
+              {suggestionRows.map((row) => (
+                <button
+                  key={`${row.rank}-${row.slug}`}
+                  type="button"
+                  role="option"
+                  aria-selected="false"
+                  onMouseDown={(event) => {
+                    event.preventDefault()
+                    setSearchQuery(row.name)
+                    setIsSearchFocused(false)
+                  }}
+                  className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left hover:bg-white/[0.06]"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-semibold text-white">{row.name}</span>
+                    <span className="block text-[11px] font-medium uppercase text-slate-500">{row.symbol}</span>
+                  </span>
+                  <span className="shrink-0 rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-[10px] font-semibold text-slate-400">
+                    CMC #{row.cmcRank ?? row.rank}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="min-h-5 text-xs font-medium text-slate-500">
+          {isSearching
+            ? (isKo ? `${visibleRows.length}개 검색 결과` : `${visibleRows.length} results`)
+            : (isKo ? `${getRankRangeLabel(currentPage)}위 표시` : `Showing ranks ${getRankRangeLabel(currentPage)}`)}
+        </div>
+      </div>
+
       {/* Table */}
       <div className="rounded-xl border border-white/5">
         <table className="w-full">
@@ -368,6 +474,13 @@ export default function ScoreTableGate({
           </tbody>
         </table>
       </div>
+      {isSearching && visibleRows.length === 0 && (
+        <div className="rounded-b-xl border-x border-b border-white/5 py-14 text-center">
+          <p className="text-sm font-medium text-slate-400">
+            {isKo ? '검색 결과가 없습니다.' : 'No matching assets found.'}
+          </p>
+        </div>
+      )}
 
       {/* Gate section for remaining rows */}
       {gatedRows.length > 0 && (
@@ -435,7 +548,7 @@ export default function ScoreTableGate({
           )}
         </div>
       )}
-      {totalPages > 1 && (
+      {!isSearching && totalPages > 1 && (
         <nav className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 mt-8 pb-1">
           {currentPage > 1 && (
             <Link

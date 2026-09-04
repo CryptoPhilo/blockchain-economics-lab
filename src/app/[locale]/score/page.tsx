@@ -1019,6 +1019,15 @@ export default async function ScorePage({
     reportAvailabilityByProjectSlug,
     buildTrackedProjectIdentityLookup(trackedProjects),
   )
+  const trackedProjectLookup = buildTrackedProjectLookup(trackedProjects, { includeProjectAliases: false })
+  const trackedProjectIdentityLookup = buildTrackedProjectIdentityLookup(trackedProjects)
+  const searchRows = snapshotRowsToScoreRows(
+    canonicalScoreSnapshotRows,
+    trackedProjectLookup,
+    undefined,
+    undefined,
+    trackedProjectIdentityLookup,
+  )
   const totalPages = Math.ceil(Math.min(canonicalScoreSnapshotRows.length, MAX_RANK) / ITEMS_PER_PAGE)
 
   const isKo = locale === 'ko'
@@ -1049,6 +1058,7 @@ export default async function ScorePage({
       {rows.length > 0 ? (
         <ScoreTableGate
           rows={rows}
+          searchRows={searchRows}
           freeLimit={500}
           locale={locale}
           currentPage={currentPage}

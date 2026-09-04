@@ -138,6 +138,11 @@ function hasBinanceListingHeader(html) {
   return /상장(?:<!-- -->)?\s*종목(?:<!-- -->)?\s*수|Listings/.test(html)
 }
 
+function hasScoreSearchControl(html) {
+  return /type=["']search["']/.test(html)
+    && /종목명(?:<!-- -->)?\s*,(?:<!-- -->)?\s*심볼(?:<!-- -->)?\s*,(?:<!-- -->)?\s*CMC(?:<!-- -->)?\s*순위(?:<!-- -->)?\s*검색|Search asset(?:<!-- -->)?\s*,(?:<!-- -->)?\s*symbol(?:<!-- -->)?\s*,(?:<!-- -->)?\s*or CMC rank/.test(html)
+}
+
 function snippetAround(html, needle, length = 5000) {
   const index = html.indexOf(needle)
   if (index < 0) return ''
@@ -170,6 +175,7 @@ requireCondition(scoreBitcoinSnippet.length > 0, 'Top500 page includes Bitcoin r
 requireCondition(hasCmcRankOne(scoreBitcoinSnippet), 'Top500 Bitcoin row includes CMC rank')
 requireCondition(/ECON/.test(scoreBitcoinSnippet), 'Top500 Bitcoin row includes ECON badge')
 requireCondition(/MAT/.test(scoreBitcoinSnippet), 'Top500 Bitcoin row includes MAT badge')
+requireCondition(hasScoreSearchControl(scorePage.body), 'Top500 page keeps search control')
 
 const exchangesApi = await fetchJson('/api/exchanges')
 const exchanges = extractRows(exchangesApi.json)
